@@ -1,4 +1,5 @@
-//! Compiles `tests/c/smoke.c` against the header and the static library and
+//! Compiles `tests/c/smoke.c` against the header of `composition-ffi` and the
+//! static library and
 //! runs it, so that the hand-written header is exercised by a real C
 //! compiler.
 
@@ -15,7 +16,18 @@ fn c_program_drives_the_engine() {
         .and_then(|deps| deps.parent())
         .unwrap()
         .to_path_buf();
-    let library = profile.join("libcomposition_ffi.a");
+    // Cargo builds only the rlib of this crate for its tests: build the static
+    // library itself, into the same target directory and profile.
+    let mut build = Command::new(env!("CARGO"));
+    build
+        .args(["build", "--lib", "-p", "composition-ffi-staticlib"])
+        .current_dir(&manifest);
+    if profile.file_name().is_some_and(|name| name == "release") {
+        build.arg("--release");
+    }
+    let built = build.status().expect("cannot run cargo");
+    assert!(built.success(), "cargo build of the static library failed");
+    let library = profile.join("libcomposition_engine.a");
     assert!(
         library.exists(),
         "static library not found at {}",
@@ -27,7 +39,7 @@ fn c_program_drives_the_engine() {
     let output = Command::new(&compiler)
         .args(["-std=c11", "-Wall", "-Wextra", "-Werror", "-pedantic"])
         .arg("-I")
-        .arg(manifest.join("include"))
+        .arg(manifest.join("../composition-ffi/include"))
         .arg(manifest.join("tests/c/smoke.c"))
         .arg(&library)
         // What the Rust standard library needs on Linux.
