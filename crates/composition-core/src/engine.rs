@@ -197,13 +197,37 @@ impl<B: DisplayBackend> Engine<B> {
         // time `commit` returns (see `DisplayBackend::commit`), and it must be
         // recorded before the new submission: recorded after it, the latched
         // submission would be counted as dropped and its buffers released
-        // while they are being scanned out. `check_submit` reserved the room.
-        if self.collect_backend_events()? {
+        // while they are being scanned out. The new submission itself may
+        // have latched already too (a vertical blank right after its writes,
+        // or a commit that changed nothing): that latch is held back and
+        // recorded after the submission. `check_submit` reserved the room
+        // for all of these.
+        let mut own_latch = None;
+        let mut lost = false;
+        while self.presentation.events_room() > MAX_LAYERS + 1 {
+            let Some(event) = self.backend.poll_event() else {
+                break;
+            };
+            match event {
+                BackendEvent::Latched {
+                    output,
+                    submission: latched,
+                } if latched == submission => own_latch = Some(output),
+                event => {
+                    lost |= event == BackendEvent::DeviceLost;
+                    self.apply_backend_event(event)?;
+                }
+            }
+        }
+        if lost {
             // The display went away during the commit: nothing will latch.
             return Err(Error::Backend(BackendError::DeviceLost));
         }
         let recorded = self.presentation.submit(frame.output, &buffers, replace)?;
         debug_assert_eq!(recorded, submission);
+        if let Some(output) = own_latch {
+            self.presentation.latched(output, recorded)?;
+        }
         Ok(recorded)
     }
 

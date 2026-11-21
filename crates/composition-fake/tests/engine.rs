@@ -332,6 +332,68 @@ fn latch_during_the_replacing_commit_is_recorded_before_it() {
 }
 
 #[test]
+fn latch_of_the_new_submission_during_its_commit_is_recorded_after_it() {
+    for replace in [false, true] {
+        let mut engine = engine(replace);
+        let a = [app(APP_A)];
+        let b = [app(APP_B)];
+        let first = engine
+            .present(&Frame {
+                output: OUT,
+                layers: &a,
+            })
+            .unwrap();
+        engine.backend_mut().vsync();
+        engine.backend_mut().vsync_after_next_commit();
+        let second = engine
+            .present(&Frame {
+                output: OUT,
+                layers: &b,
+            })
+            .unwrap();
+        assert_eq!(
+            drain(&mut engine),
+            [
+                presented(first),
+                presented(second),
+                DisplayEvent::Released { buffer: APP_A }
+            ]
+        );
+        assert_eq!(engine.buffer_state(APP_B), Some(BufferState::Scanning));
+        assert_eq!(engine.buffer_state(APP_A), Some(BufferState::Ready));
+    }
+}
+
+#[test]
+fn both_latches_inside_one_replacing_commit_are_recorded_in_order() {
+    let mut engine = engine(true);
+    let a = [app(APP_A)];
+    let b = [app(APP_B)];
+    let first = engine
+        .present(&Frame {
+            output: OUT,
+            layers: &a,
+        })
+        .unwrap();
+    engine.backend_mut().vsync_in_next_commit();
+    engine.backend_mut().vsync_after_next_commit();
+    let second = engine
+        .present(&Frame {
+            output: OUT,
+            layers: &b,
+        })
+        .unwrap();
+    assert_eq!(
+        drain(&mut engine),
+        [
+            presented(first),
+            presented(second),
+            DisplayEvent::Released { buffer: APP_A }
+        ]
+    );
+}
+
+#[test]
 fn failed_commit_changes_nothing() {
     let mut engine = engine(false);
     let a = [app(APP_A)];

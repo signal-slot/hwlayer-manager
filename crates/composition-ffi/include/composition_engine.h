@@ -240,6 +240,7 @@ typedef struct ce_backend_ops {
 	 * commit took it over (a vertical blank while the new frame was being
 	 * written): that latch must be ready for poll_event by the time
 	 * commit returns, and the engine records it before the new frame.
+	 * The new frame's own latch may be reported as soon as it happened.
 	 */
 	ce_status (*commit)(void *ctx, uint64_t submission, const ce_frame *frame,
 			    const ce_assignment *assignments, size_t count);

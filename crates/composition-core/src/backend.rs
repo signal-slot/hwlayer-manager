@@ -70,7 +70,9 @@ pub trait DisplayBackend {
     /// (for example at a vertical blank while the new frame was being
     /// written). That latch is real, and must be queued for
     /// [`DisplayBackend::poll_event`] by the time `commit` returns; the
-    /// engine records it before it records the new submission.
+    /// engine records it before it records the new submission. The new
+    /// submission's own latch may be reported as soon as it happened, even
+    /// before `commit` returns to the engine.
     fn commit(
         &mut self,
         submission: SubmissionId,

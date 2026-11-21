@@ -51,6 +51,7 @@ pub struct FakeBackend {
     checks: u32,
     commits: u32,
     vsync_in_next_commit: bool,
+    vsync_after_next_commit: bool,
 }
 
 impl FakeBackend {
@@ -66,6 +67,7 @@ impl FakeBackend {
             checks: 0,
             commits: 0,
             vsync_in_next_commit: false,
+            vsync_after_next_commit: false,
         }
     }
 
@@ -85,6 +87,12 @@ impl FakeBackend {
     /// frame: the pending commit is latched and reported, then replaced.
     pub fn vsync_in_next_commit(&mut self) {
         self.vsync_in_next_commit = true;
+    }
+
+    /// Makes the next commit meet a vertical blank right after its writes,
+    /// before it returns to the engine: it is latched and reported at once.
+    pub fn vsync_after_next_commit(&mut self) {
+        self.vsync_after_next_commit = true;
     }
 
     /// Simulates a vertical blank: every pending commit is latched.
@@ -212,6 +220,9 @@ impl DisplayBackend for FakeBackend {
             .collect();
         state.pending = Some(Commit { submission, planes });
         self.commits += 1;
+        if core::mem::take(&mut self.vsync_after_next_commit) {
+            self.vsync();
+        }
         Ok(())
     }
 

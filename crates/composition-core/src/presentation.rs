@@ -314,12 +314,13 @@ impl Presentation {
             None if self.slots.remaining() == 0 => return Err(PresentError::TooManyOutputs),
             None => {}
         }
-        // Worst case: one Dropped plus a Released per buffer of the old one,
-        // and before that the latch of every pending submission, which the
-        // engine may still have to record between the backend's commit and
-        // this submission (`Engine::commit`): a Presented plus a Released per
-        // buffer of the frame it replaces on screen.
-        // One more for a DeviceLost or CapabilitiesChanged collected then.
+        // Worst case: the latch of every pending submission, which the engine
+        // may still have to record between the backend's commit and this
+        // submission (`Engine::commit`), then either a Dropped plus a
+        // Released per buffer of the replaced one or, when that one latched,
+        // the latch of the new submission itself; a latch is a Presented plus
+        // a Released per buffer of the frame it replaces on screen. One more
+        // for a DeviceLost or CapabilitiesChanged collected then.
         let pending = self.slots.iter().filter(|s| s.pending.is_some()).count();
         if self.events.remaining() < (pending + 1) * (MAX_LAYERS + 1) + 1 {
             return Err(PresentError::EventQueueFull);
