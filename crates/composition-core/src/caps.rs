@@ -173,6 +173,15 @@ pub struct Capabilities {
 }
 
 impl Capabilities {
+    /// Removes every output, plane and resource group, and clears
+    /// `replace_pending`, without building a new description on the stack.
+    pub fn clear(&mut self) {
+        self.outputs.clear();
+        self.planes.clear();
+        self.resource_groups.clear();
+        self.replace_pending = false;
+    }
+
     /// Index of `output` in [`Capabilities::outputs`].
     pub fn output_index(&self, output: OutputId) -> Option<usize> {
         self.outputs.iter().position(|o| o.id == output)

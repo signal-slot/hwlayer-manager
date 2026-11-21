@@ -890,10 +890,9 @@ impl DrmBackend {
 }
 
 impl DisplayBackend for DrmBackend {
-    fn capabilities(&self) -> Capabilities {
-        let mut caps = Capabilities::default();
+    fn capabilities(&mut self, caps: &mut Capabilities) {
         if self.lost {
-            return caps;
+            return;
         }
         for output in &self.outputs {
             let (width, height) = output.mode.size();
@@ -906,8 +905,7 @@ impl DisplayBackend for DrmBackend {
         for plane in &self.planes {
             let _ = caps.planes.push(plane.caps);
         }
-        self.options.profile.apply(&mut caps);
-        caps
+        self.options.profile.apply(caps);
     }
 
     fn check(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<(), BackendError> {

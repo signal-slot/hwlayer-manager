@@ -23,9 +23,9 @@ use std::sync::{Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
 use composition_core::{
-    BackendError, BlendMode, BufferId, BufferInfo, BufferState, DisplayBackend, DisplayEvent,
-    Engine, Error, Frame, Layer, Modifier, OutputId, PixelFormat, PlanError, PlaneKind,
-    PresentError, Rect, RejectReasons, Size, SubmissionId,
+    BackendError, BlendMode, BufferId, BufferInfo, BufferState, Capabilities, DisplayBackend,
+    DisplayEvent, Engine, Error, Frame, Layer, Modifier, OutputId, PixelFormat, PlanError,
+    PlaneKind, PresentError, Rect, RejectReasons, Size, SubmissionId,
 };
 use composition_drm::{Card, DrmBackend, DrmOptions};
 use drm::control::Device as ControlDevice;
@@ -645,9 +645,7 @@ fn leased_output_exposes_only_leased_planes_and_reports_revocation() {
         ]
     );
     assert!(engine.capabilities().outputs.is_empty());
-    assert_eq!(
-        engine.backend_mut().capabilities().planes.len(),
-        0,
-        "a lost device claims nothing"
-    );
+    let mut caps = Capabilities::default();
+    engine.backend_mut().capabilities(&mut caps);
+    assert_eq!(caps.planes.len(), 0, "a lost device claims nothing");
 }

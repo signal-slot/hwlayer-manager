@@ -88,7 +88,7 @@ pub const CE_ERR_BACKEND_PLATFORM: ce_status = -52;
 pub const CE_ERR_BACKEND_UNKNOWN_BUFFER: ce_status = -53;
 
 /// Bytes of storage the header reserves for one engine.
-pub const CE_ENGINE_SIZE: usize = 20480;
+pub const CE_ENGINE_SIZE: usize = 28672;
 /// Alignment the header requires for the engine storage.
 pub const CE_ENGINE_ALIGN: usize = 8;
 
@@ -260,10 +260,14 @@ pub struct ce_error_info {
 pub struct CBackend {
     ops: ce_backend_ops,
     ctx: *mut c_void,
+    /// Where the C backend describes itself: the second field of the
+    /// `ce_engine` that holds this backend, in the caller's storage, which
+    /// does not move. Not on the stack: it is about 9 KiB.
+    raw_caps: *mut ce_capabilities,
 }
 
 /// The engine as seen from C.
-pub struct ce_engine(Engine<CBackend>);
+pub struct ce_engine(Engine<CBackend>, ce_capabilities);
 
 fn blend_from(value: u8) -> Option<BlendMode> {
     Some(match value {
@@ -313,11 +317,8 @@ fn layer_to(layer: &Layer) -> ce_layer {
 
 /// Converts what the C backend reported, dropping anything malformed.
 /// Under-reporting is safe; inventing capabilities is not.
-fn capabilities_from(raw: &ce_capabilities) -> Capabilities {
-    let mut caps = Capabilities {
-        replace_pending: raw.replace_pending != 0,
-        ..Capabilities::default()
-    };
+fn capabilities_from(raw: &ce_capabilities, caps: &mut Capabilities) {
+    caps.replace_pending = raw.replace_pending != 0;
     for output in raw.outputs.iter().take(raw.output_count as usize) {
         let _ = caps.outputs.push(OutputCaps {
             id: OutputId(output.id),
@@ -379,7 +380,6 @@ fn capabilities_from(raw: &ce_capabilities) -> Capabilities {
             capacity: group.capacity,
         });
     }
-    caps
 }
 
 fn backend_error(code: i32) -> BackendError {
@@ -442,19 +442,23 @@ impl CBackend {
 }
 
 impl DisplayBackend for CBackend {
-    fn capabilities(&self) -> Capabilities {
+    fn capabilities(&mut self, caps: &mut Capabilities) {
         let Some(capabilities) = self.ops.capabilities else {
-            return Capabilities::default();
+            return;
         };
-        let mut raw = MaybeUninit::<ce_capabilities>::zeroed();
-        // SAFETY: `raw` is valid for writes and zero is a valid value of
-        // every field. The function and `ctx` were supplied together through
-        // `ce_engine_init`, whose caller vouches for them.
-        let raw = unsafe {
-            capabilities(self.ctx, raw.as_mut_ptr());
-            raw.assume_init_ref()
-        };
-        capabilities_from(raw)
+        let raw = self.raw_caps;
+        // SAFETY: `raw` points to the second field of the `ce_engine` that
+        // owns this backend (`ce_engine_init`), valid for reads and writes
+        // and used by nothing else; zero is a valid value of every field of
+        // `ce_capabilities`, and it is cleared in place, not through a
+        // zeroed temporary on the stack. The function and `ctx` were
+        // supplied together through `ce_engine_init`, whose caller vouches
+        // for them.
+        unsafe {
+            raw.write_bytes(0, 1);
+            capabilities(self.ctx, raw);
+            capabilities_from(&*raw, caps);
+        }
     }
 
     fn check(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<(), BackendError> {
@@ -651,8 +655,19 @@ pub unsafe extern "C" fn ce_engine_init(
     // SAFETY: `ops` is valid per the contract; `storage` is large enough,
     // aligned and writable as checked above and per the contract.
     unsafe {
-        let backend = CBackend { ops: *ops, ctx };
-        engine.write(ce_engine(Engine::new(backend)));
+        // The backend's description area first, cleared in place: zero is a
+        // valid value of every field. The engine is built straight into the
+        // storage too; neither is assembled on the stack and copied.
+        let raw_caps = &raw mut (*engine).1;
+        raw_caps.write_bytes(0, 1);
+        let backend = CBackend {
+            ops: *ops,
+            ctx,
+            raw_caps,
+        };
+        let placed = &raw mut (*engine).0;
+        placed.write(Engine::new_unprobed(backend));
+        (*placed).probe();
     }
     engine
 }

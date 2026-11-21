@@ -46,11 +46,17 @@ pub enum BackendEvent {
 
 /// A display backend: Linux DRM/KMS, an MCU display controller, or a fake.
 pub trait DisplayBackend {
-    /// Describes the outputs and planes the backend can drive right now.
+    /// Describes the outputs and planes the backend can drive right now, by
+    /// adding them to `caps`, which arrives cleared
+    /// ([`Capabilities::clear`]).
     ///
     /// The description must reflect what is actually usable, for example only
     /// the objects granted by a DRM lease.
-    fn capabilities(&self) -> Capabilities;
+    ///
+    /// The description is written in place because it is large (about 9 KiB):
+    /// returned by value, it and its temporaries would be reserved on the
+    /// caller's stack, which on an MCU is a thread stack of a few KiB.
+    fn capabilities(&mut self, caps: &mut Capabilities);
 
     /// Final validation of a planned frame, without changing the display.
     ///

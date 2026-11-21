@@ -5,7 +5,7 @@
 //! This is the report to capture on a target board: it shows the outputs and
 //! planes the descriptor really exposes, as the planner will see them.
 
-use composition_core::{BlendMode, DisplayBackend, PixelFormat, Zpos};
+use composition_core::{BlendMode, Capabilities, DisplayBackend, PixelFormat, Zpos};
 use composition_drm::{DrmBackend, DrmOptions};
 
 fn fourcc(format: PixelFormat) -> String {
@@ -27,10 +27,11 @@ fn main() -> std::io::Result<()> {
     let path = std::env::args()
         .nth(1)
         .unwrap_or_else(|| "/dev/dri/card0".into());
-    let backend = DrmBackend::open(&path, DrmOptions::default())?;
+    let mut backend = DrmBackend::open(&path, DrmOptions::default())?;
     println!("device {path}, driver {}", backend.driver_name()?);
 
-    let caps = backend.capabilities();
+    let mut caps = Capabilities::default();
+    backend.capabilities(&mut caps);
     for (index, output) in caps.outputs.iter().enumerate() {
         println!(
             "output {index}: crtc {} {}x{} @ {}.{:03} Hz",

@@ -466,6 +466,31 @@ fn plan_is_bound_to_its_frame_and_to_the_capabilities() {
 }
 
 #[test]
+fn unprobed_engine_knows_nothing_until_probed_and_probing_makes_plans_stale() {
+    let caps = two_plane_caps(false);
+    let mut engine = Engine::new_unprobed(FakeBackend::new(caps));
+    assert_eq!(*engine.capabilities(), Capabilities::default());
+
+    engine.probe();
+    assert_eq!(*engine.capabilities(), caps);
+    assert_eq!(*Engine::new(FakeBackend::new(caps)).capabilities(), caps);
+
+    engine
+        .register_buffer(APP_A, info(PixelFormat::RGB565))
+        .unwrap();
+    engine.finish_write(APP_A).unwrap();
+    let a = [app(APP_A)];
+    let frame = Frame {
+        output: OUT,
+        layers: &a,
+    };
+    let plan = engine.validate(&frame).unwrap();
+    engine.probe();
+    assert_eq!(engine.commit(&frame, &plan), Err(Error::StalePlan));
+    assert_eq!(drain(&mut engine), [], "probing is not reported");
+}
+
+#[test]
 fn losing_a_plane_turns_a_valid_frame_into_a_rejection() {
     let mut engine = engine(false);
     let layers = [app(APP_A), safety()];

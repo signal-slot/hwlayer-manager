@@ -31,7 +31,7 @@ extern "C" {
 #define CE_MAX_RESOURCE_GROUPS 8
 
 /* Storage for one engine: CE_ENGINE_SIZE bytes aligned to CE_ENGINE_ALIGN. */
-#define CE_ENGINE_SIZE 20480
+#define CE_ENGINE_SIZE 28672
 #define CE_ENGINE_ALIGN 8
 
 /* DRM-style FourCC pixel formats. */

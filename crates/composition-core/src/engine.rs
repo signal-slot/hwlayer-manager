@@ -57,15 +57,34 @@ pub struct Engine<B: DisplayBackend> {
 impl<B: DisplayBackend> Engine<B> {
     /// Creates an engine driving `backend`.
     pub fn new(backend: B) -> Self {
-        let caps = backend.capabilities();
+        let mut engine = Self::new_unprobed(backend);
+        engine.probe();
+        engine
+    }
+
+    /// Creates an engine that knows no outputs or planes until
+    /// [`Engine::probe`] is called.
+    ///
+    /// For callers that build the engine in place, such as the C ABI on an
+    /// MCU: [`Engine::new`] asks the backend before it returns, so the engine
+    /// is assembled on the stack and then moved. Write this one into its
+    /// final storage, then probe it there.
+    pub fn new_unprobed(backend: B) -> Self {
         Self {
             backend,
-            caps,
+            caps: Capabilities::default(),
             generation: 0,
             presentation: Presentation::new(),
             limits: SearchLimits::default(),
             latch_timeout: None,
         }
+    }
+
+    /// Asks the backend for its capabilities again, as
+    /// [`BackendEvent::CapabilitiesChanged`] does, without reporting
+    /// [`DisplayEvent::CapabilitiesChanged`]. Plans made before are stale.
+    pub fn probe(&mut self) {
+        self.refresh_capabilities();
     }
 
     /// The backend.
@@ -298,14 +317,14 @@ impl<B: DisplayBackend> Engine<B> {
         Ok(())
     }
 
-    // Out of line and cold: the backend's description is large (about 9 KiB),
-    // and inlined it would be reserved on the stack of every caller,
-    // `commit` included, on every frame, though it changes only when the
-    // display does. MCU firmwares present from small thread stacks.
+    // Out of line and cold: it runs only when the display changes, and the
+    // backend's code to describe itself has no place on the stack of every
+    // poll and commit. The description itself is written in place.
     #[cold]
     #[inline(never)]
     fn refresh_capabilities(&mut self) {
-        self.caps = self.backend.capabilities();
+        self.caps.clear();
+        self.backend.capabilities(&mut self.caps);
         self.generation = self.generation.wrapping_add(1);
     }
 }

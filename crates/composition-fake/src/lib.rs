@@ -162,8 +162,8 @@ impl FakeBackend {
 }
 
 impl DisplayBackend for FakeBackend {
-    fn capabilities(&self) -> Capabilities {
-        self.caps
+    fn capabilities(&mut self, caps: &mut Capabilities) {
+        *caps = self.caps;
     }
 
     fn check(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<(), BackendError> {
