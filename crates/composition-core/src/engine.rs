@@ -276,17 +276,25 @@ impl<B: DisplayBackend> Engine<B> {
             BackendEvent::Latched { output, submission } => {
                 self.presentation.latched(output, submission)?;
             }
-            BackendEvent::DeviceLost => {
-                self.presentation.reset()?;
-                self.refresh_capabilities();
-                self.presentation.push_event(DisplayEvent::DeviceLost)?;
-            }
+            BackendEvent::DeviceLost => self.device_lost()?,
             BackendEvent::CapabilitiesChanged => {
                 self.refresh_capabilities();
                 self.presentation
                     .push_event(DisplayEvent::CapabilitiesChanged)?;
             }
         }
+        Ok(())
+    }
+
+    // Out of line and cold, like refresh_capabilities: forgetting every
+    // submission needs a large frame (about 2 KiB on an MCU), which inlined
+    // would be reserved by every poll and every commit.
+    #[cold]
+    #[inline(never)]
+    fn device_lost(&mut self) -> Result<(), Error> {
+        self.presentation.reset()?;
+        self.refresh_capabilities();
+        self.presentation.push_event(DisplayEvent::DeviceLost)?;
         Ok(())
     }
 
