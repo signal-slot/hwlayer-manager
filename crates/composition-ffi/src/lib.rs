@@ -27,12 +27,6 @@ use composition_core::{
     PresentError, Rect, ResourceGroup, ScaleLimits, Size, SubmissionId, Transform, Zpos,
 };
 
-#[cfg(all(not(feature = "std"), feature = "panic-handler"))]
-#[panic_handler]
-fn panic(_: &core::panic::PanicInfo<'_>) -> ! {
-    loop {}
-}
-
 /// Status code: zero for success, negative otherwise.
 pub type ce_status = i32;
 

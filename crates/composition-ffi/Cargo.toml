@@ -8,18 +8,19 @@ publish.workspace = true
 license.workspace = true
 repository.workspace = true
 
+# An rlib only, so that a Rust library that already exists in a C program
+# (a firmware's UI crate, for example) can carry the C functions: a second
+# staticlib would bring a second copy of core and a second panic handler,
+# and Cargo builds every crate type of a dependency. C programs with no Rust
+# of their own link composition-ffi-staticlib.
 [lib]
-crate-type = ["staticlib", "rlib"]
+crate-type = ["rlib"]
 
 [features]
 default = ["std"]
 # Link the Rust standard library (hosted builds). Without it the crate is
-# no_std and the final program must provide a panic handler, or enable
-# `panic-handler`.
+# no_std and the final program provides the panic handler.
 std = []
-# Provide a panic handler that halts. For bare-metal C programs that link
-# this library and contain no other Rust code.
-panic-handler = []
 
 [dependencies]
 composition-core = { path = "../composition-core" }
