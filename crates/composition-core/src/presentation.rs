@@ -316,11 +316,13 @@ impl Presentation {
         }
         // Worst case: the latch of every pending submission, which the engine
         // may still have to record between the backend's commit and this
-        // submission (`Engine::commit`), then either a Dropped plus a
-        // Released per buffer of the replaced one or, when that one latched,
-        // the latch of the new submission itself; a latch is a Presented plus
-        // a Released per buffer of the frame it replaces on screen. One more
-        // for a DeviceLost or CapabilitiesChanged collected then.
+        // submission (`Engine::commit`), then a Dropped plus a Released per
+        // buffer of the replaced one if it did not latch, and the latch of
+        // the new submission itself, which `Engine::commit` records right
+        // after it. A latch is a Presented plus a Released per buffer of the
+        // frame it replaces on screen; with a pending submission, either it
+        // latches or it is dropped, so one share covers both. One more for a
+        // DeviceLost or CapabilitiesChanged collected then.
         let pending = self.slots.iter().filter(|s| s.pending.is_some()).count();
         if self.events.remaining() < (pending + 1) * (MAX_LAYERS + 1) + 1 {
             return Err(PresentError::EventQueueFull);
