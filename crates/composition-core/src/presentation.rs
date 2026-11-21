@@ -314,8 +314,14 @@ impl Presentation {
             None if self.slots.remaining() == 0 => return Err(PresentError::TooManyOutputs),
             None => {}
         }
-        // Worst case: one Dropped plus a Released per buffer of the old one.
-        if self.events.remaining() < MAX_LAYERS + 1 {
+        // Worst case: one Dropped plus a Released per buffer of the old one,
+        // and before that the latch of every pending submission, which the
+        // engine may still have to record between the backend's commit and
+        // this submission (`Engine::commit`): a Presented plus a Released per
+        // buffer of the frame it replaces on screen.
+        // One more for a DeviceLost or CapabilitiesChanged collected then.
+        let pending = self.slots.iter().filter(|s| s.pending.is_some()).count();
+        if self.events.remaining() < (pending + 1) * (MAX_LAYERS + 1) + 1 {
             return Err(PresentError::EventQueueFull);
         }
         Ok(())
@@ -479,6 +485,11 @@ impl Presentation {
     /// Takes the oldest queued event.
     pub fn poll_event(&mut self) -> Option<DisplayEvent> {
         self.events.pop()
+    }
+
+    /// Room left in the event queue.
+    pub fn events_room(&self) -> usize {
+        self.events.remaining()
     }
 
     /// Returns `true` if no event is queued.

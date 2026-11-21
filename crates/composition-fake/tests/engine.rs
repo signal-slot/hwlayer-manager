@@ -275,6 +275,63 @@ fn replaced_pending_frame_is_reported_as_dropped() {
 }
 
 #[test]
+fn latch_not_yet_polled_is_recorded_before_the_replacement() {
+    let mut engine = engine(true);
+    let a = [app(APP_A)];
+    let b = [app(APP_B)];
+    let first = engine
+        .present(&Frame {
+            output: OUT,
+            layers: &a,
+        })
+        .unwrap();
+    // Latched, but the client has not polled yet.
+    engine.backend_mut().vsync();
+    let second = engine
+        .present(&Frame {
+            output: OUT,
+            layers: &b,
+        })
+        .unwrap();
+    // APP_A is on screen: it is presented, not dropped, and stays in use.
+    assert_eq!(drain(&mut engine), [presented(first)]);
+    assert_eq!(engine.buffer_state(APP_A), Some(BufferState::Scanning));
+    engine.backend_mut().vsync();
+    assert_eq!(
+        drain(&mut engine),
+        [presented(second), DisplayEvent::Released { buffer: APP_A }]
+    );
+}
+
+#[test]
+fn latch_during_the_replacing_commit_is_recorded_before_it() {
+    let mut engine = engine(true);
+    let a = [app(APP_A)];
+    let b = [app(APP_B)];
+    let first = engine
+        .present(&Frame {
+            output: OUT,
+            layers: &a,
+        })
+        .unwrap();
+    engine.backend_mut().vsync_in_next_commit();
+    let second = engine
+        .present(&Frame {
+            output: OUT,
+            layers: &b,
+        })
+        .unwrap();
+    assert_eq!(drain(&mut engine), [presented(first)]);
+    assert_eq!(engine.buffer_state(APP_A), Some(BufferState::Scanning));
+    assert_eq!(engine.buffer_state(APP_B), Some(BufferState::Submitted));
+    engine.backend_mut().vsync();
+    assert_eq!(
+        drain(&mut engine),
+        [presented(second), DisplayEvent::Released { buffer: APP_A }]
+    );
+}
+
+#[test]
 fn failed_commit_changes_nothing() {
     let mut engine = engine(false);
     let a = [app(APP_A)];

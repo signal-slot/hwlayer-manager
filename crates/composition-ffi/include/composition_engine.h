@@ -236,7 +236,10 @@ typedef struct ce_backend_ops {
 	 * Program the frame. Success means accepted, not shown: report
 	 * CE_BACKEND_LATCHED with the same submission once the hardware has
 	 * latched it. A commit replaced before its latch must never be
-	 * reported as latched.
+	 * reported as latched, unless the hardware latched it before this
+	 * commit took it over (a vertical blank while the new frame was being
+	 * written): that latch must be ready for poll_event by the time
+	 * commit returns, and the engine records it before the new frame.
 	 */
 	ce_status (*commit)(void *ctx, uint64_t submission, const ce_frame *frame,
 			    const ce_assignment *assignments, size_t count);

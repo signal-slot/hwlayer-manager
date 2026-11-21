@@ -65,7 +65,12 @@ pub trait DisplayBackend {
     /// the same `submission` once the hardware has latched it.
     ///
     /// If a commit is still unlatched and the backend replaces it, the
-    /// replaced submission must never be reported as latched.
+    /// replaced submission must never be reported as latched, with one
+    /// exception: the hardware latched it before this commit took it over
+    /// (for example at a vertical blank while the new frame was being
+    /// written). That latch is real, and must be queued for
+    /// [`DisplayBackend::poll_event`] by the time `commit` returns; the
+    /// engine records it before it records the new submission.
     fn commit(
         &mut self,
         submission: SubmissionId,

@@ -50,6 +50,7 @@ pub struct FakeBackend {
     lost: bool,
     checks: u32,
     commits: u32,
+    vsync_in_next_commit: bool,
 }
 
 impl FakeBackend {
@@ -64,6 +65,7 @@ impl FakeBackend {
             lost: false,
             checks: 0,
             commits: 0,
+            vsync_in_next_commit: false,
         }
     }
 
@@ -76,6 +78,13 @@ impl FakeBackend {
     /// Makes the next `count` commits fail with a platform error.
     pub fn fail_next_commits(&mut self, count: u32) {
         self.failing_commits = count;
+    }
+
+    /// Makes the next commit meet a vertical blank before it takes over
+    /// the pending commit, as an interrupt can while a driver writes the new
+    /// frame: the pending commit is latched and reported, then replaced.
+    pub fn vsync_in_next_commit(&mut self) {
+        self.vsync_in_next_commit = true;
     }
 
     /// Simulates a vertical blank: every pending commit is latched.
@@ -177,6 +186,9 @@ impl DisplayBackend for FakeBackend {
         if self.failing_commits > 0 {
             self.failing_commits -= 1;
             return Err(BackendError::Platform(-5));
+        }
+        if core::mem::take(&mut self.vsync_in_next_commit) {
+            self.vsync();
         }
         let index = match self.outputs.iter().position(|(id, _)| *id == frame.output) {
             Some(index) => index,

@@ -183,12 +183,25 @@ impl<B: DisplayBackend> Engine<B> {
                 .map_err(|_| PresentError::TooManyBuffers)?;
         }
         let replace = self.caps.replace_pending;
+        // Latches the backend has already reported are recorded first, so
+        // that the check below sees what is really pending.
+        self.collect_backend_events()?;
         // Verify the bookkeeping first so that a commit the hardware accepts
         // can always be recorded.
         self.presentation
             .check_submit(frame.output, &buffers, replace)?;
         let submission = self.presentation.next_submission_id();
         self.backend.commit(submission, frame, plan)?;
+        // A pending submission can be latched while the backend commits the
+        // one that replaces it. The backend then reports that latch by the
+        // time `commit` returns (see `DisplayBackend::commit`), and it must be
+        // recorded before the new submission: recorded after it, the latched
+        // submission would be counted as dropped and its buffers released
+        // while they are being scanned out. `check_submit` reserved the room.
+        if self.collect_backend_events()? {
+            // The display went away during the commit: nothing will latch.
+            return Err(Error::Backend(BackendError::DeviceLost));
+        }
         let recorded = self.presentation.submit(frame.output, &buffers, replace)?;
         debug_assert_eq!(recorded, submission);
         Ok(recorded)
@@ -213,21 +226,44 @@ impl<B: DisplayBackend> Engine<B> {
             // always fit.
             match self.backend.poll_event() {
                 None => return Ok(None),
-                Some(BackendEvent::Latched { output, submission }) => {
-                    self.presentation.latched(output, submission)?;
-                }
-                Some(BackendEvent::DeviceLost) => {
-                    self.presentation.reset()?;
-                    self.refresh_capabilities();
-                    self.presentation.push_event(DisplayEvent::DeviceLost)?;
-                }
-                Some(BackendEvent::CapabilitiesChanged) => {
-                    self.refresh_capabilities();
-                    self.presentation
-                        .push_event(DisplayEvent::CapabilitiesChanged)?;
-                }
+                Some(event) => self.apply_backend_event(event)?,
             }
         }
+    }
+
+    /// Records the events the backend has queued, leaving the display events
+    /// they cause for [`Engine::poll_event`]. Stops while the queue lacks the
+    /// room for one more backend event, so that none is taken and lost; the
+    /// rest stays with the backend. Returns `true` if the device was lost.
+    fn collect_backend_events(&mut self) -> Result<bool, Error> {
+        let mut lost = false;
+        while self.presentation.events_room() > MAX_LAYERS + 1 {
+            let Some(event) = self.backend.poll_event() else {
+                break;
+            };
+            lost |= event == BackendEvent::DeviceLost;
+            self.apply_backend_event(event)?;
+        }
+        Ok(lost)
+    }
+
+    fn apply_backend_event(&mut self, event: BackendEvent) -> Result<(), Error> {
+        match event {
+            BackendEvent::Latched { output, submission } => {
+                self.presentation.latched(output, submission)?;
+            }
+            BackendEvent::DeviceLost => {
+                self.presentation.reset()?;
+                self.refresh_capabilities();
+                self.presentation.push_event(DisplayEvent::DeviceLost)?;
+            }
+            BackendEvent::CapabilitiesChanged => {
+                self.refresh_capabilities();
+                self.presentation
+                    .push_event(DisplayEvent::CapabilitiesChanged)?;
+            }
+        }
+        Ok(())
     }
 
     fn refresh_capabilities(&mut self) {
