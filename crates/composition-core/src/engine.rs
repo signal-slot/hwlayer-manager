@@ -290,6 +290,12 @@ impl<B: DisplayBackend> Engine<B> {
         Ok(())
     }
 
+    // Out of line and cold: the backend's description is large (about 9 KiB),
+    // and inlined it would be reserved on the stack of every caller,
+    // `commit` included, on every frame, though it changes only when the
+    // display does. MCU firmwares present from small thread stacks.
+    #[cold]
+    #[inline(never)]
     fn refresh_capabilities(&mut self) {
         self.caps = self.backend.capabilities();
         self.generation = self.generation.wrapping_add(1);
