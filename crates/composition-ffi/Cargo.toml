@@ -1,0 +1,28 @@
+[package]
+name = "composition-ffi"
+description = "C ABI of the hardware composition engine, with backends implemented in C"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[features]
+default = ["std"]
+# Link the Rust standard library (hosted builds). Without it the crate is
+# no_std and the final program must provide a panic handler, or enable
+# `panic-handler`.
+std = []
+# Provide a panic handler that halts. For bare-metal C programs that link
+# this library and contain no other Rust code.
+panic-handler = []
+
+[dependencies]
+composition-core = { path = "../composition-core" }
+
+[lints]
+workspace = true

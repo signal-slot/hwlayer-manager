@@ -1,0 +1,17 @@
+[package]
+name = "composition-drm"
+description = "Linux DRM/KMS atomic backend for the hardware composition engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+composition-core = { path = "../composition-core" }
+drm = "0.15"
+rustix = { version = "1", features = ["event"] }
+
+[lints]
+workspace = true

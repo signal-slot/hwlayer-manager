@@ -1,0 +1,15 @@
+[package]
+name = "vm-init"
+description = "PID 1 for the throwaway VM that runs the vkms tests"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+rustix = { version = "1", features = ["mount", "system", "fs"] }
+
+[lints]
+workspace = true

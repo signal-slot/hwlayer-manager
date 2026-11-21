@@ -1,0 +1,15 @@
+[package]
+name = "composition-fake"
+description = "Host-only fake display backend for deterministic tests of composition-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+composition-core = { path = "../composition-core" }
+
+[lints]
+workspace = true
