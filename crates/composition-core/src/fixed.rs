@@ -23,6 +23,15 @@ impl<T: Copy + Default, const N: usize> FixedVec<T, N> {
         }
     }
 
+    /// Creates an empty vector whose unused slots hold `fill`; usable in
+    /// constants, which `new` is not.
+    pub const fn empty_filled(fill: T) -> Self {
+        Self {
+            len: 0,
+            items: [fill; N],
+        }
+    }
+
     /// Creates a vector from a slice, failing if it does not fit.
     pub fn from_slice(items: &[T]) -> Result<Self, CapacityError> {
         let mut v = Self::new();
@@ -123,6 +132,16 @@ impl<T: Copy + Default, const N: usize> FixedQueue<T, N> {
             head: 0,
             len: 0,
             items: [T::default(); N],
+        }
+    }
+
+    /// Creates an empty queue whose unused slots hold `fill`; usable in
+    /// constants, which `new` is not.
+    pub const fn empty_filled(fill: T) -> Self {
+        Self {
+            head: 0,
+            len: 0,
+            items: [fill; N],
         }
     }
 

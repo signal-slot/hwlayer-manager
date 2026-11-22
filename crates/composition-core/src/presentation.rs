@@ -23,7 +23,7 @@
 use crate::fixed::{FixedQueue, FixedVec};
 use crate::limits::{MAX_BUFFERS, MAX_EVENTS, MAX_LAYERS, MAX_OUTPUTS};
 use crate::planner::BufferLookup;
-use crate::types::{BufferId, BufferInfo, OutputId, SubmissionId};
+use crate::types::{BufferId, BufferInfo, Modifier, OutputId, PixelFormat, Size, SubmissionId};
 
 /// Lifecycle state of a registered buffer.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -157,15 +157,36 @@ impl Default for Presentation {
 }
 
 impl Presentation {
+    /// An empty tracker, as a constant: [`crate::Engine`] is built from it
+    /// so that no tracker is assembled on the stack and copied (about
+    /// 5 KiB on a 32-bit MCU; MCU firmwares build the engine from small
+    /// stacks).
+    pub(crate) const EMPTY: Self = Self {
+        buffers: FixedVec::empty_filled(Entry {
+            id: BufferId(0),
+            info: BufferInfo {
+                size: Size {
+                    width: 0,
+                    height: 0,
+                },
+                format: PixelFormat(0),
+                modifier: Modifier(0),
+            },
+            writable: false,
+        }),
+        slots: FixedVec::empty_filled(OutputSlot {
+            output: OutputId(0),
+            pending: None,
+            current: None,
+        }),
+        events: FixedQueue::empty_filled(DisplayEvent::DeviceLost),
+        next_id: 1,
+        now: 0,
+    };
+
     /// Creates an empty tracker.
     pub fn new() -> Self {
-        Self {
-            buffers: FixedVec::new(),
-            slots: FixedVec::new(),
-            events: FixedQueue::new(),
-            next_id: 1,
-            now: 0,
-        }
+        Self::EMPTY
     }
 
     fn entry_index(&self, buffer: BufferId) -> Option<usize> {

@@ -239,6 +239,21 @@ pub struct Plan {
 }
 
 impl Plan {
+    /// A plan of nothing, which [`plan_into`] fills in.
+    pub(crate) const EMPTY: Self = Self {
+        output: OutputId(0),
+        assignments: FixedVec::empty_filled(Assignment {
+            layer: 0,
+            plane: PlaneId(0),
+            plane_index: 0,
+            zpos: 0,
+            source: Rect::new(0, 0, 0, 0),
+            destination: Rect::new(0, 0, 0, 0),
+        }),
+        fingerprint: 0,
+        generation: 0,
+    };
+
     /// Output the plan is for.
     pub fn output(&self) -> OutputId {
         self.output
@@ -307,6 +322,22 @@ pub fn plan_with<L: BufferLookup>(
     limits: SearchLimits,
     accept: impl FnMut(&Plan) -> Verdict,
 ) -> Result<Plan, PlanError> {
+    let mut plan = Plan::EMPTY;
+    plan_into(frame, caps, buffers, limits, accept, &mut plan)?;
+    Ok(plan)
+}
+
+/// [`plan_with`], writing the plan into `plan`, so that a caller such as
+/// [`crate::Engine::present`] keeps a single plan on its stack instead of
+/// copies of the one being returned. `plan` is unspecified on error.
+pub(crate) fn plan_into<L: BufferLookup>(
+    frame: &Frame<'_>,
+    caps: &Capabilities,
+    buffers: &L,
+    limits: SearchLimits,
+    accept: impl FnMut(&Plan) -> Verdict,
+    plan: &mut Plan,
+) -> Result<(), PlanError> {
     let output_index = caps
         .output_index(frame.output)
         .ok_or(PlanError::UnknownOutput(frame.output))?;
@@ -317,14 +348,45 @@ pub fn plan_with<L: BufferLookup>(
         });
     }
 
+    // The search's state is filled in place: built here and moved into it,
+    // the layer tables would be on the stack twice, and MCU firmwares
+    // present from small thread stacks.
+    // The tables start from constants, copied straight into the search;
+    // array expressions would be assembled on the stack first.
+    const NOTHING: Rect = Rect::new(0, 0, 0, 0);
+    const NO_LAYERS: [Layer; MAX_LAYERS] =
+        [Layer::new(BufferId(0), NOTHING, NOTHING, 0); MAX_LAYERS];
+    const NO_REASONS: [[RejectReasons; MAX_PLANES]; MAX_LAYERS] =
+        [[RejectReasons::NONE; MAX_PLANES]; MAX_LAYERS];
+    let mut search = Search {
+        caps,
+        order: [0usize; MAX_LAYERS],
+        count: 0,
+        visible: NO_LAYERS,
+        compat: NO_REASONS,
+        traits: [LayerTraits::ANY; MAX_LAYERS],
+        used: 0,
+        group_use: [0; MAX_RESOURCE_GROUPS],
+        plan: {
+            plan.output = frame.output;
+            plan.assignments.clear();
+            plan.fingerprint = fingerprint(frame);
+            plan.generation = 0;
+            plan
+        },
+        accept,
+        limits,
+        steps: 0,
+        backend_checks: 0,
+        deepest: 0,
+        deepest_reasons: RejectReasons::NONE,
+    };
+
     // Validate each layer on its own, clip it to the output and collect its
-    // buffer metadata. `visible` holds the layers as the hardware will see
-    // them, `order` the indices of those that are on the output at all.
+    // buffer metadata. `search.visible` holds the layers as the hardware will
+    // see them, `search.order` the indices of those that are on the output at
+    // all.
     let mut infos = [BufferInfo::default(); MAX_LAYERS];
-    let nothing = Rect::new(0, 0, 0, 0);
-    let mut visible = [Layer::new(BufferId(0), nothing, nothing, 0); MAX_LAYERS];
-    let mut order = [0usize; MAX_LAYERS];
-    let mut count = 0;
     for (index, layer) in frame.layers.iter().enumerate() {
         let info = buffers
             .buffer_info(layer.buffer)
@@ -341,13 +403,13 @@ pub fn plan_with<L: BufferLookup>(
         infos[index] = info;
         match clip_to_output(layer, output_size) {
             Ok(Some((source, destination))) => {
-                visible[index] = Layer {
+                search.visible[index] = Layer {
                     source,
                     destination,
                     ..*layer
                 };
-                order[count] = index;
-                count += 1;
+                search.order[search.count] = index;
+                search.count += 1;
             }
             Ok(None) => {}
             Err(()) => return Err(PlanError::CannotClip { layer: index }),
@@ -355,6 +417,8 @@ pub fn plan_with<L: BufferLookup>(
     }
 
     // Stacking order, bottom to top. Insertion sort keeps equal z stable.
+    let count = search.count;
+    let order = &mut search.order;
     for i in 1..count {
         let mut j = i;
         while j > 0 && frame.layers[order[j - 1]].z_order > frame.layers[order[j]].z_order {
@@ -364,48 +428,31 @@ pub fn plan_with<L: BufferLookup>(
     }
 
     // Constraints that depend on one layer and one plane only.
-    let mut search = Search {
-        caps,
-        order,
-        count,
-        visible,
-        compat: [[RejectReasons::NONE; MAX_PLANES]; MAX_LAYERS],
-        traits: [LayerTraits::ANY; MAX_LAYERS],
-        used: 0,
-        group_use: [0; MAX_RESOURCE_GROUPS],
-        plan: Plan {
-            output: frame.output,
-            assignments: FixedVec::new(),
-            fingerprint: fingerprint(frame),
-            generation: 0,
-        },
-        accept,
-        limits,
-        steps: 0,
-        backend_checks: 0,
-        deepest: 0,
-        deepest_reasons: RejectReasons::NONE,
-    };
     let mut attachable = 0usize;
     for (plane_index, plane) in caps.planes.iter().enumerate() {
         if plane.outputs & (1 << output_index) != 0 {
             attachable += 1;
         }
         for depth in 0..count {
-            let layer = &visible[order[depth]];
-            let info = &infos[order[depth]];
-            search.compat[depth][plane_index] =
-                static_reasons(layer, info, plane, output_index, output_size);
+            let layer_index = search.order[depth];
+            search.compat[depth][plane_index] = static_reasons(
+                &search.visible[layer_index],
+                &infos[layer_index],
+                plane,
+                output_index,
+                output_size,
+            );
         }
     }
-    for (depth, layer_index) in order.iter().enumerate().take(count) {
-        search.traits[depth] = traits_of(&visible[*layer_index], &infos[*layer_index]);
+    for depth in 0..count {
+        let layer_index = search.order[depth];
+        search.traits[depth] = traits_of(&search.visible[layer_index], &infos[layer_index]);
     }
 
     // More layers than planes can never work; say so without searching.
     if count > attachable {
         return Err(PlanError::NoPlane {
-            layer: order[attachable],
+            layer: search.order[attachable],
             reasons: if attachable == caps.planes.len() {
                 RejectReasons::IN_USE
             } else {
@@ -415,14 +462,14 @@ pub fn plan_with<L: BufferLookup>(
     }
 
     match search.descend(0, None) {
-        Outcome::Found => Ok(search.plan),
+        Outcome::Found => Ok(()),
         Outcome::LimitExceeded => Err(PlanError::LimitExceeded),
         Outcome::Aborted => Err(PlanError::Aborted),
         Outcome::Exhausted if search.backend_checks > 0 => Err(PlanError::BackendRejected {
             candidates: search.backend_checks,
         }),
         Outcome::Exhausted => Err(PlanError::NoPlane {
-            layer: order[search.deepest],
+            layer: search.order[search.deepest],
             reasons: search.deepest_reasons,
         }),
     }
@@ -615,7 +662,7 @@ struct Search<'a, F> {
     traits: [LayerTraits; MAX_LAYERS],
     used: u32,
     group_use: [u8; MAX_RESOURCE_GROUPS],
-    plan: Plan,
+    plan: &'a mut Plan,
     accept: F,
     limits: SearchLimits,
     steps: u32,
@@ -673,7 +720,7 @@ impl<F: FnMut(&Plan) -> Verdict> Search<'_, F> {
                 return Outcome::LimitExceeded;
             }
             self.backend_checks += 1;
-            return match (self.accept)(&self.plan) {
+            return match (self.accept)(self.plan) {
                 Verdict::Accept => Outcome::Found,
                 Verdict::TryNext => Outcome::Exhausted,
                 Verdict::GiveUp => Outcome::Aborted,

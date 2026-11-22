@@ -69,12 +69,18 @@ impl<B: DisplayBackend> Engine<B> {
     /// MCU: [`Engine::new`] asks the backend before it returns, so the engine
     /// is assembled on the stack and then moved. Write this one into its
     /// final storage, then probe it there.
+    // The large parts come from constants, which are copied straight into
+    // the engine, and the function is always inlined: built from calls, or
+    // out of line, they are assembled in temporaries on the caller's stack
+    // and copied (the engine is about 14 KiB on a 32-bit MCU), whatever the
+    // optimisation level.
+    #[inline(always)]
     pub fn new_unprobed(backend: B) -> Self {
         Self {
             backend,
-            caps: Capabilities::default(),
+            caps: Capabilities::EMPTY,
             generation: 0,
-            presentation: Presentation::new(),
+            presentation: Presentation::EMPTY,
             limits: SearchLimits::default(),
             latch_timeout: None,
         }
@@ -155,11 +161,18 @@ impl<B: DisplayBackend> Engine<B> {
     ///
     /// Nothing on the display changes.
     pub fn validate(&mut self, frame: &Frame<'_>) -> Result<Plan, Error> {
+        let mut plan = Plan::EMPTY;
+        self.validate_into(frame, &mut plan)?;
+        Ok(plan)
+    }
+
+    /// [`Engine::validate`] into `plan`; see [`planner::plan_into`].
+    fn validate_into(&mut self, frame: &Frame<'_>, plan: &mut Plan) -> Result<(), Error> {
         let backend = &mut self.backend;
         // An assignment the hardware rejects is worth replacing by another;
         // any other failure would repeat for every assignment.
         let mut fatal = None;
-        let planned = planner::plan_with(
+        let planned = planner::plan_into(
             frame,
             &self.caps,
             &self.presentation,
@@ -172,13 +185,14 @@ impl<B: DisplayBackend> Engine<B> {
                     Verdict::GiveUp
                 }
             },
+            plan,
         );
-        let mut plan = match (planned, fatal) {
+        match (planned, fatal) {
             (Err(PlanError::Aborted), Some(error)) => return Err(Error::Backend(error)),
             (planned, _) => planned?,
-        };
+        }
         plan.generation = self.generation;
-        Ok(plan)
+        Ok(())
     }
 
     /// Submits `frame` using a plan from [`Engine::validate`].
@@ -252,7 +266,10 @@ impl<B: DisplayBackend> Engine<B> {
 
     /// Validates and submits `frame` in one step.
     pub fn present(&mut self, frame: &Frame<'_>) -> Result<SubmissionId, Error> {
-        let plan = self.validate(frame)?;
+        // One plan on this stack, filled in place (MCU firmwares present
+        // from small thread stacks).
+        let mut plan = Plan::EMPTY;
+        self.validate_into(frame, &mut plan)?;
         self.commit(frame, &plan)
     }
 

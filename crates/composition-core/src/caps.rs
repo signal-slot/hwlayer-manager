@@ -173,6 +173,41 @@ pub struct Capabilities {
 }
 
 impl Capabilities {
+    /// No output, plane or resource group: [`Capabilities::default`] as a
+    /// constant.
+    pub const EMPTY: Self = Self {
+        outputs: FixedVec::empty_filled(OutputCaps {
+            id: OutputId(0),
+            size: Size {
+                width: 0,
+                height: 0,
+            },
+            refresh_mhz: 0,
+        }),
+        planes: FixedVec::empty_filled(PlaneCaps {
+            id: PlaneId(0),
+            kind: PlaneKind::Primary,
+            outputs: 0,
+            formats: FixedVec::empty_filled(FormatModifier {
+                format: PixelFormat(0),
+                modifier: Modifier(0),
+            }),
+            scaling: None,
+            max_source: None,
+            plane_alpha: false,
+            blend_modes: 0,
+            transforms: 0,
+            zpos: Zpos::Fixed(0),
+            full_output_only: false,
+        }),
+        resource_groups: FixedVec::empty_filled(ResourceGroup {
+            consumers: LayerTraits(0),
+            planes: 0,
+            capacity: 0,
+        }),
+        replace_pending: false,
+    };
+
     /// Removes every output, plane and resource group, and clears
     /// `replace_pending`, without building a new description on the stack.
     pub fn clear(&mut self) {
@@ -185,5 +220,18 @@ impl Capabilities {
     /// Index of `output` in [`Capabilities::outputs`].
     pub fn output_index(&self, output: OutputId) -> Option<usize> {
         self.outputs.iter().position(|o| o.id == output)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty_is_the_default() {
+        // The engine starts from the constant; the default is what the
+        // description is cleared to (`Capabilities::clear`) and what tests
+        // build on.
+        assert_eq!(Capabilities::EMPTY, Capabilities::default());
     }
 }
