@@ -9,7 +9,7 @@
 - compiles the backend and `backends/twoplane/tests/c/twoplane_test.c` with the system C compiler, links them with `libcomposition_engine.a`, and runs them. The test's fake driver has shadow registers, a commit count, a latched count and a frame start the test triggers, at any point of the backend's writes, with or without running the vsync interrupt.
 - compiles the backend alone with `-ffreestanding -nostdinc` and the compiler's own headers only, checks that it reads no other system header, and that the object needs no symbol other than those a compiler may call for structure copies (`memcpy`, `memset`, `memmove`, `memcmp`).
 
-Both run on the host only. The backend has not been compiled for an Arm target from this repository.
+Both run on the host only. The tests do not compile for Arm. Done by hand once (2026-11-26, clang 23, `-ffreestanding -nostdinc` with clang's own headers, `-O2`), the backend compiled without warnings for `thumbv7em-none-eabihf` (`-mcpu=cortex-m7`) and `armv7r-none-eabihf` (`-mcpu=cortex-r5`). Both objects need one outside symbol, `__aeabi_memclr4`, an Arm EABI helper the compiler calls to clear structures; the toolchain's runtime library (libgcc, compiler-rt) provides it. The objects were not linked or run.
 
 ## What a board test needs and does not have yet
 
