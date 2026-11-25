@@ -1,0 +1,18 @@
+[package]
+name = "composition-twoplane"
+description = "Host tests of the two-plane display backend written in C (ce_twoplane.c)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The backend is C (ce_twoplane.h, ce_twoplane.c next to this file) and is
+# built by the firmware that uses it. This package only carries its tests,
+# so that `cargo test --workspace` runs them; its library is empty.
+[lib]
+path = "src/lib.rs"
+
+[lints]
+workspace = true
