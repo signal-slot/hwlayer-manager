@@ -1,0 +1,116 @@
+# xcheck v1 topology: STM32MP257F-DK (ST LTDC, driver stm), hand-written.
+#
+# Source:  docs/observed/stm32mp257-topology.md (probe block and raw plane table), observed 2026-11-28.
+#          Constraint lines come from docs/stm32mp257-ltdc-board.md, docs/stm32mp257-ltdc-source-full.md
+#          and docs/stm32mp257-ltdc-sync-source.md (read only).
+# Commit:  eab4162 (HEAD when written).
+# Date:    2026-11-28.
+# Claim:   recorded input only. This file makes NO hardware claim; results computed from it are
+#          portability / cross-check evidence, labelled with the origin line below.
+# Frames:  none. No board addresses, hostnames, serials or credentials.
+#
+# Tags in the constraint comments are the tags of the cited doc row: 'read from source', 'inferred',
+# or 'observed <date>' (a TEST_ONLY probe on the board, recorded in the doc).
+xcheck 1
+origin observed 2026-11-28 stm32mp257-topology.md at commit eab4162; constraints read from stm32mp257-ltdc-*.md
+profile generic
+
+# One CRTC 41 (1920x1080 @ 60.000 Hz); all three planes reach it (outputs mask 0x1).
+output 41 1920 1080 60000
+
+# zpos is a mutable range 0..2 on all three planes (observed 2026-11-28, modetest -p).
+# zpos_now = the dump's current value: the debugfs state before the run shows normalized-zpos 0/1/2 for
+# planes 34/42/49 (observed 2026-11-28). It equals the plane index and the property table's 'default'
+# column (0, 1, 2), so both readings agree.
+# blend=premul: the planes have no 'pixel blend mode' property; the probe's [premultiplied] is filled in by
+# composition-drm (inferred, per the topology doc's note 1), not observed.
+# Scaling (LTDC docs): layers 34 and 42 scale, layer 49 does not.
+#   - Upscale only, no downscale, no YUV scaling: read from source (ltdc-source-full.md, 'Scaler limits'
+#     and 'Scaling checks', ltdc.c:1585-1602). Hence down:0x10000 (factor 1.0).
+#   - Which layers have the scaler is a register value, not in source (ltdc-source-full.md); the layer
+#     split is observed 2026-11-27 (ltdc-board.md, 'Scaling bounds': TEST_ONLY upscale accepted on 34 and
+#     42, rejected above 1.0 on 49) and 'scales / has no scaler' is inferred there.
+#   - No upper upscale factor was found: 34 and 42 accepted every factor up to the probe ladder's top
+#     (32x, not a limit) and the code has no cap (ltdc-source-full.md). up:0xffffffff stands for 'no cap
+#     found', not for a measured limit.
+# max_source=none: STM_MAX_FB_WIDTH/HEIGHT 2048 (drv.c:35-36, read from source, ltdc-source-full.md) limit
+#   the DRM framebuffer, not a plane's source rectangle; that doc lists it as 'consistent with leaving
+#   max_source unset'.
+# full_output=0: no doc states a full-output-only rule for any layer. Observed 2026-11-27 (ltdc-board.md,
+#   'Scaling bounds'): plane 34 accepted a partial destination rectangle.
+# group: none. No doc states a shared scaler, fetch unit or other shared resource across layers (layers
+#   reload per layer on this IP, ltdc-sync-source.md, read from source / inferred); no group line is written.
+# C8: the raw planes advertise C8 (palette); the probe prints 'C8??' because the engine does not map it.
+#   It is not written as a format line ('C8' is not a 4-character fourcc token). Each plane's list is
+#   therefore one entry shorter than the probe's count (21/25/17); xc-convert decides how to carry it.
+
+# Layer 0. Rotation rot0/90/180/270 + reflect-x/y (observed 2026-11-28, property table).
+plane 34 kind=primary outputs=0x1 zpos=0..2 zpos_now=0 alpha=1 blend=premul transforms=normal,rot90,rot180,rot270,flip_h,flip_v scaling=up:0xffffffff/down:0x10000 max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format AR15 0x0
+  format XR15 0x0
+  format AR12 0x0
+  format XR12 0x0
+  format YUYV 0x0
+  format YVYU 0x0
+  format UYVY 0x0
+  format VYUY 0x0
+
+# Layer 1. Rotation rot0 + reflect-x/y only (observed 2026-11-28). Only plane with YUV 4:2:0.
+plane 42 kind=overlay outputs=0x1 zpos=0..2 zpos_now=1 alpha=1 blend=premul transforms=normal,flip_h,flip_v scaling=up:0xffffffff/down:0x10000 max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format AR15 0x0
+  format XR15 0x0
+  format AR12 0x0
+  format XR12 0x0
+  format YUYV 0x0
+  format YVYU 0x0
+  format UYVY 0x0
+  format VYUY 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format YU12 0x0
+  format YV12 0x0
+
+# Layer 2. Rotation rot0 + reflect-x/y only (observed 2026-11-28). No YUV.
+# scaling=none: no scaler (inferred, ltdc-board.md; upscale above 1.0 rejected, observed 2026-11-27;
+# without the ability any size mismatch is rejected, read from source, ltdc.c:1585-1602).
+plane 49 kind=overlay outputs=0x1 zpos=0..2 zpos_now=2 alpha=1 blend=premul transforms=normal,flip_h,flip_v scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format AR15 0x0
+  format XR15 0x0
+  format AR12 0x0
+  format XR12 0x0
