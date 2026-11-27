@@ -55,6 +55,11 @@
 #     systemd instance names (getty, serial-getty, modprobe). These rules are
 #     NOT applied to a line that mentions ssh, scp, sftp or rsync, so
 #     an ssh target with a hex-only host name stays flagged.
+#   - name@HOST for an exact public mailing-list or archive domain
+#     (lists.freedesktop.org, vger.kernel.org, lore.kernel.org,
+#     mail-archive.com, lists.infradead.org, lists.linaro.org,
+#     lists.debian.org, lists.zephyrproject.org); not on ssh/scp/sftp/rsync
+#     lines, and only the user@host check is affected.
 #   - A kernel mailing-list archive URL (lore.kernel.*) whose message id
 #     contains "@".
 # Other false-positive rules:
@@ -183,10 +188,14 @@ s#(^|[^A-Za-z0-9_])(user@host|repo@commit)'"$B"'# #g;
 s#[A-Za-z0-9_.-]+@example\.(com|org|net|invalid)# #g;
 s#[A-Za-z0-9_.-]+@b\.c# #g;
 s#https?://lore\.kernel\.[A-Za-z0-9./-]*/[^ ]*@[A-Za-z0-9.-]+# #g'
+# Public mailing-list and archive hosts (exact domains; a sub-domain or a
+# longer name does not match). Like shape_sed, not applied to ssh lines.
+ml_hosts='lists\.freedesktop\.org|vger\.kernel\.org|lore\.kernel\.org|mail-archive\.com|lists\.infradead\.org|lists\.linaro\.org|lists\.debian\.org|lists\.zephyrproject\.org'
 # Only for lines without ssh/scp/sftp/rsync: pins, DT unit addresses, units.
 shape_sed='s#@[0-9a-f]{1,40}'"$B"'# #g;
 s#@N'"$B"'# #g;
-s#(serial-getty|getty|modprobe)@[A-Za-z0-9]+# #g'
+s#(serial-getty|getty|modprobe)@[A-Za-z0-9]+# #g;
+s#[A-Za-z0-9_.-]+@('"$ml_hosts"')'"$B"'# #g'
 uh_re='[A-Za-z0-9_][A-Za-z0-9._-]*@[A-Za-z][A-Za-z0-9-]*'
 uh_yaml_uses='^[[:space:]]*(-[[:space:]]+)?uses:[[:space:]]*[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[A-Za-z0-9_./-]+[[:space:]]*(#.*)?$'
 remote_cmd='(^|[^A-Za-z])(ssh|scp|sftp|rsync)([^A-Za-z]|$)'
