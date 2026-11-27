@@ -1,0 +1,9 @@
+# observed: /sys/kernel/debug/dri/<card>/hvs_dlist_allocs (vc4 / BCM2711 HVS5), read-only, idle board, debugfs already mounted
+# date: 2026-11-28
+# kernel: 6.12.47+rpt-rpi-v8
+# board: Raspberry Pi CM4 carrier with built-in DSI panel; scrubbed with scripts/scrub-kms-dump.py
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [0000003f + 00000009]
+Stale nodes:
