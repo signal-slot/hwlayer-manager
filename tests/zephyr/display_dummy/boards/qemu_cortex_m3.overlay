@@ -1,0 +1,16 @@
+/*
+ * Upstream's dummy display node (zephyr,dummy-dc), as in
+ * samples/drivers/display/dummy_dc.overlay, with a size that fits the 64 KiB
+ * of RAM of this board together with the engine's 28 KiB of storage.
+ */
+/ {
+	chosen {
+		zephyr,display = &dummy_dc;
+	};
+
+	dummy_dc: dummy_dc {
+		compatible = "zephyr,dummy-dc";
+		height = <32>;
+		width = <64>;
+	};
+};
