@@ -268,6 +268,10 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
     /// On success the frame has been accepted by the hardware, nothing more.
     /// [`DisplayEvent::Presented`] follows once it is on screen. On failure
     /// the display and all buffer states are unchanged.
+    ///
+    /// The events the backend queued are taken first. If they lost the
+    /// device the commit fails with [`BackendError::DeviceLost`]; if they
+    /// changed the capabilities, with [`Error::StalePlan`].
     pub fn commit(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<SubmissionId, Error> {
         let result = self.commit_untraced(frame, plan);
         if self.trace.enabled() {
@@ -300,7 +304,15 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
         let replace = self.caps.replace_pending;
         // Latches the backend has already reported are recorded first, so
         // that the check below sees what is really pending.
-        self.collect_backend_events()?;
+        if self.collect_backend_events()? {
+            return Err(Error::Backend(BackendError::DeviceLost));
+        }
+        // Among them may be a capability change: the plan was made for the
+        // hardware as it was before, and the backend must not be asked to
+        // commit it.
+        if plan.generation != self.generation {
+            return Err(Error::StalePlan);
+        }
         // Verify the bookkeeping first so that a commit the hardware accepts
         // can always be recorded.
         self.presentation
@@ -353,6 +365,9 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
         // One plan on this stack, filled in place (MCU firmwares present
         // from small thread stacks).
         let mut plan = Plan::EMPTY;
+        // What the backend queued is taken first, as `commit` would: a
+        // capability change among it would make the plan stale at once.
+        self.collect_backend_events()?;
         self.validate_into(frame, &mut plan)?;
         self.commit(frame, &plan)
     }
