@@ -5,7 +5,7 @@ Used for SoW M1 condition 3 (two hardware planes visible at once, z-order, alpha
 Standard library only; Pillow is used for decoding when installed (any format),
 otherwise only 8-bit PNG and binary PPM (P6) can be read. No network access.
 
-  camera-check.py PICTURE EXPECT.json [--compare PICTURE2] [--rotation N] [--json]
+  camera-check.py PICTURE EXPECT.json [--compare PICTURE2] [--rotation N] [--panel full|auto] [--json]
   camera-check.py --self-test
 
 Exit status: 0 = VERDICT PASS, 1 = VERDICT FAIL, 2 = usage or input error.
@@ -215,13 +215,15 @@ def auto_corners(img):
 def panel_corners(img, spec):
     if spec in (None, "auto"):
         return auto_corners(img)
+    if spec == "full":  # KVM picture: the screen edge to edge
+        return [(0, 0), (img.w - 1, 0), (img.w - 1, img.h - 1), (0, img.h - 1)]
     if isinstance(spec, dict):
         pts = spec.get("corners")
         unit = spec.get("unit", "px")
     else:
         pts, unit = spec, "px"
     if not isinstance(pts, list) or len(pts) != 4:
-        raise CheckError("panel needs 4 corners [TL, TR, BR, BL] or \"auto\"")
+        raise CheckError("panel needs 4 corners [TL, TR, BR, BL], \"auto\" or \"full\"")
     out = []
     for p in pts:
         x, y = float(p[0]), float(p[1])
@@ -464,6 +466,16 @@ def self_test():
     res = run(exp_m, pic, shifted)
     check(res["compare"][1]["b"][0] > 200, "compare reuses corners of picture A")
 
+    # KVM picture: whole screen edge to edge, no dark surround, rotation 0
+    full_pic = _synth([A, B], margin=(0, 0), rot180=False)
+    exp_f = {"rotation": 0, "tolerance": 30, "panel": "full", "regions": regions}
+    check(run(exp_f, full_pic)["pass"], "full-frame picture passes with panel full")
+    exp_fw = copy.deepcopy(exp_f)
+    exp_fw["regions"][0]["expect"] = GREEN
+    check(not run(exp_fw, full_pic)["pass"], "full-frame picture with wrong colour fails")
+    check(panel_corners(full_pic, "full") == panel_corners(full_pic, [[0, 0], [199, 0], [199, 99], [0, 99]]),
+          "panel full equals explicit edge corners")
+
     check_readme_examples(check)
 
     back = decode_png(encode_png(pic))
@@ -488,7 +500,7 @@ def main(argv):
     if "--self-test" in args:
         self_test()
         return 0
-    pos, compare, rotation, as_json = [], None, None, False
+    pos, compare, rotation, as_json, panel = [], None, None, False, None
     it = iter(args)
     try:
         for a in it:
@@ -496,6 +508,10 @@ def main(argv):
                 compare = next(it)
             elif a == "--rotation":
                 rotation = int(next(it))
+            elif a == "--panel":
+                panel = next(it)
+                if panel not in ("auto", "full"):
+                    raise CheckError("--panel must be auto or full")
             elif a == "--json":
                 as_json = True
             elif a in ("-h", "--help"):
@@ -507,12 +523,14 @@ def main(argv):
                 pos.append(a)
         if len(pos) != 2:
             raise CheckError("usage: camera-check.py PICTURE EXPECT.json "
-                             "[--compare PICTURE2] [--rotation N] [--json] | --self-test")
+                             "[--compare PICTURE2] [--rotation N] [--panel full|auto] [--json] | --self-test")
         try:
             with open(pos[1]) as f:
                 exp = json.load(f)
         except (OSError, ValueError) as e:
             raise CheckError("cannot read expectation %s: %s" % (pos[1], e))
+        if panel:
+            exp["panel"] = panel
         for r in exp.get("regions", []) + exp.get("regions_after", []):
             if "name" not in r or "rect" not in r:
                 raise CheckError("each region needs name and rect")

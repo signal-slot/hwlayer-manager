@@ -30,6 +30,12 @@ rotation) and prints `PASS`.
    plane union instead of the panel: use explicit corners. All examples below do,
    with pixel corners of the 260x140 synthetic picture the self-test uses; replace
    them by the panel corners read from your picture (after rotation).
+   `"panel": "full"` (or `--panel full` on the command line, which overrides the
+   file) takes the picture's own corners after rotation, the same as explicit corners
+   `[[0, 0], [w-1, 0], [w-1, h-1], [0, h-1]]`. It is meant for KVM (HDMI capture)
+   pictures, which show the whole screen edge to edge with no surround, and
+   rotation 0 (`"rotation": 0` or `--rotation 0`; the default is 180 for the board
+   camera). `--panel auto` forces auto detection.
 3. For each region (`rect` = `[u0, v0, u1, v1]` in panel-normalised coordinates,
    u right, v down, 0..1) it averages a 16x16 grid of samples and prints the mean
    colour, the Euclidean RGB distance to `expect` and PASS/FAIL (`tolerance`,
