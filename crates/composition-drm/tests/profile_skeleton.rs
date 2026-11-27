@@ -1,5 +1,6 @@
-//! The RK3588 and vc4 profiles are placeholders: they leave capabilities as
-//! KMS reported them.
+//! The vc4 profiles are placeholders: they leave capabilities as KMS reported
+//! them. The RK3588 profile has its table now; its tests are in
+//! `profile_rk3588.rs`.
 
 use composition_core::{Capabilities, PlaneCaps, PlaneId, PlaneKind, ScaleLimits, Size};
 use composition_drm::DriverProfile;
@@ -42,11 +43,6 @@ fn unchanged(profile: DriverProfile) {
     let mut empty = Capabilities::default();
     profile.apply(&mut empty);
     assert_eq!(empty, Capabilities::default());
-}
-
-#[test]
-fn rk3588_vop2_is_a_no_op() {
-    unchanged(DriverProfile::Rk3588Vop2);
 }
 
 #[test]

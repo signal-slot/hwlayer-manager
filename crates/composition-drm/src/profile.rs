@@ -118,8 +118,9 @@ pub enum DriverProfile {
     /// Selection by driver name (`stm`) is not done here; the profile is
     /// chosen explicitly like the others.
     Stm32Ltdc,
-    /// Rockchip RK3588 VOP2. The constraint table is not filled yet; see
-    /// `docs/rk3588-backend-design.md`.
+    /// Rockchip RK3588 VOP2, mainline driver `rockchip` (checked against
+    /// kernel 6.18 on the NanoPC-T6). The table and its evidence tags are in
+    /// the module documentation of `src/profile/rk3588.rs`.
     Rk3588Vop2,
     /// Raspberry Pi BCM2711 HVS5 (vc4). The constraint table is not filled
     /// yet; see `docs/hvs-backend-design.md`.
