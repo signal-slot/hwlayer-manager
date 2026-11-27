@@ -144,6 +144,32 @@ impl Lessor {
         Ok(())
     }
 
+    /// Ends the lease after its lessee is gone: revokes it if it still
+    /// exists. The kernel destroys a lease when the last descriptor of the
+    /// lessee is closed, and then `DRM_IOCTL_MODE_REVOKE_LEASE` fails with
+    /// `ENOENT`; that is not an error here. Returns whether it was revoked.
+    pub fn end(&mut self) -> io::Result<bool> {
+        let Some(lessee) = self.lessee.take() else {
+            return Ok(false);
+        };
+        match self.card.revoke_lease(lessee) {
+            Ok(()) => {
+                Record::new("lease_revoked")
+                    .field("lessee", u32::from(lessee))
+                    .emit();
+                Ok(true)
+            }
+            Err(e) if e.raw_os_error() == Some(rustix::io::Errno::NOENT.raw_os_error()) => {
+                Record::new("lease_ended")
+                    .field("lessee", u32::from(lessee))
+                    .field("why", "the lessee closed its descriptor")
+                    .emit();
+                Ok(false)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
     /// Whether a lease is held.
     pub fn holds_lease(&self) -> bool {
         self.lessee.is_some()

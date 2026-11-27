@@ -86,9 +86,7 @@ pub fn run_lessor(options: &LessorOptions) -> Result<(), String> {
                 }
             }
         }
-        if lessor.holds_lease() {
-            lessor.revoke().map_err(|e| format!("revoke: {e}"))?;
-        }
+        lessor.end().map_err(|e| format!("revoke: {e}"))?;
         drop(connection);
         if options.once {
             let _ = std::fs::remove_file(&options.socket);
