@@ -1299,9 +1299,8 @@ static int adv_latch_after_device_lost(void)
 }
 
 /*
- * Known bug 1 (flip_error_swallowed), asserted against the behaviour a
- * fix must produce — this scenario currently fails and is marked
- * known_bug: the Rust test `flip_error_swallowed` carries #[ignore].
+ * Regression test (flip_error_swallowed), fixed: ce_twoplane.c now returns
+ * hw->safety_flip's refusal. It was once swallowed, as follows.
  *
  * ce_twoplane.c discards hw->safety_flip's return value. A driver that
  * refuses the flip (it returns nonzero and, per the driver contract,
@@ -1344,7 +1343,7 @@ static int adv_flip_error_swallowed(void)
 }
 
 /*
- * Known bug 2 (enable_error_swallowed), same form: ce_twoplane.c discards
+ * Regression test (enable_error_swallowed), fixed, same form: ce_twoplane.c discards
  * hw->enable_app_plane's return value. A refused enable is recorded as a
  * plane that is on: the frame is accepted and reported PRESENTED, and
  * later frames never retry the enable, so the panel shows no application
@@ -1683,8 +1682,8 @@ static const struct scenario scenarios[] = {
 	{"capabilities_changed", adv_capabilities_changed, false},
 	{"rotation_64", adv_rotation_64, false},
 	{"wrap_rotation", adv_wrap_rotation, false},
-	{"flip_error_swallowed", adv_flip_error_swallowed, true},
-	{"enable_error_swallowed", adv_enable_error_swallowed, true},
+	{"flip_error_swallowed", adv_flip_error_swallowed, false},
+	{"enable_error_swallowed", adv_enable_error_swallowed, false},
 };
 
 static int run_one(const struct scenario *s)

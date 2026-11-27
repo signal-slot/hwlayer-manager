@@ -26,7 +26,7 @@
 //! present, and dropping `#[ignore]` after a fix is what keeps the fix
 //! honest.
 //!
-//! Recorded bugs (see the scenario comments in `tests/c/adversarial_test.c`):
+//! Bugs found here and since fixed, kept as regression tests (see the scenario comments in `tests/c/adversarial_test.c`):
 //! - `flip_error_swallowed`: `ce_twoplane.c` discards `hw->safety_flip`'s
 //!   return value; a refused flip is recorded as done, the frame reports
 //!   PRESENTED, and the other safety buffer becomes unreachable.
@@ -279,11 +279,9 @@ fn capabilities_changed() {
 /// driver that refuses the flip is accepted, the frame is reported
 /// PRESENTED, and the second safety buffer becomes unreachable. The
 /// scenario asserts that a refused write is reported (`ce_present` fails,
-/// nothing is consumed); it currently fails, so this test is `#[ignore]`d.
-/// Remove `#[ignore]` and the C `known_bug` flag when the backend
-/// propagates the error.
+/// nothing is consumed). Fixed: the backend returns the refusal; this is
+/// the regression test.
 #[test]
-#[ignore = "known bug: flip_error_swallowed in ce_twoplane.c"]
 fn flip_error_swallowed() {
     let program = build_program("flip_error_swallowed");
     run_scenario(&program, &["flip_error_swallowed"]);
@@ -292,11 +290,9 @@ fn flip_error_swallowed() {
 /// Bug: `ce_twoplane.c` discards `hw->enable_app_plane`'s return value, so
 /// a refused enable is recorded as on, the frame is reported PRESENTED,
 /// and the application plane is never re-enabled. The scenario asserts
-/// that the refusal is reported; it currently fails, so this test is
-/// `#[ignore]`d. Remove `#[ignore]` and the C `known_bug` flag when the
-/// backend propagates the error.
+/// that the refusal is reported. Fixed: the backend returns the refusal;
+/// this is the regression test.
 #[test]
-#[ignore = "known bug: enable_error_swallowed in ce_twoplane.c"]
 fn enable_error_swallowed() {
     let program = build_program("enable_error_swallowed");
     run_scenario(&program, &["enable_error_swallowed"]);
