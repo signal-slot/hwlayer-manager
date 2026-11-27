@@ -7,8 +7,8 @@ Zephyr's generic display API, with per-frame timing of `display_write`.
 **Status: nothing here has been run on hardware. All timing and scanout
 results are not measured.** This item was prepared as a host build only. The
 build commands below were also **not run** in the environment that produced
-the files: fetching Zephyr and installing `west` were refused there, so the
-application has not been compiled either. Treat the Kconfig and devicetree
+the files: the Zephyr SDK could not be downloaded (GitHub API rate limit, and
+direct downloads were refused), so the application has not been compiled. Treat the Kconfig and devicetree
 details as unverified until a build has succeeded.
 
 ## Who owns the DPU
@@ -91,5 +91,11 @@ west build -p -b imx95_evk/mimx9596/m7/ddr tests/board/imx95_m7_scanout -- \
 ```
 
 Requires a Zephyr workspace at the commit above and the Zephyr SDK
-(`ZEPHYR_BASE`, `ZEPHYR_SDK_INSTALL_DIR`). The board qualifier was inferred
-from the file names in the board directory, not from `board.yml`.
+(`ZEPHYR_BASE`, `ZEPHYR_SDK_INSTALL_DIR`).
+
+Partial check (observed): a `west build --cmake-only` run against the pinned
+commit accepted the board qualifier `imx95_evk/mimx9596/m7/ddr`, found
+`boards/imx95_evk_mimx9596_m7_ddr.overlay`, and stopped at the toolchain step
+because no Zephyr SDK was installable on that machine. The board DTS plus the
+overlay preprocessed without error with the host C preprocessor. Binding
+validation, Kconfig and compilation were not run.
