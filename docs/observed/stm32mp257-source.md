@@ -5,14 +5,18 @@ Staging file for the later fold into `docs/platform-capabilities.md`. Nothing he
 ## What was read, and how
 
 - Tree: `STMicroelectronics/linux`, branch `v6.18-stm32mp`, commit `3056405e0479330b0889c2a971452bfd10014b70` (committed 2026-10-23, subject "ARM: dts: stm32: move PMIC control to secure world in ST stm32mp15 boards"; the tip itself is unrelated to display).
-- Read: `drivers/gpu/drm/stm/ltdc.c` in full (91,082 characters).
+- Read: `drivers/gpu/drm/stm/ltdc.c` in full (91,082 characters, 2941 lines). A copy fetched from that branch is at `$CONNECTED_DEPS_DIR/stlinux/ltdc.c` (a single file, not a git checkout). The line numbers below were checked against it.
 - **Not read** (raw.githubusercontent.com answered HTTP 429, and `git clone`, `git fetch`, `curl` and `gh` into the dependency cache were all refused on this worker): `drivers/gpu/drm/stm/ltdc.h`, `drv.c`, `Kconfig`, `Makefile`, `arch/arm64/boot/dts/st/stm32mp251.dtsi`, `stm32mp255.dtsi`, `stm32mp257f-dk.dts`, `Documentation/devicetree/bindings/display/st,stm32-ltdc.yaml`, and mainline `ltdc.c`.
-- Method caveat: `ltdc.c` was read through a fetch tool that gives no line numbers. References below are **function or identifier names** in `drivers/gpu/drm/stm/ltdc.c`, not line numbers. No checkout exists in `$CONNECTED_DEPS_DIR`.
+- References in the tables are function or identifier names in `drivers/gpu/drm/stm/ltdc.c`; line numbers are in the next section. The first read was through a fetch tool; the main statements were then re-checked by `grep` and reading against the downloaded copy.
 - Open because of that: the MP25 `ltdc_plat_data` (pad max frequency), `LTDC_MAX_LAYER`, the device-tree nodes and the mainline comparison. The later item should redo this with a real checkout.
 
 ## Which code path is MP25
 
-The driver is generic (`st,stm32-ltdc`; MP25 compatibles `st,stm32mp251-ltdc` and `st,stm32mp255-ltdc`). Capabilities come from the hardware version register in `ltdc_get_caps()`; the layer count is read from `LTDC_LCR`. The versions named there are `HWVER_40100` (0x040100) and `HWVER_40101` (0x040101), sharing one `case`. That the MP25 reports one of these was not confirmed (inferred: it is the newest case, and MP25-only register gating in `ltdc_readable_reg`/`ltdc_writeable_reg` lives in the same driver). MP251 and MP255 differ: only MP255 has the rotator registers and the LVDS clock.
+The driver is generic (`st,stm32-ltdc`; MP25 compatibles `st,stm32mp251-ltdc` and `st,stm32mp255-ltdc`). Capabilities come from the hardware version register in `ltdc_get_caps()`; the layer count is read from `LTDC_LCR`. The versions named there are `HWVER_40100` (0x040100) and `HWVER_40101` (0x040101), sharing one `case`. That the MP25 reports one of these was not confirmed (inferred: `ltdc_get_caps` runs the MP25 firewall code for every MP25 compatible and then switches on the version; `default:` returns `-ENODEV`, and only the 4.x case sets `dynamic_zorder`, `plane_rotation` and the per-layer scaler probe). MP251 and MP255 differ: only MP255 has the rotator registers and the LVDS clock.
+
+## Line references in `ltdc.c` (commit above)
+
+`NB_CRTC`/`CRTC_MASK` 47-48; `HWVER_*` 52-56; `FUT_DFT` 264; `ltdc_pix_fmt_a2` 315; `ltdc_drm_fmt_a2` 352; YUV lists 372-384; `ltdc_format_modifiers` 514; register gating `ltdc_readable_reg` ~589-640 and `ltdc_writeable_reg` ~710-760; `clock_tolerance` 781; `ltdc_crtc_atomic_check` 1371; `ltdc_plane_atomic_check` 1565 (scaling rules 1585-1600); `SCALER_FRACTION` 1609; 90/270 rotation path 1744-1765 (`vdisplay > 1366` at 1765); scaler register writes 1985-2010 (`LTDC_L1SHSPR` 2003, `LTDC_L1SVSPR` 2010); `ltdc_plane_create` 2151 (`possible_crtcs` 2155, YUV semi-planar gating 2198-2202, alpha 2236); primary plane and zpos 2260-2269; overlays 2308-2318; `ltdc_encoder_mode_valid` 2328; encoder created as `DRM_MODE_ENCODER_DPI` 2388; `ltdc_get_caps` 2406 (layer count 2423, firewalls 2425-2470, 4.x case 2561-2600); `st,burstlen` 2659; `rotation-memory` 2825; `st,stm32mp25-lvds` 2904.
 
 ## CRTC and planes
 
