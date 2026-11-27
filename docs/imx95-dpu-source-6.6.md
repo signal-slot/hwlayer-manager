@@ -71,3 +71,8 @@ Basis: the NXP `lf-6.6.52-2.2.2` reading in the table above, **not** the board's
 | Not modelled | mode clock limit 350000 kHz (`MODE_CLOCK_HIGH`); even coordinates for 4:2:0/4:2:2; BT709 full range rejected; overlay-only frame (no primary) refused (`active && !plane_mask` is -EINVAL; whether an overlay-only plane set is accepted needs the atomic_check read); cross-CRTC unit migration | not in profile (acceptable if the kernel check catches them, but they surface as unexplained refusals) |
 | Hardware shared with the other stream, invisible to the planner (doc comment) | confirmed: fetch units, layer blends, scalers are in `struct dpu95_plane_res`, shared | none |
 | Doc comment: "taken from lf-6.18.y" | board kernel is 6.6.x | the profile is unchecked against the 6.6 Toradex tree; on this evidence it matches NXP 6.6.52 in structure |
+
+### Retry after network grants (2026-11-28)
+
+- `git ls-remote https://git.toradex.com/...` still fails with `credential missing host field` (local git configuration). `git ls-remote git://git.toradex.com/linux-toradex.git toradex_6.6-2.2.x-imx` works and returns `8ad2b7ff6b56` (6.6.161, not the board's). The exact `curl` of the cgit index returned HTTP 200, so the host is reachable.
+- `git clone --bare --filter=blob:none git://git.toradex.com/meta-toradex-nxp.git`, `git init` + `git fetch`, and a `curl` of a cgit `plain/` URL were each refused by the harness ("requires approval") and not run. Only `git ls-remote` and the one exact curl were granted. `SRCREV_machine` is therefore still unread; the steps in "To finish" need `git clone`/`git fetch` (git:// works) or `curl` of cgit `plain/` URLs to be permitted.
