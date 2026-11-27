@@ -89,3 +89,69 @@ and the KVM was not used.
 Weston was restarted afterwards: `systemctl is-active
 weston-graphical-session seatd-weston` printed `active` twice; the probe
 binary was removed from the board's /tmp.
+
+## Upscale ceiling
+
+Run on 2026-11-27 (UTC, host clock; the board's clock printed
+2026-11-27T11:22Z), over ssh, kernel `6.6.129`, driver `stm`, mode
+1920x1080@60Hz, with `weston-graphical-session` stopped for the runs. The
+probe was `examples/scale_probe` with the new `--max-factor N` option
+(default 32, unchanged), built for `aarch64-unknown-linux-musl` on the host
+(rust-lld, own target directory) and copied to the board's `/tmp`. Every
+test is `ATOMIC_TEST_ONLY | ALLOW_MODESET`; no commit was made.
+
+`--max-factor` extends the ladder above 32 by doubling (64, 128, ...) and
+always adds the factor that shrinks the source to exactly one pixel on the
+axis (`dst / 1`), so the search is limited only by `--max-factor`, the mode
+size or the source buffer.
+
+Command lines and printed lines (observed 2026-11-27), planes 34 and 42,
+destination the full mode, source XR24:
+
+```text
+/tmp/scale_probe --plane 34 --dst 1920x1080 --max-factor 4096
+NOTE plane=34 buffer 3840x2160 XR24 refused (Invalid argument (os error 22)); using 1920x1080
+NOTE plane=34 axis=h no rejection up to 1920.0000 (limited by the mode size: the source is one pixel)
+NOTE plane=34 axis=v no rejection up to 1080.0000 (limited by the mode size: the source is one pixel)
+NOTE plane=34 axis=both no rejection up to 1080.0000 (limited by the mode size: the source is one pixel)
+RESULT plane=34 kind=Primary format=XR24 max_upscale_h=1920.0000+ max_upscale_v=1080.0000+ max_upscale_both=1080.0000+ downscale=untested min_downscale=none
+VERDICT scale_probe: OK 1 plane(s) probed at dst 1920x1080, resolution 256/65536
+
+/tmp/scale_probe --plane 42 --dst 1920x1080 --max-factor 4096
+NOTE plane=42 buffer 3840x2160 XR24 refused (Invalid argument (os error 22)); using 1920x1080
+NOTE plane=42 axis=h no rejection up to 1920.0000 (limited by the mode size: the source is one pixel)
+NOTE plane=42 axis=v no rejection up to 1080.0000 (limited by the mode size: the source is one pixel)
+NOTE plane=42 axis=both no rejection up to 1080.0000 (limited by the mode size: the source is one pixel)
+RESULT plane=42 kind=Overlay format=XR24 max_upscale_h=1920.0000+ max_upscale_v=1080.0000+ max_upscale_both=1080.0000+ downscale=untested min_downscale=none
+VERDICT scale_probe: OK 1 plane(s) probed at dst 1920x1080, resolution 256/65536
+```
+
+| Plane | Ceiling | Smallest source | Rejection | Observed |
+| --- | --- | --- | --- | --- |
+| 34 Primary | no driver bound up to 1920 (h) / 1080 (v, both), limited by the mode size | 1 pixel on the axis (both axes: 1.78x1 at factor 1080) | none seen | 2026-11-27 |
+| 42 Overlay | no driver bound up to 1920 (h) / 1080 (v, both), limited by the mode size | 1 pixel on the axis (same) | none seen | 2026-11-27 |
+
+* Observed 2026-11-27: no upscale TEST_ONLY was rejected on plane 34 or 42,
+  on either axis or both, up to the factor that makes the source one pixel on
+  that axis (1920 horizontally, 1080 vertically, 1080 for both axes). So there
+  is no driver bound up to 1920 (h) and 1080 (v, both), limited by the mode
+  size. This replaces the "at least 32.0" of the table above. Factors beyond
+  the mode size need a source below one pixel and were not tested, so a bound
+  above them cannot be excluded.
+* Observed 2026-11-27: no rejection errno exists for upscaling on planes 34
+  and 42. The only rejections seen on them are downscales, all errno 22
+  (EINVAL): a default run (`/tmp/scale_probe --max-factor 4096`, destination
+  960x540) printed 9 rejected tests on plane 34, 9 on plane 42 (the 0.5, 0.75
+  and 0.9 downscales on h, v and both) and 30 on plane 49 (every factor
+  above or below 1.0), every one with `errno=22`. ERANGE or another errno was
+  never seen. That run ended `VERDICT scale_probe: OK 3 plane(s) probed at dst
+  960x540, resolution 256/65536`.
+* The full-screen `--dst` makes the probe's 2x buffer (3840x2160) too big for
+  the driver (`EINVAL` creating the framebuffer); the probe then uses a
+  1920x1080 source buffer, so downscales do not fit and are `untested` in
+  these two runs. The 960x540 run above covers them.
+* TEST_ONLY acceptance says nothing about picture quality or bandwidth at
+  extreme factors; no picture was taken.
+* The probe binary was removed from the board's `/tmp` and Weston was
+  restarted: `systemctl is-active weston-graphical-session seatd-weston`
+  printed `active` twice.
