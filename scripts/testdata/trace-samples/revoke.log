@@ -1,0 +1,19 @@
+# SYNTHETIC - hand-written sample, NOT a measurement. Never quote as board evidence.
+# revoke (A4, lease revoked): sub 3 is dropped (device_lost), the 2 buffers in use are released
+# with sub=-, a commit after the loss is refused (not counted as a commit).
+# Counts: commit=3 latched=2 released=3 dropped=1. ACCEPT.
+harness version=0.1.0 scenario=revoke args="--source kernel-lease --frames 60 --trace revoke"
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1000000000 at_unit=same build="sample" board="sample"
+CETRACE v=1 ev=commit seq=1 t=1000300000 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=1016900000 at=0 out=0 sub=1
+CETRACE v=1 ev=commit seq=3 t=1017000000 at=0 out=0 result=ok sub=2
+CETRACE v=1 ev=latched seq=4 t=1033600000 at=0 out=0 sub=2
+CETRACE v=1 ev=released seq=5 t=1033600000 at=0 buf=1 sub=1
+CETRACE v=1 ev=commit seq=6 t=1033700000 at=0 out=0 result=ok sub=3
+revoke: lessor revoked the lease
+CETRACE v=1 ev=dropped seq=7 t=1050000000 at=0 out=0 sub=3 reason=device_lost
+CETRACE v=1 ev=released seq=8 t=1050000000 at=0 buf=2 sub=-
+CETRACE v=1 ev=released seq=9 t=1050000000 at=0 buf=3 sub=-
+CETRACE v=1 ev=device_lost seq=10 t=1050000000 at=0
+CETRACE v=1 ev=commit seq=11 t=1050100000 at=0 out=0 result=backend.device_lost
+VERDICT revoke PASS device lost reported once, no commit after

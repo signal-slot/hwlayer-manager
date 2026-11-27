@@ -1,0 +1,9 @@
+# SYNTHETIC - hand-written sample, NOT a measurement. Deliberately INCONSISTENT.
+# Breaks R3: ev=frobnicate is not one of the ten names of the grammar.
+# Counts if the bad line were skipped: commit=1 latched=1 released=0 dropped=0. REJECT.
+harness version=0.1.0 scenario=move args="--source master --trace move"
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1000000000 at_unit=same build="sample" board="sample"
+CETRACE v=1 ev=commit seq=1 t=1000300000 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=frobnicate seq=2 t=1010000000 at=0 out=0 sub=1
+CETRACE v=1 ev=latched seq=3 t=1016900000 at=0 out=0 sub=1
+VERDICT move FAIL sample

@@ -1,0 +1,12 @@
+# SYNTHETIC - hand-written sample, NOT a measurement. Never quote as board evidence.
+# hold (A1 two-planes): 1 commit, 1 latch, nothing released (the frame is still on screen).
+# Counts: commit=1 latched=1 released=0 dropped=0. ACCEPT.
+harness version=0.1.0 scenario=two-planes args="--source master --seconds 20 --trace two-planes"
+session scenario=two-planes source=master driver=sample profile=generic producers=local
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1000000000 at_unit=same build="sample" board="sample"
+CETRACE v=1 ev=check seq=1 t=1000200000 at=0 out=0 n=2 assign=0:31:0:0:0,0,1920,1200:0,0,1920,1200;1:35:2:1:0,0,960,600:480,300,960,600 result=ok future_field=1
+CETRACE v=1 ev=validate seq=2 t=1000210000 at=0 out=0 layers=2 n=2 assign=0:31:0:0:0,0,1920,1200:0,0,1920,1200;1:35:2:1:0,0,960,600:480,300,960,600 result=ok dur=15000
+CETRACE v=1 ev=commit seq=3 t=1000300000 at=0 out=0 result=ok sub=1 dur=80000
+CETRACE v=1 ev=latched seq=4 t=1016900000 at=0 out=0 sub=1 tev=1016667000
+commit step=two-planes submission=1 validate_us=800 commit_us=300 latency_us=16500
+VERDICT two-planes PASS 2 buffers on planes 31,35 (bottom,top)
