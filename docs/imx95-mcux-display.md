@@ -155,6 +155,41 @@ machine they assume**, so that part is open (see below).
    non-cacheable linker section. This is a hint for the M7 cache note
    (`m7-fb-cache`), not a measurement.
 
+## Line citations (verification attempt of 2026-11-28)
+
+The `file:line` citations for the entry points were not available in the
+first pass. A second pass tried to fetch the raw files at the pins above
+(`display_support.c`, `display_support.h`, `dpu_fetch_decode.c`,
+`hardware_init.c`, `sm/hal_config.h`, `board.c`, `drivers/dpu_1/fsl_dpu.h`,
+`fsl_dpu.c`) with `curl` from `raw.githubusercontent.com/nxp-mcuxpresso/...`.
+Every `curl` invocation was refused with "This command requires approval" and
+no approval arrived. Nothing was downloaded, so no line number was read.
+
+| Entry point | Line | Tag |
+|---|---|---|
+| `BOARD_InitDpuInterrupt`, `DISP_IRQSTEER*_DriverIRQHandler` in `B/display_support.c` | not read | not read |
+| `DPU_IRQHandler` use, `APP_TriggerStreamShadowLoad`, `main` init order in `EX/driver_examples/dpu/fetch_decode/dpu_fetch_decode.c` | not read | not read |
+| `SM_Platform_Init` and display MIX power-on in `.../figure_display/cm7/hardware_init.c` | not read | not read |
+| `DPU_Init`, interrupt enums in `CORE/drivers/dpu_1/fsl_dpu.h` | not read | not read |
+| `SM_CLOCK`/`SM_POWER`/`SM_PINCTRL` in `B/sm/hal_config.h` | not read (values were read verbatim on 2026-11-28, no line numbers) | not read |
+
+The three points the first pass left as summary (`display_support.c`,
+`dpu_fetch_decode.c`, `fsl_dpu.h`) therefore stay **summary**; no finding above
+was changed. Re-run the fetch on a node where `curl` to raw.githubusercontent.com
+is allowed, then add line numbers to the table.
+
+## Per-example summary of points (2) and (3)
+
+All of this restates rows above (inferred only where stated).
+
+| Example / layer | Resources it assumes the M7 owns | Alongside Linux? | Frame-done / VSYNC report |
+|---|---|---|---|
+| Verdin `driver_examples/dpu/*` (`figure_display` etc.) | Both DPU display streams, DISPLAY and CAMERA MIX power, display root clocks, IRQSTEER (read from source, EX); SM LM requirement not found | Standalone, J-Link start (read from source, EX); no Linux sharing shown (inferred from absence) | ShadowLoad interrupts via IRQSTEER (read from source, EX) |
+| `fetch_decode` (generic) | Same, via `APP_DPU`; DPR/PRG prefetch optional | Standalone (inferred) | `kDPU_Group0ExtDst0ShadowLoadInterrupt` / `Display0ShadowLoad`, pending flag cleared in handler (read from source, EX) |
+| `drivers/dpu_1`, `ldb_1`, `mipi_dsi_imx` | Take a base pointer; no ownership logic (inferred; `fsl_dpu.c`, `fsl_ldb.c`, `fsl_mipi_dsi.c` not read) | n/a | Interrupt enum only; no VBLANK abstraction read |
+| `drivers/dcif*` | Unknown for i.MX95 | not read | `kDCIF_Vsync*` (read from source, CORE, not tied to i.MX95) |
+| `rpmsg_lite_pingpong_rtos_linux` (not display) | Boot-image started M7, shared memory | With Linux, rpmsg only (read from source, EX; LPD5 EVK paths, not Verdin) | none |
+
 ## Not done / open
 
 - No clone: summary rows above should be re-verified from a checkout.
