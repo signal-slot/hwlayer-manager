@@ -127,18 +127,18 @@ PHY divider are not reachable by any SCMI request**. They need MMIO access to
 | `LDBPLL`, `LDBPLL_VCO` | `SM_SCMI_PERM_ALL` | :264-265 | none |
 | `VIDEOPLL1`, `VIDEOPLL1_VCO` | `SM_SCMI_PERM_ALL` | :308-309 | none |
 | `MIPIPHYCFG`, `MIPIPHYPLLBYPASS`, `MIPIPHYPLLREF`, `MIPITESTBYTE` | `SM_SCMI_PERM_ALL` | :287-290 | none |
-| `DISPAPB`, `DISPAXI`, `DISPOCRAM` | not in the lines read: no entry was found by the fetch for these three | | none |
+| `DISPAPB`, `DISPAXI`, `DISPOCRAM` | no `clkPerms` entry for any agent (full file re-read 2026-11-28; no match for these three names) | none | none |
 
-The last row is a **gap, not a finding**: the fetch listed only lines matching
-`DISP`, `LDB`, `VIDEOPLL`, `CAMERA` and `DISPLAY`, and reported none for
-`DISPAPB`/`AXI`/`OCRAM`. The other notes record that these three belong to LM0
-and are "Modified via PERF protocol" in `mx95evk.cfg`
+So under `mx95evk` **no SCMI agent, AP-NS included, holds a clock permission on
+`DISPAPB`/`AXI`/`OCRAM`** (read from source). The other notes record that they
+belong to LM0 and are "Modified via PERF protocol" in `mx95evk.cfg`
 ([imx95-display-clocks.md](imx95-display-clocks.md) §3.2) (read from source in
-that note). The `DEV_SM_PERF_DISP` and `DEV_SM_PERF_CAM` permissions of AP-NS
-are around `config_scmi.h:460-461` (approximate). In the SM numbering, the
-SCMI perf domain `IMX95_PERF_DISP` is 12 (LX `fsl,imx95-power.h:45`), but no
-display node in `imx95.dtsi` names a `scmi_perf` power domain (read from
-source, nodes listed in §6).
+that note). AP-NS holds `perfPerms[DEV_SM_PERF_CAM]` and
+`perfPerms[DEV_SM_PERF_DISP]` = `SM_SCMI_PERM_ALL` (`config_scmi.h:460-461`).
+The SCMI perf domain `IMX95_PERF_DISP` is 12 (LX `fsl,imx95-power.h:45`), but
+no display node in `imx95.dtsi` names a `scmi_perf` power domain (read from
+source, nodes listed in §5). The file has no reset-permission field (read from
+source).
 
 The M7 agent has no clock permission for any display clock under `mx95evk`
 (read from source). The permission levels and what each SCMI message needs are
@@ -285,7 +285,7 @@ row is new code (an SoC-init step or an LDB driver, see
 | 2 | `POWER_STATE_SET` on, then `POWER_STATE_GET` until on | `DISPLAY` = 13 | `ldb`, both LVDS PHYs, `dispmix_csr`, `lvds_csr`, irqsteer and the DPU are all inside this one domain | **SET: yes**, `pdPerms[13]` at least `SM_SCMI_PERM_SET`. **GET: no**, any agent may read the state |
 | 3 | `CLOCK_RATE_SET` | `LDBPLL_VCO` = 37 (the VCO, to the panel's multiple), then `LDBPLL` = 38 (the output divider) | the LVDS serial clock and, through `÷7`, the pixel clock both come from `LDBPLL` (Linux's panel DT file asks for 2986200000 and 497700000 Hz for a 71.1 MHz pixel clock, an NXP EVK file rather than the board's overlay) | **Yes**: `EXCLUSIVE` (`ALL`) on both. Only AP-NS holds it under `mx95evk`. Two writers on one PLL are not arbitrated |
 | 4 | `CLOCK_CONFIG_SET` enable | `LDBPLL` = 38 and `LDBPLL_VCO` = 37 (Linux enables both: `dpu95-framegen.c` enables `ldb_vco`, then the `ldb` clock whose parent is `LDBPLL`) | gate the PLL outputs on | **Yes**: at least `SET` (aggregated with Linux's vote, so safe to share) |
-| 5 | `CLOCK_CONFIG_SET` enable, and possibly rate set | `DISPAPB` = 75, `DISPAXI` = 76, `DISPOCRAM` = 78 | the DPU runs on these; Linux's runtime PM enables them and `dispmix_csr` assigns 400 / 400 / 133.33 MHz | **Yes if the M7 must enable them**: at least `SET`; `EXCLUSIVE` for any rate. Under `mx95evk` they belong to LM0 (other notes). Whether they are already on after boot or after `DISPLAY` powers up was not read (inferred: probably yes) |
+| 5 | `CLOCK_CONFIG_SET` enable, and possibly rate set | `DISPAPB` = 75, `DISPAXI` = 76, `DISPOCRAM` = 78 | the DPU runs on these; Linux's runtime PM enables them and `dispmix_csr` assigns 400 / 400 / 133.33 MHz | **Yes if the M7 must enable them**: at least `SET`; `EXCLUSIVE` for any rate. Under `mx95evk` no agent holds a permission on them (§2.3). Whether they are already on after boot or after `DISPLAY` powers up was not read (inferred: probably yes) |
 | 6 | Reads: `CLOCK_RATE_GET`, `CLOCK_CONFIG_GET`, `CLOCK_PARENT_GET`, `CLOCK_ATTRIBUTES`, `CLOCK_DESCRIBE_RATES`, `CLOCK_GET_PERMISSIONS` | the IDs above | diagnostics, and to read back the PLL rate Linux set | **No**: the SM checks no permission for these (read from source in the clocks note) |
 | 7 | none | `DISP1PIX` = 80, `DISP2PIX` = 81, `DISP3PIX` = 82, `VIDEOPLL1(_VCO)` = 19 / 18, `MIPIPHY*` / `MIPITESTBYTE` = 66-69 | DSI only. For LVDS the DPU pixel clock comes from `LDBPLL` through `÷7` and the engine mux, not from `DISP1PIX` (read from source in the clocks note, with the caveat that Linux writes the mux bits directly) | n/a: do not call them. In particular **do not run upstream's DSI `soc_init()` sequence**, which sets `VIDEOPLL1` and `DISP1PIX` and powers `CAMERA` (3) |
 | 8 | none | any SCMI reset | no SCMI reset is used by Linux or Zephyr for the display (§4) | n/a |
@@ -329,7 +329,7 @@ subject of another note and is **not established here**.
 - The numeric `PWR_MIX_SLICE_IDX_*`, `CLOCK_SRC_*` and `RST_LINE_*` constants
   were not read; values come from the SM header comments and the DT
   bindings.
-- `DISPAPB`/`DISPAXI`/`DISPOCRAM` permissions in `config_scmi.h`, and whether
-  these clocks are on after boot, were not read (see §2.3).
+- Whether `DISPAPB`/`DISPAXI`/`DISPOCRAM` are on after boot was not read (their
+  absence from `config_scmi.h` is recorded in §2.3).
 - The SM's answer to a request on the reserved IDs 77 and 79 was not read.
 - Nothing was built, run or measured on a board. No timing claim is made.
