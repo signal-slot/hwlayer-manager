@@ -1,5 +1,7 @@
 # STM32MP257 LTDC: full source read (ltdc.h, drv.c, DT, binding, mainline)
 
+> **Checkout retry, 2026-11-28 (item source-checkout-retry): failed, nothing re-read.** `git clone --depth 1 --branch v6.18-stm32mp --filter=blob:none --no-checkout https://github.com/STMicroelectronics/linux <deps dir>/stm32-linux` was refused twice by the worker's permission layer, the second time as a single simple command. Exact message: `This command requires approval`. No git or HTTP error was produced (the clone never ran), so no commit was pinned and no row above was changed. The earlier fetch failures stay as recorded. The mainline clone was not tried (same policy). The `Stm32Ltdc` source-read values were not re-checked.
+
 Date of reading: 2026-11-28. **Nothing here is a board measurement.** Every row is tagged **source** (stated by the code or file read) or **inferred** (a conclusion drawn from it). Behaviour of the board is not claimed anywhere; the board runs ST's 6.6 kernel and has not been touched for this document.
 
 This document completes [`docs/observed/stm32mp257-source.md`](observed/stm32mp257-source.md), which read only `ltdc.c` of ST v6.18-stm32mp and listed the files below as not read. Line numbers for `ltdc.c` in that document are still valid; they are re-used here.

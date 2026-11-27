@@ -1,5 +1,7 @@
 # STM32MP257 LTDC: sync semantics read from source
 
+> **Checkout retry, 2026-11-28 (item source-checkout-retry): failed, nothing re-read.** `git clone --depth 1 --branch v6.18-stm32mp --filter=blob:none --no-checkout https://github.com/STMicroelectronics/linux <deps dir>/stm32-linux` was refused twice by the worker's permission layer, the second time as a single simple command. Exact message: `This command requires approval`. No git or HTTP error was produced (the clone never ran), so no commit was pinned and no row above was changed. The earlier fetch failures stay as recorded. The mainline clone was not tried (same policy). The `Stm32Ltdc` source-read values were not re-checked.
+
 Status: **partly read.** Only the ST `ltdc.c` could be read. Mainline and `drv.c`
 could not be fetched (see the fetch record), so those rows are open.
 
