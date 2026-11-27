@@ -229,8 +229,8 @@ write anything at all.
    possible.
 6. **Firmware path, then start** (writes, all under `/tmp` and sysfs, restored
    afterwards; the script [`imx95-m7-rproc.sh`](../scripts/imx95-m7-rproc.sh)
-   does this): record `firmware_class.path` (observed empty) and the
-   `firmware` name (observed `rproc-imx-rproc-fw`); set the path to the `/tmp`
+   does this): record `firmware_class.path` (observed 2026-11-27, empty) and the
+   `firmware` name (observed 2026-11-27, `rproc-imx-rproc-fw`); set the path to the `/tmp`
    directory; write a plain file name (no `/`, no `..`) to `firmware`;
    `echo start`. Record dmesg: expect "No resource table in elf" for a
    table-less image, then either success or "Failed to enable remote core!"

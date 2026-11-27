@@ -268,7 +268,7 @@ result or with any other SoC.
 3. Remove the files under `/tmp`; confirm the remoteproc `firmware` name and
    `firmware_class` path equal what the script recorded; confirm Weston is
    active.
-4. Report the verdict lines verbatim, dated, tagged **observed**.
+4. Report the verdict lines verbatim, dated, with the evidence tag "observed" and the run date.
 
 ## Not measured
 

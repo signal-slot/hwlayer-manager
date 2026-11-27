@@ -10,7 +10,7 @@ qualitative and is to be measured later under `docs/m2-comparison-plan.md`.
 Every row is tagged one of:
 
 - **read from source (`<ref>`)**: read in a checkout this session.
-- **observed (date)**: taken from a dated snapshot already in this repository.
+- **observed (date of the snapshot, here 2026-11-27)**: taken from a dated snapshot already in this repository.
 - **inferred**: reasoning from the above or from general Arm knowledge that was
   not re-read here. Public Arm/NXP documents were not fetched in this session
   (no network access was granted to this task), so Arm/NXP statements are
@@ -220,7 +220,7 @@ true.
 | Item | Why open |
 |---|---|
 | DPU master reach of M7 TCM and OCRAM | not found in anything read; needs the i.MX95 reference manual or a board probe |
-| Which carve-out the Toradex BSP gives the M7 | observed only as phandle numbers; needs the kernel DT source or `dtc` |
+| Which carve-out the Toradex BSP gives the M7 | observed (2026-11-27 snapshot) only as phandle numbers; needs the kernel DT source or `dtc` |
 | System Manager rights of the M7 over DPU, clocks, power domains and memory | outside this note; see the ownership items of plan #455 |
 | Cost of flush vs nocache | not measured; to be done under `docs/m2-comparison-plan.md` |
 | Whether stock DPU output works with a cacheable buffer, uncleaned | not run; the source suggests it can show stale data |
