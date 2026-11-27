@@ -36,7 +36,10 @@
 #                         restart-start/restart-end [TERM | KILL]: the
 #                         restarted run, held --seconds
 #                     A4  hold-start/hold-end: the revoke run
-#                     A5  hold-start/hold-end: the probe run
+#                     A5  hold-start/hold-end: the modeset run; hold-start
+#                         comes with its first commit on the original mode,
+#                         about 1 s before the switch, so a picture taken
+#                         20 s in shows the second mode if --seconds >= 25
 #
 # Rows (each writes OUT/ROW/result.txt: first line
 # `SCENARIO <name> PASS|FAIL|BLOCKED|NOT-RUN`, then the evidence lines, and
@@ -55,17 +58,21 @@
 #                    device_lost_events=1, nothing busy, no outputs/planes
 #                    after, and no commit/frame/step_result record after
 #                    before_revoke.
-#   A5 modeset       modes of the selected connector are read from
-#                    ${DRM_SYSFS:-/sys/class/drm}/card*-CONNECTOR/modes
-#                   (the harness prints only the selected mode); the harness
-#                   name (`HDMIA-1`, `DisplayPort-2`) is mapped to the sysfs
-#                   name (`HDMI-A-1`, `DP-2`) and the card number is taken
-#                   from --device (any card without it). One mode:
-#                    BLOCKED. More: BLOCKED "harness has no modeset
-#                    scenario" (the harness has no mode option); never PASS.
+#   A5 modeset       modeset --source master --seconds N (N is 1 unless
+#                    --seconds is given): the harness commits on the current
+#                    mode, switches to the first other mode the connector
+#                    offers that passes TEST_ONLY, re-plans, commits for N
+#                    seconds and restores the mode. PASS: exit 0, VERDICT
+#                    PASS, at least one `commit step=modeset-after` record
+#                    and each of them latched (latency_us), and
+#                    modeset_result restored= the original mode. VERDICT
+#                    BLOCKED (exit 3; the connector offers one mode):
+#                    BLOCKED with the harness's reason. Anything else: FAIL.
 #
 # Never starts or stops a display manager, never touches DRM, udev or seat
-# configuration: stop the compositor yourself before, restore it after. Only
+# configuration: stop the compositor yourself before, restore it after. The
+# A5 mode switch is a commit of the harness on its own master descriptor,
+# undone before it exits. Only
 # --source master and kernel-lease are used. A6 (display recovery) is not
 # covered.
 #
@@ -83,7 +90,6 @@ allow_drops=0
 stop_wait=10
 hook=
 common=
-device=
 seconds_given=
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -96,7 +102,7 @@ while [ $# -gt 0 ]; do
 	--allow-drops) shift; allow_drops=${1:-} ;;
 	--stop-wait) shift; stop_wait=${1:-} ;;
 	--hook) shift; hook=${1:-} ;;
-	--device) shift; device=${1:-}; common="$common --device ${1:-}" ;;
+	--device) shift; common="$common --device ${1:-}" ;;
 	--connector) shift; common="$common --connector ${1:-}" ;;
 	--profile) shift; common="$common --profile ${1:-}" ;;
 	--) shift; break ;;
@@ -169,21 +175,6 @@ hold_for() {
 	runhook "$1" "$2" "$4"
 	wait "$hsp"
 	runhook "$1" "$3" "$4"
-}
-
-# sysfs_conn NAME: the harness's connector name (Debug of the interface, then
-# `-index`) as sysfs spells it; a name that is already sysfs's is kept.
-sysfs_conn() {
-	case $1 in *-[0-9]*) ;; *) echo "$1"; return ;; esac
-	hi=${1##*-}
-	ht=${1%-*}
-	case $ht in
-	HDMIA) ht=HDMI-A ;; HDMIB) ht=HDMI-B ;;
-	DisplayPort) ht=DP ;; EmbeddedDisplayPort) ht=eDP ;;
-	DVII) ht=DVI-I ;; DVID) ht=DVI-D ;; DVIA) ht=DVI-A ;;
-	SVideo) ht=SVIDEO ;; NinePinDIN) ht=DIN ;;
-	esac
-	echo "$ht-$hi"
 }
 
 # check_verdict LOG NAME RC: exit status and VERDICT line.
@@ -339,44 +330,46 @@ row_a4() {
 }
 
 row_a5() {
-	d=$out/A5; mkdir -p "$d"; f=$d/probe.log
+	d=$out/A5; mkdir -p "$d"; f=$d/modeset.log
 	s=1
 	[ -z "$seconds_given" ] || s=$seconds
 	# shellcheck disable=SC2086
 	run_held A5 "" hold-start hold-end "$f" \
-		"$harness" $common --source master --seconds "$s" two-planes
-	conn=$(awk '$1=="output" && /selected=yes/ { for (i=2;i<=NF;i++)
-		if (index($i,"connector=")==1) c=substr($i,11) } END{print c}' "$f")
-	if [ "$rc" -ne 0 ] || [ -z "$conn" ]; then
-		check_verdict "$f" two-planes "$rc"
-		fail "no selected output to read modes from"
+		"$harness" $common --source master --seconds "$s" modeset
+	note "exit=$rc"
+	note "connector=$(fld "$f" connector_modes connector) current=$(fld "$f" connector_modes current) modes listed=$(fld "$f" connector_modes count)"
+	v=$(grep '^VERDICT modeset ' "$f" | tail -n 1)
+	[ -z "$v" ] || note "$v"
+	case $v in
+	'')
+		fail "modeset: no VERDICT line"
 		return
-	fi
-	sconn=$(sysfs_conn "$conn")
-	selmode=$(awk '$1 == "output" && /selected=yes/ { for (i = 2; i <= NF; i++)
-		if (index($i, "mode=") == 1) m = substr($i, 6) } END { print m }' "$f")
-	note "connector=$conn (sysfs $sconn) selected mode=$selmode"
-	cards="card*"
-	case $device in */card[0-9]*) cards=card${device##*card} ;; esac
-	mf=
-	for c in "${DRM_SYSFS:-/sys/class/drm}"/$cards-"$sconn"/modes; do
-		[ -r "$c" ] && { mf=$c; break; }
-	done
-	if [ -z "$mf" ]; then
+		;;
+	"VERDICT modeset BLOCKED"*)
+		[ "$rc" -eq 3 ] || fail "modeset: BLOCKED with exit status $rc, expected 3"
 		forced=BLOCKED
-		note "BLOCKED: no readable modes file for connector $sconn"
+		note "BLOCKED: ${v#VERDICT modeset BLOCKED }"
 		return
-	fi
-	sort -u "$mf" > "$d/modes.txt"
-	n=$(grep -c . "$d/modes.txt")
-	note "modes listed by the connector: $(wc -l < "$mf" | tr -d ' ') ($n distinct names)"
-	if [ "$n" -le 1 ]; then
-		forced=BLOCKED
-		note "BLOCKED: the sink offers only one mode"
-	else
-		forced=BLOCKED
-		note "BLOCKED: harness has no modeset scenario (and no mode option); $n modes offered"
-	fi
+		;;
+	"VERDICT modeset PASS"*)
+		[ "$rc" -eq 0 ] || fail "modeset: exit status $rc"
+		;;
+	*)
+		fail "modeset: $v"
+		;;
+	esac
+	from=$(fld "$f" modeset_result from)
+	to=$(fld "$f" modeset_result to)
+	restored=$(fld "$f" modeset_result restored)
+	note "from=$from to=$to restored=$restored"
+	ac=$(awk '$1 == "commit" && / step=modeset-after / { n++ } END { print n + 0 }' "$f")
+	al=$(awk '$1 == "commit" && / step=modeset-after / { for (i = 2; i <= NF; i++)
+		if ($i ~ /^latency_us=[0-9]+$/) n++ } END { print n + 0 }' "$f")
+	note "after the switch: commits=$ac latched=$al"
+	[ "$al" -ge 1 ] || fail "no latch after the switch"
+	[ "$al" -eq "$ac" ] || fail "after the switch latched=$al differs from commits=$ac"
+	[ -n "$from" ] && [ "$restored" = "$from" ] ||
+		fail "original mode ${from:-?} not restored (restored=${restored:-?})"
 }
 
 sel=",$rows,"

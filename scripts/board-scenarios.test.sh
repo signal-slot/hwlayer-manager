@@ -8,9 +8,10 @@
 #                 ignoreterm | termexit1
 #   MOCK_ROT      rotate: ok | drop | norelease | noresult | exit1
 #   MOCK_REV      revoke: ok | commitafter | nolost | busy | exit1
+#   MOCK_MS       modeset: ok | blocked | blockedexit0 | switchfail | nolatch |
+#                 noafter | norestore | exit1 | noverdict
 #   MOCK_CONN     connector name of the selected output (default HDMI-A-1;
 #                 the real harness prints e.g. HDMIA-1, DisplayPort-2)
-#   MOCK_OUT2     if set, a second, unselected output record follows
 
 here=$(cd "$(dirname "$0")" && pwd)
 script=$here/board-scenarios.sh
@@ -32,7 +33,6 @@ done
 echo "harness version=0.1.0 scenario=$scen args=\"$*\""
 echo "session scenario=$scen source=$src device=/dev/dri/card0 driver=mockdrm master=yes"
 echo "output index=0 id=31 connector=${MOCK_CONN:-HDMI-A-1} width=1920 height=1080 refresh_mhz=60000 mode=1920x1080 vrefresh=60 clock_khz=148500 selected=yes"
-[ -n "$MOCK_OUT2" ] && echo "output index=1 id=32 connector=DSI-1 width=640 height=480 refresh_mhz=60000 mode=640x480 vrefresh=60 clock_khz=25000 selected=no"
 [ "$src" = kernel-lease ] && echo "lease route=kernel device=/dev/dri/card0 lessee=1 connector=31 connector_name=HDMI-A-1 crtc=40 primary=50 overlays=51,52 objects=5"
 verdict() { echo "VERDICT $1 $2 $3"; }
 case $scen in
@@ -83,6 +83,53 @@ revoke)
 	[ "$mode" = exit1 ] && { verdict revoke FAIL "x"; exit 1; }
 	verdict revoke PASS "60 frames, then revoked"
 	;;
+modeset)
+	mode=${MOCK_MS:-ok}
+	conn=${MOCK_CONN:-HDMI-A-1}
+	case $mode in blocked|blockedexit0)
+		echo "connector_modes connector=$conn current=800x480@60 count=1 modes=800x480@60"
+		echo "resources scenario=modeset wall_ms=50 cpu_user_ms=0 cpu_sys_ms=0 cpu_pct=0.0 rss_kib=900 peak_rss_kib=900"
+		verdict modeset BLOCKED "the connector offers only one mode (800x480@60, 1 listed)"
+		[ "$mode" = blocked ] && exit 3
+		exit 0
+		;;
+	esac
+	echo "connector_modes connector=$conn current=1920x1080@60 count=3 modes=1920x1080@60,1920x1080@50,1280x720@60"
+	echo "mode_candidate index=1 mode=1920x1080@50 name=1920x1080 test_only=ok"
+	echo "step label=modeset-before width=1920 height=1080 seconds=1"
+	echo "commit step=modeset-before submission=1 validate_us=100 commit_us=30000 latency_us=30100"
+	echo "commit step=modeset-before submission=2 validate_us=100 commit_us=200 latency_us=16700"
+	if [ "$mode" = switchfail ]; then
+		echo "modeset step=switch mode=1920x1080@50 mode_name=1920x1080 commit_us=90 result=\"Invalid argument (os error 22)\" crtc_mode=1920x1080@60"
+		echo "modeset_result from=1920x1080@60 to=1920x1080@50 refused=- before_commits=2 before_latched=2 switch_us=- after_commits=0 after_latched=0 restored=-"
+		verdict modeset FAIL "switch to 1920x1080@50: Invalid argument (os error 22)"
+		exit 1
+	fi
+	echo "modeset step=switch mode=1920x1080@50 mode_name=1920x1080 commit_us=40000 result=ok crtc_mode=1920x1080@50"
+	echo "replan width=1920 height=1080 refresh_mhz=50000"
+	ac=2; al=2
+	case $mode in
+	noafter) ac=0; al=0 ;;
+	nolatch)
+		al=1
+		echo "commit step=modeset-after submission=1 validate_us=100 commit_us=200 latency_us=20000"
+		echo "commit step=modeset-after submission=2 validate_us=100 commit_us=200"
+		;;
+	*)
+		echo "commit step=modeset-after submission=1 validate_us=100 commit_us=200 latency_us=20000"
+		echo "commit step=modeset-after submission=2 validate_us=100 commit_us=200 latency_us=20000"
+		;;
+	esac
+	echo "hold step=modeset-after seconds=$secs"
+	restored=1920x1080@60
+	[ "$mode" = norestore ] && restored=1920x1080@50
+	echo "modeset step=restore mode=1920x1080@60 mode_name=1920x1080 commit_us=40000 result=ok crtc_mode=$restored"
+	echo "modeset_result from=1920x1080@60 to=1920x1080@50 refused=- before_commits=2 before_latched=2 switch_us=40000 after_commits=$ac after_latched=$al restored=$restored"
+	echo "resources scenario=modeset wall_ms=3000 cpu_user_ms=10 cpu_sys_ms=20 cpu_pct=1.0 rss_kib=1000 peak_rss_kib=1000"
+	[ "$mode" = noverdict ] && exit 1
+	[ "$mode" = exit1 ] && { verdict modeset FAIL "no latch after the switch to 1920x1080@50"; exit 1; }
+	verdict modeset PASS "1920x1080@60 -> 1920x1080@50: 2 commits latched before, $al after the switch; 1920x1080@60 restored"
+	;;
 esac
 exit 0
 EOF
@@ -114,11 +161,6 @@ has() {
 		bad "result.txt of $1 lacks '$2'"; cat "$T/out/$1/result.txt" >&2
 	fi
 }
-
-# Sink with two modes, and with one.
-mkdir -p "$T/sys2/card0-HDMI-A-1" "$T/sys1/card0-HDMI-A-1" "$T/sys0"
-printf '1920x1080\n1280x720\n' > "$T/sys2/card0-HDMI-A-1/modes"
-printf '1920x1080\n' > "$T/sys1/card0-HDMI-A-1/modes"
 
 # ---- A1
 t "A1 pass" A1 "SCENARIO startup PASS" 0
@@ -161,35 +203,38 @@ E="MOCK_REV=nolost"; t "A4 no DeviceLost" A4 "SCENARIO lease-loss FAIL" 1
 E="MOCK_REV=busy"; t "A4 buffer busy" A4 "SCENARIO lease-loss FAIL" 1
 E="MOCK_REV=exit1"; t "A4 nonzero exit" A4 "SCENARIO lease-loss FAIL" 1
 
-# ---- A5 (never PASS)
-E="DRM_SYSFS=$T/sys1"; t "A5 single mode" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "only one mode"
-E="DRM_SYSFS=$T/sys2"; t "A5 second mode" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "harness has no modeset scenario"
-E="DRM_SYSFS=$T/sys0"; t "A5 no modes file" A5 "SCENARIO modeset BLOCKED" 3
-E="DRM_SYSFS=$T/sys2 MOCK_TP=exit1"; t "A5 harness fails" A5 "SCENARIO modeset FAIL" 1
-
-# A5: the harness's connector name is mapped to sysfs's (bug 1).
-mkdir -p "$T/sysh/card0-HDMI-A-1" "$T/sysd/card1-DP-2" "$T/sysb/card0-DVI-I-1"
-printf '1920x1080\n1280x720\n' > "$T/sysh/card0-HDMI-A-1/modes"
-printf '1920x1080\n1280x720\n' > "$T/sysd/card1-DP-2/modes"
-printf '1920x1080\n1280x720\n' > "$T/sysb/card0-DVI-I-1/modes"
-E="DRM_SYSFS=$T/sysh MOCK_CONN=HDMIA-1"; t "A5 HDMIA-1 maps to HDMI-A-1" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "harness has no modeset scenario"
-has A5 "connector=HDMIA-1 (sysfs HDMI-A-1)"
-E="DRM_SYSFS=$T/sysd MOCK_CONN=DisplayPort-2"; t "A5 DisplayPort-2 maps to DP-2" A5 "SCENARIO modeset BLOCKED" 3 --device /dev/dri/card1
-has A5 "harness has no modeset scenario"
-E="DRM_SYSFS=$T/sysd MOCK_CONN=DisplayPort-2"; t "A5 DP any card" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "harness has no modeset scenario"
-E="DRM_SYSFS=$T/sysd MOCK_CONN=DisplayPort-2"; t "A5 card number from --device" A5 "SCENARIO modeset BLOCKED" 3 --device /dev/dri/card0
-has A5 "no readable modes file for connector DP-2"
-E="DRM_SYSFS=$T/sysb MOCK_CONN=DVII-1"; t "A5 DVII-1 maps to DVI-I-1" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "harness has no modeset scenario"
-E="DRM_SYSFS=$T/sysh MOCK_CONN=HDMI-A-1"; t "A5 sysfs-style name kept" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "harness has no modeset scenario"
-# The selected mode is reported, not the last output's.
-E="DRM_SYSFS=$T/sys2 MOCK_OUT2=1"; t "A5 selected mode among outputs" A5 "SCENARIO modeset BLOCKED" 3
-has A5 "selected mode=1920x1080"
+# ---- A5: the harness's modeset scenario
+t "A5 pass" A5 "SCENARIO modeset PASS" 0
+has A5 "VERDICT modeset PASS"
+has A5 "from=1920x1080@60 to=1920x1080@50 restored=1920x1080@60"
+has A5 "after the switch: commits=2 latched=2"
+has A5 "connector=HDMI-A-1 current=1920x1080@60 modes listed=3"
+grep -q -- '--source master --seconds 0 modeset' "$T/out/A5/modeset.log" && ok ||
+	bad "A5 does not run modeset --source master with the given --seconds"
+E="MOCK_MS=blocked"; t "A5 one mode" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "BLOCKED: the connector offers only one mode (800x480@60, 1 listed)"
+E="MOCK_MS=blockedexit0"; t "A5 BLOCKED with exit 0" A5 "SCENARIO modeset FAIL" 1
+has A5 "BLOCKED with exit status 0, expected 3"
+E="MOCK_MS=switchfail"; t "A5 switch refused" A5 "SCENARIO modeset FAIL" 1
+has A5 "Invalid argument"
+E="MOCK_MS=exit1"; t "A5 harness FAIL" A5 "SCENARIO modeset FAIL" 1
+has A5 "modeset: VERDICT modeset FAIL no latch after the switch"
+E="MOCK_MS=noverdict"; t "A5 no VERDICT" A5 "SCENARIO modeset FAIL" 1
+has A5 "modeset: no VERDICT line"
+# The script's own checks hold even when the harness says PASS.
+E="MOCK_MS=noafter"; t "A5 no commit after the switch" A5 "SCENARIO modeset FAIL" 1
+has A5 "no latch after the switch"
+E="MOCK_MS=nolatch"; t "A5 unlatched commit after the switch" A5 "SCENARIO modeset FAIL" 1
+has A5 "latched=1 differs from commits=2"
+E="MOCK_MS=norestore"; t "A5 mode not restored" A5 "SCENARIO modeset FAIL" 1
+has A5 "original mode 1920x1080@60 not restored (restored=1920x1080@50)"
+# The connector name is the harness's, whatever its spelling.
+E="MOCK_CONN=HDMIA-1"; t "A5 harness connector name" A5 "SCENARIO modeset PASS" 0
+has A5 "connector=HDMIA-1 current=1920x1080@60"
+# --device and --connector reach the modeset run.
+t "A5 passes device and connector" A5 "SCENARIO modeset PASS" 0 --device /dev/dri/card1 --connector DP-2
+grep -q -- '--device /dev/dri/card1 --connector DP-2 --source master' "$T/out/A5/modeset.log" && ok ||
+	bad "A5 lacks --device and --connector"
 
 # ---- picture hooks: ROW PHASE LABEL per call; A3 has post-stop and restart
 # phases.
@@ -220,22 +265,25 @@ A3 restart-end KILL" ] && ok || { bad "A3 hook calls"; cat "$T/hook3.log" >&2; }
 hookrun A4 lease-loss
 [ "$(cat "$T/hook3.log")" = "A4 hold-start -
 A4 hold-end -" ] && ok || { bad "A4 hook calls"; cat "$T/hook3.log" >&2; }
-rm -f "$T/hook3.log"
-E="DRM_SYSFS=$T/sys2"; t "hooks A5" A5 "SCENARIO modeset BLOCKED" 3 --hook "$T/hook3"
+hookrun A5 modeset
 [ "$(cat "$T/hook3.log")" = "A5 hold-start -
 A5 hold-end -" ] && ok || { bad "A5 hook calls"; cat "$T/hook3.log" >&2; }
+rm -f "$T/hook3.log"
+E="MOCK_MS=blocked"; t "hooks A5 blocked" A5 "SCENARIO modeset BLOCKED" 3 --hook "$T/hook3"
+[ "$(cat "$T/hook3.log")" = "A5 hold-start -
+A5 hold-end -" ] && ok || { bad "A5 blocked hook calls"; cat "$T/hook3.log" >&2; }
 # A hook failure is only noted.
 printf '#!/bin/sh\nexit 1\n' > "$T/hookfail"; chmod +x "$T/hookfail"
 t "failing hook" A1 "SCENARIO startup PASS" 0 --hook "$T/hookfail"
 has A1 "hook A1 hold-start master failed"
 # hold-start runs while the run is under way: its log already has a commit.
-printf '#!/bin/sh\ngrep -c "^commit" "%s/out/$1/probe.log" >> "%s/hook4.log"\n' "$T" "$T" > "$T/hook4"
+printf '#!/bin/sh\n[ "$2" = hold-start ] && grep -c "^commit" "%s/out/$1/modeset.log" >> "%s/hook4.log"\nexit 0\n' "$T" "$T" > "$T/hook4"
 chmod +x "$T/hook4"; rm -f "$T/hook4.log"
-E="DRM_SYSFS=$T/sys2"; t "hold-start after first commit" A5 "SCENARIO modeset BLOCKED" 3 --hook "$T/hook4"
-[ "$(sed -n 1p "$T/hook4.log")" = 1 ] && ok || bad "hold-start before the first commit"
-# --seconds reaches the A5 probe, and the A3 post-stop hold lasts that long.
-E="DRM_SYSFS=$T/sys2"; t "A5 probe uses --seconds" A5 "SCENARIO modeset BLOCKED" 3 --seconds 2
-grep -q 'seconds=2' "$T/out/A5/probe.log" && ok || bad "A5 probe lacks --seconds 2"
+t "hold-start after first commit" A5 "SCENARIO modeset PASS" 0 --hook "$T/hook4"
+[ "$(sed -n 1p "$T/hook4.log")" -ge 1 ] 2>/dev/null && ok || bad "hold-start before the first commit"
+# --seconds reaches the A5 modeset run, and the A3 post-stop hold lasts that long.
+t "A5 modeset uses --seconds" A5 "SCENARIO modeset PASS" 0 --seconds 2
+grep -q -- '--seconds 2 modeset' "$T/out/A5/modeset.log" && ok || bad "A5 modeset lacks --seconds 2"
 printf '#!/bin/sh\ndate +%%s >> "%s/hook5.log"\n' "$T" > "$T/hook5"; chmod +x "$T/hook5"
 rm -f "$T/hook5.log"
 t "A3 holds last --seconds" A3 "SCENARIO stop-restart PASS" 0 --seconds 1 --hook "$T/hook5"

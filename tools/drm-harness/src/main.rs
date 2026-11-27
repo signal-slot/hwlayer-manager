@@ -4,7 +4,7 @@
 //! that is DRM master, a kernel DRM lease or a lease from drm-lease-manager,
 //! with buffers it allocates itself or receives from producer processes,
 //! and prints one-line `key=value` records ending in
-//! `VERDICT <scenario> PASS|FAIL <reason>`. See the README.
+//! `VERDICT <scenario> PASS|FAIL|BLOCKED <reason>`. See the README.
 
 #![forbid(unsafe_code)]
 
@@ -12,6 +12,7 @@ mod conn_names;
 mod draw;
 mod lease;
 mod lessor;
+mod modeset;
 mod producer;
 mod record;
 mod scenarios;
@@ -28,7 +29,7 @@ use std::sync::atomic::Ordering;
 use composition_drm::DriverProfile;
 
 use crate::lease::LeaseRequest;
-use crate::record::{verdict_line, Record};
+use crate::record::{blocked_line, verdict_line, Record};
 use crate::scenarios::{Outcome, MOVE_FRAMES, REVOKE_FRAMES, ROTATE_FRAMES};
 use crate::session::{Options, ProducerMode};
 use crate::source::Source;
@@ -75,6 +76,14 @@ const LEASE_SCENARIOS: [(&str, Scenario, &str); 1] = [(
      \x20               the engine must report DeviceLost once and release what was shown",
 )];
 
+/// Scenarios that change the output's mode; `all` never runs them.
+const MODE_SCENARIOS: [(&str, Scenario, &str); 1] = [(
+    "modeset",
+    scenarios::modeset,
+    "commit on the current mode, switch to the first other mode the sink offers,\n\
+     \x20               re-plan and commit for --seconds, restore the mode; BLOCKED with one mode",
+)];
+
 fn usage() -> String {
     let mut text = String::from(
         "drm-harness: drive composition-drm on a DRM output with two hardware planes\n\
@@ -85,11 +94,16 @@ fn usage() -> String {
          \n\
          Scenarios:\n",
     );
-    for (name, _, help) in SCENARIOS.iter().chain(LEASE_SCENARIOS.iter()) {
+    for (name, _, help) in SCENARIOS
+        .iter()
+        .chain(LEASE_SCENARIOS.iter())
+        .chain(MODE_SCENARIOS.iter())
+    {
         text.push_str(&format!("  {name:<14}{help}\n"));
     }
     text.push_str(&format!(
-        "  {:<14}all of the above in this order (revoke only with --source kernel-lease)\n\
+        "  {:<14}all of the above but modeset, in this order (revoke only with\n\
+         \x20               --source kernel-lease)\n\
          \n\
          Options:\n\
          \x20 --source <SOURCE>     where the DRM descriptor comes from [default: master]:\n\
@@ -118,7 +132,8 @@ fn usage() -> String {
          \x20                                   has passed on the engine's release\n\
          \x20 --profile <PROFILE>   driver profile: generic or imx95 [default: generic]\n\
          \x20 --seconds <N>         how long to hold each picture for a camera, and the screen after the\n\
-         \x20                       revocation in revoke [default: 5, at most 86400]\n\
+         \x20                       revocation in revoke, and the commits after the switch in modeset\n\
+         \x20                       [default: 5, at most 86400]\n\
          \x20 --frames <N>          frames for move [default: {MOVE_FRAMES}], rotate [default: {ROTATE_FRAMES}]\n\
          \x20                       and revoke, before the revocation [default: {REVOKE_FRAMES}]\n\
          \x20 --buffers <K>         buffers per plane in rotate and revoke, at least 3 [default: 3]\n\
@@ -136,8 +151,9 @@ fn usage() -> String {
          socket on standard input; not meant to be run by hand.\n\
          \n\
          Output: one record per line, `kind key=value ...`; each scenario ends with\n\
-         `VERDICT <scenario> PASS|FAIL <reason>`. The exit status is 0 only if every\n\
-         scenario run passed.\n",
+         `VERDICT <scenario> PASS|FAIL|BLOCKED <reason>`. The exit status is 0 only if\n\
+         every scenario run passed, 1 if one failed, 3 if none failed but one was\n\
+         BLOCKED (it could not run here, such as modeset on a sink with one mode).\n",
         "all",
         wire::DLM_DEFAULT_RUNTIME_PATH,
     ));
@@ -298,6 +314,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
     let known = SCENARIOS
         .iter()
         .chain(LEASE_SCENARIOS.iter())
+        .chain(MODE_SCENARIOS.iter())
         .any(|(name, _, _)| *name == scenario);
     if scenario != "all" && !known {
         return Err(format!("unknown scenario {scenario}"));
@@ -329,6 +346,8 @@ enum End {
     /// It ran to its checks: whether they passed, why, and whether a stop
     /// ended its hold.
     Done(bool, String, bool),
+    /// It could not run here, and why.
+    Blocked(String),
     /// It stopped with an error.
     Failed(String),
     /// A stop ended it before its checks were made.
@@ -339,6 +358,7 @@ enum End {
 /// any other error stays what it was, even if a signal came meanwhile.
 fn end_of(result: Result<Outcome, String>) -> End {
     match result {
+        Ok(outcome) if outcome.blocked => End::Blocked(outcome.reason),
         Ok(outcome) => End::Done(outcome.pass, outcome.reason, outcome.stopped),
         Err(error) if error == stop::STOPPED => End::CutOff,
         Err(error) => End::Failed(error),
@@ -357,16 +377,31 @@ fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
         } else {
             &[]
         };
+    let mode_scenarios: &[(&str, Scenario, &str)] = if scenario == "all" {
+        &[]
+    } else {
+        &MODE_SCENARIOS
+    };
     let mut passed = 0;
     let mut failed = 0;
-    for (name, run, _) in SCENARIOS.iter().chain(lease_scenarios.iter()) {
+    let mut blocked = 0;
+    for (name, run, _) in SCENARIOS
+        .iter()
+        .chain(lease_scenarios.iter())
+        .chain(mode_scenarios.iter())
+    {
         if scenario != "all" && scenario != *name {
             continue;
         }
         let problems_before = producer::PROBLEMS.load(Ordering::Relaxed);
         let usage = Usage::now();
         let mut stopped = false;
+        let mut was_blocked = false;
         let (mut pass, mut reason) = match end_of(run(options)) {
+            End::Blocked(reason) => {
+                was_blocked = true;
+                (false, reason)
+            }
             End::Done(pass, reason, was_stopped) => {
                 stopped = was_stopped;
                 if was_stopped {
@@ -396,11 +431,16 @@ fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
             pass = false;
             reason = format!("{reason}; producers reported {problems} problems");
         }
-        println!("{}", verdict_line(name, pass, &reason));
-        if pass {
-            passed += 1;
+        if was_blocked && problems == 0 {
+            println!("{}", blocked_line(name, &reason));
+            blocked += 1;
         } else {
-            failed += 1;
+            println!("{}", verdict_line(name, pass, &reason));
+            if pass {
+                passed += 1;
+            } else {
+                failed += 1;
+            }
         }
         if stopped {
             // No further scenario after a stop.
@@ -411,12 +451,21 @@ fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
         Record::new("SUMMARY")
             .field("passed", passed)
             .field("failed", failed)
+            .field("blocked", blocked)
             .emit();
     }
-    if failed == 0 {
-        ExitCode::SUCCESS
-    } else {
+    exit_status(failed, blocked)
+}
+
+/// 0 if every scenario run passed, 1 if one failed, 3 if none failed but
+/// one was BLOCKED.
+fn exit_status(failed: u32, blocked: u32) -> ExitCode {
+    if failed > 0 {
         ExitCode::FAILURE
+    } else if blocked > 0 {
+        ExitCode::from(3)
+    } else {
+        ExitCode::SUCCESS
     }
 }
 
@@ -567,6 +616,7 @@ mod tests {
             pass: false,
             reason: "no event".into(),
             stopped: true,
+            blocked: false,
         };
         assert_eq!(
             end_of(Ok(failed)),
@@ -584,6 +634,47 @@ mod tests {
     }
 
     #[test]
+    fn modeset_parses_with_its_options() {
+        let (o, scenario) = options("--connector HDMI-A-1 --seconds 30 modeset");
+        assert_eq!(scenario, "modeset");
+        assert_eq!(o.seconds, 30);
+        assert_eq!(o.connector.as_deref(), Some("HDMI-A-1"));
+        assert!(matches!(o.source, Source::Master { .. }));
+        let (o, scenario) = options("--source=kernel-lease --seconds=2 modeset");
+        assert_eq!(scenario, "modeset");
+        assert!(matches!(o.source, Source::KernelLease(_)));
+        assert_eq!(o.seconds, 2);
+        for bad in [
+            "modeset two-planes",
+            "--seconds modeset",
+            "modeset --seconds",
+        ] {
+            assert!(parse(&args(bad)).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn all_never_runs_modeset() {
+        assert!(MODE_SCENARIOS.iter().any(|(name, _, _)| *name == "modeset"));
+        assert!(!SCENARIOS
+            .iter()
+            .chain(LEASE_SCENARIOS.iter())
+            .any(|(name, _, _)| *name == "modeset"));
+    }
+
+    #[test]
+    fn blocked_is_its_own_end_and_exit_status() {
+        let blocked = Outcome::blocked("the connector offers only one mode".into());
+        assert_eq!(
+            end_of(Ok(blocked)),
+            End::Blocked("the connector offers only one mode".into())
+        );
+        assert_eq!(exit_status(0, 0), ExitCode::SUCCESS);
+        assert_eq!(exit_status(0, 1), ExitCode::from(3));
+        assert_eq!(exit_status(1, 1), ExitCode::FAILURE);
+    }
+
+    #[test]
     fn help_lists_sources_producers_and_revoke() {
         let text = usage();
         for needle in [
@@ -594,6 +685,8 @@ mod tests {
             "external",
             "revoke",
             "lessor",
+            "modeset",
+            "BLOCKED",
         ] {
             assert!(text.contains(needle), "{needle}");
         }

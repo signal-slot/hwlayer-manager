@@ -25,6 +25,9 @@ pub struct Outcome {
     /// Whether a stop (SIGTERM, SIGINT) ended the scenario at its hold, after
     /// the checks that were made. `pass` still says what they found.
     pub stopped: bool,
+    /// Whether the scenario could not be run here (`VERDICT ... BLOCKED`):
+    /// what it needs is missing, such as a second mode. Never a pass.
+    pub blocked: bool,
 }
 
 impl Outcome {
@@ -38,13 +41,25 @@ impl Outcome {
                 pass: true,
                 reason: ok,
                 stopped,
+                blocked: false,
             }
         } else {
             Self {
                 pass: false,
                 reason: failures.join("; "),
                 stopped,
+                blocked: false,
             }
+        }
+    }
+
+    /// A scenario that could not be run, and why.
+    pub fn blocked(reason: String) -> Self {
+        Self {
+            pass: false,
+            reason,
+            stopped: false,
+            blocked: true,
         }
     }
 }
@@ -1324,6 +1339,298 @@ pub fn revoke(o: &Options) -> Result<Outcome, String> {
             "{frames} frames on planes {}, then revoked: DeviceLost once, buffers {} released",
             first_plan.map_or("-".into(), |p| list(p.iter())),
             list(on_screen.iter().map(|b| b.0))
+        ),
+    ))
+}
+
+/// Seconds of commits on the original mode before `modeset` switches.
+pub const MODESET_BEFORE_SECONDS: u64 = 1;
+
+/// What one phase of `modeset` committed.
+#[derive(Debug, Default)]
+struct Phase {
+    commits: u32,
+    latched: u32,
+    /// The error that ended the phase early, if any.
+    error: Option<String>,
+    /// A stop (SIGTERM, SIGINT) ended the phase.
+    stopped: bool,
+    /// Failures of the first frame's plan.
+    plan_failures: Vec<String>,
+}
+
+/// Commits the two-planes picture on the session's current size, flipping
+/// between two buffers per layer, until `seconds` have passed (at least
+/// one commit), and waits for each latch. Prints a `commit` record per
+/// latched frame.
+fn commit_for(s: &mut Session, step: &str, seconds: u64) -> Result<Phase, String> {
+    let size = s.size;
+    let (w, h) = (size.width, size.height);
+    let top_size = Size::new(w / 2, h / 2);
+    // Two buffers per layer: [bottom, top] of even frames, then of odd ones.
+    let mut pairs = [[BufferId(0); 2]; 2];
+    for pair in &mut pairs {
+        pair[0] = framed(s, 0, size, XRGB, colour::BLUE, colour::WHITE)?;
+        pair[1] = framed(s, 1, top_size, XRGB, colour::RED, colour::YELLOW)?;
+    }
+    Record::new("step")
+        .field("label", step)
+        .field("width", w)
+        .field("height", h)
+        .field("seconds", seconds)
+        .field(
+            "expect",
+            "blue full screen with white edge, red rectangle with yellow edge on top in the middle",
+        )
+        .emit();
+    let mut phase = Phase::default();
+    let deadline = Instant::now() + Duration::from_secs(seconds.min(crate::stop::MAX_SECONDS));
+    let mut n = 0usize;
+    loop {
+        if crate::stop::requested() {
+            phase.stopped = true;
+            break;
+        }
+        let current = pairs[n % 2];
+        // The buffers flipped away from in the last frame are released
+        // with that frame's successor's latch; never commit them busy.
+        let ready_by = Instant::now() + LATCH_TIMEOUT;
+        while current
+            .iter()
+            .any(|id| s.engine.buffer_state(*id) != Some(BufferState::Ready))
+        {
+            if Instant::now() >= ready_by {
+                phase.error = Some(format!("{step}: frame {n}: buffers not released in time"));
+                return Ok(phase);
+            }
+            match s.wait(LATCH_TIMEOUT / 10).and_then(|()| s.drain()) {
+                Ok(_) => {}
+                Err(e) if e == crate::stop::STOPPED => {
+                    phase.stopped = true;
+                    return Ok(phase);
+                }
+                Err(e) => {
+                    phase.error = Some(format!("{step}: {e}"));
+                    return Ok(phase);
+                }
+            }
+        }
+        if n >= 2 {
+            // Back to writable and ready, as a producer reuses a buffer
+            // (its producer expects a draw between two releases); the
+            // content stays as drawn.
+            for id in current {
+                if let Err(e) = s.redraw(id, &[]) {
+                    phase.error = Some(format!("{step}: frame {n}: {e}"));
+                    return Ok(phase);
+                }
+            }
+        }
+        let layers = [
+            Layer::new(current[0], whole(size), whole(size), 0),
+            Layer::new(current[1], whole(top_size), at(w / 4, h / 4, top_size), 1),
+        ];
+        match s.present(&layers) {
+            Ok(shown) => {
+                phase.commits += 1;
+                if n == 0 {
+                    s.print_plan(step, &layers, &shown.plan);
+                    phase.plan_failures = check_distinct_and_order(step, &layers, &shown);
+                }
+                print_commit(step, &shown);
+                phase.latched += 1;
+            }
+            Err(e) if e == crate::stop::STOPPED => {
+                // Stopped before the commit was made.
+                phase.stopped = true;
+                break;
+            }
+            Err(e) => {
+                // Validated or committed, but not latched.
+                phase.commits += 1;
+                phase.error = Some(format!("{step}: frame {n}: {e}"));
+                break;
+            }
+        }
+        n += 1;
+        if Instant::now() >= deadline {
+            break;
+        }
+    }
+    Ok(phase)
+}
+
+fn mode_size(mode: &drm::control::Mode) -> Size {
+    let (w, h) = mode.size();
+    Size::new(u32::from(w), u32::from(h))
+}
+
+/// `modeset`: commit on the connector's current mode, switch to the first
+/// other mode the sink offers that the device accepts, re-plan on the new
+/// size and keep committing for `--seconds`, then put the original mode
+/// back. BLOCKED when the connector offers only one mode.
+pub fn modeset(o: &Options) -> Result<Outcome, String> {
+    use crate::modeset::{blocked_reason, candidates, ModeKey, Switcher};
+    use drm::control::Device as _;
+
+    let mut s = Session::open(o, "modeset")?;
+    let usage = Usage::now();
+    let pairing = s.pairing()?;
+    let original = pairing.mode;
+    let current = ModeKey::of(&original);
+    let modes: Vec<drm::control::Mode> = s
+        .engine
+        .backend()
+        .card()
+        .get_connector(pairing.handle, false)
+        .map_err(|e| format!("connector {}: {e}", pairing.connector))?
+        .modes()
+        .to_vec();
+    let keys: Vec<ModeKey> = modes.iter().map(ModeKey::of).collect();
+    Record::new("connector_modes")
+        .field("connector", &pairing.connector)
+        .field("current", current.text())
+        .field("count", modes.len())
+        .field("modes", list(keys.iter().map(ModeKey::text)))
+        .emit();
+    if let Some(reason) = blocked_reason(current, &keys) {
+        print_resources("modeset", &usage);
+        return Ok(Outcome::blocked(reason));
+    }
+    let mut switcher = Switcher::new(s.engine.backend().card(), &pairing)
+        .map_err(|e| format!("mode switch objects: {e}"))?;
+    let mut target = None;
+    let mut refused = Vec::new();
+    for index in candidates(current, &keys) {
+        let tested = switcher.test(s.engine.backend().card(), &modes[index]);
+        Record::new("mode_candidate")
+            .field("index", index)
+            .field("mode", keys[index].text())
+            .field("name", modes[index].name().to_string_lossy())
+            .field(
+                "test_only",
+                match &tested {
+                    Ok(()) => "ok".to_string(),
+                    Err(e) => e.to_string(),
+                },
+            )
+            .emit();
+        if tested.is_ok() {
+            target = Some(modes[index]);
+            break;
+        }
+        refused.push(keys[index].text());
+    }
+    let Some(target) = target else {
+        switcher.release(s.engine.backend().card(), false);
+        print_resources("modeset", &usage);
+        return Ok(Outcome::new(
+            &[format!(
+                "no mode other than {} passed TEST_ONLY (refused: {})",
+                current.text(),
+                list(refused.iter())
+            )],
+            String::new(),
+        ));
+    };
+    let wanted = ModeKey::of(&target);
+
+    let mut failures = Vec::new();
+    let before = commit_for(&mut s, "modeset-before", MODESET_BEFORE_SECONDS)?;
+    failures.extend(before.plan_failures.iter().cloned());
+    failures.extend(before.error.iter().cloned());
+    if before.latched == 0 && !before.stopped && failures.is_empty() {
+        failures.push("no latch on the original mode".into());
+    }
+    let mut switch_us = None;
+    let mut after = Phase::default();
+    if failures.is_empty() && !before.stopped {
+        let blank = [fill(whole(mode_size(&target)), colour::BLACK)];
+        match switcher.switch(s.engine.backend().card(), "switch", &target, &blank) {
+            Ok(us) => switch_us = Some(us),
+            Err(e) => failures.push(format!("switch to {}: {e}", wanted.text())),
+        }
+    }
+    if switch_us.is_some() {
+        // A new engine on the same descriptor finds the new mode; its plan
+        // is made for the new size.
+        let replanned = s.reopen().and_then(|()| {
+            Record::new("replan")
+                .field("width", s.size.width)
+                .field("height", s.size.height)
+                .field("refresh_mhz", s.refresh_mhz)
+                .emit();
+            if s.size != mode_size(&target) {
+                return Err(format!(
+                    "the engine reports {}x{} after the switch to {}",
+                    s.size.width,
+                    s.size.height,
+                    wanted.text()
+                ));
+            }
+            commit_for(&mut s, "modeset-after", o.seconds)
+        });
+        match replanned {
+            Ok(phase) => after = phase,
+            Err(e) => failures.push(e),
+        }
+        failures.extend(after.plan_failures.iter().cloned());
+        failures.extend(after.error.iter().cloned());
+        if after.latched == 0 && !after.stopped && failures.is_empty() {
+            failures.push(format!("no latch after the switch to {}", wanted.text()));
+        }
+    }
+    // Put the original mode back, whatever happened after the switch.
+    let mut restored = "-".to_string();
+    if switch_us.is_some() {
+        let blank = [fill(whole(mode_size(&original)), colour::BLACK)];
+        let card = s.engine.backend().card();
+        if let Err(e) = switcher.switch(card, "restore", &original, &blank) {
+            failures.push(format!("restore {}: {e}", current.text()));
+        }
+        restored = card
+            .get_crtc(pairing.crtc)
+            .ok()
+            .and_then(|c| c.mode())
+            .map_or("-".to_string(), |m| ModeKey::of(&m).text());
+        if restored != current.text() {
+            failures.push(format!(
+                "the CRTC runs {restored} after the restore, not {}",
+                current.text()
+            ));
+        }
+    }
+    switcher.release(s.engine.backend().card(), switch_us.is_some());
+    Record::new("modeset_result")
+        .field("from", current.text())
+        .field("to", wanted.text())
+        .field("refused", list(refused.iter()))
+        .field("before_commits", before.commits)
+        .field("before_latched", before.latched)
+        .field(
+            "switch_us",
+            switch_us.map_or("-".to_string(), |us| us.to_string()),
+        )
+        .field("after_commits", after.commits)
+        .field("after_latched", after.latched)
+        .field("restored", &restored)
+        .emit();
+    // A stop before anything was checked after the switch is a cut-off.
+    let cut_off = failures.is_empty()
+        && ((before.stopped && switch_us.is_none()) || (after.stopped && after.latched == 0));
+    if cut_off {
+        return Err(crate::stop::STOPPED.into());
+    }
+    print_resources("modeset", &usage);
+    Ok(Outcome::new(
+        &failures,
+        format!(
+            "{} -> {}: {} commits latched before, {} after the switch; {} restored",
+            current.text(),
+            wanted.text(),
+            before.latched,
+            after.latched,
+            current.text()
         ),
     ))
 }

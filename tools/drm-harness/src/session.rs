@@ -106,6 +106,8 @@ pub struct Session {
     pub refresh_mhz: u32,
     infos: Infos,
     next_buffer: u32,
+    /// Driver profile, for a backend reopened on the same descriptor.
+    profile: DriverProfile,
     /// Producer processes, with `--producers external`.
     producers: Option<Producers>,
     /// Keeps the descriptor valid (lessor, lease-manager connection).
@@ -394,12 +396,59 @@ impl Session {
             refresh_mhz: out.refresh_mhz,
             infos: Infos::default(),
             next_buffer: 1,
+            profile: options.profile,
             producers: match &options.producers {
                 ProducerMode::Local => None,
                 ProducerMode::External { device } => Some(Producers::new(device.clone())),
             },
             holder,
         })
+    }
+
+    /// The connector and CRTC of the selected output, with the mode the
+    /// CRTC runs now.
+    pub fn pairing(&self) -> Result<Pairing, String> {
+        pairings(self.engine.backend().card())
+            .map_err(|e| os("connectors", e))?
+            .into_iter()
+            .find(|p| u32::from(p.crtc) == self.output.0)
+            .ok_or_else(|| "the selected output has no connector any more".into())
+    }
+
+    /// Replaces the engine with a new one on the same descriptor (the same
+    /// DRM file, so the same master or lease), which finds the outputs as
+    /// they are now: after a mode change, the new size. Buffers of the old
+    /// engine are forgotten; their memory goes with the descriptor. Buffer
+    /// ids keep counting, so producers never see one twice.
+    pub fn reopen(&mut self) -> Result<(), String> {
+        let fd = self
+            .engine
+            .backend()
+            .card()
+            .as_fd()
+            .try_clone_to_owned()
+            .map_err(|e| os("duplicate the DRM descriptor", e))?;
+        let backend = DrmBackend::from_fd(
+            fd,
+            DrmOptions {
+                scaling: None,
+                profile: self.profile,
+            },
+        )
+        .map_err(|e| os("DRM backend", e))?;
+        let engine = Box::new(Engine::new(backend));
+        let out = engine
+            .capabilities()
+            .outputs
+            .iter()
+            .find(|o| o.id == self.output)
+            .copied()
+            .ok_or("the reopened backend does not report the output")?;
+        self.engine = engine;
+        self.size = out.size;
+        self.refresh_mhz = out.refresh_mhz;
+        self.infos = Infos::default();
+        Ok(())
     }
 
     /// Whether a lessor in this process holds the lease.
