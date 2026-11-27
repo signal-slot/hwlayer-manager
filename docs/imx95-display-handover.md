@@ -23,7 +23,7 @@ earlier desk version of this file that rested only on sibling notes. Related:
 
 | Id | Source | Pin | Read |
 |---|---|---|---|
-| LX | NXP linux-imx, <https://github.com/nxp-imx/linux-imx> | tag `lf-6.6.52-2.2.2` = commit `5a0a5e71d2bd` (as recorded in the feasibility note, S6; not re-resolved here) | raw files at the tag: `drivers/gpu/drm/imx/dpu95/dpu95-drv.c` (241 lines), `dpu95-kms.c`, `drivers/gpu/drm/bridge/imx/imx95-ldb.c` (541 lines), `drivers/of/platform.c`, `drivers/of/Kconfig` |
+| LX | NXP linux-imx, <https://github.com/nxp-imx/linux-imx> | tag `lf-6.6.52-2.2.2` = commit `5a0a5e71d2bd` (as recorded in the feasibility note, S6; not re-resolved here). On 2026-11-28 the GitHub API showed the tag as an annotated tag object `f9a8e33f5cde3e96a57569e9dfa70481fe688943`; its target commit was not fetched | raw files at the tag: `drivers/gpu/drm/imx/dpu95/dpu95-drv.c` (241 lines), `dpu95-kms.c`, `drivers/gpu/drm/bridge/imx/imx95-ldb.c` (541 lines), `drivers/of/platform.c`, `drivers/of/Kconfig` |
 | MK | NXP imx-mkimage, <https://github.com/nxp-imx/imx-mkimage> | tag `lf-6.6.52-2.2.2` = commit `81fca6434be0` (feasibility S3) | `iMX95/soc.mak`, `README` |
 | SM | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `lf-6.6.52-2.2.2`, same commit as `rel_imx_sm_2025q3` = `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec` | `README.md`; everything else via the sibling notes |
 | TX | Toradex community, <https://community.toradex.com/t/how-to-apply-a-device-tree-overlay/29036> and the Verdin iMX95 threads linked from it | no commit; forum posts, seen 2026-11-28 through a search result summary, **not the page itself** | overlay mechanism of Yocto BSPs (secondary) |
