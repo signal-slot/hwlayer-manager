@@ -1,0 +1,18 @@
+# observed 2026-11-28, NanoPC-T6 (RK3588), kernel 6.18.55-current-rockchip64
+# read: uname -r and dmesg lines matching vop2, rockchip-drm, [drm] (read-only; no commit, no modeset, no DRM master; fbcon was the only DRM client)
+# scrubbed: no EDID, serials, host names, IPs or MACs present (checked by hand)
+6.18.55-current-rockchip64
+[    4.238928] rockchip-drm display-subsystem: bound fdd90000.vop (ops 0xffffcb4df87afd10)
+[    4.241380] rockchip-drm display-subsystem: bound fde80000.hdmi (ops 0xffffcb4df87b83e8)
+[    4.243738] rockchip-drm display-subsystem: bound fdea0000.hdmi (ops 0xffffcb4df87b83e8)
+[    4.245286] [drm] Initialized rockchip 1.0.0 for display-subsystem on minor 0
+[    4.477693] rockchip-drm display-subsystem: [drm] fb0: rockchipdrmfb frame buffer device
+[    4.935642] [drm] Initialized rocket 0.0.0 for rknn on minor 0
+[    4.946826] panthor fb000000.gpu: [drm] clock rate = 198000000
+[    4.952520] panthor fb000000.gpu: [drm] Mali-G610 id 0xa867 major 0x0 minor 0x0 status 0x5
+[    4.953995] panthor fb000000.gpu: [drm] Features: L2:0x7120306 Tiler:0x809 Mem:0x301 MMU:0x2830 AS:0xff
+[    4.956115] panthor fb000000.gpu: [drm] shader_present=0x50005 l2_present=0x1 tiler_present=0x1
+[    4.995586] panthor fb000000.gpu: [drm] Firmware protected mode entry not be supported, ignoring
+[    4.998919] panthor fb000000.gpu: [drm] Firmware git sha: 95a25d71030715381f33105394285e1dcc860a65 
+[    5.008506] panthor fb000000.gpu: [drm] CSF FW using interface v1.5.0, Features 0x0 Instrumentation features 0x71
+[    5.014459] [drm] Initialized panthor 1.5.0 for fb000000.gpu on minor 1

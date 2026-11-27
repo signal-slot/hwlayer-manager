@@ -1,0 +1,20 @@
+# observed 2026-11-28, NanoPC-T6 (RK3588), kernel 6.18.55-current-rockchip64
+# read: dri/display-subsystem/vop2/summary (read-only; no commit, no modeset, no DRM master; fbcon was the only DRM client)
+# scrubbed: no EDID, serials, host names, IPs or MACs present (checked by hand)
+Video Port0: ACTIVE
+    Connector: HDMI-A-1
+	bus_format[0]: Unknown
+	output_mode[f] color_space[0]
+    Display mode: 1920x1080p60
+	clk[148500] real_clk[148500] type[48] flag[5]
+	H: 1920 2008 2052 2200
+	V: 1080 1084 1089 1125
+    Cluster0-win0: ACTIVE
+	win_id: 0
+	format: XR24 little-endian (0x34325258) glb_alpha[0xff]
+	rotate: xmirror: 0 ymirror: 0 rotate_90: 0 rotate_270: 0
+	zpos: 0
+	src: pos[0, 0] rect[1920 x 1080]
+	dst: pos[0, 0] rect[1920 x 1080]
+	buf[0]: addr: 0x0000000000000000 pitch: 7680 offset: 0
+Video Port1: DISABLED
