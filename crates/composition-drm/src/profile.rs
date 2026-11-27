@@ -42,7 +42,9 @@ impl DriverProfile {
         match self {
             DriverProfile::Generic => {}
             DriverProfile::Imx95Dpu => {
-                let all = (1u32 << caps.planes.len()) - 1;
+                // Widened so that a (currently unreachable) count of 32 cannot
+                // overflow.
+                let all = ((1u64 << caps.planes.len()) - 1) as u32;
                 for plane in caps.planes.as_mut_slice() {
                     if plane.kind != PlaneKind::Cursor {
                         plane.scaling = Some(ScaleLimits {
@@ -59,11 +61,15 @@ impl DriverProfile {
                     (LayerTraits::SCALED_V, 1),
                 ];
                 for (consumers, capacity) in groups {
-                    let _ = caps.resource_groups.push(ResourceGroup {
+                    let group = ResourceGroup {
                         consumers,
                         planes: all,
                         capacity,
-                    });
+                    };
+                    // Applying twice must not duplicate the groups.
+                    if !caps.resource_groups.as_slice().contains(&group) {
+                        let _ = caps.resource_groups.push(group);
+                    }
                 }
             }
         }
