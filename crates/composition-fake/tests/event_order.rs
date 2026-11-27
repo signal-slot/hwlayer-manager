@@ -23,14 +23,13 @@
 //! `EVENT_ORDER_SEED=<n>`; raise the number of seeds with
 //! `EVENT_ORDER_SEEDS=<n>`.
 //!
-//! Two engine bugs are excluded from the random run and pinned by ignored
-//! tests: a latch the engine does not expect, seen inside a commit
+//! One engine bug is excluded from the random run and pinned by an ignored
+//! test: a latch the engine does not expect, seen inside a commit
 //! (`known_bug_duplicate_latch_in_commit`: the run neither arms a commit hook
 //! that latches while the fake holds a commit the engine believes latched, nor
-//! injects such a latch while one is armed), and a plan made before a
-//! capability change that the commit learns of
-//! (`known_bug_commit_with_plan_stale_by_a_queued_capability_change`: the run
-//! takes every queued event before it presents).
+//! injects such a latch while one is armed). The run takes every queued event
+//! before it presents, for the model's sake; a plan made stale by a queued
+//! capability change is covered by directed cases.
 
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
@@ -1309,17 +1308,8 @@ fn known_bug_duplicate_latch_in_commit() {
     );
 }
 
-#[test]
-#[ignore = "bug: Engine::commit goes on with a plan made before a capability change it learns of inside the commit"]
-fn known_bug_commit_with_plan_stale_by_a_queued_capability_change() {
-    let mut engine = engine_with_buffers(true);
-    let frame_layers = layers(&[B1, B2]);
-    let frame = Frame {
-        output: O0,
-        layers: &frame_layers,
-    };
-    let plan = engine.validate(&frame).unwrap();
-    // The backend now has one plane per output; the engine has not polled.
+/// One plane per output, as a backend might announce after a mode change.
+fn one_plane_caps() -> Capabilities {
     let mut reduced = caps(true, 60_000);
     reduced.planes.clear();
     reduced
@@ -1330,11 +1320,74 @@ fn known_bug_commit_with_plan_stale_by_a_queued_capability_change() {
         .planes
         .push(plane(20, PlaneKind::Primary, 0, 1))
         .unwrap();
-    engine.backend_mut().set_capabilities(reduced);
+    reduced
+}
+
+/// Regression: `Engine::commit` learnt of a queued capability change only
+/// while it collected the backend's events, after it had checked the plan's
+/// generation, and committed a two-plane plan to a one-plane backend.
+#[test]
+fn commit_refuses_a_plan_made_stale_by_a_queued_capability_change() {
+    let mut engine = engine_with_buffers(true);
+    let frame_layers = layers(&[B1, B2]);
+    let frame = Frame {
+        output: O0,
+        layers: &frame_layers,
+    };
+    let plan = engine.validate(&frame).unwrap();
+    // The backend now has one plane per output; the engine has not polled.
+    engine.backend_mut().set_capabilities(one_plane_caps());
+    let commits = engine.backend().commit_count();
     let result = engine.commit(&frame, &plan);
     assert_eq!(
         result,
         Err(Error::StalePlan),
         "a two-plane plan was committed to a backend that announced one plane"
+    );
+    assert_eq!(engine.backend().commit_count(), commits);
+    assert_eq!(engine.backend().pending(O0), None);
+    assert_eq!(engine.buffer_state(B1), Some(BufferState::Ready));
+    assert_eq!(engine.buffer_state(B2), Some(BufferState::Ready));
+    assert_eq!(engine.capabilities().planes.len(), 2);
+    // The change is still reported, once.
+    assert_eq!(
+        drain_events(&mut engine),
+        [Ok(DisplayEvent::CapabilitiesChanged)]
+    );
+    // Planned again, the frame no longer fits; one layer does.
+    assert!(matches!(engine.validate(&frame), Err(Error::Plan(_))));
+    let single = layers(&[B1]);
+    let single = Frame {
+        output: O0,
+        layers: &single,
+    };
+    let plan = engine.validate(&single).unwrap();
+    assert_eq!(engine.commit(&single, &plan), Ok(SubmissionId(1)));
+}
+
+/// Regression, the same through `Engine::present`: it plans against the
+/// capabilities the backend announced before the call, instead of failing
+/// with a stale plan of its own making or committing an outdated one.
+#[test]
+fn present_plans_against_a_queued_capability_change() {
+    let mut engine = engine_with_buffers(true);
+    engine.backend_mut().set_capabilities(one_plane_caps());
+    let commits = engine.backend().commit_count();
+    assert!(matches!(
+        show(&mut engine, O0, &[B1, B2]),
+        Err(Error::Plan(_))
+    ));
+    assert_eq!(engine.backend().commit_count(), commits);
+    assert_eq!(engine.buffer_state(B1), Some(BufferState::Ready));
+    engine.backend_mut().set_capabilities(caps(true, 60_000));
+    let id = show(&mut engine, O0, &[B1, B2]).unwrap();
+    assert_eq!(engine.backend().scanout(O0), None);
+    assert_eq!(engine.backend().pending(O0), Some(id));
+    assert_eq!(
+        drain_events(&mut engine),
+        [
+            Ok(DisplayEvent::CapabilitiesChanged),
+            Ok(DisplayEvent::CapabilitiesChanged)
+        ]
     );
 }
