@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/composition-core", "crates/composition-fake", "crates/composition-drm", "crates/composition-ffi", "crates/composition-ffi-staticlib", "backends/twoplane", "tools/vm-init", "tools/drm-harness"]
+members = ["crates/composition-core", "crates/composition-trace", "crates/composition-fake", "crates/composition-drm", "crates/composition-ffi", "crates/composition-ffi-staticlib", "backends/twoplane", "tools/vm-init", "tools/drm-harness"]
 
 [workspace.package]
 version = "0.1.0"

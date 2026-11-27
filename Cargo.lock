@@ -73,6 +73,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "composition-trace"
+version = "0.1.0"
+dependencies = [
+ "composition-core",
+ "composition-fake",
+]
+
+[[package]]
 name = "composition-twoplane"
 version = "0.1.0"
 
