@@ -61,7 +61,19 @@ No cross toolchain was usable, and none could be fetched:
 - Downloading zig and running git over the network were not permitted in that session.
 - `git`, `meson`, `ninja`, `pkg-config` and `file` are present.
 
-`scripts/build-dlm-aarch64.sh` was run there: it printed the message above and exited with status 2, having created and fetched nothing. The fetch and build steps are untested. Expect small fixes on the first run on a machine that has `zig` or an aarch64 gcc, especially in the libdrm `-D` options and in drm-lease-manager's install layout. To unblock, put `zig` on `PATH`, or set `DLM_CC` / `DLM_SYSROOT`.
+`scripts/build-dlm-aarch64.sh` was run there: it printed the message above and exited with status 2, having created and fetched nothing.
+
+The fetch step was tested on its own against local `file://` repositories. Each test repository had an annotated tag on a commit that is not the branch tip, like libdrm's tag. The URL and pin variables pointed at those repositories, and a stub `DLM_CC` stopped the script once the fetch was done. Results:
+
+- A fresh fetch by hash checked out each pinned commit.
+- A tag name as the pin was rejected before anything was created.
+- A deps directory under `/tmp` was rejected.
+- With protocol v0 and `uploadpack.allowReachableSHA1InWant=false` (fetch by hash refused), the fallback fetched all branches and tags and checked out the pinned commit.
+- A rerun with broken URLs used the local commits without network access.
+- An unknown hash failed with `commit ... is not available`.
+- A checkout with local changes was refused.
+
+Not covered: the fallback into an existing shallow checkout, and the fetch from the real servers (git had no network access in that session). The build step is untested. Expect small fixes on the first run on a machine that has `zig` or an aarch64 gcc, especially in the libdrm `-D` options and in drm-lease-manager's install layout. To unblock, put `zig` on `PATH`, or set `DLM_CC` / `DLM_SYSROOT`.
 
 ## Run on the board, from /tmp
 
