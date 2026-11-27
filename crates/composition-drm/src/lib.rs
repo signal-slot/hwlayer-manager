@@ -633,12 +633,9 @@ impl DrmBackend {
             ));
         }
 
-        // Primary first so that the bottom layer lands there by preference.
-        planes.sort_by_key(|(_, p)| match p.caps.kind {
-            PlaneKind::Primary => 0,
-            PlaneKind::Overlay => 1,
-            PlaneKind::Cursor => 2,
-        });
+        let mut planes = keep_planes(planes, |(_, p)| (p.caps.outputs != 0, p.caps.kind));
+        // Numbered after the cut: reachable overlays come first, so their
+        // numbers do not depend on planes of unconnected CRTCs.
         let mut overlay_position = 1;
         for (conventional, plane) in &mut planes {
             if *conventional && plane.caps.kind == PlaneKind::Overlay {
@@ -646,7 +643,6 @@ impl DrmBackend {
                 overlay_position += 1;
             }
         }
-        planes.truncate(MAX_PLANES);
 
         self.outputs = outputs;
         self.planes = planes.into_iter().map(|(_, p)| p).collect();
@@ -1407,6 +1403,40 @@ enum ErrnoClass {
     Other,
 }
 
+/// Orders planes and drops those beyond `MAX_PLANES`.
+///
+/// `key` gives whether a plane can reach a probed output and its kind.
+/// Reachable planes come before all others, so a device with many CRTCs
+/// cannot crowd the planes of the connected ones out of the limit. When the
+/// limit bites, primaries are kept first, then cursors, then overlays: a
+/// cursor is worth more than the last overlay. The survivors are then put in
+/// the order the rest of the backend wants: reachable first, within each group
+/// primary, overlays, cursor (the bottom layer lands on a primary by
+/// preference). Both sorts are stable, so the device's own order is kept
+/// among equals.
+fn keep_planes<T>(mut planes: Vec<T>, key: impl Fn(&T) -> (bool, PlaneKind)) -> Vec<T> {
+    planes.sort_by_key(|p| {
+        let (reachable, kind) = key(p);
+        let priority = match kind {
+            PlaneKind::Primary => 0,
+            PlaneKind::Cursor => 1,
+            PlaneKind::Overlay => 2,
+        };
+        (!reachable, priority)
+    });
+    planes.truncate(MAX_PLANES);
+    planes.sort_by_key(|p| {
+        let (reachable, kind) = key(p);
+        let order = match kind {
+            PlaneKind::Primary => 0,
+            PlaneKind::Overlay => 1,
+            PlaneKind::Cursor => 2,
+        };
+        (!reachable, order)
+    });
+    planes
+}
+
 fn class_of(errno: i32) -> ErrnoClass {
     use rustix::io::Errno;
     // 0 is what an error without an errno gives; rustix refuses it.
@@ -1445,6 +1475,49 @@ fn bottom_on_primary(
 mod tests {
     use super::*;
     use composition_core::Rect;
+
+    #[test]
+    fn reachable_planes_survive_truncation_on_a_many_crtc_device() {
+        // Shaped like vc4: 5 CRTCs with a primary and a cursor each, and 50
+        // overlays. Only CRTC 0 is connected; the device lists the other
+        // CRTCs' planes first.
+        let mut planes: Vec<(u32, bool, PlaneKind)> = Vec::new();
+        let mut id = 0;
+        for crtc in (0..5).rev() {
+            planes.push((id, crtc == 0, PlaneKind::Primary));
+            planes.push((id + 1, crtc == 0, PlaneKind::Cursor));
+            id += 2;
+        }
+        for n in 0..50 {
+            planes.push((id + n, n < 20, PlaneKind::Overlay));
+        }
+        assert!(planes.len() > MAX_PLANES);
+        let kept = keep_planes(planes, |p| (p.1, p.2));
+        assert_eq!(kept.len(), MAX_PLANES);
+        assert!(kept.iter().all(|p| p.1), "an unreachable plane was kept");
+        let count = |k| kept.iter().filter(|p| p.2 == k).count();
+        assert_eq!(count(PlaneKind::Primary), 1);
+        assert_eq!(count(PlaneKind::Overlay), MAX_PLANES - 2);
+        assert_eq!(count(PlaneKind::Cursor), 1);
+        assert_eq!(kept[0].2, PlaneKind::Primary);
+        assert_eq!(kept[MAX_PLANES - 1].2, PlaneKind::Cursor);
+        // Overlays keep the device order.
+        let ids: Vec<u32> = kept[1..MAX_PLANES - 1].iter().map(|p| p.0).collect();
+        assert!(ids.windows(2).all(|w| w[0] < w[1]));
+    }
+
+    #[test]
+    fn cursor_of_a_reachable_group_is_kept_when_it_fits() {
+        let planes = vec![
+            (0, false, PlaneKind::Primary),
+            (1, true, PlaneKind::Cursor),
+            (2, true, PlaneKind::Overlay),
+            (3, true, PlaneKind::Primary),
+        ];
+        let kept = keep_planes(planes, |p| (p.1, p.2));
+        let ids: Vec<u32> = kept.iter().map(|p| p.0).collect();
+        assert_eq!(ids, [3, 2, 1, 0]);
+    }
 
     #[test]
     fn errno_classes_keep_permission_apart_from_loss() {
