@@ -1,0 +1,2 @@
+AGREE profile=vc4-hvs6 frame=single planner=accept kernel=ok
+DISAGREE profile=vc4-hvs6 frame=sand128 planner=accept errno=22 note="tiled, rot 90"
