@@ -5,6 +5,9 @@
 # Usage: scripts/check-no-farm-ids.sh        (run from anywhere in the repo)
 # Exit:  0 clean, 1 matches remain (printed as file:line:text).
 #
+# A line carrying the marker 'secrets-ok' is skipped, as in
+# check-no-board-secrets.sh (use sparingly, on deliberate fixtures).
+#
 # Allowlist: each ALLOW entry is "extended regex|reason".  Allowed substrings
 # are blanked out of a matched line, then the category regex is tested again
 # on what is left, so an allowed string never hides another identifier on the
@@ -30,6 +33,7 @@ ALLOW=(
   'modprobe@drm\.service|systemd unit instance name in a quoted boot log, not a mail or ssh target'
   '@lists\.freedesktop\.org|public upstream mailing-list address in kernel patch-series URLs'
   'git@(github|gitlab)\.com|public git remote user, not a farm host'
+  '(password|passwd|token)[[:space:]]*:[[:space:]]*&[[:space:]]*(mut[[:space:]]+)?[A-Za-z_]+|Rust parameter or field typed as a reference, not a credential value'
   '(password|passwd|token)[[:space:]]*[=:][[:space:]]*.?(none|null|true|false|xxx+|redacted|changeme)|placeholder value'
 )
 
@@ -61,6 +65,8 @@ scan() { # name regex [grep flags]
     out=$(printf '%s\n' "$out" | while IFS= read -r l; do
             t=${l#*:}; t=${t#*:}
             f=${l%%:*}
+            # same marker check-no-board-secrets.sh honours
+            [[ $t == *secrets-ok* ]] && continue
             for fx in "${FIXTURES[@]}"; do
               IFS='|' read -r fxf fxt _ <<<"$fx"
               if [ "$f" = "$fxf" ] && [[ $t == *"$fxt"* ]]; then continue 2; fi
