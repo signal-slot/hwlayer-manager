@@ -56,6 +56,7 @@ variant empty-src 'no source file' rm src/main.c
 variant no-west 'west build' sh -c 'echo hi > README.md'
 variant ipv4 'IPv4' sh -c 'echo "host 192.168.1.5" >> src/main.c'
 variant tty '/dev/tty' sh -c 'echo "/dev/ttyUSB0" >> prj.conf'
+variant tty-with-rpmsg '/dev/tty' sh -c 'echo "/dev/ttyRPMSG0 /dev/ttyUSB0" >> prj.conf'
 variant password 'password' sh -c 'echo "Password=x" >> README.md'
 
 # mixed: one good, one bad -> non-zero, both reported
@@ -77,6 +78,12 @@ d=$tmp/ver
 mkapp "$d/tests/board/v"
 echo 'version 1.2.3' >> "$d/tests/board/v/prj.conf"
 expect version-not-ip 0 '^ok ' "$d"
+
+# the rpmsg_tty node is not a UART path
+d=$tmp/rpmsg
+mkapp "$d/tests/board/r"
+echo 'open /dev/ttyRPMSG0 and /dev/ttyRPMSG1' >> "$d/tests/board/r/README.md"
+expect rpmsg-allowed 0 '^ok ' "$d"
 
 if command -v shellcheck > /dev/null 2>&1; then
     shellcheck "$script" "$0" || fails=$((fails + 1))
