@@ -182,3 +182,11 @@ Also observed 2026-11-28 (GNU Arm Embedded build, the same QEMU): with one
 check changed on purpose to fail, the run
 printed `FAIL`, QEMU exited with status 1, and `west build -t run` failed
 (`command exited with status 1`). The change was reverted.
+
+Re-run, QEMU run, not a hardware result. 2026-11-28, on a second host, with
+the same repository state and commands but Zephyr v4.5.0 (Zephyr SDK 1.0.1,
+which is what v4.5.0's `zephyr/SDK_VERSION` names) and
+`rustc 1.99.0 (b940084d7 2026-09-28)`. It printed the same lines as above,
+apart from the banner (`*** Booting Zephyr OS build v4.5.0 ***`), the
+`uptime_ms` values (40, 60, 80) and `unused=26352`, and ended in `PASS`.
+`west build -t run` returned 0. Image size: 60452 B flash, 67136 B RAM.
