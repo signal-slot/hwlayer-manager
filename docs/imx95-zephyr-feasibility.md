@@ -13,7 +13,7 @@ is claimed from any other SoC.
 
 | Id | Source | Pin |
 | --- | --- | --- |
-| S1 | `nxp-imx/imx-sm`, `configs/mx95evk.cfg` (stock EVK SM configuration) | read on `master`, SHA not captured; newest NXP tag `rel_imx_sm_2026q3` = `eec232878ab7dd460f5a8f3767d39dc7e9412efa` |
+| S1 | `nxp-imx/imx-sm`, `configs/mx95evk.cfg` (stock EVK SM configuration) | cloned 2026-11-28 at `eec232878ab7dd460f5a8f3767d39dc7e9412efa` (tag `rel_imx_sm_2026q3`). Lines: LM1 `M7` 343, M7 start/stop 354-367, `LMM_2 ALL` 392, `IRQSTEER_M7` 402, LM2 `AP` 443, `LMM_1 NOTIFY` 597, `DC` 625, `LVDS` 798, `MIPI_DSI` 801 |
 | S2 | `zephyrproject-rtos/zephyr`: `dts/arm/nxp/imx/nxp_imx95_m7.dtsi`, `drivers/display/display_socionext_dpu.c`, `boards/nxp/imx95_evk/` | read on `main`; tip listed then `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7` (files may be a commit or two newer) |
 | S3 | `docs/imx95-zephyr/observed-2026-11-27.txt` | this repository, observed 2026-11-27 |
 | S4 | `docs/imx95-dpu-source-6.6.md` | this repository, Linux DPU driver notes |
