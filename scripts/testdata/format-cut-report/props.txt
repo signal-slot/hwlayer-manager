@@ -1,0 +1,7 @@
+synthetic props excerpt (test data, not from a board)
+plane 7: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    IN_FORMATS (id 9): immutable blob
+      IN_FORMATS blob too short (12 bytes)
+      IN_FORMATS: 4 formats, 2 modifiers
+      modifier 0x0800000000000001: XR24 AR24
+      modifier 0x0000000000000000: XR24 AR24 RG16 NV12
