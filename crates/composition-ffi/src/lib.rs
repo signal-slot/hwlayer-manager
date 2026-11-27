@@ -21,10 +21,12 @@ use composition_core::limits::{
     MAX_FORMATS, MAX_LAYERS, MAX_OUTPUTS, MAX_PLANES, MAX_RESOURCE_GROUPS,
 };
 use composition_core::{
-    BackendError, BackendEvent, BlendMode, BufferId, BufferInfo, BufferState, Capabilities,
-    DisplayBackend, DisplayEvent, Engine, Error, FormatModifier, Frame, Layer, LayerTraits,
-    Modifier, OutputCaps, OutputId, PixelFormat, Plan, PlanError, PlaneCaps, PlaneId, PlaneKind,
-    PresentError, Rect, ResourceGroup, ScaleLimits, Size, SubmissionId, Transform, Zpos,
+    AdviceError, AdviseOptions, Assignment, BackendError, BackendEvent, BlendMode, Blocker,
+    BufferId, BufferInfo, BufferLookup, BufferState, Capabilities, ComposeTarget, DisplayBackend,
+    DisplayEvent, Engine, Error, FormatModifier, Frame, Layer, LayerTraits, Modifier, OutputCaps,
+    OutputId, PixelFormat, Placement, Plan, PlanError, PlaneCaps, PlaneId, PlaneKind, PresentError,
+    Rect, RejectReasons, ResourceGroup, ScaleLimits, SearchLimits, Size, SubmissionId, Transform,
+    Verdict, Zpos, MAX_CANDIDATES,
 };
 
 /// Status code: zero for success, negative otherwise.
@@ -52,6 +54,8 @@ pub const CE_ERR_BACKEND_REJECTED: ce_status = -16;
 pub const CE_ERR_SEARCH_LIMIT: ce_status = -17;
 /// A layer reaches beyond the output and cannot be clipped exactly.
 pub const CE_ERR_CANNOT_CLIP: ce_status = -18;
+/// `ce_advise`: no plane takes the composition target on this output.
+pub const CE_ERR_NO_COMPOSE_PLANE: ce_status = -19;
 /// The buffer identifier is already registered.
 pub const CE_ERR_DUPLICATE_BUFFER: ce_status = -30;
 /// No room for another buffer.
@@ -85,6 +89,31 @@ pub const CE_ERR_BACKEND_UNKNOWN_BUFFER: ce_status = -53;
 pub const CE_ENGINE_SIZE: usize = 28672;
 /// Alignment the header requires for the engine storage.
 pub const CE_ENGINE_ALIGN: usize = 8;
+
+/// `ce_layer_advice.placement`: on a plane, see the assignment.
+pub const CE_PLACE_PLANE: u8 = 0;
+/// `ce_layer_advice.placement`: drawn by the caller into the composition
+/// buffer.
+pub const CE_PLACE_COMPOSE: u8 = 1;
+/// `ce_layer_advice.placement`: entirely off the output.
+pub const CE_PLACE_HIDDEN: u8 = 2;
+
+/// `ce_layer_advice.blocker`: on a plane, or hidden.
+pub const CE_BLOCKER_NONE: u8 = 0;
+/// No plane can take the layer alone; see `reasons`.
+pub const CE_BLOCKER_STATIC: u8 = 1;
+/// Fits a plane alone, not together with the others.
+pub const CE_BLOCKER_COMBINATION: u8 = 2;
+/// The check callback refused it.
+pub const CE_BLOCKER_BACKEND: u8 = 3;
+/// Cannot be clipped exactly to the output.
+pub const CE_BLOCKER_CLIP: u8 = 4;
+/// The search budget ended first.
+pub const CE_BLOCKER_BUDGET: u8 = 5;
+
+/// `ce_assignment.layer` of the composition target, in `ce_advice.compose`
+/// and in what `ce_advise` hands to the check callback.
+pub const CE_COMPOSE_LAYER: u32 = u32::MAX;
 
 const _: () = assert!(size_of::<Engine<CBackend>>() <= CE_ENGINE_SIZE);
 const _: () = assert!(align_of::<Engine<CBackend>>() <= CE_ENGINE_ALIGN);
@@ -250,6 +279,60 @@ pub struct ce_error_info {
     platform: i32,
 }
 
+/// See `ce_compose_target` in the header.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct ce_compose_target {
+    modifier: u64,
+    format: u32,
+    blend: u8,
+    enabled: u8,
+}
+
+/// See `ce_advise_options` in the header.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct ce_advise_options {
+    max_steps: u32,
+    max_backend_checks: u32,
+    max_candidates: u32,
+    compose: ce_compose_target,
+}
+
+/// See `ce_layer_advice` in the header.
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+pub struct ce_layer_advice {
+    assignment: ce_assignment,
+    reasons: u32,
+    placement: u8,
+    blocker: u8,
+}
+
+/// See `ce_advice` in the header.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct ce_advice {
+    layers: [ce_layer_advice; MAX_LAYERS],
+    compose: ce_assignment,
+    layer_count: u32,
+    compose_low: u32,
+    compose_high: u32,
+    has_compose: u8,
+}
+
+/// See `ce_buffer_entry` in the header.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct ce_buffer_entry {
+    buffer: u32,
+    info: ce_buffer_info,
+}
+
+/// The check callback of `ce_backend_ops` and `ce_advise`.
+type CheckFn =
+    unsafe extern "C" fn(*mut c_void, *const ce_frame, *const ce_assignment, usize) -> i32;
+
 /// A backend implemented by C functions.
 pub struct CBackend {
     ops: ce_backend_ops,
@@ -297,6 +380,19 @@ fn rect_to(rect: Rect) -> ce_rect {
     }
 }
 
+/// The Rust form of a C layer, `None` if its blend or transform is unknown.
+fn layer_from(raw: ce_layer) -> Option<Layer> {
+    Some(Layer {
+        buffer: BufferId(raw.buffer),
+        source: rect_from(raw.source),
+        destination: rect_from(raw.destination),
+        z_order: raw.z_order,
+        alpha: raw.alpha,
+        blend: blend_from(raw.blend)?,
+        transform: transform_from(raw.transform)?,
+    })
+}
+
 fn layer_to(layer: &Layer) -> ce_layer {
     ce_layer {
         buffer: layer.buffer.0,
@@ -306,6 +402,19 @@ fn layer_to(layer: &Layer) -> ce_layer {
         alpha: layer.alpha,
         blend: layer.blend as u8,
         transform: layer.transform as u8,
+    }
+}
+
+/// The C form of an assignment; the composition target's `layer`
+/// (`usize::MAX`) becomes `CE_COMPOSE_LAYER`.
+fn assignment_to(assignment: &Assignment) -> ce_assignment {
+    ce_assignment {
+        layer: u32::try_from(assignment.layer).unwrap_or(CE_COMPOSE_LAYER),
+        plane: assignment.plane.0,
+        plane_index: assignment.plane_index as u32,
+        zpos: assignment.zpos,
+        source: rect_to(assignment.source),
+        destination: rect_to(assignment.destination),
     }
 }
 
@@ -406,14 +515,7 @@ impl CBackend {
         let mut assignments = [ce_assignment::default(); MAX_LAYERS];
         let assigned = plan.assignments();
         for (slot, assignment) in assignments.iter_mut().zip(assigned) {
-            *slot = ce_assignment {
-                layer: assignment.layer as u32,
-                plane: assignment.plane.0,
-                plane_index: assignment.plane_index as u32,
-                zpos: assignment.zpos,
-                source: rect_to(assignment.source),
-                destination: rect_to(assignment.destination),
-            };
+            *slot = assignment_to(assignment);
         }
         let code = call(
             &self.ops,
@@ -624,6 +726,24 @@ pub extern "C" fn ce_abi_check(
         && engine_size == CE_ENGINE_SIZE
 }
 
+/// Returns true if the caller's sizes of the `ce_advise` structures match
+/// this library. A second function, so that `ce_abi_check` keeps its
+/// signature.
+#[no_mangle]
+pub extern "C" fn ce_abi_check_advise(
+    compose_target: usize,
+    advise_options: usize,
+    layer_advice: usize,
+    advice: usize,
+    buffer_entry: usize,
+) -> bool {
+    compose_target == size_of::<ce_compose_target>()
+        && advise_options == size_of::<ce_advise_options>()
+        && layer_advice == size_of::<ce_layer_advice>()
+        && advice == size_of::<ce_advice>()
+        && buffer_entry == size_of::<ce_buffer_entry>()
+}
+
 /// Creates an engine in caller-provided storage.
 ///
 /// # Safety
@@ -795,23 +915,13 @@ pub unsafe extern "C" fn ce_present(
     let mut layers = [Layer::new(BufferId(0), Rect::default(), Rect::default(), 0); MAX_LAYERS];
     for (index, slot) in layers.iter_mut().enumerate().take(frame.layer_count) {
         // SAFETY: `layers` points to `layer_count` layers per the contract.
-        let raw = unsafe { *frame.layers.add(index) };
-        let (Some(blend), Some(transform)) = (blend_from(raw.blend), transform_from(raw.transform))
-        else {
+        let Some(layer) = layer_from(unsafe { *frame.layers.add(index) }) else {
             return report(ce_error_info {
                 layer: index as u32,
                 ..invalid
             });
         };
-        *slot = Layer {
-            buffer: BufferId(raw.buffer),
-            source: rect_from(raw.source),
-            destination: rect_from(raw.destination),
-            z_order: raw.z_order,
-            alpha: raw.alpha,
-            blend,
-            transform,
-        };
+        *slot = layer;
     }
     let frame = Frame {
         output: OutputId(frame.output),
@@ -912,6 +1022,329 @@ pub unsafe extern "C" fn ce_advance_time(engine: *mut ce_engine, now: u64) -> ce
         }
         None => CE_ERR_INVALID_ARGUMENT,
     }
+}
+
+/// The caller's buffer table of `ce_advise`; the first entry of an id wins.
+struct CBuffers<'a>(&'a [ce_buffer_entry]);
+
+impl BufferLookup for CBuffers<'_> {
+    fn buffer_info(&self, buffer: BufferId) -> Option<BufferInfo> {
+        self.0
+            .iter()
+            .find(|entry| entry.buffer == buffer.0)
+            .map(|entry| buffer_info_from(&entry.info))
+    }
+}
+
+fn buffer_info_from(info: &ce_buffer_info) -> BufferInfo {
+    BufferInfo {
+        size: Size::new(info.width, info.height),
+        format: PixelFormat(info.format),
+        modifier: Modifier(info.modifier),
+    }
+}
+
+/// Status and details of an advisory error. `fatal` is what the check
+/// callback returned when it stopped the search, if it did.
+fn describe_advice(error: AdviceError, fatal: Option<i32>, first_buffer: u32) -> ce_error_info {
+    let mut info = ce_error_info::default();
+    info.status = match error {
+        AdviceError::UnknownOutput(_) => CE_ERR_UNKNOWN_OUTPUT,
+        AdviceError::TooManyLayers { .. } => CE_ERR_TOO_MANY_LAYERS,
+        AdviceError::UnknownBuffer { layer, buffer } => {
+            info.layer = layer as u32;
+            info.buffer = buffer.0;
+            CE_ERR_UNKNOWN_BUFFER
+        }
+        AdviceError::InvalidSource { layer } => {
+            info.layer = layer as u32;
+            CE_ERR_INVALID_SOURCE
+        }
+        AdviceError::InvalidDestination { layer } => {
+            info.layer = layer as u32;
+            CE_ERR_INVALID_DESTINATION
+        }
+        AdviceError::NoComposePlane { reasons } => {
+            info.reasons = reasons.bits();
+            CE_ERR_NO_COMPOSE_PLANE
+        }
+        AdviceError::LimitExceeded => CE_ERR_SEARCH_LIMIT,
+        AdviceError::Aborted => match fatal {
+            // As `ce_present` reports a backend check that stopped the search.
+            Some(CE_ERR_BACKEND_UNKNOWN_BUFFER) => {
+                return describe(Error::Backend(BackendError::UnknownBuffer(BufferId(
+                    first_buffer,
+                ))))
+            }
+            Some(code) => return describe(Error::Backend(backend_error(code))),
+            None => CE_ERR_BACKEND_REJECTED,
+        },
+    };
+    info
+}
+
+fn placement_to(placement: &Placement) -> (u8, ce_assignment) {
+    match placement {
+        Placement::Plane(assignment) => (CE_PLACE_PLANE, assignment_to(assignment)),
+        Placement::Compose => (CE_PLACE_COMPOSE, ce_assignment::default()),
+        Placement::Hidden => (CE_PLACE_HIDDEN, ce_assignment::default()),
+    }
+}
+
+fn blocker_to(blocker: Blocker) -> u8 {
+    match blocker {
+        Blocker::None => CE_BLOCKER_NONE,
+        Blocker::Static => CE_BLOCKER_STATIC,
+        Blocker::Combination => CE_BLOCKER_COMBINATION,
+        Blocker::Backend => CE_BLOCKER_BACKEND,
+        Blocker::Clip => CE_BLOCKER_CLIP,
+        Blocker::Budget => CE_BLOCKER_BUDGET,
+    }
+}
+
+/// Stateless advisory planning: which layers of `frame` go on which planes
+/// of `caps`, and which contiguous run the caller composes into one buffer.
+///
+/// `check`, if not null, is called like `ce_backend_ops.check` with `ctx`,
+/// `frame` as given, and each assignment the planner finds legal; the
+/// composition target's assignment has `layer == CE_COMPOSE_LAYER`. It
+/// returns `CE_OK` to accept, `CE_ERR_BACKEND_REJECTED` to try another
+/// assignment, and anything else stops the call with that error.
+///
+/// On success `*advice` is written in full. On failure `*advice` is not
+/// written, and `*info` (if not null) says why. Nothing is remembered
+/// between calls.
+///
+/// # Safety
+///
+/// `caps`, `frame`, `options` and `advice` must be valid or null. `buffers`
+/// must point to `buffer_count` entries (it may be null if the count is
+/// zero). `frame.layers` must point to `layer_count` layers (it may be null
+/// if the count is zero). `info` must be valid for writes or null. `check`
+/// must be safe to call with `ctx` for the duration of the call.
+#[no_mangle]
+pub unsafe extern "C" fn ce_advise(
+    caps: *const ce_capabilities,
+    buffers: *const ce_buffer_entry,
+    buffer_count: usize,
+    frame: *const ce_frame,
+    options: *const ce_advise_options,
+    check: Option<CheckFn>,
+    ctx: *mut c_void,
+    advice: *mut ce_advice,
+    info: *mut ce_error_info,
+) -> ce_status {
+    let report = |details: ce_error_info| {
+        // SAFETY: `info` is valid for writes or null per the contract.
+        if let Some(info) = unsafe { info.as_mut() } {
+            *info = details;
+        }
+        details.status
+    };
+    let invalid = ce_error_info {
+        status: CE_ERR_INVALID_ARGUMENT,
+        ..ce_error_info::default()
+    };
+    // SAFETY: per the contract each is valid when not null.
+    let (Some(raw_caps), Some(raw_frame), Some(raw_options), Some(out)) = (
+        unsafe { caps.as_ref() },
+        unsafe { frame.as_ref() },
+        unsafe { options.as_ref() },
+        unsafe { advice.as_mut() },
+    ) else {
+        return report(invalid);
+    };
+    if (buffers.is_null() && buffer_count > 0)
+        || buffer_count > isize::MAX as usize / size_of::<ce_buffer_entry>()
+    {
+        return report(invalid);
+    }
+    if raw_frame.layer_count > MAX_LAYERS {
+        return report(ce_error_info {
+            status: CE_ERR_TOO_MANY_LAYERS,
+            ..ce_error_info::default()
+        });
+    }
+    if raw_frame.layer_count > 0 && raw_frame.layers.is_null() {
+        return report(invalid);
+    }
+    let compose = if raw_options.compose.enabled != 0 {
+        let Some(blend) = blend_from(raw_options.compose.blend) else {
+            return report(invalid);
+        };
+        Some(ComposeTarget {
+            format: PixelFormat(raw_options.compose.format),
+            modifier: Modifier(raw_options.compose.modifier),
+            blend,
+        })
+    } else {
+        None
+    };
+    let defaults = SearchLimits::default();
+    let or_default = |value: u32, default: u32| if value == 0 { default } else { value };
+    let options = AdviseOptions {
+        limits: SearchLimits {
+            steps: or_default(raw_options.max_steps, defaults.steps),
+            backend_checks: or_default(raw_options.max_backend_checks, defaults.backend_checks),
+        },
+        max_candidates: or_default(raw_options.max_candidates, MAX_CANDIDATES),
+        compose,
+    };
+
+    let mut layers = [Layer::new(BufferId(0), Rect::default(), Rect::default(), 0); MAX_LAYERS];
+    for (index, slot) in layers.iter_mut().enumerate().take(raw_frame.layer_count) {
+        // SAFETY: `layers` points to `layer_count` layers per the contract.
+        let Some(layer) = layer_from(unsafe { *raw_frame.layers.add(index) }) else {
+            return report(ce_error_info {
+                layer: index as u32,
+                ..invalid
+            });
+        };
+        *slot = layer;
+    }
+    let count = raw_frame.layer_count;
+    let rust_frame = Frame {
+        output: OutputId(raw_frame.output),
+        layers: &layers[..count],
+    };
+    let table = if buffer_count == 0 {
+        &[][..]
+    } else {
+        // SAFETY: `buffers` is not null and points to `buffer_count`
+        // entries per the contract; the size was checked above.
+        unsafe { core::slice::from_raw_parts(buffers, buffer_count) }
+    };
+    let mut converted = Capabilities::default();
+    capabilities_from(raw_caps, &mut converted);
+
+    let mut fatal = None;
+    let result = composition_core::advise(
+        &rust_frame,
+        &converted,
+        &CBuffers(table),
+        &options,
+        |plan: &Plan, target: Option<usize>| {
+            let Some(check) = check else {
+                return Verdict::Accept;
+            };
+            let mut assignments = [ce_assignment::default(); MAX_LAYERS];
+            let assigned = plan.assignments();
+            let n = assigned.len().min(MAX_LAYERS);
+            for (index, (slot, assignment)) in assignments.iter_mut().zip(assigned).enumerate() {
+                *slot = assignment_to(assignment);
+                if Some(index) == target {
+                    slot.layer = CE_COMPOSE_LAYER;
+                }
+            }
+            // SAFETY: `frame` is the caller's, valid for the call; the
+            // assignments are a live local. See the contract for `check`.
+            match unsafe { check(ctx, frame, assignments.as_ptr(), n) } {
+                CE_OK => Verdict::Accept,
+                CE_ERR_BACKEND_REJECTED => Verdict::TryNext,
+                code => {
+                    fatal = Some(code);
+                    Verdict::GiveUp
+                }
+            }
+        },
+    );
+    let result = match result {
+        Ok(result) => result,
+        Err(error) => {
+            let first = layers[..count].first().map_or(0, |l| l.buffer.0);
+            return report(describe_advice(error, fatal, first));
+        }
+    };
+
+    let mut written = ce_advice {
+        layers: [ce_layer_advice::default(); MAX_LAYERS],
+        compose: ce_assignment::default(),
+        layer_count: 0,
+        compose_low: 0,
+        compose_high: 0,
+        has_compose: 0,
+    };
+    for (slot, entry) in written.layers.iter_mut().zip(result.layers()) {
+        let (placement, assignment) = placement_to(&entry.placement);
+        *slot = ce_layer_advice {
+            assignment,
+            reasons: entry.reasons.bits(),
+            placement,
+            blocker: blocker_to(entry.blocker),
+        };
+    }
+    written.layer_count = result.layers().len().min(MAX_LAYERS) as u32;
+    if let Some(assignment) = result.compose() {
+        written.compose = assignment_to(assignment);
+        written.compose.layer = CE_COMPOSE_LAYER;
+        written.has_compose = 1;
+    }
+    if let Some((low, high)) = result.compose_run() {
+        written.compose_low = low as u32;
+        written.compose_high = high as u32;
+    }
+    *out = written;
+    report(ce_error_info::default())
+}
+
+/// Per-plane static reasons of one layer, without a search.
+///
+/// # Safety
+///
+/// `caps`, `layer` and `buffer` must be valid or null. `reasons` must be
+/// valid for writes of `CE_MAX_PLANES` values or null. `info` must be valid
+/// for writes or null.
+#[no_mangle]
+pub unsafe extern "C" fn ce_explain_layer(
+    caps: *const ce_capabilities,
+    output: u32,
+    layer: *const ce_layer,
+    buffer: *const ce_buffer_info,
+    reasons: *mut u32,
+    info: *mut ce_error_info,
+) -> ce_status {
+    let report = |details: ce_error_info| {
+        // SAFETY: `info` is valid for writes or null per the contract.
+        if let Some(info) = unsafe { info.as_mut() } {
+            *info = details;
+        }
+        details.status
+    };
+    let invalid = ce_error_info {
+        status: CE_ERR_INVALID_ARGUMENT,
+        ..ce_error_info::default()
+    };
+    // SAFETY: per the contract each is valid when not null.
+    let (Some(raw_caps), Some(raw_layer), Some(buffer)) = (
+        unsafe { caps.as_ref() },
+        unsafe { layer.as_ref() },
+        unsafe { buffer.as_ref() },
+    ) else {
+        return report(invalid);
+    };
+    if reasons.is_null() {
+        return report(invalid);
+    }
+    let Some(layer) = layer_from(*raw_layer) else {
+        return report(invalid);
+    };
+    let mut converted = Capabilities::default();
+    capabilities_from(raw_caps, &mut converted);
+    let mut out = [RejectReasons::NONE; MAX_PLANES];
+    if let Err(error) = composition_core::explain_layer(
+        &layer,
+        &buffer_info_from(buffer),
+        &converted,
+        OutputId(output),
+        &mut out,
+    ) {
+        return report(describe_advice(error, None, 0));
+    }
+    for (index, value) in out.iter().enumerate() {
+        // SAFETY: `reasons` holds `CE_MAX_PLANES` values per the contract.
+        unsafe { reasons.add(index).write(value.bits()) };
+    }
+    report(ce_error_info::default())
 }
 
 #[cfg(test)]
