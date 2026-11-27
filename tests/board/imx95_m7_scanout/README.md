@@ -5,11 +5,11 @@ Zephyr test application for the first hardware step of SoW milestone M2
 Zephyr's generic display API, with per-frame timing of `display_write`.
 
 **Status: nothing here has been run on hardware. All timing and scanout
-results are not measured.** This item was prepared as a host build only. The
-build commands below were also **not run** in the environment that produced
-the files: the Zephyr SDK could not be downloaded (GitHub API rate limit, and
-direct downloads were refused), so the application has not been compiled. Treat the Kconfig and devicetree
-details as unverified until a build has succeeded.
+results are not measured.** Only host builds were done (observed, 2026-11-28):
+both `west build` commands below succeed, with the DPU option off and on.
+They were built with the SDK 1.0.1 `arm-zephyr-eabi` toolchain through
+`ZEPHYR_TOOLCHAIN_VARIANT=cross-compile`, and linked images were produced;
+they were not loaded anywhere.
 
 ## Who owns the DPU
 
@@ -93,12 +93,8 @@ west build -p -b imx95_evk/mimx9596/m7/ddr tests/board/imx95_m7_scanout -- \
 Requires a Zephyr workspace at the commit above and the Zephyr SDK
 (`ZEPHYR_BASE`, `ZEPHYR_SDK_INSTALL_DIR`).
 
-Partial check (observed): a `west build --cmake-only` run against the pinned
-commit accepted the board qualifier `imx95_evk/mimx9596/m7/ddr`, found
-`boards/imx95_evk_mimx9596_m7_ddr.overlay`, and stopped at the toolchain step
-because no Zephyr SDK was installable on that machine. The board DTS plus the
-overlay preprocessed with the host C preprocessor and then loaded through
-Zephyr's `edtlib` against the in-tree bindings: the `dpu` node validates
-(`socionext,dpu`, the `zephyr,panel-timing` child, `width`/`height`/
-`pixel-format`) and is the `zephyr,display` chosen node. Kconfig and
-compilation were not run.
+Build result (observed, 2026-11-28): default config links with the DPU driver
+not built (RAM use 37904 B); `CONFIG_IMX95_M7_SCANOUT_ENABLE_DPU=y` builds
+`display_socionext_dpu.c` and links (RAM use 4953280 B of 42 MB, mostly the
+frame buffers). This confirms the Kconfig default override keeps the driver
+out of the default image. Whether the image works on hardware is not measured.
