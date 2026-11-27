@@ -1,0 +1,19 @@
+# Hand-written fixture; line formats copied from props.rs (read 2026-11-28). Not a full dump.
+device /dev/dri/card0, driver rockchip 4.0.0 (Rockchip DRM Driver), date 20140818
+crtc 81 (index 0): 1920x1080@60
+    ACTIVE (id 20): range 0..=1 [atomic] = 1
+crtc 88 (index 1): no mode
+connector 150 HDMIA-1: Connected, 2 modes
+    DPMS (id 2): enum {On=0, Off=3} = 0 (On)
+plane 33: possible_crtcs 0b11 (crtc indices [0,1]), current crtc Some(81), fb Some(200)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 31): range 0..=3 [atomic] = 0
+    rotation (id 32): bitmask [atomic] = 1 (rotate-0)
+    SCALING_FILTER (id 33): enum {Default=0} [atomic] = 0 (Default)
+    scaling filter (id 34): bool [atomic] = 0
+    IN_FORMATS (id 9): blob [immutable] = 77
+      IN_FORMATS: 3 formats, 2 modifiers
+      modifier 0x0000000000000000: XR24 NV12
+      modifier 0x0800000000000001: XR24
+plane 51: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
