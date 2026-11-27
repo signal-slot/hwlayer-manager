@@ -19,20 +19,52 @@ pub enum DriverProfile {
     Generic,
     /// NXP i.MX95 display processing unit, vendor driver `dpu95`.
     ///
-    /// **Read from source, not measured.** Taken from `nxp-imx/linux-imx`
-    /// `lf-6.18.y` (`drivers/gpu/drm/imx/dpu95`); see
-    /// `docs/platform-capabilities.md`. Confirm on a board before relying on
-    /// it.
+    /// Checked on 2026-11-28 against the Verdin iMX95 (kernel
+    /// `6.6.157-7.8.0`, SoC revision 2.0) and against the driver source of
+    /// that kernel (`linux-toradex` `64f85d65c112`, `docs/imx95-dpu-source-6.6.md`).
+    /// Tags: **observed** = seen through KMS on the board
+    /// (`docs/platform-capabilities.md`); **source** = read from that 6.6
+    /// source, not run; **inferred** = concluded, neither seen nor stated.
+    /// The resource groups below are never visible through KMS, so none of
+    /// them is observed; confirm them with `TEST_ONLY` on the board.
     ///
-    /// - Six fetch units feed all planes of both display streams, so at most
-    ///   six planes are active.
-    /// - Four of them (FetchYUV) can read YCbCr or feed the scaler; a layer
-    ///   that is YCbCr or scaled needs one of those.
-    /// - There is one horizontal and one vertical scaler, upscaling only.
+    /// - Six planes per output (primary plus five overlays), all alike:
+    ///   observed. At most six planes are active across both display
+    ///   streams, because six fetch units and six layer blends are shared:
+    ///   source (the `ANY` group).
+    /// - Four of the six fetch units (FetchYUV) can read YCbCr or feed a
+    ///   scaler; the other two (FetchLayer) take only an unscaled RGB layer.
+    ///   A YCbCr or scaled layer needs a FetchYUV unit: source (FetchLayer's
+    ///   empty capability mask is inferred from the absence of any
+    ///   assignment).
+    /// - One horizontal and one vertical scaler, shared by all planes of both
+    ///   streams: source. The vertical scaler exists only because the board's
+    ///   SoC is not revision 1.x (on 1.0/1.1 vertical scaling is refused):
+    ///   source for the rule, observed revision 2.0, so "available here" is
+    ///   inferred. Do not use this profile unchanged on a revision 1.x part.
+    /// - Upscaling up to 2048x per axis, no downscaling: source
+    ///   (`min_scale = 1/2048`, `max_scale = NO_SCALING`).
+    /// - `max_source` 8192x8192 is the limit of an *unscaled* layer: source.
+    ///   A scaled layer is limited to 2048 per axis, which a single
+    ///   `max_source` cannot express, so that limit is **not modelled**: a
+    ///   scaled source larger than 2048 passes the planner and is refused by
+    ///   `TEST_ONLY`. The driver judges "unscaled" as `src_w == dst_w ||
+    ///   src_h == dst_h`, so one-axis scaling also gets 8192: source.
+    /// - Scaling is assumed on every non-cursor plane. KMS shows no scaling
+    ///   property (observed: only `SCALING_FILTER`), and the driver sets the
+    ///   same limits on all planes: source. The board has no cursor plane
+    ///   (observed), so the cursor exemption never applies there.
     ///
-    /// The units are shared with the other display stream, which the planner
-    /// cannot see, so the kernel check may still refuse a frame this profile
-    /// allows.
+    /// Not modelled (source, left to `TEST_ONLY`): the 2048 scaled-source
+    /// limit, even source coordinates for subsampled formats, off-screen
+    /// destinations, BT.709 full range on YCbCr, the bottom plane being
+    /// forced opaque, and units already bound to the other display stream.
+    /// On the Verdin the second stream has no connector, but the planner
+    /// cannot see that either.
+    ///
+    /// The kernel check may therefore still refuse a frame this profile
+    /// allows; it must not accept one the profile refuses, except through
+    /// the inferred items above.
     Imx95Dpu,
 }
 
@@ -207,6 +239,38 @@ mod tests {
                 reasons: RejectReasons::SCALING
             })
         );
+    }
+
+    #[test]
+    fn limits_match_the_6_6_driver() {
+        let caps = dpu95_stream();
+        for plane in caps.planes.as_slice() {
+            // Unscaled sources up to 8192; the 2048 limit for scaled sources
+            // is not modelled (left to TEST_ONLY), so it must not be applied
+            // to unscaled layers either.
+            assert_eq!(plane.max_source, Some(Size::new(8192, 8192)));
+            // Upscale up to 2048x, no downscale.
+            assert_eq!(
+                plane.scaling,
+                Some(ScaleLimits {
+                    max_upscale: 2048 << 16,
+                    max_downscale: 1 << 16,
+                })
+            );
+        }
+        // Six planes in total, four YCbCr/scaler-capable fetch units, one
+        // horizontal and one vertical scaler.
+        let groups = caps.resource_groups.as_slice();
+        let capacity =
+            |t: LayerTraits| groups.iter().find(|g| g.consumers == t).map(|g| g.capacity);
+        assert_eq!(capacity(LayerTraits::ANY), Some(6));
+        assert_eq!(
+            capacity(LayerTraits::SCALED.union(LayerTraits::YUV)),
+            Some(4)
+        );
+        assert_eq!(capacity(LayerTraits::SCALED_H), Some(1));
+        assert_eq!(capacity(LayerTraits::SCALED_V), Some(1));
+        assert_eq!(groups.len(), 4);
     }
 
     #[test]
