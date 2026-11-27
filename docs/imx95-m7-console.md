@@ -45,6 +45,7 @@ Verdin (section 2.3) and the System Manager's use of LPUART2 (section 2.4).
 | Finding | Tag |
 |---|---|
 | Toradex's Verdin UART table: UART_1 and UART_2 are general purpose; UART_3 is "debug (console) for the main OS (Cortex-A)"; UART_4 is "debug for the real-time OS (Cortex-M) or general-purpose". | read from source (S7) |
+| The Verdin iMX95 datasheet, section 5.15, says the same for this module. UART_3 "is intended to be used for the main OS terminal (A55 cores) as a debug port". UART_4 "belongs to the Reserved section and is intended for the real-time operating system (M7 core). It may also be used as a general-purpose UART." Its Table 39 maps UART_1 = UART7 (GPIO_IO08..11, ALT5), UART_2 = UART8 (GPIO_IO12..15, ALT5), UART_3 = UART1 (UART1_RXD/TXD, ALT0, SODIMM 147/149) and UART_4 = UART2 (UART2_RXD/TXD, ALT0, SODIMM 151/153). This matches the Linux DT. The datasheet does not mention LPUART3 as a Verdin UART or a System Manager UART. | read from source (S18) |
 | Toradex's serial-console page, Mallow tab: "Mallow Carrier Board features two debug UARTs (UART3 and UART4). However, the Debugging UART Header (X11) is not assembled by default." | read from source (S8) |
 | Mallow product page: debug UART signal levels are 1.8 V. It recommends an external 1.8 V USB-TTL cable and warns that a USB-UART converter must be compatible with that level. | read from source (S9) |
 | Neither Toradex page names an on-board USB-to-UART chip for Mallow. The FT4232 bridge that carries UART_3/UART_4 to USB is described for Dahlia and the Verdin Development Board, not Mallow. | read from source (S7, S8). That Mallow has no on-board bridge is inferred |
@@ -56,6 +57,7 @@ Verdin (section 2.3) and the System Manager's use of LPUART2 (section 2.4).
 | Finding | Tag |
 |---|---|
 | The EVK M7 console's pads (GPIO_IO14 TX, GPIO_IO15 RX, section 1) are the pads Verdin uses for UART_2 CTS/RTS (SODIMM 143/141), and Mallow's Linux DT claims them through lpuart8. | read from source (S2, S5, S6) |
+| The datasheet's alternate-function table (Table 10) lists SODIMM 141 = GPIO_IO15 with ALT1 `UART3_RX` and SODIMM 143 = GPIO_IO14 with ALT1 `UART3_TX`, beside ALT5 `UART8_RTS_B` / `UART8_CTS_B` (bold, the Verdin-standard function) and ALT6 `UART4_RX` / `UART4_TX`. So LPUART3 with the EVK pinmux does reach the SODIMM connector, on the UART_2 RTS/CTS pins. | read from source (S18) |
 | So the unchanged EVK image would put the M7 console on Verdin UART_2's flow-control pins. Those pins reach a Mallow header only if Mallow routes UART_2 RTS/CTS, which I could not check. Linux would also mux them for lpuart8, unless Toradex's SM gives the pads to the M7. In that case Linux's pinctrl request for them would fail. | inferred |
 | Mainline commit `13d4890ca951` "arm64: dts: freescale: imx95-verdin: Split UART_2 pinctrl group" moved CTS/RTS into their own groups. That makes it possible to drop them from Linux, but no source I read says this was done for the M7. | read from source (S5 commit). The purpose is not known |
 
@@ -74,8 +76,8 @@ Verdin (section 2.3) and the System Manager's use of LPUART2 (section 2.4).
 |---|---|---|
 | Linux console | Verdin UART_3 = LPUART1, reachable on Mallow's X11 debug header (not fitted by default) | read from source (S5, S6, S8) |
 | UARTs Linux holds on Mallow | LPUART1, LPUART2, LPUART7, LPUART8 (Verdin UART_3, _4, _1, _2), plus LPUART6 for Bluetooth on Wi-Fi SKUs | read from source (S5, S6) |
-| UARTs free for the M7 without changing Linux | LPUART3, LPUART4, LPUART5 are unclaimed by the Verdin/Mallow DT. Of their usual pads, only GPIO_IO14/15 (LPUART3, EVK pinmux) are known to reach a SODIMM pin, and Linux muxes those for UART_2 RTS/CTS | read from source for the DT side. Pad reach is inferred |
-| Toradex's intended M7 debug UART | Verdin UART_4 = LPUART2, on X11 with UART_3. On Mallow, Linux enables it, so using it from the M7 means taking it away from Linux (DT overlay) and an SM that grants it to LM1 | read from source (S7, S8) for the intent. The conflict is inferred |
+| UARTs free for the M7 without changing Linux | LPUART3, LPUART4, LPUART5 are unclaimed by the Verdin/Mallow DT. LPUART3 with the EVK pinmux reaches SODIMM 143 (TX) / 141 (RX), but Linux muxes those pins for UART_2 RTS/CTS. Whether Mallow routes SODIMM 141/143 to any header is unknown | read from source (S5, S6, S18). Mallow routing not found |
+| Toradex's intended M7 debug UART | Verdin UART_4 = LPUART2, on X11 with UART_3. On Mallow, Linux enables it, so using it from the M7 means taking it away from Linux (DT overlay) and an SM that grants it to LM1 | read from source (S7, S8, S18) for the intent. The conflict is inferred |
 | Which LPUART the shipped SM gives the M7 | not found | not found |
 
 ## 3. (c) Fallbacks when no UART is reachable
@@ -118,7 +120,7 @@ Verdin (section 2.3) and the System Manager's use of LPUART2 (section 2.4).
 ## 5. What was not found
 
 - Toradex's SM configuration for Verdin iMX95 (imx-boot / imx-sm fork). Without it, which LPUART and pads LM1 owns on this board is unknown.
-- The Verdin iMX95 datasheet and the Mallow datasheet and schematic (documents on docs.toradex.com, not fetched in this study). So these are unknown: whether GPIO_IO14/15 reach a Mallow header, where UART_1/UART_2 go on Mallow, and whether Mallow has any on-board USB-UART bridge.
+- The Mallow datasheet and schematic. The datasheet PDF is larger than the fetch helper's 10 MB limit, and the schematic zip was not fetched. So these are unknown: whether SODIMM 141/143 (GPIO_IO14/15) reach a Mallow header, where UART_1/UART_2 go on Mallow, and whether Mallow has any on-board USB-UART bridge. The Verdin iMX95 datasheet (S18) was read for sections 4.1 and 5.15 only.
 - The `linux-toradex` 6.6 BSP DT and kernel config (git.toradex.com anti-bot page). So the BSP's `RPMSG_TTY` / `IMX_RPMSG_TTY` settings are unknown, and the BSP UART layout is assumed equal to mainline.
 - Mainline `imx95.dtsi` default UART status and `imx95-verdin-nonwifi-mallow.dts` (rate-limited fetch). The Mallow dtsi sets `okay` explicitly, so the answer does not depend on them.
 
@@ -180,6 +182,9 @@ All read 2026-11-28.
 - S17. NXP linux-imx branch `lf-6.6.y`, tip commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc`:
   https://github.com/nxp-imx/linux-imx/blob/5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc/drivers/rpmsg/imx_rpmsg_tty.c ,
   https://github.com/nxp-imx/linux-imx/blob/5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc/drivers/rpmsg/Kconfig
+
+- S18. Toradex, Verdin iMX95 HW Datasheet, preliminary, document Rev. 0.7 of 2026-07-20 (product V1.1). Read: section 4.1 Table 10 (alternate functions) and section 5.15 Table 39 (UART pins):
+  https://docs.toradex.com/200007-verdin_imx95_datasheet.pdf
 
 The Toradex developer pages have no commit. They are dated by their "last
 updated" line. The files in S1 to S6 and S11 to S17 were read through a
