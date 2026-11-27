@@ -1,0 +1,20 @@
+xcheck 1
+origin synthetic 2026-11-28 self-test topology of the C driver, imitates no device
+profile generic
+output 40 1920 1080 60000
+# Primary without alpha, blend or rotation properties: only the default
+# values (alpha 65535, opaque, normal) can be skipped onto it.
+plane 31 kind=primary outputs=0x1 zpos=fixed:0 alpha=0 blend=- transforms=- scaling=none max_source=none full_output=0
+  format XR24 0x0
+  format AR24 0x0
+plane 32 kind=overlay outputs=0x1 zpos=0..3 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=normal,rot180 scaling=none max_source=none full_output=0
+  format AR24 0x0
+buffer 100 1920 1080 XR24 0x0
+buffer 101 640 480 AR24 0x0
+frame one-layer output=40
+  layer buffer=100 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+end
+frame two-layers output=40
+  layer buffer=100 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=101 src=0,0,640,480 dst=100,100,640,480 z=1 alpha=65535 blend=premul transform=normal
+end
