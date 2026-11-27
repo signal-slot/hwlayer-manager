@@ -59,3 +59,12 @@ jobs:
 
       - name: cargo build composition-ffi-staticlib (thumbv7em-none-eabihf, no std, release)
         run: cargo build --locked -p composition-ffi-staticlib --no-default-features --features panic-handler --target thumbv7em-none-eabihf --release
+
+      # Builds only; nothing is run and no board is involved. The script adds
+      # the aarch64-unknown-linux-musl rustup target on first use and links
+      # with rust-lld, so the runner needs no aarch64 gcc.
+      - name: cross-build for aarch64 Linux (musl, static; DRM backend, probe, drm-harness)
+        run: |
+          scripts/cross-aarch64.sh --locked -p composition-drm
+          scripts/cross-aarch64.sh --locked -p composition-drm --example probe
+          scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
