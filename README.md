@@ -17,7 +17,8 @@ Zephyr/MCU-side backends written against a C ABI.
 
 ## Licence
 
-Apache License 2.0. See [`LICENSE`](LICENSE) for the terms.
+Apache License 2.0. See [`LICENSE`](LICENSE) for the terms, [`NOTICE`](NOTICE)
+and [`docs/third-party-licences.md`](docs/third-party-licences.md).
 
 ## Crate map
 
@@ -29,11 +30,8 @@ Apache License 2.0. See [`LICENSE`](LICENSE) for the terms.
 | `crates/composition-ffi` | C ABI of the engine, with backends implemented in C; header at `crates/composition-ffi/include/composition_engine.h`. The one crate that needs `unsafe`. |
 | `crates/composition-ffi-staticlib` | The same C ABI built as the static library `libcomposition_engine.a` for C programs. |
 | `backends/twoplane` | Backend for a display driver with two planes on one output, written in C (`ce_twoplane.c`); the crate holds only its host tests. |
-
-Other workspace members: `tools/drm-harness` (producer harness that drives
-`composition-drm` on a real DRM output; see its
-[`README`](tools/drm-harness/README.md)) and `tools/vm-init` (PID 1 of the
-throwaway VM for the vkms tests).
+| `tools/drm-harness` | Producer harness that drives `composition-drm` on a real DRM output; see its [`README`](tools/drm-harness/README.md). |
+| `tools/vm-init` | PID 1 of the throwaway VM for the vkms tests. |
 
 ## Build and test (host)
 
@@ -57,37 +55,84 @@ cargo build -p composition-ffi-staticlib --no-default-features --features panic-
 ```
 
 CI is described in [`docs/ci.md`](docs/ci.md). A green run says nothing about
-hardware.
+hardware. `scripts/check-all.sh` runs the CI steps locally.
 
-## Scripts and tools
+## Scripts
 
 - `scripts/cross-aarch64.sh`: cross-builds the DRM backend, its `probe` example and the harness for aarch64 Linux.
-- `scripts/build-dlm-aarch64.sh`: build recipe for AGL drm-lease-manager for aarch64 (no binary produced yet, see `docs/dlm-aarch64.md`).
-- `scripts/vkms-vm-test.sh`: boots a kernel in QEMU and runs the vkms tests.
+- `scripts/build-dlm-aarch64.sh`: build recipe for AGL drm-lease-manager for aarch64 (no binary produced yet, see [`docs/dlm-aarch64.md`](docs/dlm-aarch64.md)).
+- `scripts/vkms-vm-test.sh`, `scripts/vkms-harness-test.sh`: boot a kernel in QEMU and run the vkms tests, and the harness on vkms.
 - `scripts/camera-check.py`: host checker for camera pictures of the two-plane test patterns ([`scripts/camera-check-README.md`](scripts/camera-check-README.md)).
-- `tools/drm-harness`: board-side producer harness (above). `tools/vm-init`: VM init for the vkms tests.
+- `scripts/probe-table.py`: table from probe output ([`scripts/probe-table-README.md`](scripts/probe-table-README.md)).
+- `scripts/imx95-session.sh`: host-side helper for short sessions on the Verdin iMX95 ([`scripts/imx95-session-README.md`](scripts/imx95-session-README.md)).
+- `scripts/imx95-m7-rproc.sh`: load, stop and restore for the i.MX95 M7 through remoteproc (host test `scripts/imx95-m7-rproc.test.sh`).
+- `scripts/prepare-zephyr.sh`: pinned Zephyr workspace and SDK preparation ([`docs/zephyr-workspace.md`](docs/zephyr-workspace.md)).
+- Checks: `scripts/check-all.sh`, `scripts/check-doc-links.sh` (`--anchors` also checks fragments), `scripts/check-ffi-header.sh`, `scripts/check-zephyr-apps.sh`, `scripts/check-no-board-secrets.sh`, `scripts/check-no-farm-ids.sh`, `scripts/check-m1-report.sh`. Several have a `.test.sh` beside them.
+
+## Zephyr apps
+
+Board-test applications for SoW milestone M2, kept in the repository:
+
+- [`tests/board/imx95_m7_scanout`](tests/board/imx95_m7_scanout/README.md): framebuffer scanout from the i.MX95 Cortex-M7 through Zephyr's display API, with per-frame timing hooks. Host builds only; its README records that nothing has been run on hardware and no timing is measured.
 
 ## Documentation
 
 - [`SoW.md`](SoW.md): statement of work: objectives, architecture, work packages, milestones.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md), [`SECURITY.md`](SECURITY.md), [`CHANGELOG.md`](CHANGELOG.md), [`NOTICE`](NOTICE), [`docs/third-party-licences.md`](docs/third-party-licences.md), [`LICENSE`](LICENSE).
+- [`.github/pull_request_template.md`](.github/pull_request_template.md) and the [board-result issue template](.github/ISSUE_TEMPLATE/board-result.md).
+
+### Overview and traceability
+
+- [`docs/glossary.md`](docs/glossary.md): terms of the engine, DRM, Zephyr and the i.MX95.
+- [`docs/sow-traceability.md`](docs/sow-traceability.md): SoW deliverables and milestone criteria mapped to repository evidence.
+- [`docs/open-issues.md`](docs/open-issues.md): open issues for M2, M3, WP5 and cross-cutting.
+- [`docs/platform-capabilities.md`](docs/platform-capabilities.md): what is known about each target and how (vkms / source / inferred), plus the planned tools.
+
+### i.MX95 Zephyr (M2) studies
+
+- [`docs/imx95-zephyr-feasibility.md`](docs/imx95-zephyr-feasibility.md): who owns the display, from source reading.
+- [`docs/imx95-zephyr/README.md`](docs/imx95-zephyr/README.md): evidence directory; holds a dated read-only board snapshot, [`observed-2026-11-27.txt`](docs/imx95-zephyr/observed-2026-11-27.txt).
+- [`docs/imx95-sm-display-lm.md`](docs/imx95-sm-display-lm.md): a System Manager configuration giving the display to the M7 (inferred).
+- [`docs/imx95-m7-verdin-bsp.md`](docs/imx95-m7-verdin-bsp.md): Verdin iMX95 M7 BSP facts (source study).
+- [`docs/imx95-m7-scmi.md`](docs/imx95-m7-scmi.md): SCMI reach for display clocks and power domains under Zephyr.
+- [`docs/imx95-m7-lvds-route.md`](docs/imx95-m7-lvds-route.md): DPU to LVDS panel route (source study).
+- [`docs/imx95-m7-fb-memory.md`](docs/imx95-m7-fb-memory.md): scanout buffer memory, cache and MPU rules on the M7.
+- [`docs/imx95-m7-rpmsg-log.md`](docs/imx95-m7-rpmsg-log.md): taking the Zephyr log over rpmsg / trace buffer (design).
+- [`docs/imx95-m7-overlay-design.md`](docs/imx95-m7-overlay-design.md): two-plane DPU overlay under Zephyr (design).
+- [`docs/imx95-m7-backend-contract.md`](docs/imx95-m7-backend-contract.md): mapping the engine backend contract onto Zephyr.
+- [`docs/imx95-twoplane-port.md`](docs/imx95-twoplane-port.md): filling the two-plane backend's tables for the i.MX95 DPU (design).
+- [`docs/m2-comparison-plan.md`](docs/m2-comparison-plan.md): Linux vs Zephyr comparison of the same scene.
+- [`docs/am62p-imx95-matrix.md`](docs/am62p-imx95-matrix.md): AM62P vs i.MX95 difference matrix (WP4, from recorded docs).
+- [`docs/zephyr-workspace.md`](docs/zephyr-workspace.md): Zephyr workspace and SDK for board applications.
+
+### WP5 design notes
+
+- [`docs/wp5-gap-analysis.md`](docs/wp5-gap-analysis.md): leased vs Weston-owned output and libliftoff (SoW §4.2).
+- [`docs/weston-imx-lease.md`](docs/weston-imx-lease.md): Weston on the i.MX95 image and DRM leases.
+- [`docs/advisory-planner-design.md`](docs/advisory-planner-design.md): planner-only / advisory entry point.
+- [`docs/libliftoff-crosscheck.md`](docs/libliftoff-crosscheck.md): cross-checking the planner against libliftoff.
+- [`docs/sync-fences.md`](docs/sync-fences.md): readiness, fences and release.
+- [`docs/twoplane-backend.md`](docs/twoplane-backend.md): the C two-plane backend and what a board test still needs.
+
+### CI and scripts
+
 - [`docs/ci.md`](docs/ci.md): what CI runs and what a green run does and does not show.
-- [`docs/dlm-aarch64.md`](docs/dlm-aarch64.md): pinned sources and build script for drm-lease-manager on aarch64.
 - [`docs/host-metrics.md`](docs/host-metrics.md): plane-assignment cost of the core on a development host (no board involved).
+- [`docs/dlm-aarch64.md`](docs/dlm-aarch64.md): pinned sources and build script for drm-lease-manager on aarch64.
+
+### Board docs
+
 - [`docs/imx95-board.md`](docs/imx95-board.md): cross-building for and running on the Toradex Verdin iMX95 (Reference Multimedia Image, kernel 6.6), with placeholders instead of addresses.
 - [`docs/imx95-dpu-source-6.6.md`](docs/imx95-dpu-source-6.6.md): desk reading of the i.MX95 display driver in the board's 6.6.157-7.8.0 kernel.
+- [`docs/imx95-probe-2026-11-28.txt`](docs/imx95-probe-2026-11-28.txt): recorded probe output.
 - [`docs/m1-imx95-test-plan.md`](docs/m1-imx95-test-plan.md): WP0 test plan mapping each M1 acceptance condition to scenarios and evidence.
-- [`docs/platform-capabilities.md`](docs/platform-capabilities.md): what is known about each target and how (vkms / source / inferred), plus the planned tools.
-- [`docs/twoplane-backend.md`](docs/twoplane-backend.md): the C two-plane backend, what its host tests cover, and what a board test still needs.
-- [`docs/wp5-gap-analysis.md`](docs/wp5-gap-analysis.md): desk analysis of leased vs Weston-owned output and libliftoff (SoW §4.2, WP5).
-- [`docs/observed/`](docs/observed/): per-SoC topology notes:
-  - [`bcm2711-cm4-topology.md`](docs/observed/bcm2711-cm4-topology.md): BCM2711 (CM4 / reTerminal) DRM topology.
-  - [`bcm2712-topology.md`](docs/observed/bcm2712-topology.md): BCM2712 (Raspberry Pi 5) display topology.
-  - [`rk3588-source.md`](docs/observed/rk3588-source.md): RK3588 VOP2 topology read from source.
-  - [`rk3588-topology.md`](docs/observed/rk3588-topology.md): RK3588 DRM topology on the NanoPC-T6.
-  - [`stm32mp257-source.md`](docs/observed/stm32mp257-source.md): STM32MP257 LTDC topology read from ST kernel source.
-  - [`stm32mp257-topology.md`](docs/observed/stm32mp257-topology.md): STM32MP257F-DK display topology (probe and raw properties).
-  - [`stm32mp257.md`](docs/observed/stm32mp257.md): STM32MP257F-DK topology and two-plane run.
-  - [`vc4-hvs-source.md`](docs/observed/vc4-hvs-source.md): VC4 / HVS topology read from Raspberry Pi kernel source.
+- [`docs/board-scenarios.md`](docs/board-scenarios.md): SoW §10 board scenarios, design only.
+- Per-SoC topology notes in [`docs/observed/`](docs/observed/):
+  - [`bcm2711-cm4.md`](docs/observed/bcm2711-cm4.md), [`bcm2711-cm4-topology.md`](docs/observed/bcm2711-cm4-topology.md): BCM2711 (CM4 / reTerminal).
+  - [`bcm2712.md`](docs/observed/bcm2712.md), [`bcm2712-topology.md`](docs/observed/bcm2712-topology.md): BCM2712 (Raspberry Pi 5).
+  - [`vc4-hvs-source.md`](docs/observed/vc4-hvs-source.md): VC4 / HVS read from Raspberry Pi kernel source.
+  - [`rk3588-source.md`](docs/observed/rk3588-source.md), [`rk3588-topology.md`](docs/observed/rk3588-topology.md): RK3588 VOP2.
+  - [`stm32mp257.md`](docs/observed/stm32mp257.md), [`stm32mp257-source.md`](docs/observed/stm32mp257-source.md), [`stm32mp257-topology.md`](docs/observed/stm32mp257-topology.md): STM32MP257F-DK.
 
 ## Status
 
@@ -96,8 +141,8 @@ means measured on a board on the stated date, source means read from source,
 inferred means concluded from either.
 
 - **M1 (i.MX95 Linux DRM / AGL):** not met. For i.MX95 the docs record desk research only (driver topology read from source, `docs/platform-capabilities.md`, `docs/imx95-dpu-source-6.6.md`) and a test plan (`docs/m1-imx95-test-plan.md`); the plan's results file, `docs/m1-imx95-report.md`, is not present. No multi-plane run on i.MX95 is recorded, and the AGL leased-output demonstration is not done. The aarch64 build recipes exist but the drm-lease-manager binary has not been produced (`docs/dlm-aarch64.md`).
-- **M2 (i.MX95 Zephyr):** not started in the docs. The i.MX95 Zephyr row is source reading only; who owns the DPU, A55 or M7, is recorded as unexamined (`docs/platform-capabilities.md`). Not measured on hardware.
+- **M2 (i.MX95 Zephyr):** not met. The repository holds source studies and designs (listed above), a dated read-only board snapshot (observed 2026-11-27, `docs/imx95-zephyr/`) and a host-built scanout app that has not run on hardware. `docs/imx95-zephyr-feasibility.md` is a draft from source reading: its ownership conclusion, that the A55/Linux side owns the display under the NXP EVK System Manager configurations, is inferred, and the configuration Toradex ships was not read. No scanout, VSYNC or latch result from Zephyr exists, and nothing is measured on hardware (`docs/open-issues.md` M2-01 to M2-07).
 - **M3 (AM62P regression):** not met. The C two-plane backend, taken from the AM62P demo firmware, passes host tests against a fake driver; that its latch counter follows real hardware and the timing of latches are not tested (`docs/twoplane-backend.md`). No AM62P run is recorded here.
 - **WP1 (`no_std` core):** the core builds for `thumbv7em-none-eabihf` and has host tests in CI; host costs are in `docs/host-metrics.md`. These are host results only.
-- **WP2 / WP3 / WP4:** see M1, M2 and M3 above. Other SoCs have dated observations of their display topology (STM32MP257F-DK, RK3588, BCM2712, BCM2711 on 2026-11-28; the STM32MP257F-DK two-plane run on 2026-11-27, re-run 2026-11-28, in `docs/observed/`). These are not milestone results.
-- **WP5:** gap analysis of leased and Weston-owned output is desk research only (`docs/wp5-gap-analysis.md`); this README and the licence are the minimal documentation so far. Demo and benchmark evidence are not produced.
+- **WP2 / WP3 / WP4:** see M1, M2 and M3 above. Other SoCs have dated observations of their display topology (STM32MP257F-DK, RK3588, BCM2712, BCM2711 on 2026-11-28; the STM32MP257F-DK two-plane run on 2026-11-27, re-run 2026-11-28, in `docs/observed/`). These are not milestone results. The AM62P vs i.MX95 matrix is built from recorded docs only (`docs/am62p-imx95-matrix.md`).
+- **WP5:** gap analysis, design notes, licence record, contribution and security documents exist; they are desk research and documentation. Demo and benchmark evidence are not produced (`docs/sow-traceability.md`).
