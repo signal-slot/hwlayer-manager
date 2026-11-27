@@ -1,14 +1,14 @@
 # STM32MP257 LTDC: sync semantics read from source
 
 
-Status: **ST rows read from a real checkout; mainline rows not.** Nothing in this document is measured on hardware. No board was accessed.
+Status: **ST and mainline rows read from real checkouts.** Nothing in this document is measured on hardware. No board was accessed.
 
 ## Pinned trees and fetch record (2026-11-28)
 
 | Tree | Result |
 |---|---|
 | STMicroelectronics/linux, branch `v6.18-stm32mp` | Real blobless clone read with `git show HEAD:<path>`. `git rev-parse HEAD` = `3056405e0479330b0889c2a971452bfd10014b70`. All `ltdc.c:N`, `drv.c:N`, `ltdc.h:N` numbers below were counted on that checkout; those from the first version (which used the branch tip as served over HTTP, 2941 lines, no hash) were re-checked and hold. |
-| Mainline `torvalds/linux` tag `v6.18` | **Not checked out.** `git clone --depth 1 --branch v6.18 --filter=blob:none --no-checkout https://github.com/torvalds/linux <deps>/linux-mainline` was refused twice ("This command requires approval"). No mainline hash is pinned here; row 6 stays open. The sibling doc `stm32mp257-ltdc-source-full.md` carries an earlier web-fetched comparison of `ltdc.c` capability code (mainline commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449`, from the tag fetch, not verified locally). |
+| Mainline `torvalds/linux` tag `v6.18` | Real blobless clone, read with `git show HEAD:<path>`. Commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` (from `git show -s --format=%H HEAD`, committed 2025-11-30; `git rev-parse` was refused). Numbers below are counted on it. |
 | Earlier failures | First attempt the same day: clone refused ("nobody decided in time"), only `ltdc.c` fetched over HTTP. Kept as record. |
 
 Tags: `source` = read in the ST checkout; `inferred` = reasoned from the source or the DRM core, not read directly; `not read` = needs a file I did not get.
@@ -70,17 +70,31 @@ Tags: `source` = read in the ST checkout; `inferred` = reasoned from the source 
 
 ### 6. ST-only changes against mainline
 
-Not done: no mainline checkout, so no row here is compared line by line. The capability-level comparison from the earlier web fetch is in `stm32mp257-ltdc-source-full.md` (mainline has the same `plane_reg_shadow` and VBR/IMR scheme for hardware version 4.x and lacks MP25 scaler, rotator and firewall code). No claim about sync differences is made here.
+Compared on the checkouts (ST `3056405e`, mainline `7d0a66e4`):
+
+| Topic | ST v6.18-stm32mp | Mainline v6.18 | Tag |
+|---|---|---|---|
+| Event arming | `ltdc.c:1346-1369` | same code (`ltdc.c:1050-1060`) | source |
+| Line IRQ completes it | `ltdc.c:1011-1013` | `ltdc.c:716` | source |
+| Latch, older IP | `SRCR_VBR` in flush (`1356-1357`) | `SRCR_VBR` (`791-792`, `1050-1051`) | source |
+| Latch, per-layer IP | `LXRCR_VBR` (`2018-2021`, `2085-2088`) | same (`1484-1486`, `1525-1527`) | source |
+| Per-layer reload gating | `plane_reg_shadow` true in the 4.x case (`2574`) | same (`1867`) | source |
+| Async commits | none | none (no `async` text in `drv.c`; `ltdc.c` has no async plane helpers by the grep above) | source |
+| Fence / `prepare_fb` | none in `ltdc.c` or `drv.c` | none | source |
+| Commit tail | `drm_atomic_helper_commit_tail_rpm` (`drv.c:44-46`) | not set (`drv.c:37-41`), so the DRM default tail | source |
+| Suspend | ST: `drm_mode_config_helper_suspend` | mainline: `drm_atomic_helper_suspend` with a saved state | source (`drv.c` of both) |
+
+So the sync scheme is the same in both trees; ST adds the runtime-PM commit tail and the MP25 scaler/rotator/firewall code, none of which changes the event or reload path read above. (The `ltdc.c` async and `prepare_fb` absence in mainline rests on the grep for those words in the checkout returning no match; this was grepped on the mainline `ltdc.c` with the pattern list including `async|prepare_fb`.)
 
 ## MP25 hardware version (settled from source, 2026-11-28)
 
 The claim in the first version of this doc, "the MP25 is the newer IP with per-layer reload", is **partly confirmed, partly corrected**:
 
 - **Corrected:** the version is not selected by the compatible or by `ltdc_plat_data`. `ltdc_plat_data` has one field, `pad_max_freq_hz` (`ltdc.h:49-51`; MP25 value 150 MHz at `drv.c:273-275`). The driver reads the hardware identifier register at probe: `regmap_read(ldev->regmap, LTDC_IDR, &ldev->caps.hw_version)` (`ltdc.c:2484`) and switches on it (`ltdc.c:2487-2608`). The supported values are `HWVER_10200`, `HWVER_10300`, `HWVER_20101`, `HWVER_40100` and `HWVER_40101` (`ltdc.c:52-56`); anything else fails with "hardware identifier not supported" and `-ENODEV` (`ltdc.c:2601-2607`). The driver prints the value at `ltdc.c:2743` (`drm_dbg_driver`, "ltdc hw version"). No value for the MP25 is written in any file read.
-- **Confirmed by inference (strong):** the MP25-only handling sits inside the 4.x case. The scaler registers (`LTDC_L1SISR`, `LTDC_L1SOSR`) and the rotator registers are made accessible under `case HWVER_40100`/`HWVER_40101` only (`ltdc.c:588-632`, `709-752`); the MP251/MP255 crc handling is the last statement of that case (`ltdc.c:2595-2600`); and the per-layer scaling-ability read is in that case too (`ltdc.c:2585-2592`). A MP25 reporting one of the older versions would never reach this code. That case sets `plane_reg_shadow = true`, `dynamic_zorder = true`, `plane_rotation = true`, `fifo_threshold = true` (`ltdc.c:2574-2583`). So the MP25 takes the 0x040100/0x040101 branch with per-layer reload (`LTDC_L1RCR`, `LXRCR_VBR`, `ltdc.c:2018-2021`) and the exact register value is the one thing still not in source.- **Not claimed:** whether the value is 0x040100 or 0x040101; both give the same flags in this driver.
+- **Confirmed by inference (strong):** the MP25-only handling sits inside the 4.x case. The scaler registers (`LTDC_L1SISR`, `LTDC_L1SOSR`) and the rotator registers are made accessible under `case HWVER_40100`/`HWVER_40101` only (`ltdc.c:588-632`, `709-752`); the MP251/MP255 crc handling is the last statement of that case (`ltdc.c:2595-2600`); and the per-layer scaling-ability read is in that case too (`ltdc.c:2585-2592`). A MP25 reporting one of the older versions would never reach this code. That case sets `plane_reg_shadow = true`, `dynamic_zorder = true`, `plane_rotation = true`, `fifo_threshold = true` (`ltdc.c:2574-2583`). So the MP25 takes the 0x040100/0x040101 branch with per-layer reload (`LTDC_L1RCR`, `LXRCR_VBR`, `ltdc.c:2018-2021`) and the exact register value is the one thing still not in source.- **Mainline agrees (inferred):** mainline `ltdc.c` has no MP25-specific capability code at all, only a `bus` clock test (`ltdc.c:1954-1966`), and the same `LTDC_IDR` switch (`ltdc.c:1805-1869`); mainline's MP25 support therefore also relies on the hardware reporting a 4.x version.
+- **Not claimed:** whether the value is 0x040100 or 0x040101; both give the same flags in this driver.
 
 ## Open rows to finish
 
-- Mainline `ltdc.c` / `drv.c` at a named tag, from a real checkout (row 6).
 - The exact `LTDC_IDR` value on the MP25: read the `ltdc hw version` debug line on a board with `drm.debug` set (needs the board; not done here).
 - Confirm on hardware, later, any `inferred` row that matters for a backend.

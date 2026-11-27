@@ -11,7 +11,7 @@ This document completes [`docs/observed/stm32mp257-source.md`](observed/stm32mp2
 
 **Failure record (kept):** earlier on 2026-11-28 the clone was refused by the worker's permission layer ("This command requires approval", no network error) and the files were read through a web-fetch agent (HTTP 200, no line numbers; `raw.githubusercontent.com` answered HTTP 429 for mainline `drv.c`). A first retry the same day was refused twice as well; the ST clone ran only after that exact command was explicitly allowed.
 
-**Mainline was not checked out.** `git clone --depth 1 --branch v6.18 --filter=blob:none --no-checkout https://github.com/torvalds/linux <deps>/linux-mainline` was refused ("This command requires approval", twice, 2026-11-28). The mainline column of the comparison below therefore still rests on the earlier web fetch of tag `v6.18` (commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449`, not verified by a local `rev-parse`); its line numbers are counted from fetched text.
+**Mainline checkout (2026-11-28):** `torvalds/linux` tag `v6.18` (annotated tag object `f7b88edb52c8dd01b7e576390d658ae6eef0e134`), `git show -s --format=%H HEAD` of the local blobless clone = `7d0a66e4bb9081d75c82ec4957c50034cb0ea449`, committed 2025-11-30. The first clone attempt was refused ("This command requires approval", twice); it ran after the exact command was allowed. `git rev-parse` and `git grep` were refused for that path, so the hash was taken with `git show -s`, and files were read with `git show HEAD:<path>`. The mainline numbers in the comparison below are counted on that checkout.
 
 **ST 6.6 (`v6.6-stm32mp`)** was not re-read; that section is unchanged from the fetch.
 
@@ -21,7 +21,7 @@ This document completes [`docs/observed/stm32mp257-source.md`](observed/stm32mp2
 | --- | --- | --- | --- | --- |
 | `STMicroelectronics/linux` | branch `v6.18-stm32mp` | `3056405e0479330b0889c2a971452bfd10014b70` (`git rev-parse HEAD` of the local checkout, 2026-11-28) | committed 2026-10-23 | `drivers/gpu/drm/stm/{ltdc.c,ltdc.h,drv.c,Kconfig,Makefile}`, `arch/arm64/boot/dts/st/{stm32mp251.dtsi,stm32mp255.dtsi,stm32mp257f-dk.dts}`, `Documentation/devicetree/bindings/display/st,stm32-ltdc.yaml` |
 | `STMicroelectronics/linux` | branch `v6.6-stm32mp` | `548f960c059bc4b9165cb69895fd67551f6061ca` | author 2026-04-30, committer 2026-06-01 | `drivers/gpu/drm/stm/{ltdc.c,ltdc.h,drv.c}` |
-| `torvalds/linux` | tag `v6.18` (annotated, tag object `f7b88edb52c8dd01b7e576390d658ae6eef0e134`) | `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` | tagged 2025-11-30 (tagger date; the commit date was not fetched) | `drivers/gpu/drm/stm/{ltdc.c,ltdc.h,drv.c}` |
+| `torvalds/linux` | tag `v6.18` (annotated, tag object `f7b88edb52c8dd01b7e576390d658ae6eef0e134`) | `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` (local checkout) | committed 2025-11-30 | `drivers/gpu/drm/stm/{ltdc.c,ltdc.h,drv.c}` |
 
 Read later from the checkout: `stm32mp257.dtsi`, `stm32mp25xf.dtsi` (no `ltdc` or `rotation` text) and `stm32mp257f-dk-resmem.dtsi`. Not read: `stm32mp253.dtsi` and any ST 6.6 device-tree or binding file. The board's kernel is 6.6.129 (OpenSTLinux scarthgap); the `v6.6-stm32mp` tip above is a later commit, so whether it matches 6.6.129 is **inferred**, not known.
 
@@ -72,15 +72,15 @@ Mainline `drivers/gpu/drm/stm/ltdc.c` at tag `v6.18` has no MP25-specific plane 
 
 | Topic | ST v6.18-stm32mp (`3056405e`) | Mainline v6.18 (`7d0a66e4`) | Basis |
 | --- | --- | --- | --- |
-| `LTDC_MAX_LAYER` | 4 (`ltdc.h:14`) | 4 (`#define` at `ltdc.h:36`, counted) | source |
-| MP25 compatibles in `drv.c` | `st,stm32mp251-ltdc`, `st,stm32mp255-ltdc`, plat data 150 MHz | Both compatibles present in `drv.c`, same 150 MHz plat data (`drv.c:242-249`, counted from the end) | source |
+| `LTDC_MAX_LAYER` | 4 (`ltdc.h:14`) | 4 (`#define` after `struct ltdc_caps`, checkout; mainline `ltdc.h` has no `LTDC_MAX_FIREWALL`) | source |
+| MP25 compatibles in `drv.c` | `st,stm32mp251-ltdc`, `st,stm32mp255-ltdc`, plat data 150 MHz | Both compatibles present in `drv.c`, same 150 MHz plat data (`drv.c:243-250`) | source |
 | MP25 code in `ltdc.c` | Firewalls (`l1l2`, `l3`, `rot`), rotator, scaler, LVDS clock, `st,burstlen`, `rotation-memory` | Only the `bus` clock for MP251/MP255 in `ltdc_load` and an optional `lvds` clock; no firewall, rotator, scaler, burst length | source |
-| Scaling | `plane_scaling[]` per layer; upscale allowed on layers with `LXCR_C1R_SCA`; scaler registers programmed (`ltdc.c:1985`) | Unconditional rejection: "Scaling is not supported" whenever `src` and `dst` sizes differ; `LXCR_C1R_SCA` defined but never used | source |
+| Scaling | `plane_scaling[]` per layer; upscale allowed on layers with `LXCR_C1R_SCA`; scaler registers programmed (`ltdc.c:1985`) | Unconditional rejection: "Scaling is not supported" whenever `src` and `dst` sizes differ (`ltdc.c:1255-1258`); `LXCR_C1R_SCA` defined (`ltdc.c:219`) but never used; no `plane_scaling` | source |
 | zpos | Mutable on 4.x: `drm_plane_create_zpos_property(.., 0, nb_layers-1)` | Same code | source |
 | Alpha | `drm_plane_create_alpha_property`, no blend-mode property | Same | source |
 | Rotation | Plane: `ROTATE_0 | REFLECT_X | REFLECT_Y`; primary also 90/180/270 when `crtc_rotation` (needs `rotation-memory`) | Plane rotation only (`ROTATE_0 | REFLECT_X | REFLECT_Y`); no `crtc_rotation` | source |
-| `ltdc_encoder_mode_valid` | Present; checks `pad_max_freq_hz` for the encoder | Not present; the pad frequency check is in `ltdc_crtc_mode_valid` (`result > pad_max_freq_hz` gives `MODE_CLOCK_HIGH`) | source |
-| YUV semi-planar / planar | Layers with nonzero index on MP251/MP255 only, per layer capability bits | Gated by `ycbcr_input` and the layer's `YSPA`/`YFPA` bits, no MP25 special case | source |
+| `ltdc_encoder_mode_valid` | Present; checks `pad_max_freq_hz` for the encoder | Not present; the pad frequency check is in `ltdc_crtc_mode_valid` (`ltdc.c:832`, `result > pad_max_freq_hz` at `852` gives `MODE_CLOCK_HIGH`) | source |
+| YUV semi-planar / planar | Layers with nonzero index on MP251/MP255 only, per layer capability bits | Gated by `ycbcr_input` and the layer's `YSPA`/`YFPA` bits, no MP25 special case (the only MP25 compatible test in mainline `ltdc.c` is the `bus` clock at `ltdc.c:1954-1955`; no `st,burstlen`, `LTDC_L1BLCR` is defined at `ltdc.c:100` but never written) | source |
 | Consequence | A mainline 6.18 kernel on the MP257F-DK would at best expose the LTDC planes without scaling, rotation memory, firewall handling or the RIFSC firewall accesses ST's tree requests; this is inferred from the absence of the code | | inferred |
 
 ## ST 6.6 note (`v6.6-stm32mp`, commit `548f960c`)
@@ -147,3 +147,16 @@ The earlier caveat that the tail of `stm32mp251.dtsi` was unseen is closed: the 
 | 2048x2048 from `STM_MAX_FB_WIDTH`/`HEIGHT` in `drv.c` | `drv.c:35-36` | matches; consistent with leaving `max_source` unset |
 
 No value mismatch. The one mismatch is the `ltdc.c:1609` citation, which should read `1618`.
+
+### Mainline checkout rows (added 2026-11-28, mainline `7d0a66e4`)
+
+| Item | Mainline v6.18 | Where |
+| --- | --- | --- |
+| `LTDC_IDR` and hardware version | Same scheme as ST: `regmap_read(LTDC_IDR)` then `switch`; 4.x case sets `plane_reg_shadow = true`, `dynamic_zorder = true` | `ltdc.c:1805`, `1810`, `1855-1869` |
+| MP25-specific caps | None. The only MP251/MP255 test is the `bus` clock. Mainline MP25 support therefore also relies on the hardware reporting a supported version (`inferred`: this agrees with the ST-tree reading that the MP25 reports a 4.x version) | `ltdc.c:1954-1966` |
+| Vblank path | `drm_crtc_handle_vblank` in the IRQ thread; flush arms or sends the event with the same `SRCR_VBR` / `LXRCR_VBR` scheme | `ltdc.c:716`, `791-792`, `1050-1060`, `1484-1486`, `1525-1527` |
+| `drm_vblank_init` | called at load | `ltdc.c:2076` |
+| `drv.c` | `STM_MAX_FB_WIDTH` 2048, `fb_create = drm_gem_fb_create`, `normalize_zpos = true`, plat data 90 MHz and 150 MHz (MP25) | `drv.c:34`, `38`, `98-101`, `239-250` |
+| Mainline `mode_config.funcs` | no `atomic_commit_tail` helper structure (ST has `drm_atomic_helper_commit_tail_rpm`) | `drv.c:37-41` |
+
+Correction: the earlier statement "no burst length in mainline" holds (the register is defined but never written). The earlier row that said the mainline `drv.c` was read at counted line numbers is superseded by these exact numbers.
