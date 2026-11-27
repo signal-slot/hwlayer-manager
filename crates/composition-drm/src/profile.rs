@@ -66,6 +66,53 @@ pub enum DriverProfile {
     /// allows; it must not accept one the profile refuses, except through
     /// the inferred items above.
     Imx95Dpu,
+    /// STMicroelectronics LTDC on the STM32MP257F-DK (ST driver
+    /// `drivers/gpu/drm/stm/ltdc.c`, hardware version 4.x).
+    ///
+    /// Tags: **observed <date>** = `TEST_ONLY` against the kernel on the
+    /// board (kernel `6.6.129`, `docs/stm32mp257-ltdc-board.md`);
+    /// **source** = read from the ST `v6.18-stm32mp` tree
+    /// (`docs/stm32mp257-ltdc-source-full.md`, `ltdc.c:1585-1609`);
+    /// **inferred** = concluded, neither seen nor stated.
+    ///
+    /// - Three planes on one CRTC: primary, overlay, overlay (observed
+    ///   2026-11-27, `docs/observed/stm32mp257.md`). Layer count is read from
+    ///   `LTDC_LCR` at run time: source.
+    /// - Upscaling only, `max_downscale` 1.0: source ("Downscaling is not
+    ///   supported", `ltdc.c:1585-1600`); observed 2026-11-27: downscale
+    ///   0.5, 0.75 and 0.9 rejected (EINVAL) on all three planes.
+    /// - `max_upscale` 32.0 (`32 << 16`): observed 2026-11-27 as the top of
+    ///   the probe ladder. **The real bound was not found**: 32x was accepted
+    ///   on the primary and the first overlay, and nothing larger was tried.
+    ///   The source has no numeric cap either (the factor is only masked to
+    ///   16 bits, `ltdc.c:1609`); any hardware cap is in the reference
+    ///   manual, not read. Measurement and source therefore disagree on
+    ///   nothing, and the stricter value, 32x, is used. A factor above it
+    ///   passes the kernel only by luck of the hardware; the planner refuses
+    ///   it, which is conservative.
+    /// - Which planes scale: the primary plane and the first overlay, in
+    ///   plane order (observed 2026-11-27: planes 34 and 42 scale, plane 49,
+    ///   the second overlay, accepts only 1.0). Source: scaling is a
+    ///   per-layer hardware ability (`LXCR_C1R_SCA`, `ltdc.c:238`), so which
+    ///   layers have it is a register fact, not in the source; that it is
+    ///   layers 0 and 1 is inferred from the one board. Planes are
+    ///   identified by kind and order among the overlays, not by KMS object
+    ///   id, because ids change between kernels and boot; DRM enumerates
+    ///   the planes in layer order (inferred; observed ids 34 < 42 < 49
+    ///   follow it). The second and later overlays are left unclaimed
+    ///   (`scaling` stays as KMS reported it), so the planner treats them as
+    ///   unscaled only through its own default.
+    /// - YUV formats cannot be scaled on any plane (source,
+    ///   `ltdc.c:1585-1600`); that is **not modelled** here and is left to
+    ///   `TEST_ONLY`.
+    /// - Not measured: scaling quality and bandwidth/underrun limits at large
+    ///   factors; the source-size limit of 2048x2048 (source:
+    ///   `STM_MAX_FB_WIDTH`/`HEIGHT` in `drv.c`) is a framebuffer limit and
+    ///   is not set as `max_source`.
+    ///
+    /// Selection by driver name (`stm`) is not done here; the profile is
+    /// chosen explicitly like the others.
+    Stm32Ltdc,
 }
 
 impl DriverProfile {
@@ -101,6 +148,26 @@ impl DriverProfile {
                     // Applying twice must not duplicate the groups.
                     if !caps.resource_groups.as_slice().contains(&group) {
                         let _ = caps.resource_groups.push(group);
+                    }
+                }
+            }
+            DriverProfile::Stm32Ltdc => {
+                // Primary plus the first overlay scale; later overlays do not.
+                let mut overlays = 0;
+                for plane in caps.planes.as_mut_slice() {
+                    let scales = match plane.kind {
+                        PlaneKind::Primary => true,
+                        PlaneKind::Overlay => {
+                            overlays += 1;
+                            overlays == 1
+                        }
+                        PlaneKind::Cursor => false,
+                    };
+                    if scales {
+                        plane.scaling = Some(ScaleLimits {
+                            max_upscale: 32 << 16,
+                            max_downscale: 1 << 16,
+                        });
                     }
                 }
             }
