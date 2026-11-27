@@ -121,4 +121,83 @@ run "$T/fw/m7.elf" 9
 check "unknown remoteproc rejected" rc_is 2
 check "validation: nothing changed" untouched offline
 
+# 8. start / stop subcommands (SYSFS_ROOT, fake systemctl)
+SD=$T/state
+printf '#!/bin/sh\ncat "%s/weston"\n' "$T" > "$T/bin/systemctl"
+chmod +x "$T/bin/systemctl"
+sub() { # args...
+	SYSFS_ROOT=$ROOT/sys SYSTEMCTL=$T/bin/systemctl M7_STATE_DIR=$SD \
+		RPROC_FW_ROOT=$T RPROC_POLL=0.05 RPROC_POLLS_PER_SEC=20 M7_TIMEOUT=1 \
+		sh "$script" "$@" > "$T/out" 2>&1
+	rcode=$?
+}
+sub_restored() {
+	[ "$(cat "$RP/firmware")" = orig.elf ] && [ "$(cat "$PARAM")" = /lib/firmware ] &&
+		[ "$(cat "$RP/state")" = offline ] && [ ! -e "$SD/state" ] && [ ! -e "$SD/fw" ]
+}
+seen_is() { [ "$(cat "$T/seen")" = "fw=m7.elf path=$SD/fw" ]; }
+fresh() { rm -rf "$SD"; reset offline ok; echo active > "$T/weston"; }
+
+fresh
+sub start "$T/fw/m7.elf"
+check "sub start: exit 0" rc_is 0
+check "sub start: sees firmware and path" seen_is
+check "sub start: image copied" test -f "$SD/fw/m7.elf"
+check "sub start: running" test "$(cat "$RP/state")" = running
+check "sub start: state file" grep -q '^orig_path=/lib/firmware$' "$SD/state"
+sub stop
+check "sub stop: exit 0" rc_is 0
+check "sub stop: restored firmware, path, state" sub_restored
+check "sub stop: verdict lines" has 'OK firmware-class-path-restored'
+check "sub stop: firmware verdict" has 'OK firmware-restored'
+check "sub stop: weston verdict" has 'OK weston-active'
+
+fresh
+sub start "$T/fw/m7.elf"
+echo inactive > "$T/weston"
+sub stop
+check "sub stop: weston down is FAIL (1)" rc_is 1
+check "sub stop: FAIL weston line" has 'FAIL weston-active'
+check "sub stop: still restored" test "$(cat "$PARAM")" = /lib/firmware
+
+fresh
+printf 'm33-core\n' > "$RP/name"
+sub start "$T/fw/m7.elf"
+check "sub start: no M7 remoteproc (3)" rc_is 3
+check "sub start: no M7 changed nothing" untouched offline
+printf 'fake-m7\n' > "$RP/name"
+
+fresh
+printf 'running\n' > "$RP/state"
+sub start "$T/fw/m7.elf"
+check "sub start: already running (4)" rc_is 4
+check "sub start: running untouched" untouched running
+
+fresh
+sub start "$T/fw/m7.elf"
+sub start "$T/fw/m7.elf"
+check "sub start: twice refused (5)" rc_is 5
+sub stop
+
+fresh
+sub stop
+check "sub stop: without start (1)" rc_is 1
+
+fresh
+sub start /etc/passwd
+check "sub start: image outside root (2)" rc_is 2
+sub start "$T/fw/../fw/m7.elf"
+check "sub start: .. rejected (2)" rc_is 2
+SD=/var/tmp/outside-state
+sub start "$T/fw/m7.elf"
+check "sub start: state dir outside root (2)" rc_is 2
+check "sub start: nothing created outside" test ! -e "$SD"
+SD=$T/state
+
+fresh
+printf 'fail\n' > "$T/mode"
+sub start "$T/fw/m7.elf"
+check "sub start: crash exits 1" rc_is 1
+check "sub start: crash rolled back" sub_restored
+
 if [ "$fails" -eq 0 ]; then echo "all passed"; else echo "$fails failed"; exit 1; fi
