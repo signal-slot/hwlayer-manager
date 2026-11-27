@@ -68,3 +68,30 @@ jobs:
           scripts/cross-aarch64.sh --locked -p composition-drm
           scripts/cross-aarch64.sh --locked -p composition-drm --example probe
           scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
+
+  # Host only: compiles and links, never runs anything on a board, an MCU or
+  # an emulator. See docs/ci.md. Not a board result.
+  arm-backend:
+    name: arm-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      - name: Install Rust (stable, thumbv7em-none-eabihf, armv7r-none-eabihf) and clang with lld
+        run: |
+          rustup toolchain install stable --profile minimal --target thumbv7em-none-eabihf,armv7r-none-eabihf
+          rustup default stable
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang lld llvm
+          rustc --version
+          clang --version
+          ld.lld --version
+          llvm-nm --version || nm --version
+
+      # Compiles ce_twoplane.c for Cortex-M7 and Cortex-R5 with -Wall -Wextra
+      # -Werror, links each into a freestanding image with the engine's static
+      # library, and fails if __aeabi_memclr4 is not defined or any symbol is
+      # undefined in an image.
+      - name: compile and link the twoplane C backend (Cortex-M7, Cortex-R5)
+        run: CC_KIND=clang scripts/check-arm-link.sh
