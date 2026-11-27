@@ -1,0 +1,18 @@
+# SYNTHETIC - hand-made drm-harness records for scripts/harness-summary.py --self-test.
+# NOT measurements from a real board: never quote these numbers as evidence.
+# Format: the one-line `kind key=value ...` records of tools/drm-harness
+# (see tools/drm-harness/README.md). Scenario `move` on a DRM master fd.
+harness version=0.1.0 scenario=all args="--connector LVDS --profile imx95 --producers local all"
+session scenario=move source=master device=/dev/dri/card0 driver=imx-drm master=yes profile=imx95 producers=local
+output index=0 id=91 connector=LVDS-1 width=1280 height=800 refresh_mhz=60000 mode=1280x800 vrefresh=60 clock_khz=75900 selected=yes
+plane id=86 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=24 scaling=false formats=XR24
+plane id=143 kind=overlay zpos=0..7 on_output=yes alpha=true blend_mask=24 scaling=true formats=XR24,AR24
+plane id=144 kind=overlay zpos=0..7 on_output=no alpha=true blend_mask=24 scaling=true formats=XR24
+resource_group consumers=2 planes=0x6 capacity=10240
+step label=move frames=3 expect="yellow rectangle moves left to right over a still checkerboard"
+frame n=0 submission=1 bottom_plane=86 top_plane=143 bottom_buffer=5 top_buffer=6 top_x=0 validate_us=900 latency_us=18000
+frame n=1 submission=2 bottom_plane=86 top_plane=143 bottom_buffer=5 top_buffer=6 top_x=540 validate_us=850 latency_us=17100
+frame n=2 submission=3 bottom_plane=86 top_plane=143 bottom_buffer=5 top_buffer=6 top_x=1080 validate_us=950 latency_us=16900
+move_result frames=3 bottom_checksum_before=0d3b7f19c2a4e6f0 bottom_checksum_after=0d3b7f19c2a4e6f0 bottom_released=0 latency_count=2 latency_min_us=16900 latency_median_us=16900 latency_p99_us=17100 latency_max_us=17100 latency_mean_us=17000 interval_count=1 interval_min_us=16800 interval_median_us=16800 interval_p99_us=16800 interval_max_us=16800 interval_mean_us=16800
+resources scenario=move wall_ms=1500 cpu_user_ms=210 cpu_sys_ms=40 cpu_pct=16.7 rss_kib=4096 peak_rss_kib=5120
+VERDICT move PASS 3 frames, bottom buffer 5 unchanged on plane 86, top on its own plane

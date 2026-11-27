@@ -1,0 +1,23 @@
+# SYNTHETIC - hand-made drm-harness records for scripts/harness-summary.py --self-test.
+# NOT measurements from a real board: never quote these numbers as evidence.
+# Scenario `two-planes` on a DRM master fd, external producers (buffers come
+# from separate `drm-harness producer` processes). One commit, held for a camera.
+harness version=0.1.0 scenario=two-planes args="--connector LVDS --profile imx95 --seconds 10 --producers external two-planes"
+session scenario=two-planes source=master device=/dev/dri/card0 driver=imx-drm master=yes profile=imx95 producers=external
+output index=0 id=91 connector=LVDS-1 width=1280 height=800 refresh_mhz=60000 mode=1280x800 vrefresh=60 clock_khz=75900 selected=yes
+plane id=86 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=24 scaling=false formats=XR24
+plane id=143 kind=overlay zpos=0..7 on_output=yes alpha=true blend_mask=24 scaling=true formats=XR24,AR24
+producer_spawned layer=0
+producer_spawned layer=1
+supplied layer=0 buffer=5 format=XR24
+supplied layer=1 buffer=6 format=AR24
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=5 plane=86 kind=primary zpos=0 alpha=0x00ffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=two-planes layer=1 buffer=6 plane=143 kind=overlay zpos=1 alpha=0xffff00 blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=two-planes layers=2 assigned=2 planes=86,143
+commit step=two-planes submission=1 validate_us=900 commit_us=350 latency_us=25000
+hold step=two-planes seconds=10
+resources scenario=two-planes wall_ms=900 cpu_user_ms=90 cpu_sys_ms=20 cpu_pct=12.2 rss_kib=3840 peak_rss_kib=4224
+producer_exit layer=0 status=0
+producers count=2 problems=0
+VERDICT two-planes PASS 2 buffers on planes 86,143 (bottom,top)

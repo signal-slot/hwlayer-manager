@@ -1,0 +1,42 @@
+# SYNTHETIC - hand-made drm-harness records for scripts/harness-summary.py --self-test.
+# NOT measurements from a real board: never quote these numbers as evidence.
+# Scenario `zorder-alpha` on a lease from a drm-lease-manager-protocol server
+# (`--source dlm`), external producers, four labelled steps with camera holds.
+# Deliberately has NO `resources` record and NO frame counts, so the summary
+# must print CPU, memory and frames as `not measured` here.
+harness version=0.1.0 scenario=zorder-alpha args="--connector LVDS --profile imx95 --source dlm --lease lvds --dlm-dir /tmp/dlm --seconds 5 --producers external zorder-alpha"
+lease route=drm-lease-manager socket=/tmp/dlm/lvds
+session scenario=zorder-alpha source=dlm device=/tmp/dlm/lvds driver=imx-drm profile=imx95 producers=external
+output index=0 id=91 connector=LVDS-1 width=1280 height=800 refresh_mhz=60000 mode=1280x800 vrefresh=60 clock_khz=75900 selected=yes
+plane id=86 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=24 scaling=false formats=XR24
+plane id=143 kind=overlay zpos=0..7 on_output=yes alpha=true blend_mask=24 scaling=true formats=XR24,AR24
+producer_spawned layer=0
+producer_spawned layer=1
+step label=a-over-b expect="red (upper left) above green (lower right): overlap is red"
+assign step=a-over-b layer=0 buffer=5 plane=143 kind=overlay zpos=1 alpha=0x00ffff blend=Opaque src=0,0,400x300 dst=160,100,400x300
+assign step=a-over-b layer=1 buffer=6 plane=86 kind=primary zpos=0 alpha=0x00ff00 blend=Opaque src=0,0,400x300 dst=480,300,400x300
+plan step=a-over-b layers=2 assigned=2 planes=86,143
+commit step=a-over-b submission=1 validate_us=700 commit_us=300 latency_us=16100
+hold step=a-over-b seconds=5
+step label=b-over-a expect="green above red: overlap is green"
+assign step=b-over-a layer=0 buffer=5 plane=86 kind=primary zpos=0 alpha=0x00ffff blend=Opaque src=0,0,400x300 dst=160,100,400x300
+assign step=b-over-a layer=1 buffer=6 plane=143 kind=overlay zpos=1 alpha=0x00ff00 blend=Opaque src=0,0,400x300 dst=480,300,400x300
+plan step=b-over-a layers=2 assigned=2 planes=86,143
+commit step=b-over-a submission=2 validate_us=750 commit_us=320 latency_us=16300
+hold step=b-over-a seconds=5
+step label=plane-alpha-50 expect="red at 50% plane alpha above green: overlap is a red/green mix, rest of red is dark red"
+assign step=plane-alpha-50 layer=0 buffer=5 plane=143 kind=overlay zpos=1 alpha=0x008000 blend=Opaque src=0,0,400x300 dst=160,100,400x300
+assign step=plane-alpha-50 layer=1 buffer=6 plane=86 kind=primary zpos=0 alpha=0x00ff00 blend=Opaque src=0,0,400x300 dst=480,300,400x300
+plan step=plane-alpha-50 layers=2 assigned=2 planes=86,143
+commit step=plane-alpha-50 submission=3 validate_us=800 commit_us=340 latency_us=16500
+hold step=plane-alpha-50 seconds=5
+step label=pixel-alpha-premultiplied expect="left half of red opaque, right half 50% pixel alpha over green and black"
+assign step=pixel-alpha-premultiplied layer=0 buffer=7 plane=143 kind=overlay zpos=1 alpha=0x00ffff blend=Premultiplied src=0,0,400x300 dst=160,100,400x300
+assign step=pixel-alpha-premultiplied layer=1 buffer=6 plane=86 kind=primary zpos=0 alpha=0x00ff00 blend=Opaque src=0,0,400x300 dst=480,300,400x300
+plan step=pixel-alpha-premultiplied layers=2 assigned=2 planes=86,143
+commit step=pixel-alpha-premultiplied submission=4 validate_us=850 commit_us=360 latency_us=16700
+hold step=pixel-alpha-premultiplied seconds=5
+producer_exit layer=0 status=0
+producer_exit layer=1 status=0
+producers count=2 problems=0
+VERDICT zorder-alpha PASS steps a-over-b,b-over-a,plane-alpha-50,pixel-alpha-premultiplied
