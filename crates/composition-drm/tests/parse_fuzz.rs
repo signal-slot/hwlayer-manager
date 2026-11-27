@@ -205,6 +205,10 @@ fn check_sane(before: &Capabilities, after: &Capabilities, profile: DriverProfil
         let mut b2 = *b;
         b2.scaling = a.scaling;
         b2.max_source = a.max_source;
+        if profile == DriverProfile::Stm32Ltdc && b.kind != PlaneKind::Cursor {
+            // Also the blend mode (session 2026-11-27, Q2).
+            b2.blend_modes = a.blend_modes;
+        }
         assert_eq!(&b2, a, "{profile:?} changed more than scaling/max_source");
         if b.kind == PlaneKind::Cursor {
             assert_eq!(b.scaling, a.scaling, "{profile:?} touched a cursor plane");
