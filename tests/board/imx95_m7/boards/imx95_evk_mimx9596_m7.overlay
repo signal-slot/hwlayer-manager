@@ -1,0 +1,148 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Overlay for imx95_evk/mimx9596/m7 when the M7 runs next to Linux.
+ *
+ * 1. rpmsg: the chosen nodes, the mailbox and the addresses follow upstream
+ *    Zephyr's samples/subsys/ipc/openamp_rsc_table/boards/
+ *    imx95_evk_mimx9596_m7.overlay. They must match the reserved-memory
+ *    regions (vrings, vdev buffer, rsc-table) and the mailbox of the Linux
+ *    remoteproc node on the target board. They are EVK values; see
+ *    README.md before loading this image on another carrier.
+ *
+ * 2. Every EVK peripheral this program does not use is disabled, so the M7
+ *    neither probes nor clocks hardware that Linux may own. The SoC init in
+ *    upstream Zephyr sets the FlexCAN clock over SCMI for each enabled
+ *    FlexCAN node, so flexcan1 must stay disabled here.
+ */
+
+/ {
+	chosen {
+		zephyr,ipc_shm = &shmem;
+		zephyr,ipc_rsc_table = &rsc_table;
+		zephyr,ipc = &mailbox0;
+		/delete-property/ zephyr,canbus;
+		/delete-property/ zephyr,flash-controller;
+	};
+
+	mailbox0: mailbox {
+		compatible = "zephyr,mbox-ipm";
+		mboxes = <&mu7 1>, <&mu7 1>;
+		mbox-names = "tx", "rx";
+		status = "okay";
+	};
+
+	shmem: memory@88000000 {
+		compatible = "mmio-sram";
+		reg = <0x88000000 0x500000>;
+	};
+
+	rsc_table: memory@88220000 {
+		compatible = "mmio-sram";
+		reg = <0x88220000 0x100>;
+	};
+};
+
+&mu7 {
+	status = "okay";
+};
+
+&can_phy1 {
+	status = "disabled";
+};
+
+&flexcan1 {
+	status = "disabled";
+};
+
+&emdio {
+	status = "disabled";
+};
+
+&enetc_psi0 {
+	status = "disabled";
+};
+
+&enetc_ptp_clock {
+	status = "disabled";
+};
+
+&flexspi {
+	status = "disabled";
+};
+
+&lpi2c2 {
+	status = "disabled";
+};
+
+&lpi2c4 {
+	status = "disabled";
+};
+
+&lpi2c5 {
+	status = "disabled";
+};
+
+&lpi2c6 {
+	status = "disabled";
+};
+
+&lpi2c7 {
+	status = "disabled";
+};
+
+&lpspi1 {
+	status = "disabled";
+};
+
+&lpuart5 {
+	status = "disabled";
+};
+
+&sai3_2 {
+	status = "disabled";
+};
+
+&tpm2 {
+	status = "disabled";
+};
+
+&lptmr1 {
+	status = "disabled";
+};
+
+&tstmr2 {
+	status = "disabled";
+};
+
+&edma1 {
+	status = "disabled";
+};
+
+&edma2 {
+	status = "disabled";
+};
+
+&gpio2 {
+	status = "disabled";
+};
+
+&gpio3 {
+	status = "disabled";
+};
+
+&gpio4 {
+	status = "disabled";
+};
+
+&gpio5 {
+	status = "disabled";
+};
+
+&sar_adc {
+	status = "disabled";
+};
+
+&wdog5 {
+	status = "disabled";
+};
