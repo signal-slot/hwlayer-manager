@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Host test for imx95-session.sh with a fake ssh/scp/systemctl first on PATH.
 # The fake ssh logs its arguments and runs the remote command on the host,
-# with /tmp/ rewritten to a fake root under $TMPDIR. Nothing leaves the host.
+# with the session state files and rm mapped into a fake root under $TMPDIR.
+# Nothing leaves the host.
 # Run: bash scripts/imx95-session.test.sh
 here=$(cd "$(dirname "$0")" && pwd)
 script=$here/imx95-session.sh
@@ -22,10 +23,13 @@ cat >"$bin/ssh" <<EOT
 # fake ssh: ... <dest> <command>
 for last; do :; done
 cmd=\$last
+# like real ssh: refuse an empty destination (the argument before the command)
+eval "dst=\\\${\$(( \$# - 1 ))}"
+[ -n "\$dst" ] || { echo "ssh: empty destination" >&2; exit 255; }
 shift \$(( \$# - 1 ))
 echo "ssh \$*" >>"$log"
 printf 'CMD %s\n----\n' "\$cmd" >>"$log"
-PATH=$bin:\$PATH sh -c "\$(printf '%s' "\$cmd" | sed 's#/tmp/#$fake/tmp/#g')"
+PATH=$root/rbin:$bin:\$PATH sh -c "\$(printf '%s' "\$cmd" | sed 's#/tmp/imx95-session#$fake/tmp/imx95-session#g')"
 EOT
 cat >"$bin/scp" <<EOT
 #!/bin/sh
@@ -37,7 +41,7 @@ cat >"$bin/systemctl" <<EOT
 #!/bin/sh
 st=$fake/svc
 [ -f "\$st" ] || echo inactive >"\$st"
-echo "systemctl \$*" >>"$log"
+echo "systemctl \$*" >>"$root/systemctl.log"
 case \$1 in
 cat) exit 0 ;;
 is-active)
@@ -48,12 +52,21 @@ start) echo active >"\$st" ;;
 *) exit 0 ;;
 esac
 EOT
-chmod +x "$bin/ssh" "$bin/scp" "$bin/systemctl"
+# fake rm: maps /tmp/ arguments into the fake root, so the manifest's literal
+# /tmp paths (read at run time) hit the fake tree
+realrm=$(command -v rm)
+mkdir -p "$root/rbin"   # on PATH only inside the fake ssh
+cat >"$root/rbin/rm" <<EOT
+#!/bin/sh
+for a; do shift; case \$a in /tmp/*) a=$fake\$a ;; esac; set -- "\$@" "\$a"; done
+exec $realrm "\$@"
+EOT
+chmod +x "$bin/ssh" "$bin/scp" "$bin/systemctl" "$root/rbin/rm"
 
-run() { PATH=$bin:$PATH "$script" "$@"; }
-reset() { : >"$log"; rm -rf "$fake/tmp"; mkdir -p "$fake/tmp"; rm -f "$fake/svc"; }
+run() { PATH=$bin:$PATH bash "$script" "$@"; }
+reset() { : >"$log"; rm -f "$root/systemctl.log";rm -rf "$fake/tmp"; mkdir -p "$fake/tmp"; rm -f "$fake/svc"; }
 sshcalls() { grep -c '^ssh ' "$log"; }
-no_start_logged() { ! grep -q '^systemctl start' "$log"; }
+no_start_logged() { ! grep -q '^systemctl start' "$root/systemctl.log" 2>/dev/null; }
 
 # --- usage errors -----------------------------------------------------------
 export IMX95_SSH=board
@@ -73,7 +86,7 @@ check "refused runs send nothing" [ "$(sshcalls)" = 0 ]
 
 # --- missing IMX95_SSH ------------------------------------------------------
 reset
-env -u IMX95_SSH PATH=$bin:$PATH "$script" display-owner status >"$root/o" 2>&1; rc=$?
+env -u IMX95_SSH PATH=$bin:$PATH bash "$script" display-owner status >"$root/o" 2>&1; rc=$?
 check "missing IMX95_SSH fails" [ $rc -ne 0 ]
 check "missing IMX95_SSH message" grep -q 'IMX95_SSH is not set' "$root/o"
 check "missing IMX95_SSH runs no ssh" [ "$(sshcalls)" = 0 ]
@@ -83,14 +96,14 @@ reset
 for sub in "deploy" "display-owner stop" "display-owner start" "display-owner status" \
            "run t -- uname -a" "cleanup" "display-owner stop --then true"; do
     # shellcheck disable=SC2086
-    env -u IMX95_SSH PATH=$bin:$PATH "$script" --dry-run --out "$root/logs" $sub >"$root/o" 2>&1; rc=$?
+    env -u IMX95_SSH PATH=$bin:$PATH bash "$script" --dry-run --out "$root/logs" $sub >"$root/o" 2>&1; rc=$?
     check "dry-run '$sub' exits 0" [ $rc -eq 0 ]
     check "dry-run '$sub' prints DRY steps" grep -q '^DRY' "$root/o"
 done
 check "dry-run runs no ssh or scp" [ ! -s "$log" ]
 check "dry-run writes nothing in fake /tmp" [ -z "$(ls -A "$fake/tmp")" ]
 check "dry-run run creates no log dir" [ ! -e "$root/logs" ]
-env -u IMX95_SSH PATH=$bin:$PATH "$script" --dry-run deploy >"$root/o" 2>&1
+env -u IMX95_SSH PATH=$bin:$PATH bash "$script" --dry-run deploy >"$root/o" 2>&1
 check "dry-run deploy shows both builds" [ "$(grep -c 'cross-aarch64.sh' "$root/o")" = 2 ]
 check "dry-run shows placeholder destination" grep -q '<IMX95_SSH>' "$root/o"
 
@@ -160,7 +173,7 @@ check "run propagates failing exit" [ $rc -eq 1 ]
 reset; echo active >"$fake/svc"
 run display-owner stop >/dev/null 2>&1; run display-owner status >/dev/null 2>&1
 run display-owner start >/dev/null 2>&1; run cleanup >/dev/null 2>&1
-env -u IMX95_SSH PATH=$bin:$PATH "$script" --dry-run deploy >"$root/dry" 2>&1
+env -u IMX95_SSH PATH=$bin:$PATH bash "$script" --dry-run deploy >"$root/dry" 2>&1
 # targets of redirections, rm, chmod and mkdir in the remote commands
 bad_paths=$(cat "$log" "$root/dry" | grep -oE '(>>?|rm -f|chmod [0-9]+|mkdir -p) +"?/[^ ;"]*' \
     | grep -oE '/[^ ;"]*$' | grep -v '^/tmp/' | grep -v '^/dev/null$')
