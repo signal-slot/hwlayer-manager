@@ -1,0 +1,38 @@
+# Hand-written fixture; line formats copied from probe.rs (read 2026-11-28) and the
+# probe output recorded in docs/observed/rk3588-topology.md (2026-11-28). Not a full dump.
+device /dev/dri/card0, driver rockchip
+output 0: crtc 81 1920x1080 @ 60.000 Hz
+plane 33 Primary: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied], scaling not claimed
+  formats (3): XR24:0x800000000000001 AR24:0x800000000000001 NV12
+plane 45 Overlay: outputs 0b11, zpos 0..=3, plane alpha true, blend [none], scaling not claimed
+  formats (2): XR24 AR24
+plane 51 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none], scaling not claimed
+  formats (1): XR24
+
+raw
+driver: name rockchip version 4.0.0 date 20140818 description Rockchip DRM Driver
+resources: 1 connectors, 1 crtcs, 1 encoders
+connectors
+connector 150 interface HDMIA (11) state Connected
+  current encoder 149
+  modes (1):
+    1920x1080 @ 60.000 Hz
+  properties:
+    DPMS: mutable enum [On=0, Off=3] value 0
+connector 160 interface DSI (16) state Disconnected
+crtcs
+crtc 81 active 1920x1080 @ 60.000 Hz
+  properties:
+    ACTIVE: mutable atomic range 0..=1 value 1
+planes
+plane 33 type overlay possible crtcs 0b1 (81)
+  attached to crtc 81
+  IN_FORMATS (3): XR24:0x0 NV12:0x0 XR24:0x800000000000001
+  properties:
+    zpos: mutable atomic range 0..=7 value 0
+    rotation: mutable atomic enum [rotate-0=1, rotate-90=2] value 1
+plane 45 type overlay possible crtcs 0b1 (81)
+  attached to none
+  formats (2): linear XR24 AR24
+  properties:
+    zpos: mutable atomic range 0..=3 value 1
