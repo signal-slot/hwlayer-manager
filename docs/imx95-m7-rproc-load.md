@@ -36,8 +36,8 @@ Already covered elsewhere, linked rather than repeated:
 | # | What | Pin | How read |
 | --- | --- | --- | --- |
 | L1 | NXP `linux-imx`, `drivers/remoteproc/imx_rproc.c`, `imx_rproc.h` | tag `lf-6.6.52-2.2.2` (tag object `f9a8e33f5cde3e96a57569e9dfa70481fe688943`, commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc`, also the head of branch `lf-6.6.y` on 2026-11-28); https://github.com/nxp-imx/linux-imx/blob/lf-6.6.52-2.2.2/drivers/remoteproc/imx_rproc.c | raw file over HTTPS through a fetch helper |
-| L2 | Mainline Linux `drivers/remoteproc/remoteproc_elf_loader.c`, `remoteproc_core.c`, `remoteproc_sysfs.c`, `drivers/base/firmware_loader/main.c` | tag `v6.6`; https://github.com/torvalds/linux/tree/v6.6/drivers/remoteproc | same |
-| L3 | Mainline Linux `drivers/remoteproc/imx_rproc.c` (contrast only) | tag `v7.3`; https://github.com/torvalds/linux/blob/v7.3/drivers/remoteproc/imx_rproc.c | same |
+| L2 | Mainline Linux `drivers/remoteproc/remoteproc_elf_loader.c`, `remoteproc_core.c`, `remoteproc_sysfs.c`, `drivers/base/firmware_loader/main.c` | tag `v6.6` = commit `ffc253263a1375a65fa6c9f62a893e9767fbebfa` (one check also at `v6.12` = `adc218676eef25575469234709c2d87185ca223a`); https://github.com/torvalds/linux/tree/v6.6/drivers/remoteproc | same |
+| L3 | Mainline Linux `drivers/remoteproc/imx_rproc.c` (contrast only) | tag `v7.3` = commit `c03c1a14507dfaf8b856c2608f9ac216021fc222`; https://github.com/torvalds/linux/blob/v7.3/drivers/remoteproc/imx_rproc.c | same |
 | Z1 | Zephyr | tag `v4.5.0` = commit `41d10b59730406bbab4ca9f1fbbe9e96aafb4966`; https://github.com/zephyrproject-rtos/zephyr/tree/v4.5.0 | local checkout at that commit; line numbers exact |
 | Z2 | Zephyr west modules `open-amp` / `libmetal` | revisions `01032a8a7bdfdd541686f5dfa3671e602b9fcbff` / `77237e9748212796a8f93a33689ce935fb9c81c2` (Z1 `west.yml:361-363` / `west.yml:305-307`) | pins only; module code not read |
 
