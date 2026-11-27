@@ -44,3 +44,30 @@ The board reports `6.6.157-7.8.0`.
 - The structure the profile models (2 CRTCs, 5 overlays + 2 primaries, 2 FetchLayer + 4 FetchYUV, 6 LayerBlends, one shared HScaler and VScaler, upscale only, 2048 scaled source limit, zpos 0..5, linear only) is the same in the 6.6 NXP tree as in the 6.18 reading. No row contradicts it. This is a source reading of NXP's tag, not of the Toradex kernel the board runs.
 - New to check on the board: (1) SoC revision and whether VScaler4 is disabled, which would make vertical scaling depend on silicon rev 1.x; (2) the 350 MHz mode-clock limit; (3) the color-encoding/range and scaling-filter properties the probe should list; (4) which LDB channel, CRTC and connector the Verdin panel uses (needs the Toradex DT).
 - To finish this note: obtain `SRCREV_machine` at recipe commit `962f3217b3e4` and read `drivers/gpu/drm/imx/dpu95/` and `arch/arm64/boot/dts/freescale/imx95-verdin*` in `linux-toradex` at that commit, which needs `git fetch` from git.toradex.com (not permitted in this run). Until then the probe on the board is the only authority.
+
+## Fetch attempt for the exact board commit (item dpu-src-read, 2026-11-28)
+
+**Result: the kernel tree at `SRCREV_machine` of `962f3217b3e4` was not fetched, so no row above has been re-read at that commit and none carries the tag "read from source (6.6.157-7.8.0, <commit>)".** The rows above remain the NXP `lf-6.6.52-2.2.2` reading and its caveats stand.
+
+Exact failures, in order:
+
+1. `git ls-remote https://git.toradex.com/meta-toradex-nxp.git scarthgap-7.x.y` (to learn the layer's recipe at `962f3217b3e4`): `fatal: refusing to work with credential missing host field` (git's own refusal, before any network traffic; the workspace git configuration supplies a credential entry without a host).
+2. Retrying with the credential helper cleared (`git -c credential.helper= ls-remote ...`) and `curl https://git.toradex.com/cgit/meta-toradex-nxp.git/`: the harness answered "This command requires approval" and did not run them. The session is unattended, so network access to git.toradex.com was not granted.
+3. Consequently `SRCREV_machine` is still unknown, `linux-toradex` was not cloned into `$CONNECTED_DEPS_DIR`, and nothing was read of `drivers/gpu/drm/imx/dpu95`, the LDB bridge, or the Verdin iMX95 / Mallow / 10.1" LVDS device tree at the board's commit. Panel timing remains unread. No kernel sources were committed.
+
+To finish: run, with network access allowed, `git clone --filter=blob:none --no-checkout https://git.toradex.com/meta-toradex-nxp.git` (branch `scarthgap-7.x.y`), read `SRCREV_machine` in `recipes-kernel/linux/linux-toradex_6.6-2.2.x.bb` at `962f3217b3e4` (not `8ad2b7ff6b56`, 6.6.161), then `git init; git fetch --depth 1 git://git.toradex.com/linux-toradex.git <SRCREV>` into `$CONNECTED_DEPS_DIR/linux-toradex-6.6.157` and fill the table with file:line.
+
+## Differences from `DriverProfile::Imx95Dpu` (`crates/composition-drm/src/profile.rs`)
+
+Basis: the NXP `lf-6.6.52-2.2.2` reading in the table above, **not** the board's commit. Provisional until the exact tree is read; `profile.rs` was not edited.
+
+| Profile states | 6.6 NXP reading | Difference |
+| --- | --- | --- |
+| At most 6 active planes (`LayerTraits::ANY`, capacity 6) | `DPU95_HW_PLANES` = 6, shared by both streams | none |
+| 4 fetch units for YUV or scaled layers (`SCALED ∪ YUV`, capacity 4) | 4 FetchYUV; YUV needs `FETCHECO`/`PACKED_YUV422` capable units; scaling goes through `hs`/`vs` | none in the count. The profile lumps "scaled" with FetchYUV; whether a scaled RGB layer really consumes a FetchYUV in 6.6 was not verified |
+| 1 HScaler, 1 VScaler (capacity 1 each) | one `hs`, one `vs` per plane group | none. Not modelled: on SoC rev 1.x `use_vs4` is false (VScaler9 only), which may change vertical scaling |
+| Scaling: max_upscale 2048<<16, max_downscale 1<<16 | upscale only (`max_scale = DRM_PLANE_NO_SCALING`) | the profile's "2048" is the *source width limit when scaled* (2048), not an upscale ratio; as an upscale factor it is a loose bound. Check against the source before relying on it |
+| `max_source` 8192x8192 for every non-cursor plane | 8192 unscaled, 2048 scaled | **differs**: scaled layers are limited to 2048, the profile allows 8192 |
+| Not modelled | mode clock limit 350000 kHz (`MODE_CLOCK_HIGH`); even coordinates for 4:2:0/4:2:2; BT709 full range rejected; overlay-only frame (no primary) refused (`active && !plane_mask` is -EINVAL; whether an overlay-only plane set is accepted needs the atomic_check read); cross-CRTC unit migration | not in profile (acceptable if the kernel check catches them, but they surface as unexplained refusals) |
+| Hardware shared with the other stream, invisible to the planner (doc comment) | confirmed: fetch units, layer blends, scalers are in `struct dpu95_plane_res`, shared | none |
+| Doc comment: "taken from lf-6.18.y" | board kernel is 6.6.x | the profile is unchecked against the 6.6 Toradex tree; on this evidence it matches NXP 6.6.52 in structure |
