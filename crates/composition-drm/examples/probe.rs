@@ -187,9 +187,14 @@ fn dump_raw(card: &Card) -> io::Result<()> {
     for (capability, name) in [
         (DriverCapability::AddFB2Modifiers, "addfb2 modifiers"),
         (DriverCapability::DumbBuffer, "dumb buffers"),
+        (DriverCapability::DumbPreferShadow, "dumb prefer shadow"),
         (DriverCapability::CursorWidth, "cursor width"),
         (DriverCapability::CursorHeight, "cursor height"),
         (DriverCapability::ASyncPageFlip, "async page flip"),
+        (
+            DriverCapability::AtomicASyncPageFlip,
+            "atomic async page flip",
+        ),
     ] {
         driver_cap(card, capability, name);
     }
