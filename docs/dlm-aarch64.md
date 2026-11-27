@@ -1,6 +1,6 @@
 # AGL drm-lease-manager for aarch64 (i.MX95 Linux)
 
-Status (2026-11-28): the source at the pinned commit was read (this document's file:line references are to it). The build script `scripts/build-dlm-aarch64.sh` exists, but **no binary has been produced**: the development machine has no aarch64 cross toolchain, so the fetch and build steps have never run. Nothing here is observed on a board.
+Status (2026-11-28): the source at the pinned commit was read (this document's file:line references are to it), and `scripts/build-dlm-aarch64.sh` **built** `drm-lease-manager`, `dlm-client-test` and `libdlmclient.a` for aarch64 on the x86-64 development machine (record under "Build record"). **Nothing has been run on a board**: the binaries are unexecuted there, and the behaviour described under "Run on the board" is from source only.
 
 ## Pinned source
 
@@ -38,12 +38,13 @@ Host tools: `git`, `meson`, `ninja`, `pkg-config`, `file`. The script picks the 
 3. `aarch64-linux-musl-gcc`: musl, `-static`.
 4. `zig cc -target aarch64-linux-musl`: musl, `-static`. zig bundles musl and its headers, so it needs nothing else.
 5. `clang --target=aarch64-linux-gnu --sysroot=$DLM_SYSROOT -fuse-ld=lld`: needs `ld.lld` and a sysroot that has `usr/include`.
+6. Self-bootstrapped (used on the development machine): `clang`, `python3`, `ar` and `zstd` on the host and nothing else. The script downloads Debian stable (trixie) packages over https, checks each SHA256 against the `Packages.xz` index, and unpacks them (no root, nothing installed) into `$DEPS/aarch64-toolchain`: an arm64 glibc sysroot (`libc6-dev`, `libc6`, `linux-libc-dev`, `libgcc-14-dev`, `libgcc-s1`, `libcrypt-dev`, `libcrypt1`) and the x86-64 build of aarch64 GNU binutils (`binutils-aarch64-linux-gnu` and its libraries `binutils-common`, `libjansson4`, `libsframe1`) as the linker/ar/strip. clang does the code generation, with `--ld-path` given at link time only. Versions used are written to `$DEPS/aarch64-toolchain/VERSIONS`.
 
 If none is found, it prints what is missing and exits with status 2 **before** fetching or creating anything.
 
 The build steps:
 
-- libdrm: static, GPU drivers, tests and man pages off. The `-D` option names were not checked against `meson_options.txt` at the libdrm pin.
+- libdrm: static, GPU drivers, tests and man pages off (the `-D` options are accepted at the pin: the build ran).
 - tomlc99: compiled by hand into `libtoml.a`, plus a `libtoml.pc`.
 - drm-lease-manager and `libdlmclient`: built with `-static`.
 
@@ -51,29 +52,47 @@ Everything goes into `$BUILD_DIR/out`. `$BUILD_DIR` defaults to `$TMPDIR/dlm-aar
 
 The default meson `localstatedir` is relative to the prefix, so the compiled-in socket directory is a build-host path, not a board path. Always set `DLM_RUNTIME_PATH` at run time (below).
 
-### Outcome on the development machine (2026-11-28)
+### Build record (2026-11-28)
 
-No cross toolchain was usable, and none could be fetched:
+Run on the x86-64 development machine (Linux 6.18, Gentoo) with `scripts/build-dlm-aarch64.sh`, route 6 above. Nothing was installed and no root was used; sources went into `$CONNECTED_DEPS_DIR`, the build tree into `$TMPDIR`.
 
-- `aarch64-linux-gnu-gcc`, `aarch64-linux-musl-gcc`, `zig` and `ld.lld` are not installed.
-- `clang` 23 is present, but there is no aarch64 sysroot (no headers, `crt1.o` or `libc.a`), and `DLM_SYSROOT` is unset.
-- The rustup targets `aarch64-unknown-linux-gnu`/`-musl` ship no C headers.
-- Downloading zig and running git over the network were not permitted in that session.
-- `git`, `meson`, `ninja`, `pkg-config` and `file` are present.
+- Sources: drm-lease-manager `68c48758c46d93c8e83abb2fb1ec168fa13d1a53`, libdrm `25dec5b91fe4d2638787d033a0b22b6c1dc145e0`, tomlc99 `62ce93ceb713dc49909d0fef1411f9d37bef83f2` (all fetched by hash from the real servers: gerrit.automotivelinux.org, gitlab.freedesktop.org, github.com).
+- Compiler: clang 22.1.8 (`--target=aarch64-linux-gnu`), meson 1.11.2, ninja.
+- Sysroot and linker (Debian trixie 13.8, from `deb.debian.org`): libc6/libc6-dev 2.41-12+deb13u5 (glibc 2.41, static `libc.a`), linux-libc-dev 6.12.117-1, libgcc-14-dev 14.2.0-19, libcrypt 4.4.38-1; GNU ld/ar/strip 2.44-3 (`binutils-aarch64-linux-gnu`).
+- Result of the script (`file`, after `strip`):
 
-`scripts/build-dlm-aarch64.sh` was run there: it printed the message above and exited with status 2, having created and fetched nothing.
+```
+out/bin/drm-lease-manager: ELF 64-bit LSB executable, ARM aarch64, version 1 (GNU/Linux), statically linked, for GNU/Linux 3.7.0, stripped
+out/bin/dlm-client-test:   ELF 64-bit LSB executable, ARM aarch64, version 1 (GNU/Linux), statically linked, for GNU/Linux 3.7.0, stripped
+out/lib/libdlmclient.a     (members: ELF 64-bit relocatable, Machine AArch64: dlm-protocol, socket-path, log, dlmclient)
+out/include/libdlmclient/dlmclient.h
+```
 
-The fetch step was tested on its own against local `file://` repositories. Each test repository had an annotated tag on a commit that is not the branch tip, like libdrm's tag. The URL and pin variables pointed at those repositories, and a stub `DLM_CC` stopped the script once the fetch was done. Results:
+- `readelf -d out/bin/drm-lease-manager`: "There is no dynamic section in this file", so **no shared libraries are needed**, not even the board's libc or loader. libdrm and libtoml are linked in statically. `dlm-client-test` is linked the same way.
+- The build has the compiled-in default socket directory `<prefix>/var/run/drm-lease-manager` of the build host (`--localstatedir var`); always set `DLM_RUNTIME_PATH` (see below).
+- `libdlmclient` is only a static archive (`--default-library static`); a program that uses it links `libdlmclient.a` and `dlmclient.h`. The Rust harness does not need it (wire protocol below).
 
-- A fresh fetch by hash checked out each pinned commit.
-- A tag name as the pin was rejected before anything was created.
-- A deps directory under `/tmp` was rejected.
-- With protocol v0 and `uploadpack.allowReachableSHA1InWant=false` (fetch by hash refused), the fallback fetched all branches and tags and checked out the pinned commit.
-- A rerun with broken URLs used the local commits without network access.
-- An unknown hash failed with `commit ... is not available`.
-- A checkout with local changes was refused.
+Fixes the first real run needed (all in the script now):
 
-Not covered: the fallback into an existing shallow checkout, and the fetch from the real servers (git had no network access in that session). The build step is untested. Expect small fixes on the first run on a machine that has `zig` or an aarch64 gcc, especially in the libdrm `-D` options and in drm-lease-manager's install layout. To unblock, put `zig` on `PATH`, or set `DLM_CC` / `DLM_SYSROOT`.
+1. No linker: the host has no `ld.lld` and no aarch64 `ld`, so route 6 was added.
+2. `--ld-path` in the compiler command made meson's compile-only probes fail under `-Werror=unused-command-line-argument` (`has_header_symbol('sys/sysmacros.h', 'major')` was wrongly false and `xf86drm.c` failed to compile). It is now passed in `c_link_args` only.
+3. Upstream's meson install script runs `install -d $DESTDIR/$1` with an absolute `var/run/drm-lease-manager`, which fails without root. Install goes into a staging `DESTDIR` and is copied to the prefix; `--localstatedir var`.
+4. `dlm-client-test` is not installed by meson; the script copies it to `out/bin`.
+5. Binaries are stripped.
+
+Warnings seen and left alone: the `usage()` format-string warning in `main.c` (the `-h` text bug noted below).
+
+Not tested: any execution. The binaries have not been run, not even under qemu-user (not available). The unit tests (`-Denable-tests`) were off.
+
+#### What the board session must check
+
+1. `file`/`readelf` on the copies in `/tmp` match this record, and `/tmp` on the board is not mounted `noexec` (else run via an exec-permitted directory).
+2. `/tmp/drm-lease-manager --help` runs (aarch64 kernel 6.6, static glibc 2.41 needs kernel ≥ 3.7). If it fails with "Illegal instruction", report the CPU features; the build is generic armv8-a.
+3. The daemon becomes DRM master on `/dev/dri/card*` only after Weston (or whatever holds master) is stopped; record the exact error if it does not.
+4. The daemon needs `DRM_CLIENT_CAP_UNIVERSAL_PLANES` and the atomic cap for `-u`; lease creation needs a kernel with `CONFIG_DRM` lease ioctls (`DRM_IOCTL_MODE_CREATE_LEASE` is core, but the DPU driver must not fail it). Record the `-v` log of the first lease request, including any `EINVAL`/`EPERM` from `drmModeCreateLease`.
+5. Plane IDs for the TOML come from WP0; a wrong ID makes lease creation fail (see caveats below).
+6. The socket appears at `$DLM_RUNTIME_PATH/<lease name>` and `dlm-client-test` (same `DLM_RUNTIME_PATH`) receives a lease fd; then that the harness's lease client sees only the leased CRTC, connector and planes.
+7. On release or client exit, the lease is revoked and the display returns to Weston after restart (board-runner item).
 
 ## Run on the board, from /tmp
 

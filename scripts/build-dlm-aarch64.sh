@@ -53,6 +53,58 @@ BUILD=${BUILD:-$ROOT/target/dlm-aarch64-build}
 not_tmp "source directory" "$DEPS"
 not_tmp "build directory" "$BUILD"
 
+# Download Debian stable packages (SHA256 checked against the Packages index
+# fetched over https) and unpack them: arm64 libc/gcc runtime into $1/sysroot,
+# x86-64 aarch64-binutils into $1/host.  Idempotent; records versions in
+# $1/VERSIONS.
+bootstrap_toolchain() {
+  local tc=$1
+  [ -x "$tc/host/usr/bin/aarch64-linux-gnu-ld" ] &&
+    [ -e "$tc/host/usr/lib/x86_64-linux-gnu/libjansson.so.4" ] &&
+    [ -f "$tc/sysroot/usr/lib/aarch64-linux-gnu/libc.a" ] && return 0
+  say "fetching Debian arm64 sysroot and aarch64 binutils into $tc"
+  mkdir -p "$tc"
+  python3 -I - "$tc" <<'PY'
+import sys, os, io, re, lzma, hashlib, subprocess, tarfile, urllib.request
+tc = sys.argv[1]
+base = "https://deb.debian.org/debian/"
+sets = [
+    ("arm64", "sysroot", ["libc6-dev", "libc6", "linux-libc-dev", "libgcc-14-dev",
+                          "libgcc-s1", "libcrypt-dev", "libcrypt1"]),
+    ("amd64", "host", ["binutils-aarch64-linux-gnu", "binutils-common", "libjansson4",
+                       "libsframe1"]),
+]
+versions = []
+for arch, dest, pkgs in sets:
+    idx = lzma.decompress(urllib.request.urlopen(base + f"dists/stable/main/binary-{arch}/Packages.xz").read()).decode()
+    ents = {}
+    for blk in idx.split("\n\n"):
+        f = {k: re.search(rf"^{k}: (.+)$", blk, re.M) for k in ("Package", "Filename", "SHA256", "Version")}
+        if all(f.values()):
+            ents[f["Package"].group(1)] = tuple(f[k].group(1) for k in ("Filename", "SHA256", "Version"))
+    out = os.path.join(tc, dest)
+    os.makedirs(out, exist_ok=True)
+    for p in pkgs:
+        fn, sha, ver = ents[p]
+        data = urllib.request.urlopen(base + fn).read()
+        if hashlib.sha256(data).hexdigest() != sha:
+            sys.exit(f"sha256 mismatch for {fn}")
+        tmp = os.path.join(tc, "pkg.deb")
+        open(tmp, "wb").write(data)
+        names = subprocess.run(["ar", "t", tmp], capture_output=True, text=True, check=True).stdout.split()
+        m = next(n for n in names if n.startswith("data.tar"))
+        raw = subprocess.run(["ar", "p", tmp, m], capture_output=True, check=True).stdout
+        if m.endswith(".zst"):
+            raw = subprocess.run(["zstd", "-dc"], input=raw, capture_output=True, check=True).stdout
+        with tarfile.open(fileobj=io.BytesIO(raw)) as t:
+            t.extractall(out, filter="tar")
+        os.remove(tmp)
+        versions.append(f"{arch} {p} {ver}")
+        print("  ", arch, p, ver)
+open(os.path.join(tc, "VERSIONS"), "w").write("\n".join(versions) + "\n")
+PY
+}
+
 # ---- cross toolchain detection (before any network access) -----------------
 if [ -n "${DLM_CC:-}" ]; then
   ROUTE="DLM_CC ($DLM_CC)"; CC_CMD=$DLM_CC
@@ -72,6 +124,18 @@ elif have clang && [ -n "${DLM_SYSROOT:-}" ] && [ -d "$DLM_SYSROOT/usr/include" 
   ROUTE="clang --target=aarch64-linux-gnu --sysroot=$DLM_SYSROOT"
   CC_CMD="clang --target=aarch64-linux-gnu --sysroot=$DLM_SYSROOT -fuse-ld=lld"
   AR=${DLM_AR:-llvm-ar}; STRIP=${DLM_STRIP:-llvm-strip}
+elif have clang && have python3 && have ar && have zstd; then
+  # No cross compiler anywhere: clang (codegen) + Debian arm64 glibc sysroot +
+  # Debian's x86-64 build of aarch64 GNU binutils (the linker), all unpacked
+  # under $DEPS/aarch64-toolchain, nothing installed.
+  TC=$DEPS/aarch64-toolchain
+  bootstrap_toolchain "$TC"
+  ROUTE="clang --target=aarch64-linux-gnu, Debian arm64 sysroot (glibc, -static), GNU ld (aarch64)"
+  CC_CMD="clang --target=aarch64-linux-gnu --sysroot=$TC/sysroot -B$TC/host/usr/bin"
+  # --ld-path only at link time: meson's compile-only probes use -Werror=unused-command-line-argument
+  LINK_ARGS="'--ld-path=$TC/host/usr/bin/aarch64-linux-gnu-ld', "
+  AR=$TC/host/usr/bin/aarch64-linux-gnu-ar; STRIP=$TC/host/usr/bin/aarch64-linux-gnu-strip
+  export LD_LIBRARY_PATH=$TC/host/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 else
   cat >&2 <<EOF
 build-dlm-aarch64: no usable aarch64 Linux cross toolchain on this machine.
@@ -142,7 +206,7 @@ needs_exe_wrapper = true
 pkg_config_libdir = ['$OUT/lib/pkgconfig']
 
 [built-in options]
-c_link_args = ['-static']
+c_link_args = [${LINK_ARGS:-}'-static']
 
 [host_machine]
 system = 'linux'
@@ -193,13 +257,22 @@ say "building drm-lease-manager"
 rm -rf "$BUILD/dlm"
 meson setup "$BUILD/dlm" "$DEPS/drm-lease-manager" --cross-file "$CROSS" \
   --prefix "$OUT" --libdir lib --default-library static --buildtype release \
-  -Denable-docs=false -Denable-tests=false -Denable-systemd=false
-ninja -C "$BUILD/dlm" install
+  --localstatedir var -Denable-docs=false -Denable-tests=false -Denable-systemd=false
+# Upstream's install script does `install -d $DESTDIR/var/run/drm-lease-manager`
+# with an absolute path, so install into a staging DESTDIR, then copy.
+rm -rf "$BUILD/stage"
+DESTDIR=$BUILD/stage ninja -C "$BUILD/dlm" install
+cp -a "$BUILD/stage$OUT/." "$OUT/"
+# examples are not installed; the test client is handy on the board
+if [ -f "$BUILD/dlm/examples/dlm-client-test/dlm-client-test" ]; then
+  cp "$BUILD/dlm/examples/dlm-client-test/dlm-client-test" "$OUT/bin/"
+fi
 
 # ---- result -----------------------------------------------------------------
 EXE=$OUT/bin/drm-lease-manager
 [ -f "$EXE" ] || die "build finished but $EXE is missing"
-file "$EXE"
+for b in "$OUT"/bin/*; do $STRIP "$b" || true; done
+file "$OUT"/bin/*
 ls "$OUT"/lib/libdlmclient* "$OUT"/include/libdlmclient/* 2>/dev/null || true
 file "$EXE" | grep -q 'ARM aarch64' || die "$EXE is not an aarch64 executable"
 file "$EXE" | grep -q 'statically linked' ||
