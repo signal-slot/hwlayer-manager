@@ -130,4 +130,5 @@ Fit (inferred, not legal advice): Zephyr's main licence is the same as this repo
 - libdrm and Weston: only the files named above were read; per-file headers elsewhere in those trees were not (sections 3.2, 3.5).
 - fff (drm-lease-manager test-only subproject): not read.
 - Zephyr and its modules: waiting for the pin (section 3.6).
+- The demo firmware that `docs/twoplane-backend.md` names (`display_port_<soc>.c`, outside this repository): no document pins a URL or commit, and no copy could be read on 2026-11-28. Its licence is not read. It is not a build input of this repository.
 - The copyright holder named in `NOTICE` is a placeholder (section 1).
