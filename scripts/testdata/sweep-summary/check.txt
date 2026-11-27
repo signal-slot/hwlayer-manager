@@ -1,0 +1,7 @@
+# SYNTHETIC fixture: invented values, not board data.
+CHECK two-plane planner=accept test_only=accept agree=yes
+CHECK scaled-3x planner=accept test_only=reject agree=planner-looser
+CHECK rotate-90 planner=reject test_only=accept agree=planner-stricter
+AGREEMENT total=3 agree=1 stricter=1 looser=1
+VERDICT profile_check: FAIL synthetic
+unknown line is ignored
