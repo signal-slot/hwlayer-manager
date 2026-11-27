@@ -1,0 +1,17 @@
+# SYNTHETIC - hand-written sample, NOT a measurement. Never quote as board evidence.
+# modeset (A5, second mode): 1 commit on the first mode, caps_changed, the old plan is stale,
+# re-plan, 2nd commit on the new mode (the refused stale commit is not counted).
+# Counts: commit=2 latched=2 released=1 dropped=0. ACCEPT.
+harness version=0.1.0 scenario=modeset args="--source master --trace modeset"
+output index=0 id=91 connector=sample width=1920 height=1200 mode=1920x1200 selected=yes
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1000000000 at_unit=same build="sample" board="sample"
+CETRACE v=1 ev=commit seq=1 t=1000300000 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=1016900000 at=0 out=0 sub=1
+modeset: switching to 1280x800
+CETRACE v=1 ev=caps_changed seq=3 t=1020000000 at=0
+CETRACE v=1 ev=commit seq=4 t=1020100000 at=0 out=0 result=stale_plan
+CETRACE v=1 ev=validate seq=5 t=1020200000 at=0 out=0 layers=1 n=1 assign=0:31:0:0:0,0,1280,800:0,0,1280,800 result=ok
+CETRACE v=1 ev=commit seq=6 t=1020300000 at=0 out=0 result=ok sub=2
+CETRACE v=1 ev=latched seq=7 t=1037000000 at=0 out=0 sub=2
+CETRACE v=1 ev=released seq=8 t=1037000000 at=0 buf=1 sub=1
+VERDICT modeset PASS new mode committed

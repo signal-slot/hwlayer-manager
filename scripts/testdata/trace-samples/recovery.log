@@ -1,0 +1,21 @@
+# SYNTHETIC - hand-written sample, NOT a measurement. Never quote as board evidence.
+# recovery (A6, CRTC lost, then a new run): run 1 loses the CRTC (dropped device_lost, released
+# sub=-, device_lost, refused commit); a second hdr starts run 2, which latches.
+# Counts per run: run1 commit=2 latched=1 released=1 dropped=1; run2 commit=1 latched=1
+# released=0 dropped=0. Whole file: commit=3 latched=2 released=1 dropped=1. ACCEPT.
+harness version=0.1.0 scenario=recovery args="--source master --trace recovery"
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1000000000 at_unit=same build="sample" board="sample"
+CETRACE v=1 ev=commit seq=1 t=1000300000 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=1016900000 at=0 out=0 sub=1
+CETRACE v=1 ev=commit seq=3 t=1017000000 at=0 out=0 result=ok sub=2
+recovery: CRTC disabled by another client
+CETRACE v=1 ev=dropped seq=4 t=1040000000 at=0 out=0 sub=2 reason=device_lost
+CETRACE v=1 ev=released seq=5 t=1040000000 at=0 buf=1 sub=-
+CETRACE v=1 ev=device_lost seq=6 t=1040000000 at=0
+CETRACE v=1 ev=commit seq=7 t=1040100000 at=0 out=0 result=backend.device_lost
+VERDICT recovery PASS loss reported, buffers released
+recovery: second run
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=2000000000 at_unit=same build="sample" board="sample"
+CETRACE v=1 ev=commit seq=1 t=2000300000 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=2016900000 at=0 out=0 sub=1
+VERDICT recovery-rerun PASS latched
