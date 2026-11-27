@@ -166,6 +166,11 @@ impl<T: Copy + Default, const N: usize> FixedQueue<T, N> {
         Some(item)
     }
 
+    /// The element `index` places behind the front, without removing it.
+    pub fn get(&self, index: usize) -> Option<&T> {
+        (index < self.len).then(|| &self.items[(self.head + index) % N])
+    }
+
     /// Number of queued elements.
     pub fn len(&self) -> usize {
         self.len
@@ -225,5 +230,7 @@ mod tests {
         q.push(2).unwrap();
         q.push(3).unwrap();
         assert_eq!(q.push(4), Err(CapacityError));
+        // Indexed from the front, across the wrap.
+        assert_eq!((q.get(0), q.get(2), q.get(3)), (Some(&1), Some(&3), None));
     }
 }

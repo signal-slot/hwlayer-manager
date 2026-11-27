@@ -521,6 +521,22 @@ impl Presentation {
         self.events.is_empty()
     }
 
+    /// Number of queued events; the engine traces those queued after a
+    /// given count.
+    pub(crate) fn events_len(&self) -> usize {
+        self.events.len()
+    }
+
+    /// The queued event `index` places behind the oldest.
+    pub(crate) fn queued_event(&self, index: usize) -> Option<DisplayEvent> {
+        self.events.get(index).copied()
+    }
+
+    /// The time last given to [`Presentation::set_time`].
+    pub(crate) fn now(&self) -> u64 {
+        self.now
+    }
+
     fn emit(&mut self, event: DisplayEvent) {
         // Callers verify the room beforehand.
         let pushed = self.events.push(event);
