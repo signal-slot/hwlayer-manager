@@ -66,7 +66,7 @@ That is emulation of a different core, not the i.MX95. QEMU comes with the Zephy
 
 ## Expected output
 
-The lines below come from compiling `src/main.c` for the host against stand-in Zephyr headers (`printk` as `printf`) and the hosted build of the same library (2026-11-28). The banner names the board target on Zephyr. The plan lines do not depend on the target.
+The lines below come from compiling `src/main.c` for the host against stand-in Zephyr headers (`printk` as `printf`) and the hosted build of the same library (2026-11-28). The `mps2/an386` emulation run printed the same lines (see "Status"). The banner names the board target on Zephyr. The plan lines do not depend on the target.
 
 ```
 hwlayer-manager composition engine on imx95_evk/mimx9596/m7
@@ -114,5 +114,5 @@ As of 2026-11-28:
 - Done: the one-step `west build -p always -b imx95_evk/mimx9596/m7` above, with the Zephyr commit and SDK named in "Zephyr version". CMake ran cargo and linked the library with no warnings. `zephyr.elf`: 64864 B text, 888 B data, 48537 B bss. In the linker's region map, FLASH used 65756 B of 256 KiB and RAM 49424 B of 256 KiB.
 - Done: `west build -p always -b mps2/an386` of the same application. It links too: 56080 B text, 180 B data, 50330 B bss.
 - Done: `src/main.c` compiled without warnings for the host (gcc, `-Wall -Wextra`) and ran with the output above, against the hosted library.
-- Not done: running it under QEMU on `mps2/an386`. The SDK host tools, which bring QEMU, were not installed on the build machine. So the expected output above comes from the host run, not from emulation.
+- Done (emulation, not hardware): `west build -b mps2/an386 ... -t run` under the SDK's QEMU (Cortex-M4F). After `*** Booting Zephyr OS build v4.5.0-5218-ge53873cbd0ef ***` it printed exactly the lines above, with `mps2/an386` in the banner, and ended with `RESULT: PASS`. QEMU keeps running after `main` returns: leave it with `Ctrl+a x`, or wrap the command in `timeout`.
 - Not done: any run on hardware.
