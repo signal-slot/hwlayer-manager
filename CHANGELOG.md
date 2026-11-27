@@ -48,6 +48,13 @@ release, rename **Unreleased** to the version and date and open a new empty one.
 - scripts: `imx95-session.sh` for short Verdin iMX95 board sessions, and `imx95-m7-rproc.sh`, a host-tested M7 remoteproc load/stop/restore script that has not been run on a board (2026-11-28).
 - scripts: `camera-check.py`, a host checker for camera pictures of the two-plane patterns (2026-11-28).
 - scripts: `vkms-vm-test.sh`, a QEMU kernel boot for the vkms tests, not part of CI.
+- scripts: `check-doc-links.sh` (relative links in the Markdown files), `check-ffi-header.sh` (the C header moves with `composition-ffi` in the same commit), `check-zephyr-apps.sh` (layout of the Zephyr board-test apps) and `check-all.sh` (runs the CI checks of `docs/ci.md` locally), each with a host test script where one exists (2026-11-28).
+- scripts: `check-m1-report.sh`, a structural lint of an M1 report against SoW §9 (the report itself is not in the repository) (2026-11-28).
+- scripts: `prepare-zephyr.sh`, a pinned Zephyr workspace and SDK preparation script, described in `docs/zephyr-workspace.md` (2026-11-28).
+- scripts: `probe-table.py`, which turns `probe --raw` output into `docs/platform-capabilities.md` tables (`scripts/probe-table-README.md`) (2026-11-28).
+- tests/board: `imx95_m7_scanout`, an upstream-Zephyr i.MX95 M7 framebuffer scanout app that prints write timing; host builds only, not run on a board (2026-11-28; `tests/board/imx95_m7_scanout/README.md`).
+- docs: `SECURITY.md` (private reporting, supported versions, scope and the FFI unsafe boundary), `NOTICE` and `docs/third-party-licences.md` (third-party licence record) (2026-11-28).
+- docs: `.github/pull_request_template.md` and the issue template `.github/ISSUE_TEMPLATE/board-result.md` for reporting a dated board result (2026-11-28).
 - docs: CI workflow (`.github/workflows/ci.yml`) running fmt, clippy, tests, the `thumbv7em-none-eabihf` builds and the aarch64 cross-build on pull requests and on `main` (2026-11-27, 2026-11-28; `docs/ci.md`).
 - docs: `README.md` and `CONTRIBUTING.md` (2026-11-28).
 
@@ -72,3 +79,7 @@ release, rename **Unreleased** to the version and date and open a new empty one.
 - docs: WP5 gap analysis of leased output vs Weston-owned output and libliftoff overlap, from read sources (`docs/wp5-gap-analysis.md`).
 - docs: AM62P vs i.MX95 difference matrix from the recorded docs (`docs/am62p-imx95-matrix.md`); SoW traceability (`docs/sow-traceability.md`); open issues after M1 (`docs/open-issues.md`).
 - docs: design note on fences and readiness across core, DRM backend and C ABI (`docs/sync-fences.md`); host metrics (`docs/host-metrics.md`, host only); the two-plane backend and what a board test still needs, including the by-hand Arm compiles of 2026-11-26 (`docs/twoplane-backend.md`).
+- docs: i.MX95 Zephyr feasibility, a source-based draft (`docs/imx95-zephyr-feasibility.md`); an inferred design of an SM logical-machine configuration giving the display to the M7, with its imx-sm citations pinned (`docs/imx95-sm-display-lm.md`); a source study of the DPU-to-LVDS route for an M7 driver (`docs/imx95-m7-lvds-route.md`).
+- docs: i.MX95 M7 source studies and design notes: BSP facts (`docs/imx95-m7-verdin-bsp.md`), SCMI reach for display clocks and power domains at Zephyr v4.5.0 (`docs/imx95-m7-scmi.md`), framebuffer memory, cache and MPU rules (`docs/imx95-m7-fb-memory.md`), a two-plane overlay design (`docs/imx95-m7-overlay-design.md`), a log channel over remoteproc trace and rpmsg (`docs/imx95-m7-rpmsg-log.md`) and filling the twoplane tables for the DPU (`docs/imx95-twoplane-port.md`); these are design and source studies, not hardware results.
+- docs: Weston on the i.MX95 image and DRM leases, a source read (`docs/weston-imx-lease.md`); design notes for a planner-only advisory entry point (`docs/advisory-planner-design.md`) and for cross-checking the planner against libliftoff (`docs/libliftoff-crosscheck.md`), both proposals.
+- docs: catalogue of SoW §10 board scenarios, design only (`docs/board-scenarios.md`); glossary of engine, DRM, Zephyr and i.MX95 terms (`docs/glossary.md`).
