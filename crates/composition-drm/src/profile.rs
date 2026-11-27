@@ -81,15 +81,17 @@ pub enum DriverProfile {
     /// - Upscaling only, `max_downscale` 1.0: source ("Downscaling is not
     ///   supported", `ltdc.c:1585-1600`); observed 2026-11-27: downscale
     ///   0.5, 0.75 and 0.9 rejected (EINVAL) on all three planes.
-    /// - `max_upscale` 32.0 (`32 << 16`): observed 2026-11-27 as the top of
-    ///   the probe ladder. **The real bound was not found**: 32x was accepted
-    ///   on the primary and the first overlay, and nothing larger was tried.
+    /// - `max_upscale` 1080.0 (`1080 << 16`): observed 2026-11-27: no
+    ///   upscale was rejected on the primary or the first overlay, on either
+    ///   axis or both, up to the factor that shrinks the source to one pixel
+    ///   (1920 horizontally, 1080 vertically and on both axes), so there is
+    ///   no driver bound up to the mode size. 1080 is the largest factor
+    ///   seen accepted on every axis and is used as the single bound;
+    ///   larger factors need a source below one pixel and were not tried.
     ///   The source has no numeric cap either (the factor is only masked to
     ///   16 bits, `ltdc.c:1609`); any hardware cap is in the reference
-    ///   manual, not read. Measurement and source therefore disagree on
-    ///   nothing, and the stricter value, 32x, is used. A factor above it
-    ///   passes the kernel only by luck of the hardware; the planner refuses
-    ///   it, which is conservative.
+    ///   manual, not read. Quality and bandwidth at such factors were not
+    ///   looked at.
     /// - Which planes scale: the primary plane and the first overlay, in
     ///   plane order (observed 2026-11-27: planes 34 and 42 scale, plane 49,
     ///   the second overlay, accepts only 1.0). Source: scaling is a
@@ -165,7 +167,7 @@ impl DriverProfile {
                     };
                     if scales {
                         plane.scaling = Some(ScaleLimits {
-                            max_upscale: 32 << 16,
+                            max_upscale: 1080 << 16,
                             max_downscale: 1 << 16,
                         });
                     }
