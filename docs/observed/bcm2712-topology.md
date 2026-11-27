@@ -2,7 +2,8 @@
 
 Tags follow `docs/platform-capabilities.md`: **observed** = measured on the board on the
 stated date, **inferred** = derived from observed data, not measured directly. Nothing here is
-read from source. This file records topology only; no two-plane run has happened yet.
+read from source. This file records topology only; the probe and two-plane harness runs are in
+[`bcm2712.md`](bcm2712.md).
 
 ## Setup — observed 2026-11-28
 
