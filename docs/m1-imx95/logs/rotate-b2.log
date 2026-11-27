@@ -1,0 +1,67 @@
+# start_utc=2026-11-27T19:45:16Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --frames 3000 --buffers 2 rotate
+drm-harness: --buffers: must be between 3 and 16
+
+drm-harness: drive composition-drm on a DRM output with two hardware planes
+
+Usage: drm-harness [OPTIONS] <SCENARIO>
+       drm-harness lessor [LESSOR OPTIONS]
+       drm-harness producer --device <PATH> --layer <N>
+
+Scenarios:
+  combos        layer combinations the planner and TEST_ONLY accept or refuse; nothing is shown
+  two-planes    two separately allocated buffers on two hardware planes, held --seconds
+  zorder-alpha  swap the z-order, then plane alpha, then premultiplied pixel alpha, each held
+  move          move the top plane for --frames frames over an untouched bottom buffer
+  rotate        rotate --buffers buffers per plane for --frames frames; check release order, measure
+  revoke        kernel-lease only: rotate, then the lessor revokes the lease mid-rotation;
+                the engine must report DeviceLost once and release what was shown
+  all           all of the above in this order (revoke only with --source kernel-lease)
+
+Options:
+  --source <SOURCE>     where the DRM descriptor comes from [default: master]:
+                          master        the device node, as DRM master
+                          kernel-lease  this process opens the device as master and
+                                        leases one output (DRM_IOCTL_MODE_CREATE_LEASE);
+                                        the engine gets the lease descriptor only
+                          dlm           a lease from AGL drm-lease-manager's socket
+                                        (or from `drm-harness lessor`), see --lease
+  --device <PATH>       DRM device node [default: /dev/dri/card0]; the lessor's with
+                        kernel-lease, the producers' with --producers external
+  --connector <NAME>    connector to drive, name or prefix such as LVDS or HDMI-A-1
+                        [default: the first connected one]; with kernel-lease, the
+                        connector to lease
+  --planes <IDS>        kernel-lease: overlay plane ids to lease, comma-separated
+                        [default: every overlay usable on the connector's CRTC]
+  --lease <NAME>        dlm: lease name, the socket <dir>/<NAME>
+  --dlm-dir <DIR>       dlm: socket directory [default: $DLM_RUNTIME_PATH, else
+                        /var/run/drm-lease-manager]
+  --producers <MODE>    who allocates the buffers [default: local]:
+                          local     the harness, dumb buffers on its own descriptor
+                          external  one producer process per layer (this binary,
+                                    `producer`): opens --device without DRM master,
+                                    allocates and draws its own buffers, passes them as
+                                    DMA-BUF descriptors; redraws only after the harness
+                                    has passed on the engine's release
+  --profile <PROFILE>   driver profile: generic or imx95 [default: generic]
+  --seconds <N>         how long to hold each picture for a camera [default: 5]
+  --frames <N>          frames for move [default: 240], rotate [default: 600]
+                        and revoke, before the revocation [default: 60]
+  --buffers <K>         buffers per plane in rotate and revoke, at least 3 [default: 3]
+  -h, --help            print this help
+
+Lessor: drm-harness lessor --lease <NAME> --dlm-dir <DIR> [--device <PATH>]
+        [--connector <NAME>] [--planes <IDS>] [--once]
+  A small leaser: opens the device as DRM master and serves <DIR>/<NAME> with
+  drm-lease-manager's client protocol. Each client that asks gets a fresh kernel
+  lease of the connector's output (descriptor passed with SCM_RIGHTS); the lease
+  is revoked when the client releases it or disconnects. --once: exit after the
+  first client. Use it with --source dlm --lease <NAME> --dlm-dir <DIR>.
+
+Producer: started by the harness with --producers external, one per layer, its
+socket on standard input; not meant to be run by hand.
+
+Output: one record per line, `kind key=value ...`; each scenario ends with
+`VERDICT <scenario> PASS|FAIL <reason>`. The exit status is 0 only if every
+scenario run passed.
+# end_utc=2026-11-27T19:45:16Z exit_status=2

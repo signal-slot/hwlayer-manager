@@ -1,0 +1,7 @@
+# start_utc=2026-11-27T19:39:51Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --seconds 40 zorder-alpha
+harness version=0.1.0 scenario=zorder-alpha args="--connector LVDS --profile imx95 --seconds 40 zorder-alpha"
+session scenario=zorder-alpha source=master device=/dev/dri/card0 driver=imx95-dpu master=no profile=imx95 producers=local
+error scenario=zorder-alpha message="not DRM master (Resource busy (os error 16)); stop the compositor that owns the device, or use another source"
+VERDICT zorder-alpha FAIL not DRM master (Resource busy (os error 16)); stop the compositor that owns the device, or use another source
+# end_utc=2026-11-27T19:39:51Z exit_status=1

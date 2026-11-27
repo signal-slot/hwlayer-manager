@@ -1,0 +1,11 @@
+{
+  "rotation": 0,
+  "panel": {"corners": [[0, 0], [1279, 0], [1279, 799], [0, 799]]},
+  "tolerance": 70,
+  "regions": [
+    {"name": "bottom_only_left", "rect": [0.05, 0.30, 0.18, 0.50], "expect": [0, 70, 200]},
+    {"name": "bottom_only_below", "rect": [0.40, 0.82, 0.60, 0.92], "expect": [0, 70, 200]},
+    {"name": "top_over_bottom_mid", "rect": [0.45, 0.35, 0.55, 0.65], "expect": [240, 80, 0]},
+    {"name": "top_over_bottom_right", "rect": [0.60, 0.35, 0.72, 0.65], "expect": [240, 80, 0]}
+  ]
+}

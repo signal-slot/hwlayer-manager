@@ -1,0 +1,40 @@
+# start_utc=2026-11-27T19:34:50Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 combos
+harness version=0.1.0 scenario=combos args="--connector LVDS --profile imx95 combos"
+session scenario=combos source=master device=/dev/dri/card0 driver=imx95-dpu master=yes profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=42 kind=primary zpos=0..5 on_output=no alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=59 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=67 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=75 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=83 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+resource_group consumers=1 planes=0x7f capacity=6
+resource_group consumers=14 planes=0x7f capacity=4
+resource_group consumers=2 planes=0x7f capacity=1
+resource_group consumers=4 planes=0x7f capacity=1
+combo name=1-layer-full layers=1 expect=accept planner=accept planner_planes=31 validate_us=131 test_only=accept planes=31 assigned=1 layer0=plane:31,zpos:0,dst:0,0,1280x800 as_expected=true
+combo name=2-layers layers=2 expect=any planner=accept planner_planes=31,51 validate_us=72 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:426,266,160x100 as_expected=true
+combo name=3-layers layers=3 expect=any planner=accept planner_planes=31,51,59 validate_us=72 test_only=accept planes=31,51,59 assigned=3 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 layer2=plane:59,zpos:2,dst:640,400,160x100 as_expected=true
+combo name=4-layers layers=4 expect=any planner=accept planner_planes=31,51,59,67 validate_us=80 test_only=accept planes=31,51,59,67 assigned=4 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:256,160,160x100 layer2=plane:59,zpos:2,dst:512,320,160x100 layer3=plane:67,zpos:3,dst:768,480,160x100 as_expected=true
+combo name=5-layers layers=5 expect=any planner=accept planner_planes=31,51,59,67,75 validate_us=91 test_only=accept planes=31,51,59,67,75 assigned=5 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:213,133,160x100 layer2=plane:59,zpos:2,dst:426,266,160x100 layer3=plane:67,zpos:3,dst:639,399,160x100 layer4=plane:75,zpos:4,dst:852,532,160x100 as_expected=true
+combo name=6-layers layers=6 expect=any planner=accept planner_planes=31,51,59,67,75,83 validate_us=101 test_only=accept planes=31,51,59,67,75,83 assigned=6 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:182,114,160x100 layer2=plane:59,zpos:2,dst:364,228,160x100 layer3=plane:67,zpos:3,dst:546,342,160x100 layer4=plane:75,zpos:4,dst:728,456,160x100 layer5=plane:83,zpos:5,dst:910,570,160x100 as_expected=true
+combo name=7-layers-beyond-planes layers=7 expect=planner-refuse planner=refuse planner_reason="NoPlane { layer: 6, reasons: OUTPUT | IN_USE }" test_only=not-run as_expected=true
+combo name=1-layer-partial layers=1 expect=any planner=accept planner_planes=31 validate_us=45 test_only=accept planes=31 assigned=1 layer0=plane:31,zpos:0,dst:320,200,160x100 as_expected=true
+combo name=plane-alpha-50 layers=2 expect=any planner=accept planner_planes=31,51 validate_us=163 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=argb-opaque layers=2 expect=any planner=accept planner_planes=31,51 validate_us=58 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=blend-premultiplied layers=2 expect=any planner=accept planner_planes=31,51 validate_us=55 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=blend-coverage layers=2 expect=any planner=accept planner_planes=31,51 validate_us=55 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=upscale-2x layers=2 expect=any planner=accept planner_planes=31,51 validate_us=57 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,320x200 as_expected=true
+combo name=downscale-2x layers=2 expect=any planner=refuse planner_reason="NoPlane { layer: 1, reasons: OUTPUT | SCALING }" test_only=not-run as_expected=true
+combo name=rotate-90 layers=2 expect=any planner=refuse planner_reason="NoPlane { layer: 1, reasons: OUTPUT | TRANSFORM }" test_only=not-run as_expected=true
+combo name=off-screen layers=2 expect=any planner=accept planner_planes=31 validate_us=45 test_only=accept planes=31 assigned=1 layer0=plane:31,zpos:0,dst:0,0,1280x800 as_expected=true
+combo name=partly-off-screen layers=2 expect=any planner=accept planner_planes=31,51 validate_us=55 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:1200,400,80x100 as_expected=true
+combo name=nv12 layers=2 expect=any planner=accept planner_planes=31,51 validate_us=56 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:640,400,320x200 as_expected=true
+combo name=nv12-upscale-2x layers=2 expect=any planner=accept planner_planes=31,51 validate_us=56 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,640x400 as_expected=true
+combo name=unsupported-format-HWLX layers=2 expect=planner-refuse planner=refuse planner_reason="NoPlane { layer: 1, reasons: OUTPUT | FORMAT }" test_only=not-run as_expected=true
+combos_result combos=20 accepted=16 planner_refused=4 test_only_refused=0 errors=0 planes_on_output=6
+resources scenario=combos wall_ms=8 cpu_user_ms=0 cpu_sys_ms=10 cpu_pct=119.4 rss_kib=828 peak_rss_kib=828
+VERDICT combos PASS 16 accepted, 4 refused by the planner, 0 refused by TEST_ONLY, nothing committed
+# end_utc=2026-11-27T19:34:50Z exit_status=0

@@ -1,0 +1,43 @@
+# start_utc=2026-11-27T19:40:11Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --seconds 40 zorder-alpha
+harness version=0.1.0 scenario=zorder-alpha args="--connector LVDS --profile imx95 --seconds 40 zorder-alpha"
+session scenario=zorder-alpha source=master device=/dev/dri/card0 driver=imx95-dpu master=yes profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=42 kind=primary zpos=0..5 on_output=no alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=59 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=67 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=75 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=83 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+resource_group consumers=1 planes=0x7f capacity=6
+resource_group consumers=14 planes=0x7f capacity=4
+resource_group consumers=2 planes=0x7f capacity=1
+resource_group consumers=4 planes=0x7f capacity=1
+step label=a-over-b expect="red (upper left) above green (lower right): overlap is red"
+assign step=a-over-b layer=0 buffer=1 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=160,100,640x400
+assign step=a-over-b layer=1 buffer=2 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=a-over-b layers=2 assigned=2 planes=51,31
+commit step=a-over-b submission=1 validate_us=144 commit_us=6763 latency_us=6768
+hold step=a-over-b seconds=40
+step label=b-over-a expect="green above red: overlap is green"
+assign step=b-over-a layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=160,100,640x400
+assign step=b-over-a layer=1 buffer=2 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=b-over-a layers=2 assigned=2 planes=31,51
+commit step=b-over-a submission=2 validate_us=214 commit_us=160 latency_us=540
+hold step=b-over-a seconds=40
+step label=plane-alpha-50 expect="red at 50% plane alpha above green: overlap is a red/green mix, rest of red is dark red"
+assign step=plane-alpha-50 layer=0 buffer=1 plane=51 kind=overlay zpos=1 alpha=0x8000 blend=Opaque src=0,0,640x400 dst=160,100,640x400
+assign step=plane-alpha-50 layer=1 buffer=2 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=plane-alpha-50 layers=2 assigned=2 planes=51,31
+commit step=plane-alpha-50 submission=3 validate_us=215 commit_us=212 latency_us=697
+hold step=plane-alpha-50 seconds=40
+step label=pixel-alpha-premultiplied expect="left half of red opaque, right half 50% pixel alpha over green and black"
+assign step=pixel-alpha-premultiplied layer=0 buffer=3 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Premultiplied src=0,0,640x400 dst=160,100,640x400
+assign step=pixel-alpha-premultiplied layer=1 buffer=2 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=pixel-alpha-premultiplied layers=2 assigned=2 planes=51,31
+commit step=pixel-alpha-premultiplied submission=4 validate_us=167 commit_us=93 latency_us=299
+hold step=pixel-alpha-premultiplied seconds=40
+resources scenario=zorder-alpha wall_ms=160014 cpu_user_ms=20 cpu_sys_ms=40 cpu_pct=0.0 rss_kib=812 peak_rss_kib=812
+VERDICT zorder-alpha PASS steps a-over-b,b-over-a,plane-alpha-50,pixel-alpha-premultiplied
+# end_utc=2026-11-27T19:42:51Z exit_status=0
