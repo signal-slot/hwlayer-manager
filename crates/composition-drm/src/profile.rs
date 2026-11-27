@@ -12,7 +12,9 @@
 mod rk3588;
 mod vc4;
 
-use composition_core::{Capabilities, LayerTraits, PlaneKind, ResourceGroup, ScaleLimits, Size};
+use composition_core::{
+    BlendMode, Capabilities, LayerTraits, PlaneKind, ResourceGroup, ScaleLimits, Size,
+};
 
 /// Which driver's constraints to add to the discovered capabilities.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -107,6 +109,20 @@ pub enum DriverProfile {
     ///   follow it). The second and later overlays are left unclaimed
     ///   (`scaling` stays as KMS reported it), so the planner treats them as
     ///   unscaled only through its own default.
+    /// - Straight alpha, not premultiplied: observed 2026-11-27 (session doc
+    ///   `docs/stm32mp257-ltdc-session-2026-11-28.md`, Q2): the output CRC on
+    ///   plane 42 (AR24) matches colour x pixel alpha x plane alpha over the
+    ///   plane below, in all four cases that tell the modes apart. KMS has no
+    ///   `pixel blend mode` property here, so discovery reports
+    ///   premultiplied; the profile replaces that by
+    ///   [`BlendMode::Coverage`] on every non-cursor plane. Source
+    ///   (`docs/stm32mp257-ltdc-source-diff-6.6.md` row 42): the same blend
+    ///   factors (`BF1_PAXCA`) are programmed for every layer, so planes 34
+    ///   and 49, not measured, are inferred to blend alike. Plane alpha stays
+    ///   as KMS reports it.
+    /// - Transforms and formats are left as KMS reports them: the session
+    ///   of 2026-11-27 did not run Q6 (rotation, reflections) or Q9 (NV12),
+    ///   so nothing observed calls for a change (inferred).
     /// - YUV formats cannot be scaled on any plane (source,
     ///   `ltdc.c:1585-1600`); that is **not modelled** here and is left to
     ///   `TEST_ONLY`.
@@ -171,6 +187,11 @@ impl DriverProfile {
                 // Primary plus the first overlay scale; later overlays do not.
                 let mut overlays = 0;
                 for plane in caps.planes.as_mut_slice() {
+                    // Straight alpha (observed 2026-11-27); the planner then
+                    // refuses premultiplied layers on these planes.
+                    if plane.kind != PlaneKind::Cursor {
+                        plane.blend_modes = BlendMode::Coverage.mask();
+                    }
                     let scales = match plane.kind {
                         PlaneKind::Primary => true,
                         PlaneKind::Overlay => {

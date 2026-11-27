@@ -3,9 +3,9 @@
 use composition_core::limits::{MAX_PLANES, MAX_RESOURCE_GROUPS};
 use composition_core::planner::{plan, BufferLookup};
 use composition_core::{
-    BufferId, BufferInfo, Capabilities, FormatModifier, Frame, Layer, LayerTraits, Modifier,
-    OutputCaps, OutputId, PixelFormat, PlanError, PlaneCaps, PlaneId, PlaneKind, Rect,
-    RejectReasons, ResourceGroup, ScaleLimits, Size,
+    BlendMode, BufferId, BufferInfo, Capabilities, FormatModifier, Frame, Layer, LayerTraits,
+    Modifier, OutputCaps, OutputId, PixelFormat, PlanError, PlaneCaps, PlaneId, PlaneKind, Rect,
+    RejectReasons, ResourceGroup, ScaleLimits, Size, Transform,
 };
 use composition_drm::DriverProfile;
 
@@ -278,4 +278,58 @@ fn ltdc_applying_twice_is_idempotent() {
     let once = caps;
     DriverProfile::Stm32Ltdc.apply(&mut caps);
     assert_eq!(caps, once);
+}
+
+#[test]
+fn ltdc_blends_straight_alpha_on_every_non_cursor_plane() {
+    // Session 2026-11-27, Q2: straight alpha. KMS reports premultiplied
+    // because the property is absent.
+    let mut caps = caps_of(&[
+        PlaneKind::Primary,
+        PlaneKind::Overlay,
+        PlaneKind::Cursor,
+        PlaneKind::Overlay,
+    ]);
+    for plane in caps.planes.as_mut_slice() {
+        plane.blend_modes = BlendMode::Premultiplied.mask();
+        plane.plane_alpha = true;
+    }
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    let modes: Vec<u8> = caps.planes.iter().map(|p| p.blend_modes).collect();
+    let straight = BlendMode::Coverage.mask();
+    let pre = BlendMode::Premultiplied.mask();
+    assert_eq!(modes, [straight, straight, pre, straight]);
+    assert!(caps.planes.iter().all(|p| p.plane_alpha));
+}
+
+#[test]
+fn ltdc_refuses_a_premultiplied_layer_and_takes_a_coverage_one() {
+    let mut layer = Layer::new(RGB, FULL, FULL, 0);
+    layer.blend = BlendMode::Premultiplied;
+    let Err(PlanError::NoPlane { reasons, .. }) = plan_one(layer) else {
+        panic!("premultiplied must be refused");
+    };
+    assert!(reasons.contains(RejectReasons::BLEND));
+    layer.blend = BlendMode::Coverage;
+    assert_eq!(plan_one(layer), Ok(1));
+}
+
+#[test]
+fn ltdc_leaves_transforms_and_formats_as_reported() {
+    // Q6 and Q9 were not run in the 2026-11-27 session: nothing is claimed.
+    let mut caps = caps_of(&[PlaneKind::Primary, PlaneKind::Overlay]);
+    let rot = Transform::Rotate180.mask() | Transform::FlipH.mask();
+    for plane in caps.planes.as_mut_slice() {
+        plane.transforms = rot;
+        plane
+            .formats
+            .push(FormatModifier::linear(PixelFormat::XRGB8888))
+            .unwrap();
+    }
+    let before = caps;
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    for (b, a) in before.planes.iter().zip(caps.planes.iter()) {
+        assert_eq!(b.transforms, a.transforms);
+        assert_eq!(b.formats, a.formats);
+    }
 }
