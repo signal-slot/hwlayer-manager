@@ -177,12 +177,14 @@ Toradex edit to the display or M7 sections would change it.
 |---|---|
 | `git clone --depth 1 --branch rel_imx_sm_2026q3 https://github.com/nxp-imx/imx-sm.git` (tag commit `eec232878ab7dd460f5a8f3767d39dc7e9412efa`) into the deps dir | refused by this node's tool permissions before running |
 | `git clone --depth 1 --branch main https://git.toradex.com/imx-sm-toradex.git` (wanted commit `9e5555333eb27c75dc670945443a13dfc2760f16`) into the deps dir | refused before running (no git or curl network access was granted on this node) |
-| `git ls-remote`, `gh api`, `curl` to GitHub or git.toradex.com | first `git ls-remote` failed with "refusing to work with credential missing host field"; later calls were refused before running |
-| `codeload.github.com` tarball of imx-sm `lf-6.6.52-2.2.2` (archive download) | not fetched: the web fetcher had no permission for that host |
+| `git ls-remote`, `gh api`, `curl` to GitHub or git.toradex.com | `git ls-remote` (allowed on retry) fails on this node with "refusing to work with credential missing host field", before any network exchange (the node's git setup, not the server); `gh api` and general `curl` were refused |
+| `curl` of `https://git.toradex.com/meta-toradex-nxp.git/info/refs?service=git-upload-pack` (status only) | HTTP 200: git's smart-HTTP endpoint answers plain clients, unlike the cgit pages, so a normal `git clone` from another node should work (inferred) |
+| OE Layer Index (`layers.openembedded.org/layerindex/api/recipes/?filter=pn:imx-sm-toradex` and related) | HTTP 403 to the web fetcher |
+| `codeload.github.com` tarball of imx-sm `lf-6.6.52-2.2.2` (archive download) | first refused; allowed later but not needed, since P1's files were read from `raw.githubusercontent.com` at the same commit |
 | git.toradex.com `cgit/imx-sm-toradex.git/plain/configs/verdin-imx95.cfg?h=main`, `cgit/meta-toradex-nxp.git/...`, `imx-sm-toradex.git/info/refs` | HTTP 200 with an "Anubis" anti-bot reject page, no content |
 | GitHub: `toradex/imx-sm`, `toradex/imx-sm-toradex`, `toradex/meta-toradex-nxp`, `lmp-mirrors/imx-sm-toradex` | HTTP 404 |
 | GitHub repository search `imx-sm-toradex`; forks of `nxp-imx/imx-sm` | 0 results; no fork owned by Toradex or named Verdin |
-| Software Heritage API for the fork origin and revision `9e555533` | not fetched: no permission for that host |
+| Software Heritage API for the fork origin and revision `9e555533` | first refused; on retry HTTP 200 with an "Anubis" anti-bot reject page, so whether the revision is archived is unknown |
 | `raw.githubusercontent.com` / `api.github.com` for P1, P2, P3, P5 | HTTP 200; the rows above |
 
 No download was kept, so no deps path holds these sources. Everything was
