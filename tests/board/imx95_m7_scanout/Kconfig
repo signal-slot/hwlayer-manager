@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "i.MX95 M7 scanout test"
+
+config IMX95_M7_SCANOUT_ENABLE_DPU
+	bool "Allow this image to drive the DPU"
+	default n
+	help
+	  Off by default. Linux may own the DPU, its clocks and its power
+	  domain on the board (for example the Verdin iMX95), and an M7 that
+	  programs the same DPU can corrupt Linux's display. With this option
+	  off the upstream DPU driver is not built, so it never touches the
+	  DPU, and the application only prints a refusal. Turn it on only
+	  after confirming the M7 owns the DPU on the board in use.
+
+config IMX95_M7_SCANOUT_FRAMES
+	int "Number of frames to draw (0 = run forever)"
+	default 600
+	range 0 1000000
+	depends on IMX95_M7_SCANOUT_ENABLE_DPU
+
+config IMX95_M7_SCANOUT_BAR_WIDTH
+	int "Width of the moving bar in pixels"
+	default 32
+	range 1 256
+	depends on IMX95_M7_SCANOUT_ENABLE_DPU
+
+config IMX95_M7_SCANOUT_BAR_STEP
+	int "Bar movement per frame in pixels"
+	default 8
+	range 1 256
+	depends on IMX95_M7_SCANOUT_ENABLE_DPU
+
+# The upstream driver symbol defaults to y whenever a socionext,dpu node is
+# enabled. Override that default (this file is read before Kconfig.zephyr) so
+# the driver, and with it the DPU programming at boot, is only present when
+# the option above is set.
+config DISPLAY_SOCIONEXT_DPU
+	default y if IMX95_M7_SCANOUT_ENABLE_DPU
+	default n
+
+source "Kconfig.zephyr"
