@@ -27,7 +27,7 @@ cat > docs/target.md <<'T'
 T
 cat > README.md <<'T'
 # Readme
-[ok](docs/target.md) [ok2](docs/target.md#hello-world-v2?x=1) [code](code.rs)
+[ok](docs/target.md) [ok2](docs/target.md?x=1#hello-world-v2) [code](code.rs)
 [ext](https://example.com/nope) [mail](mailto:a@b.c) [top](#readme)
 [space](<sub dir/a b.md>) [pct](sub%20dir/a%20b.md "title")
 [ref][r1]
