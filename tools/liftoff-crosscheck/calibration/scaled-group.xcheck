@@ -1,0 +1,27 @@
+xcheck 1
+origin synthetic 2026-11-28 hand-made imitation of a four-plane output whose two scaling planes share one scaler unit, explicit scaling and group lines
+profile generic
+output 1 640 480 60000
+plane 10 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 11 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul transforms=normal scaling=up:0x40000/down:0x8000 max_source=none full_output=0
+  format AR24 0x0
+plane 12 kind=overlay outputs=0x1 zpos=fixed:2 alpha=1 blend=opaque,premul transforms=normal scaling=up:0x40000/down:0x8000 max_source=none full_output=0
+  format AR24 0x0
+plane 13 kind=overlay outputs=0x1 zpos=fixed:3 alpha=1 blend=opaque,premul transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+group consumers=scaled_h,scaled_v planes=11,12 capacity=1
+buffer 100 64 64 AR24 0x0
+frame one-scaled output=1
+  layer buffer=100 src=0,0,64,64 dst=0,0,64,64 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=100 src=0,0,32,32 dst=32,32,64,64 z=1 alpha=65535 blend=premul transform=normal
+end
+frame two-scaled output=1
+  layer buffer=100 src=0,0,32,32 dst=0,0,64,64 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=100 src=0,0,32,32 dst=32,32,64,64 z=1 alpha=65535 blend=premul transform=normal
+end
+frame three-scaled output=1
+  layer buffer=100 src=0,0,32,32 dst=0,0,64,64 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=100 src=0,0,32,32 dst=32,32,64,64 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=100 src=0,0,32,32 dst=64,64,64,64 z=2 alpha=65535 blend=premul transform=normal
+end

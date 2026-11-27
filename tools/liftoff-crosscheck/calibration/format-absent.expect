@@ -1,0 +1,8 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 rows "Format/modifier absent from dump" (both-reject) and
+# "Format check skipped" (liftoff-only if the harness omits the FB modifier flag or the IN_FORMATS blob).
+# Plane 10 lists AR24 linear only; plane 11 lists AR24 with modifier ...0001 only.
+# Layer 2 is NV12 (format absent) or AR24 with modifier ...0002 (modifier absent): no plane takes it.
+format-absent            structural=both-reject full=both-reject
+modifier-absent          structural=both-reject full=both-reject
+modifier-present-control structural=both-accept full=both-accept

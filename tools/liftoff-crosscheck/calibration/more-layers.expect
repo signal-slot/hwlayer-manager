@@ -1,0 +1,7 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 row "Contract" (partial allocation against all-or-nothing).
+# 4 layers, 3 planes: core errors; libliftoff places at most 3 layers, which counts as rejected.
+# The number of layers libliftoff placed (predicted 3) is extra data, not an outcome class.
+four-overlapping    structural=both-reject full=both-reject   # liftoff placed=3 predicted
+four-disjoint       structural=both-reject full=both-reject   # liftoff placed=3 predicted
+three-control       structural=both-accept full=both-accept

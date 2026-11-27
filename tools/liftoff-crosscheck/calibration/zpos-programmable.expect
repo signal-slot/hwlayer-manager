@@ -1,0 +1,7 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 row "Programmable zpos" (the expected core-only case).
+# Planes 11 (AR24) and 12 (NV12) have range 1..3 with zpos_now 2 and 1. libliftoff orders by zpos_now
+# and never writes a zpos; core may assign any zpos in the range.
+# restack-needed: lower layer AR24, upper layer NV12, but the NV12 plane currently sits below the AR24 plane.
+restack-needed      structural=core-only    full=core-only
+restack-not-needed  structural=both-accept  full=both-accept   # control: order already matches zpos_now

@@ -1,0 +1,8 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 row "Invisible layers" (direction: either; core's alpha 0 handling was not checked).
+# libliftoff drops alpha-0 layers from the search, so with two planes all three frames fit it.
+# If core counts alpha-0 layers it rejects the 3-layer frames (liftoff-only); if core drops them, both-accept.
+# The design compares alpha-0 frames as a separate class, with those layers removed.
+alpha0-one-of-three      structural=liftoff-only|both-accept full=liftoff-only|both-accept
+alpha0-all-but-one       structural=liftoff-only|both-accept full=liftoff-only|both-accept
+alpha0-removed-control   structural=both-accept full=both-accept
