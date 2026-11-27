@@ -27,11 +27,9 @@
 	display-timings {
 		compatible = "zephyr,panel-timing";
 		clock-frequency = <25175000>;
-		hactive = <640>;
 		hfront-porch = <16>;
 		hback-porch = <48>;
 		hsync-len = <96>;
-		vactive = <480>;
 		vfront-porch = <10>;
 		vback-porch = <33>;
 		vsync-len = <2>;
