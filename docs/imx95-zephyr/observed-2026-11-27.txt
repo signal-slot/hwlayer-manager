@@ -1,0 +1,536 @@
+# Observed snapshot: Verdin iMX95 (Mallow carrier, LVDS panel), read-only
+#
+# Date of the run: 2026-11-27 (board clock 18:49 UTC; the planner's date was 2026-11-28).
+# Tag for everything below: observed 2026-11-27, on the board, over ssh.
+# What was run: two short shell scripts piped to `sh -s` over ssh. They only
+#   cat/ls/grep/od files under /sys, /proc and /lib/firmware, and read dmesg
+#   and the debugfs that was already mounted. Nothing was written on the board
+#   (not even /tmp), nothing was started, stopped, loaded or mounted, DRM was
+#   not opened, the serial console was not used, nothing was rebooted.
+# Sanitised: host name, address, user, serial number, MAC addresses and tty
+#   paths removed (the host field of `uname -a` is replaced by <host>). The 60
+#   pinctrl group sub-nodes under firmware/scmi/protocol@19 and the iwlwifi
+#   firmware file list are elided. DT property values are printed as text
+#   (NUL -> space, other bytes -> '?') and as hex (big-endian 32-bit cells).
+# The first script's `find -iname` pass over the DT printed nothing (an
+#   artefact of that command on the board, not evidence of absence); the second
+#   script reads the nodes by explicit path, section (b2). The "absent:" lines
+#   that a shell and/or slip would have printed were removed.
+# Not captured: dtc is not on the board, so there is no decompiled DT. The SM
+#   version comes from dmesg. The SCMI device nodes in sysfs have no name
+#   attribute. Lines of /proc/iomem for the DPU and M7 regions do not exist
+#   (the iomem filter only matched neutron and syscon entries).
+# Sections: (f) start, (a) remoteproc, (b)/(b2) device tree, (c) dmesg,
+#   (d) clk and genpd, (e) /lib/firmware, (f) end.
+# ----------------------------------------------------------------------------
+### (f-start) weston: active
+### (f) uname
+Linux <host>6.6.157-7.8.0 #1 SMP PREEMPT Fri Sep 25 14:06:41 UTC 2026 aarch64 GNU/Linux
+### os-release
+ID=tdx-xwayland
+NAME="TDX Wayland with XWayland"
+VERSION="7.8.0+build.17 (scarthgap)"
+VERSION_ID=7.8.0-build.17
+VERSION_CODENAME="scarthgap"
+PRETTY_NAME="TDX Wayland with XWayland 7.8.0+build.17 (scarthgap)"
+CPE_NAME="cpe:/o:openembedded:tdx-xwayland:7.8.0+build.17"
+### date
+Fri Nov 27 18:49:56 UTC 2026
+### (a) remoteproc
+/sys/class/remoteproc/remoteproc0
+  name: neutron-rproc
+  state: offline
+  firmware: rproc-neutron-rproc-fw
+/sys/class/remoteproc/remoteproc1
+  name: imx-rproc
+  state: offline
+  firmware: rproc-imx-rproc-fw
+remoteproc0
+remoteproc1
+firmware_class path: []
+### (b) device-tree
+#address-cells
+#size-cells
+__symbols__
+aliases
+backlight-lvds-native
+chosen
+clk-dummy
+clock-ext1
+compatible
+connector
+cpus
+etf@41030000
+etm@40840000
+etr@41040000
+firmware
+funnel
+funnel_sys
+gpio-keys
+imx95-soc
+interrupt-controller@48000000
+interrupt-parent
+ldb_pll_div7
+memory
+model
+mqs1
+mqs2
+name
+opp_table
+osc-24m
+panel-lvds-native
+pmu
+psci
+regulator-1p8v
+regulator-force-sleep-moci
+regulator-usb1-vbus
+regulator-usb2-vbus
+regulator-usdhc2-vqmmc
+regulator-vmmc-usdhc2
+regulator-wifi-en
+remoteproc-cm7
+reserved-memory
+rpmsg-lifecycle
+sai-mclk1
+sai-mclk2
+sai-mclk3
+sai-mclk4
+sai-mclk5
+secure-enclave-0
+secure-enclave-1
+secure-enclave-2
+secure-enclave-3
+secure-enclave-4
+secure-enclave-5
+serial-number
+soc
+sound
+sram@204c0000
+sram@445b1000
+thermal-zones
+timer
+toradex,board-rev
+toradex,product-id
+usbphynop
+--- interesting nodes
+--- reserved-memory
+/proc/device-tree/reserved-memory/#address-cells
+/proc/device-tree/reserved-memory/#size-cells
+/proc/device-tree/reserved-memory/linux,cma
+    compatible:  73 68 61 72 65 64 2d 64 6d 61 2d 70 6f 6f 6c 00
+    size:  00 00 00 00 3c 00 00 00
+    alloc-ranges:  00 00 00 00 80 00 00 00 00 00 00 00 7f 00 00 00
+    reusable: 
+/proc/device-tree/reserved-memory/memory@80000000
+    reg:  00 00 00 00 80 00 00 00 00 00 00 00 01 00 00 00
+    no-map: 
+/proc/device-tree/reserved-memory/memory@9c300000
+    compatible:  73 68 61 72 65 64 2d 64 6d 61 2d 70 6f 6f 6c 00
+    reg:  00 00 00 00 9c 30 00 00 00 00 00 00 00 10 00 00
+    no-map: 
+/proc/device-tree/reserved-memory/name
+/proc/device-tree/reserved-memory/npu-dma
+    compatible:  73 68 61 72 65 64 2d 64 6d 61 2d 70 6f 6f 6c 00
+    size:  00 00 00 00 08 00 00 00
+    alignment:  00 00 00 00 00 10 00 00
+    reusable: 
+/proc/device-tree/reserved-memory/optee_core@8c000000
+    reg:  00 00 00 00 8c 00 00 00 00 00 00 00 02 00 00 00
+    no-map: 
+/proc/device-tree/reserved-memory/optee_shm@8e000000
+    reg:  00 00 00 00 8e 00 00 00 00 00 00 00 00 20 00 00
+    no-map: 
+/proc/device-tree/reserved-memory/ranges
+/proc/device-tree/reserved-memory/rsc-table@88220000
+    reg:  00 00 00 00 88 22 00 00 00 00 00 00 00 00 10 00
+    no-map: 
+/proc/device-tree/reserved-memory/vdev0vring0@88000000
+    reg:  00 00 00 00 88 00 00 00 00 00 00 00 00 00 80 00
+    no-map: 
+/proc/device-tree/reserved-memory/vdev0vring1@88008000
+    reg:  00 00 00 00 88 00 80 00 00 00 00 00 00 00 80 00
+    no-map: 
+/proc/device-tree/reserved-memory/vdev1vring0@88010000
+    reg:  00 00 00 00 88 01 00 00 00 00 00 00 00 00 80 00
+    no-map: 
+/proc/device-tree/reserved-memory/vdev1vring1@88018000
+    reg:  00 00 00 00 88 01 80 00 00 00 00 00 00 00 80 00
+    no-map: 
+/proc/device-tree/reserved-memory/vdevbuffer@88020000
+    compatible:  73 68 61 72 65 64 2d 64 6d 61 2d 70 6f 6f 6c 00
+    reg:  00 00 00 00 88 02 00 00 00 00 00 00 00 10 00 00
+    no-map: 
+/proc/device-tree/reserved-memory/vpu_boot@a0000000
+    reg:  00 00 00 00 a0 00 00 00 00 00 00 00 00 10 00 00
+    no-map: 
+--- firmware
+/proc/device-tree/firmware
+/proc/device-tree/firmware/optee
+/proc/device-tree/firmware/optee/method
+/proc/device-tree/firmware/optee/compatible
+/proc/device-tree/firmware/optee/name
+/proc/device-tree/firmware/scmi
+/proc/device-tree/firmware/scmi/shmem
+/proc/device-tree/firmware/scmi/protocol@19
+/proc/device-tree/firmware
+/proc/device-tree/firmware/optee
+    compatible = linaro,optee-tz 
+/proc/device-tree/firmware/scmi
+    compatible = arm,scmi 
+/proc/device-tree/firmware/scmi/protocol@19
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@81
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@15
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@13
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@11
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@84
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@14
+    reg =    ?
+/proc/device-tree/firmware/scmi/protocol@12
+    reg =    ?
+### (c) dmesg
+[    0.040873] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/syscon@4b0c0000/ldb@4/channel@0
+[    0.040951] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /panel-lvds-native
+[    0.041039] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.047901] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/syscon@4b0c0000/ldb@4/channel@0
+[    0.048117] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /panel-lvds-native
+[    0.048176] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.056173] scmi_core: SCMI protocol bus registered
+[    0.117436] arm-scmi firmware:scmi: SCMI Notifications - Core Enabled.
+[    0.117680] arm-scmi firmware:scmi: SCMI Protocol v2.1 'NXP:IMX' Firmware version 0x23e
+[    0.148086] scmi-perf-domain scmi_dev.9: Initialized 13 performance domains
+[    0.148261] arm-scmi firmware:scmi: NXP SM MISC Version 1.1
+[    0.148293] arm-scmi firmware:scmi: i.MX MISC NUM DEV CTRL: 7, NUM BRD CTRL: 2,NUM Reason: 32
+[    0.148521] arm-scmi firmware:scmi: NXP SM BBM Version 1.0
+[    0.149673] scmi-imx-bbm scmi_dev.11: registered as rtc1
+[    0.150197] input: scmi_dev.11 as /devices/platform/firmware:scmi/scmi_dev.11/input/input0
+[    0.152583] remoteproc remoteproc0: neutron-rproc is available
+[    0.195345] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.195422] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/syscon@4b0c0000/ldb@4/channel@0
+[    0.196339] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /panel-lvds-native
+[    0.196422] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    2.507196] remoteproc remoteproc1: imx-rproc is available
+[    6.817488] systemd[1]: Starting Load Kernel Module drm...
+[    7.122490] systemd[1]: modprobe@drm.service: Deactivated successfully.
+[    7.129809] systemd[1]: Finished Load Kernel Module drm.
+[    8.957621] imx95-ldb 4b0c0000.syscon:ldb@4: Failed to create device link (0x180) with 4b010000.syscon:bridge@8
+[    9.224719] [drm] Initialized imx95-dpu 1.0.0 20230213 for 4b400000.display-controller on minor 0
+[    9.330562] imx95-dpu 4b400000.display-controller: [drm] fb0: imx95-dpudrmfb frame buffer device
+--- scmi sysfs
+scmi_dev.1
+scmi_dev.10
+scmi_dev.11
+scmi_dev.2
+scmi_dev.3
+scmi_dev.4
+scmi_dev.5
+scmi_dev.6
+scmi_dev.7
+scmi_dev.8
+scmi_dev.9
+devicetree
+fdt
+1
+accel
+asoc
+bdi
+block
+bluetooth
+cec
+clear_warn_once
+clk
+cma
+debug_enabled
+devfreq
+device_component
+devices_deferred
+dma_buf
+dma_pools
+dmaengine
+dri
+dynamic_debug
+energy_model
+eth0
+eth1
+extfrag
+fault_around_bytes
+gpio
+hid
+i2c
+ieee80211
+iio
+interconnect
+irq
+kprobes
+lru_gen
+lru_gen_full
+mali0
+memblock
+mmc0
+mmc1
+mmc2
+mtd
+netc_prb_ierb
+opp
+phy
+pinctrl
+pm_genpd
+psci
+pwm
+ras
+regmap
+regulator
+remoteproc
+### (d) clk_summary
+                                 enable  prepare  protect                                duty  hardware                            connection
+   clock                          count    count    count        rate   accuracy phase  cycle    enable   consumer                         id
+---------------------------------------------------------------------------------------------------------------------------------------------
+ ldbpll_vco                          2       2        0        2986200000  0          0     50000      Y   4b400000.display-controller     ldb_vco                  
+    ldbpll                           2       2        0        497700000   0          0     50000      Y      deviceless                      no_connection_id         
+       ldb_phy_div                   1       1        0        497700000   0          0     50000      Y         deviceless                      no_connection_id         
+          lvds_ch1_gate              0       0        0        497700000   0          0     50000      N            4b0c0000.syscon:ldb@4           ldb_ch1                  
+          lvds_ch0_gate              1       1        0        497700000   0          0     50000      Y            4b0c0000.syscon:ldb@4           ldb_ch0                  
+       ldb_pll_div7                  2       2        0        71100000    0          0     50000      Y         4b400000.display-controller     ldb                      
+          lvds_di1_gate              0       0        0        71100000    0          0     50000      N            4b0c0000.syscon:ldb@4           ldb_di1                  
+          lvds_di0_gate              1       1        0        71100000    0          0     50000      Y            4b0c0000.syscon:ldb@4           ldb_di0                  
+ hsiopll_vco                         2       2        0        3600000000  0          0     50000      Y   4c300000.pcie                   pcie_phy                 
+    hsiopll                          1       1        0        100000000   0          0     50000      Y      4c300000.pcie                   pcie_bus                 
+       disp_engine1_sel              0       0        0        2400000000  0          0     50000      Y         deviceless                      no_connection_id         
+       disp_engine0_sel              0       0        0        2400000000  0          0     50000      Y         deviceless                      no_connection_id         
+             camblk_isp_pixel        0       0        0        666666666   0          0     50000      N               deviceless                      no_connection_id         
+          hsiopcieaux                1       1        0        10000000    0          0     50000      Y            4c300000.pcie                   pcie_aux                 
+          busm7                      0       0        0        133333333   0          0     50000      Y            deviceless                      no_connection_id         
+          dispapb                    5       7        0        133333333   0          0     50000      Y            4b400000.display-controller     apb                      
+          m7                         0       0        0        800000000   0          0     50000      Y            deviceless                      no_connection_id         
+          dispocram                  2       2        0        400000000   0          0     50000      Y            4b400000.display-controller     ocram                    
+          dispaxi                    2       2        0        800000000   0          0     50000      Y            4b400000.display-controller     axi                      
+          hsio                       6       6        0        500000000   0          0     50000      Y            4c200000.usb                    no_connection_id         
+                                                                                                                    4c010010.usb                    hsio                     
+    m7systick                        0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsiousbtest60m                   0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsiousbtest50m                   0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsiopcietest500                  0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsiopcietest400                  0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsiopcietest160                  0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsioacscan80m                    0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    hsioacscan480m                   0       0        0        24000000    0          0     50000      Y      deviceless                      no_connection_id         
+    disp1pix                         0       0        0        24000000    0          0     50000      Y      4b400000.display-controller     pix                      
+ hsio_blk_ctrl_clk                   1       1        0        0           0          0     50000      Y   4c300000.pcie                   ref                      
+### (d) pm_genpd
+domain                          status          children                           performance
+    /device                                             runtime status
+----------------------------------------------------------------------------------------------
+disp                            on                                                 0
+m7                              on                                                 0
+m7                              on                                                 0
+    /devices/platform/remoteproc-cm7                    unsupported                0
+display                         on                                                 0
+    /devices/platform/soc/4b400000.display-controller   active                     0
+camera                          on                                                 0
+### (e) /lib/firmware
+total 212104
+drwxr-xr-x  6 root root   12288 Mar  9  2018 .
+drwxr-xr-x 46 root root   36864 Mar  9  2018 ..
+-rw-r--r--  1 root root    1152 Mar  9  2018 LICENCE.Marvell
+-rw-r--r--  1 root root    2046 Mar  9  2018 LICENCE.iwlwifi_firmware
+-rw-r--r--  1 root root    2115 Mar  9  2018 LICENCE.rtlwifi_firmware.txt
+-rw-r--r--  1 root root    2713 Mar  9  2018 LICENSE.QualcommAtheros_ath10k
+drwxr-xr-x 11 root root    4096 Mar  9  2018 ath10k
+ls: cannot access '/lib/firmware/*m7*': No such file or directory
+ls: cannot access '/lib/firmware/*cm7*': No such file or directory
+ls: cannot access '/lib/firmware/imx*': No such file or directory
+### (f-end) weston: active
+# (elided: pinctrl group sub-nodes of firmware/scmi/protocol@19, iwlwifi*.ucode files)
+### (b2) selected nodes
+/proc/device-tree/remoteproc-cm7
+    compatible = fsl,imx95-cm7  | hex  66 73 6c 2c 69 6d 78 39 35 2d 63 6d 37 00
+    memory-region =    ?   ?   ?   ?   ?   ?   ? | hex  00 00 00 a0 00 00 00 a1 00 00 00 a2 00 00 00 a3 00 00 00 a4 00 00 00 a5 00 00 00 a6
+    mboxes =    ?       ?   ?   ?   ?   ?   ?   ? | hex  00 00 00 9f 00 00 00 00 00 00 00 01 00 00 00 9f 00 00 00 01 00 00 00 01 00 00 00 9f 00 00 00 03 00 00 00 01
+    mbox-names = tx rx rxdb  | hex  74 78 00 72 78 00 72 78 64 62 00
+    power-domains =    \   ? | hex  00 00 00 5c 00 00 00 11
+    fsl,startup-delay-ms =    2 | hex  00 00 00 32
+/proc/device-tree/rpmsg-lifecycle
+    compatible = nxp,rpmsg-lifecycle  | hex  6e 78 70 2c 72 70 6d 73 67 2d 6c 69 66 65 63 79 63 6c 65 00
+/proc/device-tree/panel-lvds-native
+    compatible = panel-lvds  | hex  70 61 6e 65 6c 2d 6c 76 64 73 00
+/proc/device-tree/connector
+    compatible = gpio-usb-b-connector usb-b-connector  | hex  67 70 69 6f 2d 75 73 62 2d 62 2d 63 6f 6e 6e 65 63 74 6f 72 00 75 73 62 2d 62 2d 63 6f 6e 6e 65 63 74 6f 72 00
+/proc/device-tree/backlight-lvds-native
+    compatible = pwm-backlight  | hex  70 77 6d 2d 62 61 63 6b 6c 69 67 68 74 00
+/proc/device-tree/firmware/scmi
+    compatible = arm,scmi  | hex  61 72 6d 2c 73 63 6d 69 00
+    mboxes =    ?   ?       ?   ?       ?   ?   ?   ?   ?   ? | hex  00 00 00 12 00 00 00 05 00 00 00 00 00 00 00 12 00 00 00 03 00 00 00 00 00 00 00 12 00 00 00 03 00 00 00 01 00 00 00 12 00 00 00 05 00 00 00 01
+/proc/device-tree/firmware/scmi/shmem
+/proc/device-tree/soc/syscon@4b0c0000
+    compatible = fsl,imx95-dispmix-lvds-csr syscon  | hex  66 73 6c 2c 69 6d 78 39 35 2d 64 69 73 70 6d 69 78 2d 6c 76 64 73 2d 63 73 72 00 73 79 73 63 6f 6e 00
+    reg =     K?       ?   | hex  00 00 00 00 4b 0c 00 00 00 00 00 00 00 01 00 00
+    power-domains =    \   ? | hex  00 00 00 5c 00 00 00 0d
+    clocks =    ?   K | hex  00 00 00 11 00 00 00 4b
+/proc/device-tree/soc/syscon@4b0c0000/ldb@4
+    compatible = fsl,imx95-ldb  | hex  66 73 6c 2c 69 6d 78 39 35 2d 6c 64 62 00
+    status = okay  | hex  6f 6b 61 79 00
+    reg =    ?   ? | hex  00 00 00 04 00 00 00 04
+    clocks =    r   ?   r   ?   r   ?   r   ? | hex  00 00 00 72 00 00 00 03 00 00 00 72 00 00 00 04 00 00 00 72 00 00 00 01 00 00 00 72 00 00 00 02
+    clock-names = ldb_di0 ldb_di1 ldb_ch0 ldb_ch1  | hex  6c 64 62 5f 64 69 30 00 6c 64 62 5f 64 69 31 00 6c 64 62 5f 63 68 30 00 6c 64 62 5f 63 68 31 00
+/proc/device-tree/soc/syscon@4b0c0000/ldb@4/channel@0
+    status = okay  | hex  6f 6b 61 79 00
+    reg =      | hex  00 00 00 00
+/proc/device-tree/soc/syscon@4b010000
+    compatible = fsl,imx95-dispmix-csr syscon  | hex  66 73 6c 2c 69 6d 78 39 35 2d 64 69 73 70 6d 69 78 2d 63 73 72 00 73 79 73 63 6f 6e 00
+    reg =     K?       ?   | hex  00 00 00 00 4b 01 00 00 00 00 00 00 00 01 00 00
+    power-domains =    \   ? | hex  00 00 00 5c 00 00 00 0d
+    clocks =    ?   K | hex  00 00 00 11 00 00 00 4b
+/proc/device-tree/soc/syscon@4b010000/bridge@8
+    compatible = nxp,imx95-dc-pixel-link  | hex  6e 78 70 2c 69 6d 78 39 35 2d 64 63 2d 70 69 78 65 6c 2d 6c 69 6e 6b 00
+    status = okay  | hex  6f 6b 61 79 00
+    reg =    ?   ? | hex  00 00 00 08 00 00 00 04
+/proc/device-tree/soc/display-controller@4b400000
+    compatible = nxp,imx95-dpu  | hex  6e 78 70 2c 69 6d 78 39 35 2d 64 70 75 00
+    status = okay  | hex  6f 6b 61 79 00
+    reg =     K@       @   | hex  00 00 00 00 4b 40 00 00 00 00 00 00 00 40 00 00
+    power-domains =    \   ? | hex  00 00 00 5c 00 00 00 0d
+    clocks =    ?   P   ?   K   ?   L   ?   N   |   ?   % | hex  00 00 00 11 00 00 00 50 00 00 00 11 00 00 00 4b 00 00 00 11 00 00 00 4c 00 00 00 11 00 00 00 4e 00 00 00 7c 00 00 00 11 00 00 00 25
+    clock-names = pix apb axi ocram ldb ldb_vco  | hex  70 69 78 00 61 70 62 00 61 78 69 00 6f 63 72 61 6d 00 6c 64 62 00 6c 64 62 5f 76 63 6f 00
+    interrupts =   ??  ??  ??   @   A   B   C   D   E   ?   ?   ?   ?   ?   ?   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ? | hex  00 00 01 c0 00 00 01 c1 00 00 01 c2 00 00 00 40 00 00 00 41 00 00 00 42 00 00 00 43 00 00 00 44 00 00 00 45 00 00 00 c0 00 00 00 c1 00 00 00 c2 00 00 00 c3 00 00 00 c4 00 00 00 c5 00 00 00 46 00 00 00 47 00 00 00 48 00 00 00 49 00 00 00 4a 00 00 00 4b 00 00 00 4c 00 00 00 4d 00 00 00 4e 00 00 00 4f 00 00 00 50 00 00 00 51 00 00 00 52 00 00 00 53 00 00 00 54 00 00 00 55 00 00 00 56 00 00 00 57 00 
+/proc/device-tree/soc/dsi@4acf0000
+    compatible = nxp,imx95-mipi-dsi  | hex  6e 78 70 2c 69 6d 78 39 35 2d 6d 69 70 69 2d 64 73 69 00
+    status = disabled  | hex  64 69 73 61 62 6c 65 64 00
+    reg =     J?       ?   | hex  00 00 00 00 4a cf 00 00 00 00 00 00 00 01 00 00
+    power-domains =    \   ? | hex  00 00 00 5c 00 00 00 03
+    clocks =    ?   B   ?   C   ?   D   ?   >   ?   P | hex  00 00 00 11 00 00 00 42 00 00 00 11 00 00 00 43 00 00 00 11 00 00 00 44 00 00 00 11 00 00 00 3e 00 00 00 11 00 00 00 50
+    clock-names = cfg bypass ref pclk pix  | hex  63 66 67 00 62 79 70 61 73 73 00 72 65 66 00 70 63 6c 6b 00 70 69 78 00
+    interrupts =    0 | hex  00 00 00 30
+--- soc children matching display/ldb/dsi/mu/mailbox/cm7 (names only)
+ddr-pmu@4e090dc0
+display-controller@4b400000
+dsi@4acf0000
+mailbox@47300000
+mailbox@47320000
+mailbox@47330000
+mailbox@47340000
+mailbox@47520000
+mailbox@47530000
+mailbox@47540000
+mailbox@47550000
+mailbox@47560000
+mailbox@47570000
+mailbox@4ac60000
+mailbox@4ac70000
+mailbox@4ac80000
+mailbox@4ac90000
+mailbox@4aca0000
+mailbox@4acb0000
+mailbox@4acc0000
+mailbox@4acd0000
+mailbox@4ace0000
+syscon@4ac10000
+syscon@4acf0000
+syscon@4ad00000
+syscon@4ad10000
+syscon@4ad20000
+syscon@4ad20100
+syscon@4add0000
+syscon@4b010000
+syscon@4b0c0000
+syscon@4c0100c0
+syscon@4c410000
+syscon@4c810000
+v2x-mu@47350000
+--- ls panel
+/proc/device-tree/panel-lvds-native:
+#address-cells
+#size-cells
+backlight
+compatible
+data-mapping
+height-mm
+name
+panel-timing
+port@0
+width-mm
+
+/proc/device-tree/soc/syscon@4b0c0000/ldb@4:
+#address-cells
+#size-cells
+assigned-clock-rates
+assigned-clocks
+channel@0
+channel@1
+clock-names
+clocks
+compatible
+name
+phandle
+reg
+status
+--- scmi_dev protocol ids
+scmi_dev.1 
+scmi_dev.10 
+scmi_dev.11 
+scmi_dev.2 
+scmi_dev.3 
+scmi_dev.4 
+scmi_dev.5 
+scmi_dev.6 
+scmi_dev.7 
+scmi_dev.8 
+scmi_dev.9 
+--- remoteproc debugfs
+/sys/kernel/debug/remoteproc:
+remoteproc0
+remoteproc1
+
+/sys/kernel/debug/remoteproc/remoteproc0:
+carveout_memories
+coredump
+crash
+name
+recovery
+resource_table
+
+/sys/kernel/debug/remoteproc/remoteproc1:
+carveout_memories
+coredump
+crash
+name
+recovery
+resource_table
+--- remoteproc sysfs
+coredump
+dev
+device
+firmware
+name
+power
+recovery
+state
+subsystem
+uevent
+../../devices/platform/remoteproc-cm7/remoteproc/remoteproc1
+../../devices/platform/soc/4ab00000.imx95-neutron-remoteproc/remoteproc/remoteproc0
+--- /lib/firmware non-wifi entries
+ath10k
+mali_csffw.bin
+mrvl
+nxp
+regulatory.db
+regulatory.db.p7s
+rtlwifi
+wave633c_codec_fw.bin
+--- /lib/firmware dirs
+/lib/firmware/ath10k/
+/lib/firmware/mrvl/
+/lib/firmware/nxp/
+/lib/firmware/rtlwifi/
+--- /proc/iomem display/m7 related
+4ab00000-4ab00003 : 4ab00000.imx95-neutron-remoteproc imx95-neutron-remoteproc@4ab00000
+4ab00004-4ab00403 : 4ab00004.imx95-neutron imx95-neutron@4ab00004
+4ac10000-4ac1ffff : 4ac10000.syscon syscon@4ac10000
+4ad10000-4ad1ffff : 4ad10000.syscon syscon@4ad10000
+--- weston
+active
