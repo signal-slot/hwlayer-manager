@@ -98,7 +98,7 @@ for entry in "${targets[@]}"; do
 		clang --target="$rt" "${cflags[@]}" -c "$arm/main.c" -o "$d/main.o"
 	fi
 
-	echo "-- objects need __aeabi_memclr4:"
+	echo "-- undefined symbols of the backend object:"
 	$nm "$d/ce_twoplane.o" | grep -E ' U ' || true
 
 	# The engine library comes before -lgcc (gcc), so the definition in its
@@ -107,14 +107,28 @@ for entry in "${targets[@]}"; do
 		"$d/start.o" "$d/main.o" "$d/ce_twoplane.o" "$lib"
 
 	$nm "$d/image.elf" >"$d/image.nm"
-	if grep -E '^[0-9a-f]* [TtWw] __aeabi_memclr4$' "$d/image.nm" >/dev/null; then
-		echo "ok: __aeabi_memclr4 defined in the image:"
-		grep ' __aeabi_memclr4$' "$d/image.nm"
-		echo "-- map lines naming it (the input that provides it):"
-		grep -n -B1 -E '__aeabi_memclr4' "$d/image.map" | head -n8 || true
+	# clang emits __aeabi_memclr4 for the backend; GCC emits memset instead
+	# (seen with Arm GCC 14.2.1). Require what the object really calls.
+	if $nm "$d/ce_twoplane.o" | grep -E ' U __aeabi_memclr4$' >/dev/null; then
+		if grep -E '^[0-9a-f]* [TtWw] __aeabi_memclr4$' "$d/image.nm" >/dev/null; then
+			echo "ok: __aeabi_memclr4 defined in the image:"
+			grep ' __aeabi_memclr4$' "$d/image.nm"
+			echo "-- map lines naming it (the input that provides it):"
+			grep -n -B1 -E '__aeabi_memclr4' "$d/image.map" | head -n8 || true
+		else
+			echo "fail: __aeabi_memclr4 is not defined in $name image" >&2
+			rc=1
+		fi
 	else
-		echo "fail: __aeabi_memclr4 is not defined in $name image" >&2
-		rc=1
+		echo "ok: the object does not call __aeabi_memclr4; checking what it does call:"
+		for sym in $($nm "$d/ce_twoplane.o" | awk '$1=="U"{print $2}' | grep -v '^ce_' || true); do
+			if grep -E "^[0-9a-f]* [TtWw] $sym\$" "$d/image.nm" >/dev/null; then
+				echo "  $sym defined in the image"
+			else
+				echo "fail: $sym is not defined in $name image" >&2
+				rc=1
+			fi
+		done
 	fi
 	if $nm "$d/image.elf" | grep -E '^ +U ' >/dev/null; then
 		echo "fail: undefined symbols in $name image:" >&2
