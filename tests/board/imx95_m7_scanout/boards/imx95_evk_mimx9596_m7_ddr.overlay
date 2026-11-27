@@ -1,0 +1,43 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
+/*
+ * Enable the DPU node of the i.MX95 M7 and give it a panel description.
+ * The upstream board files only add a label to the node, and the driver reads
+ * width, height, pixel-format and a display-timings child that the dtsi does
+ * not provide. The timing is plain 640x480@60 (VESA), a placeholder chosen to
+ * be small; it is not the timing of any panel on any board. The node being
+ * enabled does not touch the DPU: the driver is only built when
+ * CONFIG_IMX95_M7_SCANOUT_ENABLE_DPU is set (see Kconfig).
+ */
+
+#include <zephyr/dt-bindings/display/panel.h>
+
+/ {
+	chosen {
+		zephyr,display = &dpu;
+	};
+};
+
+&dpu {
+	status = "okay";
+	width = <640>;
+	height = <480>;
+	pixel-format = <PANEL_PIXEL_FORMAT_ARGB_8888>;
+
+	display-timings {
+		compatible = "zephyr,panel-timing";
+		clock-frequency = <25175000>;
+		hactive = <640>;
+		hfront-porch = <16>;
+		hback-porch = <48>;
+		hsync-len = <96>;
+		vactive = <480>;
+		vfront-porch = <10>;
+		vback-porch = <33>;
+		vsync-len = <2>;
+		hsync-active = <1>;
+		vsync-active = <1>;
+		de-active = <0>;
+		pixelclk-active = <0>;
+	};
+};
