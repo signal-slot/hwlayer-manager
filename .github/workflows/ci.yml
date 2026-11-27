@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  # Cancel a superseded run of the same pull request; runs on main are keyed by
+  # their commit, so none of them is cancelled.
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Stable is what CI builds with. The floor the code supports is the
+      # rust-version of Cargo.toml (1.82); CI does not test that floor.
+      - name: Install Rust (stable, rustfmt, clippy, thumbv7em-none-eabihf)
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy --target thumbv7em-none-eabihf
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      # Only downloaded crates are cached, not target: the tests build the
+      # static library by a nested cargo into target, and a stale restored
+      # target is not worth the saved compile time.
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+
+      - name: cargo fmt
+        run: cargo fmt --all --check
+
+      - name: cargo clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --locked --workspace
+
+      - name: cargo build composition-core for thumbv7em-none-eabihf
+        run: cargo build --locked -p composition-core --target thumbv7em-none-eabihf
+
+      - name: cargo build composition-ffi-staticlib for thumbv7em-none-eabihf (release, no std)
+        run: cargo build --locked -p composition-ffi-staticlib --no-default-features --features panic-handler --target thumbv7em-none-eabihf --release
