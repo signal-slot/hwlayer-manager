@@ -1,0 +1,22 @@
+[package]
+name = "composition-drm-harness"
+description = "Minimal producer harness that drives composition-drm on a real DRM output"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "drm-harness"
+path = "src/main.rs"
+
+[dependencies]
+composition-core = { path = "../../crates/composition-core" }
+composition-drm = { path = "../../crates/composition-drm" }
+drm = "0.15"
+rustix = { version = "1", features = ["event", "fs", "param"] }
+
+[lints]
+workspace = true
