@@ -104,6 +104,44 @@ if grep -q 'd/a.txt:2' "$root/out"; then echo "ok   file:line"; else echo "FAIL 
 (cd "$repo" && sh "$script" nosuchref >/dev/null 2>&1)
 if [ $? -eq 2 ]; then echo "ok   bad-base"; else echo "FAIL bad-base"; fail=1; fi
 
+# No-argument base selection. Throwaway repos; the topic branch has no
+# origin/main. MAINREF=main creates a local main, anything else none.
+nrun() {
+    name=$1 want=$2 mainref=$3 content=$4 grepfor=$5
+    rm -rf "$repo"
+    mkdir -p "$repo"
+    (
+        cd "$repo" || exit 2
+        git init -q -b trunk . &&
+            git config user.email t@example.invalid &&
+            git config user.name t &&
+            echo base >README && git add README && git commit -q -m base &&
+            if [ "$mainref" = main ]; then git branch main; fi &&
+            git checkout -q -b topic &&
+            printf '%s\n' "$content" >a.txt &&
+            git add . && git commit -q -m change &&
+            sh "$script" >"$root/out" 2>&1
+    )
+    got=$?
+    if [ "$got" -eq "$want" ] && grep -q "$grepfor" "$root/out"; then
+        echo "ok   $name"
+    else
+        echo "FAIL $name: want $want ($grepfor) got $got"
+        cat "$root/out" 2>/dev/null
+        fail=1
+    fi
+}
+nrun noarg-local-main 0 main "nothing to see" "using base main"
+nrun noarg-local-main-hit 1 main "board at $ip" "ipv4: a.txt:1"
+nrun noarg-full-scan-clean 0 none "nothing to see" "full scan of HEAD"
+nrun noarg-full-scan-hit 1 none "board at $ip" "ipv4: a.txt:1"
+# Full scan also covers content that predates the branch.
+(
+    cd "$repo" && echo "console $tty" >old.txt && git add . && git commit -q -m old &&
+        sh "$script" >"$root/out" 2>&1
+)
+if [ $? -eq 1 ] && grep -q 'tty: old.txt:1' "$root/out"; then echo "ok   full-scan-old-line"; else echo "FAIL full-scan-old-line"; cat "$root/out"; fail=1; fi
+
 # check-no-farm-ids.sh: it scans tracked files, so each case builds a
 # throwaway repository holding a copy of the script plus one file.
 farm=$here/check-no-farm-ids.sh

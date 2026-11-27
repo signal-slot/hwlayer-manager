@@ -5,11 +5,20 @@
 # paths or credentials in any file or commit message.
 #
 # Run (needs only git, grep and a POSIX sh):
-#   scripts/check-no-board-secrets.sh [BASE_REF]      # BASE_REF defaults to origin/main
+#   scripts/check-no-board-secrets.sh [BASE_REF]      # see "Base" below
 #   scripts/check-no-board-secrets.test.sh            # self-test
 #
 # Scans the ADDED lines of `git diff BASE_REF...HEAD` and every line of the
 # commit messages of `git log BASE_REF..HEAD`. Existing content is not scanned.
+#
+# Base: an explicit BASE_REF is used as given and exit 2 if it does not exist.
+# With no argument the first of origin/main, main, refs/remotes/origin/HEAD
+# that resolves to a commit is used (a checkout without origin/main, such as
+# a plain clone of a topic branch, still works). If none resolves, the scan
+# falls back to a FULL scan: the diff base is git's empty tree (two-dot
+# `git diff EMPTY HEAD`, since three-dot needs a commit), so every line of
+# every tracked file counts as added, and the messages of all commits in
+# `git rev-list HEAD` are scanned. The base or mode used is printed to stderr.
 # Exit status: 0 clean, 1 hit(s) (printed as "kind: file:line: text"),
 # 2 usage error.
 #
@@ -59,12 +68,43 @@ if [ "$#" -gt 1 ]; then
     echo "usage: $0 [BASE_REF]" >&2
     exit 2
 fi
-base=${1:-origin/main}
 tab=$(printf '\t')
-
-git rev-parse --verify --quiet "$base^{commit}" >/dev/null || {
-    echo "check-no-board-secrets: unknown base ref: $base" >&2
-    exit 2
+full=0
+if [ "$#" -eq 1 ]; then
+    base=$1
+    git rev-parse --verify --quiet "$base^{commit}" >/dev/null || {
+        echo "check-no-board-secrets: unknown base ref: $base" >&2
+        exit 2
+    }
+else
+    base=
+    for cand in origin/main main refs/remotes/origin/HEAD; do
+        if git rev-parse --verify --quiet "$cand^{commit}" >/dev/null; then
+            base=$cand
+            break
+        fi
+    done
+    if [ -z "$base" ]; then
+        full=1
+        base=$(git hash-object -t tree /dev/null) || exit 2
+        echo "check-no-board-secrets: no base ref found (origin/main, main, origin/HEAD); full scan of HEAD" >&2
+    else
+        echo "check-no-board-secrets: no argument; using base $base" >&2
+    fi
+fi
+if [ "$full" -eq 1 ]; then
+    log_range=HEAD
+    desc="full scan of HEAD"
+else
+    log_range="$base..HEAD"
+    desc="$base...HEAD"
+fi
+added_diff() {
+    if [ "$full" -eq 1 ]; then
+        git -c core.quotepath=off diff -U0 --no-color --no-ext-diff "$base" HEAD
+    else
+        git -c core.quotepath=off diff -U0 --no-color --no-ext-diff "$base...HEAD"
+    fi
 }
 
 work=$(mktemp -d "${TMPDIR:-.}/nbs.XXXXXX") || exit 2
@@ -75,7 +115,7 @@ hits=$work/hits
 
 # Stream format: "<where>:<line><TAB><text>"; where is a path or commit:<sha>.
 # Added lines of the diff.
-git -c core.quotepath=off diff -U0 --no-color --no-ext-diff "$base...HEAD" |
+added_diff |
 while IFS= read -r l; do
     case $l in
     "+++ /dev/null") file= ;;
@@ -97,7 +137,7 @@ while IFS= read -r l; do
 done >"$raw"
 
 # Commit messages.
-for c in $(git rev-list "$base..HEAD"); do
+for c in $(git rev-list "$log_range"); do
     s=$(git rev-parse --short "$c")
     git log -1 --format=%B "$c" |
     {
@@ -187,8 +227,8 @@ grep -iE '(password|passwd|token|secret|api_key) *= *["'\'']?[A-Za-z0-9+/_.-]' "
     report secret
 
 if [ -s "$hits" ]; then
-    echo "check-no-board-secrets: possible board secrets added since $base:" >&2
+    echo "check-no-board-secrets: possible board secrets added since $desc:" >&2
     sort -u "$hits" >&2
     exit 1
 fi
-echo "check-no-board-secrets: clean ($base...HEAD)"
+echo "check-no-board-secrets: clean ($desc)"
