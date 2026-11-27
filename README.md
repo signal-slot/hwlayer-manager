@@ -73,7 +73,16 @@ hardware. `scripts/check-all.sh` runs the CI steps locally.
 
 Board-test applications for SoW milestone M2, kept in the repository:
 
+- [`tests/board/imx95_m7`](tests/board/imx95_m7/README.md): i.MX95 Cortex-M7 hello and read-only DPU probe (upstream Zephyr).
+- [`tests/board/imx95_m7_engine`](tests/board/imx95_m7_engine/README.md): the engine's C ABI on the M7, presenting fixed scenes to a backend that describes the stock Zephyr DPU driver.
 - [`tests/board/imx95_m7_scanout`](tests/board/imx95_m7_scanout/README.md): framebuffer scanout from the i.MX95 Cortex-M7 through Zephyr's display API, with per-frame timing hooks. Host builds only; its README records that nothing has been run on hardware and no timing is measured.
+
+QEMU apps, not hardware results (they count towards no milestone):
+
+- [`tests/zephyr/qemu_engine`](tests/zephyr/qemu_engine/README.md): the engine's C ABI under Zephyr in QEMU.
+- [`tests/zephyr/display_dummy`](tests/zephyr/display_dummy/README.md): the engine over Zephyr's dummy display under QEMU.
+
+Writing and running one: [`docs/board-tests.md`](docs/board-tests.md).
 
 ## Documentation
 
@@ -85,6 +94,10 @@ Board-test applications for SoW milestone M2, kept in the repository:
 
 - [`docs/glossary.md`](docs/glossary.md): terms of the engine, DRM, Zephyr and the i.MX95.
 - [`docs/sow-traceability.md`](docs/sow-traceability.md): SoW deliverables and milestone criteria mapped to repository evidence.
+- [`docs/architecture.md`](docs/architecture.md): engine architecture overview.
+- [`docs/testing.md`](docs/testing.md): test map from SoW §10 to the tests in this repository.
+- [`docs/msrv.md`](docs/msrv.md): minimum Rust version of the workspace.
+- [`docs/trace-format.md`](docs/trace-format.md): trace line format for engine events (proposal, X-03).
 - [`docs/open-issues.md`](docs/open-issues.md): open issues for M2, M3, WP5 and cross-cutting.
 - [`docs/platform-capabilities.md`](docs/platform-capabilities.md): what is known about each target and how (vkms / source / inferred), plus the planned tools.
 
@@ -101,6 +114,17 @@ Board-test applications for SoW milestone M2, kept in the repository:
 - [`docs/imx95-m7-overlay-design.md`](docs/imx95-m7-overlay-design.md): two-plane DPU overlay under Zephyr (design).
 - [`docs/imx95-m7-backend-contract.md`](docs/imx95-m7-backend-contract.md): mapping the engine backend contract onto Zephyr.
 - [`docs/imx95-twoplane-port.md`](docs/imx95-twoplane-port.md): filling the two-plane backend's tables for the i.MX95 DPU (design).
+- [`docs/imx95-m7-dpu-driver.md`](docs/imx95-m7-dpu-driver.md): upstream Zephyr DPU driver, scanout and VSYNC/latch path.
+- [`docs/imx95-m7-dpu-irq.md`](docs/imx95-m7-dpu-irq.md): DPU interrupts and the M7 NVIC.
+- [`docs/imx95-m7-rproc-load.md`](docs/imx95-m7-rproc-load.md): how Linux `imx_rproc` loads an M7 ELF.
+- [`docs/imx95-m7-console.md`](docs/imx95-m7-console.md): the M7 console UART and how to read its log.
+- [`docs/imx95-m7-latch-measure.md`](docs/imx95-m7-latch-measure.md): measuring latch and VSYNC timing on the M7 (design).
+- [`docs/imx95-m7-reduced-scope.md`](docs/imx95-m7-reduced-scope.md): reduced-scope bring-up if the M7 cannot own the DPU.
+- [`docs/imx95-display-clocks.md`](docs/imx95-display-clocks.md), [`docs/imx95-display-power.md`](docs/imx95-display-power.md): display clocks, power domains and resets under the System Manager.
+- [`docs/imx95-display-handover.md`](docs/imx95-display-handover.md): ways to hand the display from Linux to the M7, against the board rules.
+- [`docs/imx95-verdin-bsp-src.md`](docs/imx95-verdin-bsp-src.md), [`docs/imx95-verdin-zephyr-board.md`](docs/imx95-verdin-zephyr-board.md): Verdin BSP sources and what a Zephyr board would need.
+- [`docs/imx95-mcux-display.md`](docs/imx95-mcux-display.md): NXP MCUXpresso display examples (source study).
+- [`docs/imx95-linux-zephyr-compare.md`](docs/imx95-linux-zephyr-compare.md): design of the Linux vs Zephyr comparison.
 - [`docs/m2-comparison-plan.md`](docs/m2-comparison-plan.md): Linux vs Zephyr comparison of the same scene.
 - [`docs/am62p-imx95-matrix.md`](docs/am62p-imx95-matrix.md): AM62P vs i.MX95 difference matrix (WP4, from recorded docs).
 - [`docs/zephyr-workspace.md`](docs/zephyr-workspace.md): Zephyr workspace and SDK for board applications.
@@ -116,6 +140,7 @@ Board-test applications for SoW milestone M2, kept in the repository:
 
 ### CI and scripts
 
+- [`docs/wp5-evidence-plan.md`](docs/wp5-evidence-plan.md): plan for the reproducible demo and benchmark evidence (not yet produced).
 - [`docs/ci.md`](docs/ci.md): what CI runs and what a green run does and does not show.
 - [`docs/host-metrics.md`](docs/host-metrics.md): plane-assignment cost of the core on a development host (no board involved).
 - [`docs/dlm-aarch64.md`](docs/dlm-aarch64.md): pinned sources and build script for drm-lease-manager on aarch64.
