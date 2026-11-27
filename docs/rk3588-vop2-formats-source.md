@@ -14,20 +14,14 @@ NanoPC-T6 data.
 
 What this worker could and could not do (all stated, nothing hidden):
 
-- No copy of the kernel was in the dependency cache, and `git clone` and `curl`
-  were refused by the sandbox. The text was read through the web-fetch helper on
-  `raw.githubusercontent.com` at the commit above, which returns text **without
-  line numbers**.
-- `REG` lines 58-238 (the format and modifier arrays) were numbered by the
-  helper while reading; they match the array order and spacing but were **not
-  machine-counted**. Treat them as **read from source, line numbers
-  unverified**.
-- `REG` window-table and `rk3588_vop` line numbers, and every `V2C` line number,
-  are **carried from `docs/rk3588-mainline-source.md`**, which read the `v6.18`
-  tag copy with numbers (`V2C` 2793 lines, `REG` 2577 lines). I checked that
-  the content the helper returned for each cited function agrees with what that
-  doc says, but I did not re-count the lines. That the tag equals the pinned
-  commit is taken from the task, not verified here.
+- No copy of the kernel was in the dependency cache. The two files were first
+  read through the web-fetch helper and then downloaded as raw files from
+  `raw.githubusercontent.com` at the commit above (2026-11-28). The downloaded
+  copies have 2577 lines (`REG`) and 2793 lines (`V2C`), and every `file:line`
+  below was checked against them with `grep -n`/`sed -n`.
+- That the pinned commit is Linux v6.18 is taken from the task, not verified
+  here. The line numbers agree with `docs/rk3588-mainline-source.md`, which read
+  the `v6.18` tag copy.
 - Not read: `drm_plane.c` / `drm_framebuffer.c` in DRM core (how the IN_FORMATS
   blob is built and how `format_mod_supported` gates framebuffer creation).
   Statements that depend on it are **inferred**.
@@ -110,11 +104,11 @@ Where rotation is applied (read from source):
 - 90/270 degrees: `vop2_get_cluster_lb_mode` returns 2 (`V2C:516-527`) and
   `vop2_half_block_enable` returns false (`V2C:424-431`).
 - A stride not aligned to 64 pixels with mirror or rotation produces only a
-  `drm_dbg_kms` message, not an error (in `vop2_plane_atomic_update`; line not recorded).
+  `drm_dbg_kms` message, not an error (`V2C:1293-1296`).
 
 **No rotation or reflection is tied to the modifier anywhere in the check
 path** (read from source: `vop2_plane_atomic_check` `V2C:992-1061` and
-`rockchip_vop2_mod_supported` (line not recorded) contain no rotation test). The
+`rockchip_vop2_mod_supported` `V2C:383-422` contain no rotation test). The
 "only for AFBC buffers" rule in the design doc is therefore not enforced by
 this code (inferred conclusion from the absence of such a test).
 
@@ -157,8 +151,10 @@ Read from source (function, then lines of the tag copy):
 
 There is **no** modifier test and **no** rotation test in this function.
 
-`rockchip_vop2_mod_supported` (the `format_mod_supported` callback in
-`vop2_plane_funcs`; helpers `rockchip_afbc` and `vop2_convert_afbc_format`):
+`rockchip_vop2_mod_supported` (`V2C:383-422`: invalid `V2C:389`, RK3568
+cluster `V2C:392-400`, RK3588 10-bit `V2C:402-408`, linear `V2C:410`, AFBC list
+`V2C:413-419`, convert `V2C:421`; the `format_mod_supported` callback in
+`vop2_plane_funcs` is `V2C:1417`; helpers `rockchip_afbc` and `vop2_convert_afbc_format`):
 
 1. `DRM_FORMAT_MOD_INVALID` -> false.
 2. On `VOP_VERSION_RK3568` a Cluster window rejects `DRM_FORMAT_MOD_LINEAR`
