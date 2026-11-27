@@ -265,6 +265,7 @@ impl Session {
                 match options.profile {
                     DriverProfile::Generic => "generic",
                     DriverProfile::Imx95Dpu => "imx95",
+                    DriverProfile::Stm32Ltdc => "stm32",
                 },
             )
             .field("producers", options.producers.name())

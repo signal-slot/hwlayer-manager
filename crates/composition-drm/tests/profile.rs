@@ -1,8 +1,11 @@
 //! Edge cases of `DriverProfile::apply`, on hand-built capabilities.
 
 use composition_core::limits::{MAX_PLANES, MAX_RESOURCE_GROUPS};
+use composition_core::planner::{plan, BufferLookup};
 use composition_core::{
-    Capabilities, LayerTraits, PlaneCaps, PlaneId, PlaneKind, ResourceGroup, ScaleLimits, Size,
+    BufferId, BufferInfo, Capabilities, FormatModifier, Frame, Layer, LayerTraits, Modifier,
+    OutputCaps, OutputId, PixelFormat, PlanError, PlaneCaps, PlaneId, PlaneKind, Rect,
+    RejectReasons, ResourceGroup, ScaleLimits, Size,
 };
 use composition_drm::DriverProfile;
 
@@ -134,4 +137,144 @@ fn full_group_table_does_not_panic_and_keeps_existing_groups() {
     DriverProfile::Imx95Dpu.apply(&mut caps);
     assert_eq!(caps.resource_groups.len(), MAX_RESOURCE_GROUPS);
     assert!(caps.resource_groups.iter().all(|g| *g == own));
+}
+
+// ---- DriverProfile::Stm32Ltdc ----
+
+const LTDC_LIMITS: ScaleLimits = ScaleLimits {
+    max_upscale: 32 << 16,
+    max_downscale: 1 << 16,
+};
+const OUT: OutputId = OutputId(0);
+const FULL: Rect = Rect::new(0, 0, 1920, 1080);
+const RGB: BufferId = BufferId(1);
+const SMALL: BufferId = BufferId(2);
+const TINY: BufferId = BufferId(3);
+
+struct Buffers;
+
+impl BufferLookup for Buffers {
+    fn buffer_info(&self, buffer: BufferId) -> Option<BufferInfo> {
+        let size = match buffer {
+            RGB => Size::new(1920, 1080),
+            SMALL => Size::new(960, 540),
+            // 30x17 upscaled to 960x540 is 32.0x horizontally.
+            TINY => Size::new(30, 17),
+            _ => return None,
+        };
+        Some(BufferInfo {
+            size,
+            format: PixelFormat::XRGB8888,
+            modifier: Modifier::LINEAR,
+        })
+    }
+}
+
+/// The board's topology (observed 2026-11-27): primary, overlay, overlay,
+/// on one output, with unscaled planes as KMS reports them.
+fn ltdc_caps() -> Capabilities {
+    let mut caps = caps_of(&[PlaneKind::Primary, PlaneKind::Overlay, PlaneKind::Overlay]);
+    caps.outputs
+        .push(OutputCaps {
+            id: OUT,
+            size: Size::new(1920, 1080),
+            refresh_mhz: 60_000,
+        })
+        .unwrap();
+    for plane in caps.planes.as_mut_slice() {
+        plane
+            .formats
+            .push(FormatModifier::linear(PixelFormat::XRGB8888))
+            .unwrap();
+    }
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    caps
+}
+
+fn plan_one(layer: Layer) -> Result<usize, PlanError> {
+    let layers = [layer];
+    let frame = Frame {
+        output: OUT,
+        layers: &layers,
+    };
+    plan(&frame, &ltdc_caps(), &Buffers).map(|p| p.assignments().len())
+}
+
+#[test]
+fn ltdc_limits_on_the_scaling_planes_only() {
+    let caps = ltdc_caps();
+    let planes = caps.planes.as_slice();
+    assert_eq!(planes[0].scaling, Some(LTDC_LIMITS));
+    assert_eq!(planes[1].scaling, Some(LTDC_LIMITS));
+    assert_eq!(planes[2].scaling, None);
+    assert!(planes.iter().all(|p| p.max_source.is_none()));
+    assert!(caps.resource_groups.is_empty());
+}
+
+#[test]
+fn ltdc_cursor_and_later_overlays_are_unclaimed() {
+    let mut caps = caps_of(&[
+        PlaneKind::Overlay,
+        PlaneKind::Cursor,
+        PlaneKind::Primary,
+        PlaneKind::Overlay,
+        PlaneKind::Overlay,
+    ]);
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    let scaling: Vec<_> = caps.planes.iter().map(|p| p.scaling).collect();
+    assert_eq!(
+        scaling,
+        [Some(LTDC_LIMITS), None, Some(LTDC_LIMITS), None, None]
+    );
+}
+
+#[test]
+fn ltdc_zero_and_one_plane() {
+    let mut caps = caps_of(&[]);
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    assert!(caps.planes.is_empty());
+    let mut caps = caps_of(&[PlaneKind::Primary]);
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    assert_eq!(caps.planes.as_slice()[0].scaling, Some(LTDC_LIMITS));
+}
+
+#[test]
+fn ltdc_downscale_is_refused_by_the_planner() {
+    let shrunk = Layer::new(RGB, FULL, Rect::new(0, 0, 960, 540), 0);
+    assert_eq!(
+        plan_one(shrunk),
+        Err(PlanError::NoPlane {
+            layer: 0,
+            reasons: RejectReasons::SCALING
+        })
+    );
+}
+
+#[test]
+fn ltdc_upscale_at_the_bound_accepted_and_above_refused() {
+    let dst = Rect::new(0, 0, 960, 540);
+    // 2x up.
+    let two = Layer::new(SMALL, Rect::new(0, 0, 480, 270), dst, 0);
+    assert_eq!(plan_one(two), Ok(1));
+    // 30x17 to 960x540: 32.0x horizontally, 31.76x vertically.
+    let at = Layer::new(TINY, Rect::new(0, 0, 30, 17), dst, 0);
+    assert_eq!(plan_one(at), Ok(1));
+    // 960/29 = 33.1x horizontally.
+    let above = Layer::new(TINY, Rect::new(0, 0, 29, 17), dst, 0);
+    assert_eq!(
+        plan_one(above),
+        Err(PlanError::NoPlane {
+            layer: 0,
+            reasons: RejectReasons::SCALING
+        })
+    );
+}
+
+#[test]
+fn ltdc_applying_twice_is_idempotent() {
+    let mut caps = caps_of(&[PlaneKind::Primary, PlaneKind::Overlay, PlaneKind::Overlay]);
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    let once = caps;
+    DriverProfile::Stm32Ltdc.apply(&mut caps);
+    assert_eq!(caps, once);
 }
