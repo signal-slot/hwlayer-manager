@@ -1,0 +1,122 @@
+# i.MX95 DPU topology, hand-written from the probe text of docs/imx95-probe-2026-11-28.txt
+# (probe --raw output, captured 2026-11-28), at commit eab4162. Source: that file only.
+# Written by hand, not by the converter. No hardware claim follows from cross-check
+# results on this file: it is a recorded description, and a finding is about it.
+#
+# Constraints (scaling, source size, resource groups) come from profile imx95dpu
+# (DriverProfile::Imx95Dpu), so this file has no scaling, max_source or group lines.
+#
+# Kept as recorded:
+# - The probe lists two CRTCs; only the first (CRTC 39, the connected LVDS output)
+#   is an output line. Plane masks are the probe outputs masks over that one output.
+# - Plane 42 (primary) reports outputs 0b0: it belongs to the second CRTC (id 50,
+#   inactive), which has no output line. Nothing can reach it from output 0.
+# - Plane 31 is the only plane attached to the output at capture time.
+# - zpos_now is the current zpos value of the raw dump for each plane. That is
+#   Weston state at capture time, not a driver default: plane 31 has 5, plane 42
+#   has 0, and the five overlays all have 1 (equal zpos).
+# - Every plane lists 13 formats, all with modifier 0x0, in dump order.
+# - The raw dump shows no rotation property, so transforms is -.
+# - Blend modes are none, premultiplied, coverage.
+xcheck 1
+origin observed 2026-11-28 imx95-probe-2026-11-28.txt at commit eab4162
+profile imx95dpu
+output 39 1280 800 59993
+plane 31 kind=primary outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 42 kind=primary outputs=0x0 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 51 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 59 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 67 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 75 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 83 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=-
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
