@@ -1,26 +1,34 @@
 //! `drm-harness`: a minimal producer harness for composition-drm.
 //!
-//! Drives the engine on one output of a real DRM device, as DRM master, and
-//! prints one-line `key=value` records ending in
+//! Drives the engine on one output of a real DRM device, on a descriptor
+//! that is DRM master, a kernel DRM lease or a lease from drm-lease-manager,
+//! with buffers it allocates itself or receives from producer processes,
+//! and prints one-line `key=value` records ending in
 //! `VERDICT <scenario> PASS|FAIL <reason>`. See the README.
 
 #![forbid(unsafe_code)]
 
 mod draw;
+mod lease;
+mod lessor;
+mod producer;
 mod record;
 mod scenarios;
 mod session;
 mod source;
 mod stats;
+mod wire;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::sync::atomic::Ordering;
 
 use composition_drm::DriverProfile;
 
+use crate::lease::LeaseRequest;
 use crate::record::{verdict_line, Record};
-use crate::scenarios::{Outcome, MOVE_FRAMES, ROTATE_FRAMES};
-use crate::session::Options;
+use crate::scenarios::{Outcome, MOVE_FRAMES, REVOKE_FRAMES, ROTATE_FRAMES};
+use crate::session::{Options, ProducerMode};
 use crate::source::Source;
 
 type Scenario = fn(&Options) -> Result<Outcome, String>;
@@ -55,45 +63,121 @@ const SCENARIOS: [(&str, Scenario, &str); 5] = [
     ),
 ];
 
+/// Scenarios that need a lease made by this process; `all` runs them last,
+/// and only with `--source kernel-lease`.
+const LEASE_SCENARIOS: [(&str, Scenario, &str); 1] = [(
+    "revoke",
+    scenarios::revoke,
+    "kernel-lease only: rotate, then the lessor revokes the lease mid-rotation;\n\
+     \x20               the engine must report DeviceLost once and release what was shown",
+)];
+
 fn usage() -> String {
     let mut text = String::from(
         "drm-harness: drive composition-drm on a DRM output with two hardware planes\n\
          \n\
          Usage: drm-harness [OPTIONS] <SCENARIO>\n\
+         \x20      drm-harness lessor [LESSOR OPTIONS]\n\
+         \x20      drm-harness producer --device <PATH> --layer <N>\n\
          \n\
          Scenarios:\n",
     );
-    for (name, _, help) in SCENARIOS {
+    for (name, _, help) in SCENARIOS.iter().chain(LEASE_SCENARIOS.iter()) {
         text.push_str(&format!("  {name:<14}{help}\n"));
     }
     text.push_str(&format!(
-        "  {:<14}all of the above, in this order\n\
+        "  {:<14}all of the above in this order (revoke only with --source kernel-lease)\n\
          \n\
          Options:\n\
-         \x20 --device <PATH>       DRM device to open as master [default: /dev/dri/card0]\n\
+         \x20 --source <SOURCE>     where the DRM descriptor comes from [default: master]:\n\
+         \x20                         master        the device node, as DRM master\n\
+         \x20                         kernel-lease  this process opens the device as master and\n\
+         \x20                                       leases one output (DRM_IOCTL_MODE_CREATE_LEASE);\n\
+         \x20                                       the engine gets the lease descriptor only\n\
+         \x20                         dlm           a lease from AGL drm-lease-manager's socket\n\
+         \x20                                       (or from `drm-harness lessor`), see --lease\n\
+         \x20 --device <PATH>       DRM device node [default: /dev/dri/card0]; the lessor's with\n\
+         \x20                       kernel-lease, the producers' with --producers external\n\
          \x20 --connector <NAME>    connector to drive, name or prefix such as LVDS or HDMI-A-1\n\
-         \x20                       [default: the first connected one]\n\
+         \x20                       [default: the first connected one]; with kernel-lease, the\n\
+         \x20                       connector to lease\n\
+         \x20 --planes <IDS>        kernel-lease: overlay plane ids to lease, comma-separated\n\
+         \x20                       [default: every overlay usable on the connector's CRTC]\n\
+         \x20 --lease <NAME>        dlm: lease name, the socket <dir>/<NAME>\n\
+         \x20 --dlm-dir <DIR>       dlm: socket directory [default: $DLM_RUNTIME_PATH, else\n\
+         \x20                       {}]\n\
+         \x20 --producers <MODE>    who allocates the buffers [default: local]:\n\
+         \x20                         local     the harness, dumb buffers on its own descriptor\n\
+         \x20                         external  one producer process per layer (this binary,\n\
+         \x20                                   `producer`): opens --device without DRM master,\n\
+         \x20                                   allocates and draws its own buffers, passes them as\n\
+         \x20                                   DMA-BUF descriptors; redraws only after the harness\n\
+         \x20                                   has passed on the engine's release\n\
          \x20 --profile <PROFILE>   driver profile: generic or imx95 [default: generic]\n\
          \x20 --seconds <N>         how long to hold each picture for a camera [default: 5]\n\
-         \x20 --frames <N>          frames for move [default: {MOVE_FRAMES}] and rotate [default: {ROTATE_FRAMES}]\n\
-         \x20 --buffers <K>         buffers per plane in rotate, at least 3 [default: 3]\n\
+         \x20 --frames <N>          frames for move [default: {MOVE_FRAMES}], rotate [default: {ROTATE_FRAMES}]\n\
+         \x20                       and revoke, before the revocation [default: {REVOKE_FRAMES}]\n\
+         \x20 --buffers <K>         buffers per plane in rotate and revoke, at least 3 [default: 3]\n\
          \x20 -h, --help            print this help\n\
+         \n\
+         Lessor: drm-harness lessor --lease <NAME> --dlm-dir <DIR> [--device <PATH>]\n\
+         \x20       [--connector <NAME>] [--planes <IDS>] [--once]\n\
+         \x20 A small leaser: opens the device as DRM master and serves <DIR>/<NAME> with\n\
+         \x20 drm-lease-manager's client protocol. Each client that asks gets a fresh kernel\n\
+         \x20 lease of the connector's output (descriptor passed with SCM_RIGHTS); the lease\n\
+         \x20 is revoked when the client releases it or disconnects. --once: exit after the\n\
+         \x20 first client. Use it with --source dlm --lease <NAME> --dlm-dir <DIR>.\n\
+         \n\
+         Producer: started by the harness with --producers external, one per layer, its\n\
+         socket on standard input; not meant to be run by hand.\n\
          \n\
          Output: one record per line, `kind key=value ...`; each scenario ends with\n\
          `VERDICT <scenario> PASS|FAIL <reason>`. The exit status is 0 only if every\n\
          scenario run passed.\n",
-        "all"
+        "all",
+        wire::DLM_DEFAULT_RUNTIME_PATH,
     ));
     text
 }
 
-fn parse(args: &[String]) -> Result<Option<(Options, String)>, String> {
+/// What the command line asks for.
+enum Command {
+    Help,
+    Run(Box<Options>, String),
+    Lessor(lessor::LessorOptions),
+    Producer { device: PathBuf, layer: u32 },
+}
+
+fn plane_list(text: &str) -> Result<Vec<u32>, String> {
+    text.split(',')
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            s.trim()
+                .parse::<u32>()
+                .map_err(|_| format!("--planes: not a plane id: {s}"))
+        })
+        .collect()
+}
+
+fn parse(args: &[String]) -> Result<Command, String> {
+    let (mode, args) = match args.first().map(String::as_str) {
+        Some("lessor") => ("lessor", &args[1..]),
+        Some("producer") => ("producer", &args[1..]),
+        _ => ("run", args),
+    };
     let mut device = PathBuf::from("/dev/dri/card0");
     let mut connector = None;
     let mut profile = DriverProfile::Generic;
     let mut seconds = 5;
     let mut frames = None;
     let mut buffers = 3;
+    let mut source = "master".to_string();
+    let mut planes = None;
+    let mut lease_name = None;
+    let mut dlm_dir = None;
+    let mut producers = "local".to_string();
+    let mut once = false;
+    let mut layer = None;
     let mut scenario = None;
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
@@ -112,9 +196,19 @@ fn parse(args: &[String]) -> Result<Option<(Options, String)>, String> {
                 .map_err(|_| format!("{name}: not a number: {text}"))
         };
         match key {
-            "-h" | "--help" => return Ok(None),
+            "-h" | "--help" => return Ok(Command::Help),
             "--device" => device = PathBuf::from(value(key)?),
             "--connector" => connector = Some(value(key)?),
+            "--planes" => planes = Some(plane_list(&value(key)?)?),
+            "--lease" => lease_name = Some(value(key)?),
+            "--dlm-dir" => dlm_dir = Some(PathBuf::from(value(key)?)),
+            "--once" if mode == "lessor" => once = true,
+            "--layer" if mode == "producer" => {
+                let n = number(key, value(key)?)?;
+                layer = Some(u32::try_from(n).map_err(|_| "--layer: too large".to_string())?);
+            }
+            "--source" => source = value(key)?,
+            "--producers" => producers = value(key)?,
             "--profile" => {
                 profile = match value(key)?.as_str() {
                     "generic" => DriverProfile::Generic,
@@ -136,55 +230,99 @@ fn parse(args: &[String]) -> Result<Option<(Options, String)>, String> {
             }
             other if other.starts_with('-') => return Err(format!("unknown option {other}")),
             other => {
+                if mode != "run" {
+                    return Err(format!("{mode}: unexpected argument {other}"));
+                }
                 if scenario.replace(other.to_string()).is_some() {
                     return Err("give one scenario".into());
                 }
             }
         }
     }
+    let request = LeaseRequest {
+        device: device.clone(),
+        connector: connector.clone(),
+        overlays: planes.clone(),
+    };
+    match mode {
+        "producer" => {
+            let layer = layer.ok_or("producer: --layer is required")?;
+            return Ok(Command::Producer { device, layer });
+        }
+        "lessor" => {
+            let name = lease_name.ok_or("lessor: --lease is required")?;
+            let dir = dlm_dir.ok_or("lessor: --dlm-dir is required")?;
+            return Ok(Command::Lessor(lessor::LessorOptions {
+                request,
+                socket: wire::dlm_socket_path(Some(&dir), &name),
+                once,
+            }));
+        }
+        _ => {}
+    }
+    let source = match source.as_str() {
+        "master" => Source::Master {
+            device: device.clone(),
+        },
+        "kernel-lease" => Source::KernelLease(request),
+        "dlm" => {
+            let name = lease_name.ok_or("--source dlm needs --lease <NAME>")?;
+            Source::Dlm {
+                socket: wire::dlm_socket_path(dlm_dir.as_deref(), &name),
+            }
+        }
+        other => return Err(format!("--source: unknown source {other}")),
+    };
+    if planes.is_some() && !matches!(source, Source::KernelLease(_)) {
+        return Err("--planes is for --source kernel-lease".into());
+    }
+    let producers = match producers.as_str() {
+        "local" => ProducerMode::Local,
+        "external" => ProducerMode::External { device },
+        other => return Err(format!("--producers: unknown mode {other}")),
+    };
     let scenario = scenario.ok_or("no scenario given")?;
-    if scenario != "all" && !SCENARIOS.iter().any(|(name, _, _)| *name == scenario) {
+    let known = SCENARIOS
+        .iter()
+        .chain(LEASE_SCENARIOS.iter())
+        .any(|(name, _, _)| *name == scenario);
+    if scenario != "all" && !known {
         return Err(format!("unknown scenario {scenario}"));
     }
-    Ok(Some((
-        Options {
-            source: Source::Master { device },
+    Ok(Command::Run(
+        Box::new(Options {
+            source,
             connector,
             profile,
             seconds,
             frames,
             buffers,
-        },
+            producers,
+        }),
         scenario,
-    )))
+    ))
 }
 
-fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let (options, scenario) = match parse(&args) {
-        Ok(Some(parsed)) => parsed,
-        Ok(None) => {
-            print!("{}", usage());
-            return ExitCode::SUCCESS;
-        }
-        Err(message) => {
-            eprintln!("drm-harness: {message}\n");
-            eprint!("{}", usage());
-            return ExitCode::from(2);
-        }
-    };
+fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
     Record::new("harness")
         .field("version", env!("CARGO_PKG_VERSION"))
-        .field("scenario", &scenario)
+        .field("scenario", scenario)
         .field("args", args.join(" "))
         .emit();
+    let lease_scenarios: &[(&str, Scenario, &str)] =
+        if matches!(options.source, Source::KernelLease(_)) || scenario != "all" {
+            &LEASE_SCENARIOS
+        } else {
+            &[]
+        };
     let mut passed = 0;
     let mut failed = 0;
-    for (name, run, _) in SCENARIOS {
-        if scenario != "all" && scenario != name {
+    for (name, run, _) in SCENARIOS.iter().chain(lease_scenarios.iter()) {
+        if scenario != "all" && scenario != *name {
             continue;
         }
-        let (pass, reason) = match run(&options) {
+        let problems_before = producer::PROBLEMS.load(Ordering::Relaxed);
+        let (mut pass, mut reason) = match run(options) {
             Ok(outcome) => (outcome.pass, outcome.reason),
             Err(error) => {
                 Record::new("error")
@@ -194,6 +332,12 @@ fn main() -> ExitCode {
                 (false, error)
             }
         };
+        // The session, and with it the producers, ended with the scenario.
+        let problems = producer::PROBLEMS.load(Ordering::Relaxed) - problems_before;
+        if problems > 0 {
+            pass = false;
+            reason = format!("{reason}; producers reported {problems} problems");
+        }
         println!("{}", verdict_line(name, pass, &reason));
         if pass {
             passed += 1;
@@ -211,5 +355,137 @@ fn main() -> ExitCode {
         ExitCode::SUCCESS
     } else {
         ExitCode::FAILURE
+    }
+}
+
+fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let command = match parse(&args) {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("drm-harness: {message}\n");
+            eprint!("{}", usage());
+            return ExitCode::from(2);
+        }
+    };
+    match command {
+        Command::Help => {
+            print!("{}", usage());
+            ExitCode::SUCCESS
+        }
+        Command::Run(options, scenario) => run(&options, &scenario, &args),
+        Command::Lessor(options) => match lessor::run_lessor(&options) {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(error) => {
+                eprintln!("drm-harness lessor: {error}");
+                ExitCode::FAILURE
+            }
+        },
+        Command::Producer { device, layer } => match producer::run_producer(&device, layer) {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(error) => {
+                eprintln!("drm-harness producer {layer}: {error}");
+                ExitCode::FAILURE
+            }
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn args(text: &str) -> Vec<String> {
+        text.split_whitespace().map(String::from).collect()
+    }
+
+    fn options(text: &str) -> (Options, String) {
+        match parse(&args(text)).unwrap() {
+            Command::Run(options, scenario) => (*options, scenario),
+            _ => panic!("not a run: {text}"),
+        }
+    }
+
+    #[test]
+    fn sources_parse() {
+        let (o, scenario) = options("two-planes");
+        assert_eq!(scenario, "two-planes");
+        assert!(matches!(o.source, Source::Master { .. }));
+        assert!(matches!(o.producers, ProducerMode::Local));
+
+        let (o, _) = options("--source kernel-lease --connector LVDS --planes 31,32 revoke");
+        match o.source {
+            Source::KernelLease(r) => {
+                assert_eq!(r.overlays, Some(vec![31, 32]));
+                assert_eq!(r.connector.as_deref(), Some("LVDS"));
+            }
+            other => panic!("{other:?}"),
+        }
+
+        let (o, _) = options("--source=dlm --lease card0-LVDS-1 --dlm-dir /run/dlm rotate");
+        match o.source {
+            Source::Dlm { socket } => assert_eq!(socket, PathBuf::from("/run/dlm/card0-LVDS-1")),
+            other => panic!("{other:?}"),
+        }
+
+        let (o, _) = options("--producers external --device /dev/dri/card1 all");
+        match o.producers {
+            ProducerMode::External { device } => {
+                assert_eq!(device, PathBuf::from("/dev/dri/card1"))
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn bad_combinations_are_refused() {
+        for bad in [
+            "--source dlm rotate",
+            "--source nope rotate",
+            "--planes 31 rotate",
+            "--producers remote rotate",
+            "--source kernel-lease --planes 31,x revoke",
+            "frobnicate",
+        ] {
+            assert!(parse(&args(bad)).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn subcommands_parse() {
+        match parse(&args("producer --device /dev/dri/card0 --layer 2")).unwrap() {
+            Command::Producer { layer, .. } => assert_eq!(layer, 2),
+            _ => panic!(),
+        }
+        assert!(parse(&args("producer --device /dev/dri/card0")).is_err());
+        match parse(&args(
+            "lessor --lease l --dlm-dir /run/x --connector LVDS --once",
+        ))
+        .unwrap()
+        {
+            Command::Lessor(o) => {
+                assert_eq!(o.socket, PathBuf::from("/run/x/l"));
+                assert!(o.once);
+            }
+            _ => panic!(),
+        }
+        assert!(parse(&args("lessor --lease l")).is_err());
+        assert!(parse(&args("lessor --dlm-dir /x --lease l rotate")).is_err());
+    }
+
+    #[test]
+    fn help_lists_sources_producers_and_revoke() {
+        let text = usage();
+        for needle in [
+            "--source",
+            "kernel-lease",
+            "dlm",
+            "--producers",
+            "external",
+            "revoke",
+            "lessor",
+        ] {
+            assert!(text.contains(needle), "{needle}");
+        }
     }
 }

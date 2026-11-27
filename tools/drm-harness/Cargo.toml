@@ -16,7 +16,7 @@ path = "src/main.rs"
 composition-core = { path = "../../crates/composition-core" }
 composition-drm = { path = "../../crates/composition-drm" }
 drm = "0.15"
-rustix = { version = "1", features = ["event", "fs", "param"] }
+rustix = { version = "1", features = ["event", "fs", "net", "param"] }
 
 [lints]
 workspace = true

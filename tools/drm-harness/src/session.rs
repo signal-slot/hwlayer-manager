@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::io;
 use std::os::fd::AsFd;
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use composition_core::limits::MAX_OUTPUTS;
@@ -16,8 +17,10 @@ use drm::buffer::{Buffer as _, DrmFourcc};
 use drm::control::{connector, crtc, Device as ControlDevice, Mode};
 use drm::Device as BasicDevice;
 
+use crate::draw::{self, Op};
+use crate::producer::Producers;
 use crate::record::{list, Record};
-use crate::source::Source;
+use crate::source::{Holder, Source};
 use crate::stats::micros;
 
 /// How long a commit may take to be latched before it counts as lost.
@@ -38,6 +41,31 @@ pub struct Options {
     pub frames: Option<u32>,
     /// Buffers per plane in `rotate`.
     pub buffers: u32,
+    /// Who allocates and draws the buffers.
+    pub producers: ProducerMode,
+}
+
+/// Who allocates and draws the buffers.
+#[derive(Clone, Debug)]
+pub enum ProducerMode {
+    /// The harness, on the descriptor the engine drives.
+    Local,
+    /// One producer process per layer, opening this device node without
+    /// DRM master and passing DMA-BUFs (see `producer.rs`).
+    External {
+        /// Device node the producers open.
+        device: PathBuf,
+    },
+}
+
+impl ProducerMode {
+    /// Short name, for the records.
+    pub fn name(&self) -> &'static str {
+        match self {
+            ProducerMode::Local => "local",
+            ProducerMode::External { .. } => "external",
+        }
+    }
 }
 
 /// Metadata of the buffers this session registered, for planner-only runs.
@@ -78,13 +106,24 @@ pub struct Session {
     pub refresh_mhz: u32,
     infos: Infos,
     next_buffer: u32,
+    /// Producer processes, with `--producers external`.
+    producers: Option<Producers>,
+    /// Keeps the descriptor valid (lessor, lease-manager connection).
+    /// Declared after `engine`, so the lease descriptor is closed before
+    /// the lease is released.
+    holder: Holder,
 }
 
 /// A connected connector as the backend pairs it with a CRTC.
-struct Pairing {
-    crtc: crtc::Handle,
-    connector: String,
-    mode: Mode,
+pub struct Pairing {
+    /// The CRTC.
+    pub crtc: crtc::Handle,
+    /// The connector.
+    pub handle: connector::Handle,
+    /// Its name, such as `LVDS-1`.
+    pub connector: String,
+    /// The mode it runs or would run.
+    pub mode: Mode,
 }
 
 fn connector_name(info: &connector::Info) -> String {
@@ -93,7 +132,7 @@ fn connector_name(info: &connector::Info) -> String {
 
 /// Pairs connected connectors with CRTCs the way `DrmBackend` does, to name
 /// the outputs it reports (it identifies them by CRTC only).
-fn pairings(card: &Card) -> io::Result<Vec<Pairing>> {
+pub fn pairings(card: &Card) -> io::Result<Vec<Pairing>> {
     let resources = card.resource_handles()?;
     let mut found: Vec<Pairing> = Vec::new();
     for handle in resources.connectors() {
@@ -131,6 +170,7 @@ fn pairings(card: &Card) -> io::Result<Vec<Pairing>> {
         };
         found.push(Pairing {
             crtc,
+            handle: *handle,
             connector: connector_name(&info),
             mode,
         });
@@ -189,12 +229,13 @@ impl Session {
     /// Opens the source, makes sure it is DRM master if it has to be, and
     /// picks the output. Prints what was found.
     pub fn open(options: &Options, scenario: &str) -> Result<Self, String> {
-        let fd = options
+        let opened = options
             .source
             .open()
             .map_err(|e| os(&format!("open {}", options.source.describe()), e))?;
+        let holder = opened.holder;
         let backend = DrmBackend::from_fd(
-            fd,
+            opened.fd,
             DrmOptions {
                 scaling: None,
                 profile: options.profile,
@@ -226,6 +267,7 @@ impl Session {
                     DriverProfile::Imx95Dpu => "imx95",
                 },
             )
+            .field("producers", options.producers.name())
             .emit();
         if let Some(Err(error)) = master {
             return Err(format!(
@@ -304,6 +346,34 @@ impl Session {
                 .field("formats", formats)
                 .emit();
         }
+        if let Holder::Lessor(lessor) = &holder {
+            // The engine must see the leased planes and nothing else.
+            let leased = lessor.leased.plane_ids();
+            let seen: Vec<u32> = caps.planes.iter().map(|p| p.id.0).collect();
+            let foreign: Vec<u32> = seen
+                .iter()
+                .copied()
+                .filter(|id| !leased.contains(id))
+                .collect();
+            let missing: Vec<u32> = leased
+                .iter()
+                .copied()
+                .filter(|id| !seen.contains(id))
+                .collect();
+            Record::new("lease_check")
+                .field("leased_planes", list(leased.iter()))
+                .field("engine_planes", list(seen.iter()))
+                .field("not_leased", list(foreign.iter()))
+                .field("leased_not_seen", list(missing.iter()))
+                .field("outputs", caps.outputs.len())
+                .emit();
+            if !foreign.is_empty() {
+                return Err(format!(
+                    "the engine sees planes outside the lease: {}",
+                    list(foreign.iter())
+                ));
+            }
+        }
         for group in caps.resource_groups.iter() {
             Record::new("resource_group")
                 .field("consumers", group.consumers.0)
@@ -318,7 +388,25 @@ impl Session {
             refresh_mhz: out.refresh_mhz,
             infos: Infos::default(),
             next_buffer: 1,
+            producers: match &options.producers {
+                ProducerMode::Local => None,
+                ProducerMode::External { device } => Some(Producers::new(device.clone())),
+            },
+            holder,
         })
+    }
+
+    /// Whether a lessor in this process holds the lease.
+    pub fn can_revoke(&self) -> bool {
+        matches!(&self.holder, Holder::Lessor(l) if l.holds_lease())
+    }
+
+    /// Revokes the lease, as its lessor.
+    pub fn revoke(&mut self) -> Result<(), String> {
+        match &mut self.holder {
+            Holder::Lessor(lessor) => lessor.revoke().map_err(|e| os("revoke lease", e)),
+            _ => Err("no lease made by this process to revoke".into()),
+        }
     }
 
     /// Planes that can show something on the selected output.
@@ -365,12 +453,16 @@ impl Session {
         id
     }
 
-    /// Allocates a dumb buffer, draws it with `draw` and marks it ready.
+    /// Allocates a buffer for `layer`, draws `ops` into it and marks it
+    /// ready. The harness allocates it as a dumb buffer, or with
+    /// `--producers external` the layer's producer process does (32-bit
+    /// RGB formats; other formats stay with the harness).
     pub fn dumb(
         &mut self,
+        layer: usize,
         size: Size,
         format: PixelFormat,
-        draw: impl FnOnce(&mut [u8], usize),
+        ops: &[Op],
     ) -> Result<BufferId, String> {
         let id = self.new_id();
         let info = BufferInfo {
@@ -378,6 +470,40 @@ impl Session {
             format,
             modifier: Modifier::LINEAR,
         };
+        let producer_format = [
+            PixelFormat::XRGB8888,
+            PixelFormat::ARGB8888,
+            PixelFormat::XBGR8888,
+            PixelFormat::ABGR8888,
+        ]
+        .contains(&format);
+        if let (Some(producers), true) = (self.producers.as_mut(), producer_format) {
+            let supplied = producers.alloc(layer, id, size, format, ops)?;
+            if supplied.info != info {
+                return Err(format!(
+                    "producer {layer} supplied {:?}, asked for {info:?}",
+                    supplied.info
+                ));
+            }
+            self.engine
+                .backend_mut()
+                .import_dmabuf(
+                    id,
+                    info,
+                    &[DmabufPlane {
+                        fd: supplied.fd.as_fd(),
+                        offset: supplied.offset,
+                        pitch: supplied.pitch,
+                    }],
+                )
+                .map_err(|e| os(&format!("import buffer of producer {layer}"), e))?;
+            self.engine
+                .register_buffer(id, info)
+                .map_err(|e| describe(&e))?;
+            self.infos.0.insert(id, info);
+            self.engine.finish_write(id).map_err(|e| describe(&e))?;
+            return Ok(id);
+        }
         self.engine
             .backend_mut()
             .create_dumb_buffer(id, info)
@@ -388,42 +514,53 @@ impl Session {
         self.infos.0.insert(id, info);
         self.engine
             .backend_mut()
-            .draw_dumb_buffer(id, draw)
+            .draw_dumb_buffer(id, |pixels, pitch| draw::apply(pixels, pitch, ops))
             .map_err(|e| os("map dumb buffer", e))?;
         self.engine.finish_write(id).map_err(|e| describe(&e))?;
         Ok(id)
     }
 
-    /// Redraws an idle buffer: `begin_write`, `draw`, `finish_write`. The
-    /// engine refuses `begin_write` while the buffer is submitted or shown.
-    /// If drawing fails the buffer stays writable, so it cannot be shown.
-    pub fn redraw(
-        &mut self,
-        id: BufferId,
-        draw: impl FnOnce(&mut [u8], usize),
-    ) -> Result<(), String> {
+    /// Redraws an idle buffer: `begin_write`, draw `ops`, `finish_write`.
+    /// The engine refuses `begin_write` while the buffer is submitted or
+    /// shown. A producer's buffer is drawn by the producer, which refuses
+    /// unless it was told the buffer is released. If drawing fails the
+    /// buffer stays writable, so it cannot be shown.
+    pub fn redraw(&mut self, id: BufferId, ops: &[Op]) -> Result<(), String> {
         self.engine
             .begin_write(id)
             .map_err(|e| format!("begin_write: {}", describe(&e)))?;
-        self.engine
-            .backend_mut()
-            .draw_dumb_buffer(id, draw)
-            .map_err(|e| os("map dumb buffer", e))?;
+        match self.producers.as_mut().filter(|p| p.owns(id)) {
+            Some(producers) => {
+                producers.draw(id, ops)?;
+            }
+            None => self
+                .engine
+                .backend_mut()
+                .draw_dumb_buffer(id, |pixels, pitch| draw::apply(pixels, pitch, ops))
+                .map_err(|e| os("map dumb buffer", e))?,
+        }
         self.engine
             .finish_write(id)
             .map_err(|e| format!("finish_write: {}", describe(&e)))
     }
 
-    /// Reads a dumb buffer's pixels without changing its state. Only for
-    /// checks; the content must not be modified.
-    pub fn inspect<R>(
-        &mut self,
-        id: BufferId,
-        read: impl FnOnce(&[u8], usize) -> R,
-    ) -> Result<R, String> {
+    /// Checksum of the visible bytes of a buffer, read without changing
+    /// its state (by its producer, for a producer's buffer).
+    pub fn checksum(&mut self, id: BufferId) -> Result<u64, String> {
+        if let Some(producers) = self.producers.as_mut().filter(|p| p.owns(id)) {
+            return producers.checksum(id);
+        }
+        let size = self
+            .infos
+            .0
+            .get(&id)
+            .ok_or_else(|| format!("unknown buffer {}", id.0))?
+            .size;
         self.engine
             .backend_mut()
-            .draw_dumb_buffer(id, |pixels, pitch| read(pixels, pitch))
+            .draw_dumb_buffer(id, |pixels, pitch| {
+                draw::checksum(pixels, pitch, size.width, size.height)
+            })
             .map_err(|e| os("map dumb buffer", e))
     }
 
@@ -558,7 +695,9 @@ impl Session {
         })
     }
 
-    /// Takes every display event available now.
+    /// Takes every display event available now. A release of a producer's
+    /// buffer is passed on to the producer here, so that it may draw into
+    /// the buffer again.
     pub fn drain(&mut self) -> Result<Vec<DisplayEvent>, String> {
         let mut events = Vec::new();
         while let Some(event) = self
@@ -566,6 +705,13 @@ impl Session {
             .poll_event()
             .map_err(|e| format!("events: {}", describe(&e)))?
         {
+            if let (DisplayEvent::Released { buffer }, Some(producers)) =
+                (event, self.producers.as_mut())
+            {
+                if producers.owns(buffer) {
+                    producers.released(buffer)?;
+                }
+            }
             events.push(event);
         }
         Ok(events)

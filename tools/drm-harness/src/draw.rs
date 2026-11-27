@@ -103,3 +103,84 @@ pub fn checksum(pixels: &[u8], pitch: usize, width: u32, height: u32) -> u64 {
     }
     hash
 }
+
+/// One drawing step. Scenarios describe pictures as lists of steps, so that
+/// the same picture can be drawn here or by a producer process (the steps
+/// travel over its socket, see `producer.rs`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Op {
+    /// [`fill`].
+    Fill {
+        /// Area.
+        rect: Rect,
+        /// Colour.
+        colour: u32,
+    },
+    /// [`border`].
+    Border {
+        /// Outer edge of the frame.
+        rect: Rect,
+        /// Width of the frame in pixels.
+        thickness: u32,
+        /// Colour.
+        colour: u32,
+    },
+    /// [`checker`].
+    Checker {
+        /// Area.
+        rect: Rect,
+        /// Side of a square in pixels.
+        cell: u32,
+        /// Colour of the first square.
+        a: u32,
+        /// Colour of the other squares.
+        b: u32,
+    },
+}
+
+/// Draws `ops` in order.
+pub fn apply(pixels: &mut [u8], pitch: usize, ops: &[Op]) {
+    for op in ops {
+        match *op {
+            Op::Fill { rect, colour } => fill(pixels, pitch, rect, colour),
+            Op::Border {
+                rect,
+                thickness,
+                colour,
+            } => border(pixels, pitch, rect, thickness, colour),
+            Op::Checker { rect, cell, a, b } => checker(pixels, pitch, rect, cell, a, b),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn apply_draws_steps_in_order() {
+        let pitch = 4 * 4;
+        let mut pixels = vec![0u8; pitch * 4];
+        apply(
+            &mut pixels,
+            pitch,
+            &[
+                Op::Fill {
+                    rect: Rect::new(0, 0, 4, 4),
+                    colour: colour::RED,
+                },
+                Op::Border {
+                    rect: Rect::new(0, 0, 4, 4),
+                    thickness: 1,
+                    colour: colour::WHITE,
+                },
+            ],
+        );
+        let at = |x: usize, y: usize| {
+            u32::from_le_bytes(pixels[y * pitch + x * 4..][..4].try_into().unwrap())
+        };
+        assert_eq!(at(0, 0), colour::WHITE);
+        assert_eq!(at(1, 1), colour::RED);
+        assert_eq!(at(3, 2), colour::WHITE);
+    }
+}
