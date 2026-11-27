@@ -5,8 +5,8 @@
 
 use crate::backend::{BackendError, BackendEvent, DisplayBackend};
 use crate::caps::Capabilities;
-use crate::fixed::FixedVec;
-use crate::limits::MAX_LAYERS;
+use crate::fixed::{FixedQueue, FixedVec};
+use crate::limits::{MAX_LAYERS, MAX_OUTPUTS};
 use crate::planner::{self, Plan, PlanError, SearchLimits, Verdict};
 use crate::presentation::{BufferState, DisplayEvent, PresentError, Presentation};
 use crate::trace::{DropReason, NoTrace, Trace, TraceEvent};
@@ -56,6 +56,10 @@ pub struct Engine<B: DisplayBackend, T: Trace = NoTrace> {
     presentation: Presentation,
     limits: SearchLimits,
     latch_timeout: Option<u64>,
+    /// Latches no pending submission matched, seen while a commit the
+    /// backend had already accepted collected its events; reported by
+    /// [`Engine::poll_event`].
+    unexpected: FixedQueue<(OutputId, SubmissionId), MAX_OUTPUTS>,
     trace: T,
 }
 
@@ -88,6 +92,7 @@ impl<B: DisplayBackend> Engine<B> {
             presentation: Presentation::EMPTY,
             limits: SearchLimits::default(),
             latch_timeout: None,
+            unexpected: FixedQueue::empty_filled((OutputId(0), SubmissionId(0))),
             trace: NoTrace,
         }
     }
@@ -106,6 +111,7 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
             presentation: self.presentation,
             limits: self.limits,
             latch_timeout: self.latch_timeout,
+            unexpected: self.unexpected,
             trace,
         }
     }
@@ -329,7 +335,7 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
         // or a commit that changed nothing): that latch is held back and
         // recorded after the submission. `check_submit` reserved the room
         // for all of these.
-        let mut own_latch = None;
+        let mut own_latch = false;
         let mut lost = false;
         while self.presentation.events_room() > MAX_LAYERS + 1 {
             let Some(event) = self.backend.poll_event() else {
@@ -339,7 +345,20 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
                 BackendEvent::Latched {
                     output,
                     submission: latched,
-                } if latched == submission => own_latch = Some(output),
+                } if latched == submission && output == frame.output => own_latch = true,
+                // The backend holds the new frame now, so the commit must
+                // succeed. A latch that matches nothing (a duplicate, say)
+                // changes nothing; it is reported by `poll_event` instead.
+                BackendEvent::Latched { output, submission } => {
+                    match self.latched(output, submission) {
+                        Err(Error::Present(PresentError::UnexpectedLatch { .. })) => {
+                            // Beyond the queue's room, further ones are
+                            // dropped: they would report the same fault.
+                            let _ = self.unexpected.push((output, submission));
+                        }
+                        result => result?,
+                    }
+                }
                 event => {
                     lost |= event == BackendEvent::DeviceLost;
                     self.apply_backend_event(event)?;
@@ -354,8 +373,8 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
         let recorded = self.presentation.submit(frame.output, &buffers, replace)?;
         self.trace_events(start, None, DropReason::Replaced);
         debug_assert_eq!(recorded, submission);
-        if let Some(output) = own_latch {
-            self.latched(output, recorded)?;
+        if own_latch {
+            self.latched(frame.output, recorded)?;
         }
         Ok(recorded)
     }
@@ -375,11 +394,19 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
     /// Takes the next display event, pulling from the backend as needed.
     ///
     /// Returns an error if the backend reports something inconsistent, such
-    /// as a latch for a submission that is not pending.
+    /// as a latch for a submission that is not pending. Such a latch seen
+    /// while [`Engine::commit`] collected the backend's events, after the
+    /// backend accepted the frame, does not fail the commit: it is reported
+    /// here, after the display events queued by then.
     pub fn poll_event(&mut self) -> Result<Option<DisplayEvent>, Error> {
         loop {
             if let Some(event) = self.presentation.poll_event() {
                 return Ok(Some(event));
+            }
+            // After the events of the commit that saw them, before anything
+            // the backend queued later.
+            if let Some((output, submission)) = self.unexpected.pop() {
+                return Err(PresentError::UnexpectedLatch { output, submission }.into());
             }
             // The queue is empty here, so the events of one backend event
             // always fit.
