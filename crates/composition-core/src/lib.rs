@@ -7,6 +7,8 @@
 //!
 //! - [`types`] and [`caps`]: the scene model and the capability model.
 //! - [`planner`]: assigns layers to hardware planes, or reports why it cannot.
+//! - [`advise`]: advisory planning for a compositor that composes what the
+//!   planes cannot take; never commits.
 //! - [`presentation`]: buffer and submission lifecycle
 //!   (writable → ready → submitted → scanning → released).
 //! - [`backend`]: the contract a display backend implements.
@@ -17,6 +19,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+pub mod advise;
 pub mod backend;
 pub mod caps;
 pub mod engine;
@@ -27,6 +30,10 @@ pub mod presentation;
 pub mod trace;
 pub mod types;
 
+pub use advise::{
+    advise, explain_layer, Advice, AdviceError, AdviseOptions, Blocker, ComposeTarget, LayerAdvice,
+    Placement, COMPOSE_LAYER, MAX_CANDIDATES,
+};
 pub use backend::{BackendError, BackendEvent, DisplayBackend};
 pub use caps::{
     Capabilities, FormatModifier, LayerTraits, OutputCaps, PlaneCaps, PlaneKind, ResourceGroup,

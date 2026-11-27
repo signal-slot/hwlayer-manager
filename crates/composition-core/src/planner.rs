@@ -590,7 +590,7 @@ fn axis_within(source: u32, destination: u32, max_upscale: u32, max_downscale: u
     }
 }
 
-fn static_reasons(
+pub(crate) fn static_reasons(
     layer: &Layer,
     info: &BufferInfo,
     plane: &PlaneCaps,
