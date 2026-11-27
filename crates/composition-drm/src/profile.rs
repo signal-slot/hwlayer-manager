@@ -122,11 +122,12 @@ pub enum DriverProfile {
     /// kernel 6.18 on the NanoPC-T6). The table and its evidence tags are in
     /// the module documentation of `src/profile/rk3588.rs`.
     Rk3588Vop2,
-    /// Raspberry Pi BCM2711 HVS5 (vc4). The constraint table is not filled
-    /// yet; see `docs/hvs-backend-design.md`.
+    /// Raspberry Pi BCM2711 HVS5 (vc4): scaling, `max_source` and an LBM
+    /// group. The tagged table is the module doc of `profile/vc4.rs`.
     Vc4Hvs5,
-    /// Raspberry Pi BCM2712 HVS6 (vc4). The constraint table is not filled
-    /// yet; see `docs/hvs-backend-design.md`.
+    /// Raspberry Pi BCM2712 HVS6 (vc4): scaling, `max_source`, LBM and UPM
+    /// groups, and no T-tiled or SAND64 pairs. The tagged table is the module
+    /// doc of `profile/vc4.rs`.
     Vc4Hvs6,
 }
 

@@ -1,6 +1,6 @@
-//! The vc4 profiles are placeholders: they leave capabilities as KMS reported
-//! them. The RK3588 profile has its table now; its tests are in
-//! `profile_rk3588.rs`.
+//! The Generic profile leaves capabilities as KMS reported them. The RK3588
+//! and vc4 profiles have their tables now; their tests are in
+//! `profile_rk3588.rs` and `profile_vc4.rs`.
 
 use composition_core::{Capabilities, PlaneCaps, PlaneId, PlaneKind, ScaleLimits, Size};
 use composition_drm::DriverProfile;
@@ -46,13 +46,8 @@ fn unchanged(profile: DriverProfile) {
 }
 
 #[test]
-fn vc4_hvs5_is_a_no_op() {
-    unchanged(DriverProfile::Vc4Hvs5);
-}
-
-#[test]
-fn vc4_hvs6_is_a_no_op() {
-    unchanged(DriverProfile::Vc4Hvs6);
+fn generic_is_a_no_op() {
+    unchanged(DriverProfile::Generic);
 }
 
 #[test]
