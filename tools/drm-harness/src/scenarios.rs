@@ -7,11 +7,11 @@ use std::time::Instant;
 use composition_core::limits::MAX_LAYERS;
 use composition_core::planner;
 use composition_core::{
-    BlendMode, BufferId, BufferInfo, BufferState, DisplayEvent, Error, Layer, Modifier,
-    PixelFormat, PlanError, Rect, Size, Transform,
+    BackendError, BlendMode, BufferId, BufferInfo, BufferState, DisplayEvent, Error, Layer,
+    Modifier, PixelFormat, PlanError, Rect, Size, Transform,
 };
 
-use crate::draw::{self, colour};
+use crate::draw::{colour, Op};
 use crate::record::{list, Record};
 use crate::session::{describe, planes_of, rect, Options, Session, Shown, LATCH_TIMEOUT};
 use crate::stats::{micros, missed_vblanks, period_us, summary_fields, Usage};
@@ -56,18 +56,33 @@ fn whole(size: Size) -> Rect {
     Rect::new(0, 0, size.width, size.height)
 }
 
-/// A buffer of `size` filled with `fill`, framed with `edge`.
+/// Fills `rect` with `colour`.
+fn fill(rect: Rect, colour: u32) -> Op {
+    Op::Fill { rect, colour }
+}
+
+/// A buffer of `size` for `layer`, filled with `fill`, framed with `edge`.
 fn framed(
     s: &mut Session,
+    layer: usize,
     size: Size,
     format: PixelFormat,
-    fill: u32,
+    fill_colour: u32,
     edge: u32,
 ) -> Result<BufferId, String> {
-    s.dumb(size, format, |pixels, pitch| {
-        draw::fill(pixels, pitch, whole(size), fill);
-        draw::border(pixels, pitch, whole(size), 8, edge);
-    })
+    s.dumb(
+        layer,
+        size,
+        format,
+        &[
+            fill(whole(size), fill_colour),
+            Op::Border {
+                rect: whole(size),
+                thickness: 8,
+                colour: edge,
+            },
+        ],
+    )
 }
 
 fn print_commit(step: &str, shown: &Shown) {
@@ -125,8 +140,8 @@ pub fn two_planes(o: &Options) -> Result<Outcome, String> {
     let size = s.size;
     let (w, h) = (size.width, size.height);
     let top_size = Size::new(w / 2, h / 2);
-    let bottom = framed(&mut s, size, XRGB, colour::BLUE, colour::WHITE)?;
-    let top = framed(&mut s, top_size, ARGB, colour::RED, colour::YELLOW)?;
+    let bottom = framed(&mut s, 0, size, XRGB, colour::BLUE, colour::WHITE)?;
+    let top = framed(&mut s, 1, top_size, ARGB, colour::RED, colour::YELLOW)?;
     let layers = [
         Layer::new(bottom, whole(size), whole(size), 0),
         Layer::new(top, whole(top_size), at(w / 4, h / 4, top_size), 1),
@@ -160,20 +175,25 @@ pub fn zorder_alpha(o: &Options) -> Result<Outcome, String> {
     let size = s.size;
     let (w, h) = (size.width, size.height);
     let half = Size::new(w / 2, h / 2);
-    let a = framed(&mut s, half, ARGB, colour::RED, colour::WHITE)?;
-    let b = framed(&mut s, half, ARGB, colour::GREEN, colour::WHITE)?;
+    let a = framed(&mut s, 0, half, ARGB, colour::RED, colour::WHITE)?;
+    let b = framed(&mut s, 1, half, ARGB, colour::GREEN, colour::WHITE)?;
     // Left half opaque red, right half red at half pixel alpha, premultiplied.
-    let a_alpha = s.dumb(half, ARGB, |pixels, pitch| {
-        let left = Rect::new(0, 0, half.width / 2, half.height);
-        let right = Rect::new(
-            (half.width / 2) as i32,
-            0,
-            half.width - half.width / 2,
-            half.height,
-        );
-        draw::fill(pixels, pitch, left, colour::RED);
-        draw::fill(pixels, pitch, right, colour::RED_HALF_PREMULTIPLIED);
-    })?;
+    let left = Rect::new(0, 0, half.width / 2, half.height);
+    let right = Rect::new(
+        (half.width / 2) as i32,
+        0,
+        half.width - half.width / 2,
+        half.height,
+    );
+    let a_alpha = s.dumb(
+        0,
+        half,
+        ARGB,
+        &[
+            fill(left, colour::RED),
+            fill(right, colour::RED_HALF_PREMULTIPLIED),
+        ],
+    )?;
     let a_at = at(w / 8, h / 8, half);
     let b_at = at(3 * w / 8, 3 * h / 8, half);
     let layer = |buffer, dst, z| Layer::new(buffer, whole(half), dst, z);
@@ -251,18 +271,27 @@ pub fn move_top(o: &Options) -> Result<Outcome, String> {
     let frames = o.frames.unwrap_or(MOVE_FRAMES).max(2);
     let size = s.size;
     let (w, h) = (size.width, size.height);
-    let bottom = s.dumb(size, XRGB, |pixels, pitch| {
-        draw::checker(pixels, pitch, whole(size), 64, colour::GREY, colour::BLACK);
-        draw::border(pixels, pitch, whole(size), 8, colour::WHITE);
-    })?;
+    let bottom = s.dumb(
+        0,
+        size,
+        XRGB,
+        &[
+            Op::Checker {
+                rect: whole(size),
+                cell: 64,
+                a: colour::GREY,
+                b: colour::BLACK,
+            },
+            Op::Border {
+                rect: whole(size),
+                thickness: 8,
+                colour: colour::WHITE,
+            },
+        ],
+    )?;
     let top_size = Size::new((w / 4).max(16), (h / 4).max(16));
-    let top = framed(&mut s, top_size, ARGB, colour::YELLOW, colour::RED)?;
-    let checksum = |s: &mut Session| {
-        s.inspect(bottom, |pixels, pitch| {
-            draw::checksum(pixels, pitch, size.width, size.height)
-        })
-    };
-    let before = checksum(&mut s)?;
+    let top = framed(&mut s, 1, top_size, ARGB, colour::YELLOW, colour::RED)?;
+    let before = s.checksum(bottom)?;
     Record::new("step")
         .field("label", "move")
         .field("frames", frames)
@@ -341,7 +370,7 @@ pub fn move_top(o: &Options) -> Result<Outcome, String> {
             break;
         }
     }
-    let after = checksum(&mut s)?;
+    let after = s.checksum(bottom)?;
     let mut record = Record::new("move_result")
         .field("frames", frames)
         .field("bottom_checksum_before", format!("{before:016x}"))
@@ -393,10 +422,17 @@ pub fn combos(o: &Options) -> Result<Outcome, String> {
     let (w, h) = (size.width, size.height);
     let plane_count = s.planes_on_output().len();
     let small = Size::new((w / 8).max(16), (h / 8).max(16));
-    let bg = framed(&mut s, size, XRGB, colour::BLUE, colour::WHITE)?;
+    let bg = framed(&mut s, 0, size, XRGB, colour::BLUE, colour::WHITE)?;
     let mut smalls = Vec::new();
-    for _ in 0..plane_count.min(MAX_LAYERS) {
-        smalls.push(framed(&mut s, small, ARGB, colour::RED, colour::WHITE)?);
+    for layer in 1..=plane_count.min(MAX_LAYERS) {
+        smalls.push(framed(
+            &mut s,
+            layer,
+            small,
+            ARGB,
+            colour::RED,
+            colour::WHITE,
+        )?);
     }
     let bg_layer = Layer::new(bg, whole(size), whole(size), 0);
     let small_layer = |index: usize, count: usize| {
@@ -561,7 +597,8 @@ pub fn combos(o: &Options) -> Result<Outcome, String> {
     // Linux refuses a framebuffer in a format no plane of the device lists,
     // so the allocation may fail; the planner must still see the layer.
     let odd = match candidate {
-        Some(format) => match s.dumb(odd_size, format, |pixels, _| pixels.fill(0x80)) {
+        // Every byte 0x80, whatever the pixel size.
+        Some(format) => match s.dumb(1, odd_size, format, &[fill(whole(odd_size), 0x8080_8080)]) {
             Ok(id) => id,
             Err(error) => {
                 Record::new("alloc")
@@ -820,9 +857,7 @@ pub fn rotate(o: &Options) -> Result<Outcome, String> {
     for c in 0..2 {
         for i in 0..k {
             let (sz, base) = (sizes[c], bases[c]);
-            let id = s.dumb(sz, formats[c], |pixels, pitch| {
-                draw::fill(pixels, pitch, whole(sz), base)
-            })?;
+            let id = s.dumb(c, sz, formats[c], &[fill(whole(sz), base)])?;
             state.where_is.insert(id, (c, i));
             chains[c].push(Rotated {
                 id,
@@ -880,13 +915,12 @@ pub fn rotate(o: &Options) -> Result<Outcome, String> {
             let band_w = 32.min(sz.width);
             let x = ((n as u32 * 8) % (sz.width - band_w + 1)) as i32;
             let band = Rect::new(x, 0, band_w, sz.height);
-            let old = chains[c][i].band;
-            s.redraw(id, |pixels, pitch| {
-                if let Some(old) = old {
-                    draw::fill(pixels, pitch, old, base);
-                }
-                draw::fill(pixels, pitch, band, colour::WHITE);
-            })?;
+            let mut ops = Vec::new();
+            if let Some(old) = chains[c][i].band {
+                ops.push(fill(old, base));
+            }
+            ops.push(fill(band, colour::WHITE));
+            s.redraw(id, &ops)?;
             chains[c][i].band = Some(band);
             current[c] = id;
         }
@@ -1022,6 +1056,235 @@ pub fn rotate(o: &Options) -> Result<Outcome, String> {
             "{frames} frames, {k} buffers per plane, {} releases in order, \
              {} dropped, {} missed vblanks",
             state.releases, state.dropped, state.missed
+        ),
+    ))
+}
+
+/// Default number of frames `revoke` shows before the lessor revokes.
+pub const REVOKE_FRAMES: u32 = 60;
+
+/// `revoke`: rotate buffers on two planes through a kernel lease, then the
+/// lessor revokes the lease between two frames. The engine must report
+/// the loss once, release every buffer that was on screen, and report no
+/// outputs any more.
+pub fn revoke(o: &Options) -> Result<Outcome, String> {
+    let mut s = Session::open(o, "revoke")?;
+    if !s.can_revoke() {
+        return Err("revoke needs --source kernel-lease: this process must be the lessor".into());
+    }
+    let usage = Usage::now();
+    let frames = o.frames.unwrap_or(REVOKE_FRAMES).max(2) as usize;
+    let k = o.buffers as usize;
+    let size = s.size;
+    let (w, h) = (size.width, size.height);
+    let top_size = Size::new(w / 2, h / 2);
+    let sizes = [size, top_size];
+    let bases = [colour::BLUE, colour::RED];
+    let formats = [XRGB, ARGB];
+    let mut chains: [Vec<BufferId>; 2] = [Vec::new(), Vec::new()];
+    for c in 0..2 {
+        for _ in 0..k {
+            let id = s.dumb(c, sizes[c], formats[c], &[fill(whole(sizes[c]), bases[c])])?;
+            chains[c].push(id);
+        }
+    }
+    let all: Vec<BufferId> = chains.iter().flatten().copied().collect();
+    Record::new("step")
+        .field("label", "revoke")
+        .field("frames_before", frames)
+        .field("buffers_per_plane", k)
+        .field(
+            "expect",
+            "white bars sweep, then the lease is revoked and the picture stops changing",
+        )
+        .emit();
+
+    let mut failures = Vec::new();
+    let mut releases_before = 0u32;
+    let layers_for = |n: usize| {
+        [
+            Layer::new(chains[0][n % k], whole(size), whole(size), 0),
+            Layer::new(
+                chains[1][n % k],
+                whole(top_size),
+                at(w / 4, h / 4, top_size),
+                1,
+            ),
+        ]
+    };
+    // Waits until the buffers of frame `n` are idle and draws them.
+    let prepare = |s: &mut Session, n: usize, releases: &mut u32| -> Result<(), String> {
+        for c in 0..2 {
+            let id = chains[c][n % k];
+            let deadline = Instant::now() + LATCH_TIMEOUT;
+            while s.engine.buffer_state(id) != Some(BufferState::Ready) {
+                if Instant::now() >= deadline {
+                    return Err(format!(
+                        "frame {n}: buffer {} not released ({:?})",
+                        id.0,
+                        s.engine.buffer_state(id)
+                    ));
+                }
+                s.wait(LATCH_TIMEOUT / 10)?;
+                *releases += s
+                    .drain()?
+                    .iter()
+                    .filter(|e| matches!(e, DisplayEvent::Released { .. }))
+                    .count() as u32;
+            }
+            let sz = sizes[c];
+            let band_w = 32.min(sz.width);
+            let x = ((n as u32 * 8) % (sz.width - band_w + 1)) as i32;
+            s.redraw(
+                id,
+                &[
+                    fill(whole(sz), bases[c]),
+                    fill(Rect::new(x, 0, band_w, sz.height), colour::WHITE),
+                ],
+            )?;
+        }
+        Ok(())
+    };
+    let mut first_plan = None;
+    for n in 0..frames {
+        prepare(&mut s, n, &mut releases_before)?;
+        let layers = layers_for(n);
+        let shown = s.present(&layers)?;
+        releases_before += shown
+            .events
+            .iter()
+            .filter(|e| matches!(e, DisplayEvent::Released { .. }))
+            .count() as u32;
+        if first_plan.is_none() {
+            s.print_plan("revoke", &layers, &shown.plan);
+            failures.extend(check_distinct_and_order("revoke", &layers, &shown));
+            first_plan = Some(planes_of(&shown.plan));
+        }
+    }
+    let on_screen: Vec<BufferId> = all
+        .iter()
+        .copied()
+        .filter(|b| s.engine.buffer_state(*b) == Some(BufferState::Scanning))
+        .collect();
+    Record::new("before_revoke")
+        .field("frames", frames)
+        .field("releases", releases_before)
+        .field("on_screen", list(on_screen.iter().map(|b| b.0)))
+        .emit();
+    if on_screen.len() != 2 {
+        failures.push(format!(
+            "{} buffers on screen before the revocation, expected 2",
+            on_screen.len()
+        ));
+    }
+
+    // The lessor revokes between two frames; the next frame is prepared
+    // as usual and must fail with the loss of the device.
+    s.revoke()?;
+    let revoked_at = Instant::now();
+    prepare(&mut s, frames, &mut releases_before)?;
+    let layers = layers_for(frames);
+    let first = s.engine.validate(&s.frame(&layers)).map(|_| ());
+    let first_us = micros(revoked_at.elapsed());
+    let mut events = Vec::new();
+    let deadline = Instant::now() + LATCH_TIMEOUT;
+    loop {
+        events.extend(s.drain()?);
+        if events.contains(&DisplayEvent::DeviceLost) || Instant::now() >= deadline {
+            break;
+        }
+        s.wait(LATCH_TIMEOUT / 10)?;
+    }
+    // Nothing more may come. Once the loss is applied the backend reports
+    // no outputs, so a further frame stops at the planner: the output it
+    // names is unknown.
+    let second = s.engine.validate(&s.frame(&layers)).map(|_| ());
+    events.extend(s.drain()?);
+    let lost = events
+        .iter()
+        .filter(|e| **e == DisplayEvent::DeviceLost)
+        .count();
+    let released: Vec<BufferId> = events
+        .iter()
+        .filter_map(|e| match e {
+            DisplayEvent::Released { buffer } => Some(*buffer),
+            _ => None,
+        })
+        .collect();
+    let busy: Vec<BufferId> = all
+        .iter()
+        .copied()
+        .filter(|b| {
+            matches!(
+                s.engine.buffer_state(*b),
+                Some(BufferState::Scanning | BufferState::Submitted)
+            )
+        })
+        .collect();
+    let outputs = s.engine.capabilities().outputs.len();
+    let planes = s.engine.capabilities().planes.len();
+    Record::new("revoke_result")
+        .field("first_attempt", format!("{first:?}"))
+        .field("first_attempt_us", first_us)
+        .field("second_attempt", format!("{second:?}"))
+        .field("device_lost_events", lost)
+        .field("released", list(released.iter().map(|b| b.0)))
+        .field("still_busy", list(busy.iter().map(|b| b.0)))
+        .field("outputs_after", outputs)
+        .field("planes_after", planes)
+        .field(
+            "events",
+            list(events.iter().map(|e| format!("{e:?}").replace(' ', ""))),
+        )
+        .emit();
+    let lost_error = Err(Error::Backend(BackendError::DeviceLost));
+    if first != lost_error {
+        failures.push(format!(
+            "first frame after revocation: {first:?}, expected DeviceLost"
+        ));
+    }
+    if second != Err(Error::Plan(PlanError::UnknownOutput(s.output))) {
+        failures.push(format!(
+            "second frame after revocation: {second:?}, expected UnknownOutput({:?})",
+            s.output
+        ));
+    }
+    if lost != 1 {
+        failures.push(format!("{lost} DeviceLost events, expected 1"));
+    }
+    for buffer in &on_screen {
+        let count = released.iter().filter(|b| *b == buffer).count();
+        if count != 1 {
+            failures.push(format!(
+                "buffer {} was on screen and released {count} times after the revocation",
+                buffer.0
+            ));
+        }
+    }
+    if let Some(extra) = released.iter().find(|b| !on_screen.contains(b)) {
+        failures.push(format!(
+            "buffer {} released after the revocation but was not on screen",
+            extra.0
+        ));
+    }
+    if !busy.is_empty() {
+        failures.push(format!(
+            "buffers {} still submitted or scanning",
+            list(busy.iter().map(|b| b.0))
+        ));
+    }
+    if outputs != 0 || planes != 0 {
+        failures.push(format!(
+            "{outputs} outputs and {planes} planes still reported after the loss"
+        ));
+    }
+    print_resources("revoke", &usage);
+    Ok(Outcome::new(
+        &failures,
+        format!(
+            "{frames} frames on planes {}, then revoked: DeviceLost once, buffers {} released",
+            first_plan.map_or("-".into(), |p| list(p.iter())),
+            list(on_screen.iter().map(|b| b.0))
         ),
     ))
 }
