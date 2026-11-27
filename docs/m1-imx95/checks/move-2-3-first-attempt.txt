@@ -1,0 +1,10 @@
+FAIL with the first expectation for top_at_pos3 (230,230,0); output of run_checks.py, 2026-11-27:
+== move: 20261127T194339Z-move-2-rect.jpg vs 20261127T194357Z-move-3-rect.jpg
+PASS  top_at_pos2      measured (243.8,233.5,  0.3) expected (230.0,230.0,  0.0) distance   14.3 tol  70.0
+FAIL  after:top_at_pos3      measured (180.2,170.8,  0.4) expected (230.0,230.0,  0.0) distance   77.4 tol  70.0
+PASS  compare top_at_pos2      want changed distance  254.5 threshold  60.0  A (243.8,233.5,  0.3) B ( 60.1, 61.2, 36.8)
+PASS  compare pos3_before      want changed distance  203.9 threshold  60.0  A ( 30.4, 33.5, 17.2) B (180.2,170.8,  0.4)
+PASS  compare still_upper      want same    distance    0.5 threshold  30.0  A ( 58.4, 57.9, 36.3) B ( 58.0, 57.7, 36.5)
+PASS  compare still_lower      want same    distance    0.4 threshold  30.0  A ( 81.7, 84.2, 58.5) B ( 81.3, 83.9, 58.5)
+PASS  compare still_left       want same    distance    0.3 threshold  30.0  A (120.8,124.0,100.3) B (120.6,123.7,100.3)
+VERDICT: FAIL

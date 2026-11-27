@@ -1,0 +1,6 @@
+{
+  "comment": "Outer corners TL TR BR BL of the two-planes red layer (panel 320,200 to 960,600, from the commit's assign record) in the 180-degree rotated full-size camera frame of pictures/20261127T193910Z-two-planes-1 (camera locked), found as the extreme red/yellow pixels along the diagonals on a 4x downscaled copy. rectify.py scales them to the picture's size.",
+  "frame_size": [4608, 2592],
+  "quad": [[1906, 362], [3526, 694], [3498, 1746], [1822, 1594]],
+  "panel_rect": [320, 200, 960, 600]
+}

@@ -1,0 +1,22 @@
+{
+  "rotation": 0,
+  "panel": {"corners": [[0, 0], [1279, 0], [1279, 799], [0, 799]]},
+  "tolerance": 70,
+  "regions": [
+    {"name": "top_at_pos1", "rect": [0.15, 0.42, 0.28, 0.58], "expect": [250, 250, 170]},
+    {"name": "pos2_before", "rect": [0.60, 0.42, 0.73, 0.58]},
+    {"name": "still_upper", "rect": [0.40, 0.10, 0.70, 0.30]},
+    {"name": "still_lower", "rect": [0.30, 0.70, 0.70, 0.90]},
+    {"name": "still_between", "rect": [0.40, 0.42, 0.50, 0.58]}
+  ],
+  "regions_after": [
+    {"name": "top_at_pos2", "rect": [0.60, 0.42, 0.73, 0.58], "expect": [230, 230, 0]}
+  ],
+  "compare": [
+    {"region": "top_at_pos1", "expect": "changed", "threshold": 60},
+    {"region": "pos2_before", "expect": "changed", "threshold": 60},
+    {"region": "still_upper", "expect": "same", "threshold": 30},
+    {"region": "still_lower", "expect": "same", "threshold": 30},
+    {"region": "still_between", "expect": "same", "threshold": 30}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "rotation": 0,
+  "panel": {"corners": [[0, 0], [1279, 0], [1279, 799], [0, 799]]},
+  "tolerance": 70,
+  "regions": [
+    {"name": "red_only", "rect": [0.47, 0.17, 0.58, 0.30], "expect": [240, 80, 0]},
+    {"name": "green_only", "rect": [0.66, 0.66, 0.84, 0.84], "expect": [90, 220, 0]},
+    {"name": "overlap", "rect": [0.43, 0.43, 0.57, 0.57], "expect": [240, 80, 0]},
+    {"name": "background", "rect": [0.88, 0.10, 0.97, 0.30], "expect": [10, 10, 5], "tolerance": 30}
+  ]
+}

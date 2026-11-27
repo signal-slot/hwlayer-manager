@@ -1,0 +1,54 @@
+# start_utc=2026-11-27T19:44:22Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --frames 3000 --buffers 3 rotate
+harness version=0.1.0 scenario=rotate args="--connector LVDS --profile imx95 --frames 3000 --buffers 3 rotate"
+session scenario=rotate source=master device=/dev/dri/card0 driver=imx95-dpu master=yes profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=42 kind=primary zpos=0..5 on_output=no alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=59 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=67 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=75 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=83 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+resource_group consumers=1 planes=0x7f capacity=6
+resource_group consumers=14 planes=0x7f capacity=4
+resource_group consumers=2 planes=0x7f capacity=1
+resource_group consumers=4 planes=0x7f capacity=1
+step label=rotate frames=3000 buffers_per_plane=3 period_us=16668 expect="white bars sweep across the blue background and the red rectangle"
+assign step=rotate layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=rotate layer=1 buffer=4 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=rotate layers=2 assigned=2 planes=31,51
+progress frames=100 presented=100 releases=198 violations=0
+progress frames=200 presented=200 releases=398 violations=0
+progress frames=300 presented=300 releases=598 violations=0
+progress frames=400 presented=400 releases=798 violations=0
+progress frames=500 presented=500 releases=998 violations=0
+progress frames=600 presented=600 releases=1198 violations=0
+progress frames=700 presented=700 releases=1398 violations=0
+progress frames=800 presented=800 releases=1598 violations=0
+progress frames=900 presented=900 releases=1798 violations=0
+progress frames=1000 presented=1000 releases=1998 violations=0
+progress frames=1100 presented=1100 releases=2198 violations=0
+progress frames=1200 presented=1200 releases=2398 violations=0
+progress frames=1300 presented=1300 releases=2598 violations=0
+progress frames=1400 presented=1400 releases=2798 violations=0
+progress frames=1500 presented=1500 releases=2998 violations=0
+progress frames=1600 presented=1600 releases=3198 violations=0
+progress frames=1700 presented=1700 releases=3398 violations=0
+progress frames=1800 presented=1800 releases=3598 violations=0
+progress frames=1900 presented=1900 releases=3798 violations=0
+progress frames=2000 presented=2000 releases=3998 violations=0
+progress frames=2100 presented=2100 releases=4198 violations=0
+progress frames=2200 presented=2200 releases=4398 violations=0
+progress frames=2300 presented=2300 releases=4598 violations=0
+progress frames=2400 presented=2400 releases=4798 violations=0
+progress frames=2500 presented=2500 releases=4998 violations=0
+progress frames=2600 presented=2600 releases=5198 violations=0
+progress frames=2700 presented=2700 releases=5398 violations=0
+progress frames=2800 presented=2800 releases=5598 violations=0
+progress frames=2900 presented=2900 releases=5798 violations=0
+progress frames=3000 presented=3000 releases=5998 violations=0
+rotate_result frames=3000 buffers_per_plane=3 presented=3000 dropped=0 missed_vblanks=0 latch_timeouts=0 releases=5998 order_violations=0 overwrite_avoided=0 assignment_changes=0 planes=31,51 refresh_mhz=59993 period_us=16668 warmup_frames=1 latency_count=2999 latency_min_us=9624 latency_median_us=11168 latency_p99_us=14490 latency_max_us=15020 latency_mean_us=11177 interval_count=2998 interval_min_us=16388 interval_median_us=16668 interval_p99_us=16892 interval_max_us=16972 interval_mean_us=16668 validate_count=3000 validate_min_us=64 validate_median_us=142 validate_p99_us=310 validate_max_us=387 validate_mean_us=155 commit_count=3000 commit_min_us=47 commit_median_us=133 commit_p99_us=280 commit_max_us=16824 commit_mean_us=149
+resources scenario=rotate wall_ms=50023 cpu_user_ms=2440 cpu_sys_ms=14750 cpu_pct=34.4 rss_kib=1236 peak_rss_kib=1236
+VERDICT rotate PASS 3000 frames, 3 buffers per plane, 5998 releases in order, 0 dropped, 0 missed vblanks
+# end_utc=2026-11-27T19:45:12Z exit_status=0
