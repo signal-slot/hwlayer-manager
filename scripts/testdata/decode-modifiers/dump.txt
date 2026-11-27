@@ -1,0 +1,7 @@
+plane 40 type=Overlay
+  fmt XR24 modifier=0x0
+  fmt XR24 mod 0x0700000000000001 extra
+  fmt AR24 0x0800000000000041
+  fmt NV12 0x0700000000000004, 0x0700000000000005
+  zpos 0x7 not a modifier
+  fmt XR24 0x4200000000000007
