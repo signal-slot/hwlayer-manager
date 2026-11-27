@@ -198,17 +198,23 @@ static ce_status twoplane_commit(void *ctx, uint64_t submission, const ce_frame 
 			b->app_seq = f->seq;
 		}
 		if (!b->app_on) {
-			(void)b->hw->enable_app_plane(b->dev, true);
+			if (b->hw->enable_app_plane(b->dev, true) != 0) {
+				return CE_ERR_BACKEND_REJECTED; /* stays off: a later frame retries */
+			}
 			b->app_on = true;
 		}
 	} else if (b->app_on) {
-		(void)b->hw->enable_app_plane(b->dev, false);
+		if (b->hw->enable_app_plane(b->dev, false) != 0) {
+			return CE_ERR_BACKEND_REJECTED; /* stays on: a later frame retries */
+		}
 		b->app_on = false;
 	}
 	const struct ce_twoplane_record *s = record(b, safety->buffer);
 
 	if (s->pa != b->safety_pa) {
-		(void)b->hw->safety_flip(b->dev);
+		if (b->hw->safety_flip(b->dev) != 0) {
+			return CE_ERR_BACKEND_REJECTED; /* the plane keeps its buffer */
+		}
 		b->safety_pa = s->pa;
 	}
 	key = b->port->irq_lock();
