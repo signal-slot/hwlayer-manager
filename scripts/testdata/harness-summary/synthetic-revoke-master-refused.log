@@ -1,0 +1,8 @@
+# SYNTHETIC - hand-made drm-harness records for scripts/harness-summary.py --self-test.
+# NOT measurements from a real board: never quote these numbers as evidence.
+# A refused scenario run: `revoke` needs the kernel-lease source, so the
+# harness stopped before opening any device. There is no `session` record, so
+# the source comes from the harness args and every measurement is `not measured`.
+harness version=0.1.0 scenario=revoke args="--source master --frames 60 revoke"
+error scenario=revoke message="revoke needs --source kernel-lease: this process must be the lessor"
+VERDICT revoke FAIL revoke needs --source kernel-lease: this process must be the lessor

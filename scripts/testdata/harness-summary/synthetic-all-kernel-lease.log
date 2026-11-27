@@ -1,0 +1,25 @@
+# SYNTHETIC - hand-made drm-harness records for scripts/harness-summary.py --self-test.
+# NOT measurements from a real board: never quote these numbers as evidence.
+# An `all` run on `--source kernel-lease`, in the order the real harness writes
+# it: each scenario's `lease` record comes BEFORE its `session` record. The
+# `all-move` scenario fails before its session (the lease is refused), so it
+# has only `error` and `VERDICT`; that evidence belongs to `all-move`, not to
+# the scenario before it. Lessees 11 and 13 must stay with their own runs.
+harness version=0.1.0 scenario=all args="--connector LVDS --profile imx95 --source kernel-lease all"
+lease route=kernel device=/dev/dri/card0 lessee=11 connector=91 connector_name=LVDS-1 crtc=87 primary=86 overlays=143 objects=4
+session scenario=all-two-planes source=kernel-lease device=/dev/dri/card0 driver=imx-drm profile=imx95 producers=local
+output index=0 id=91 connector=LVDS-1 width=1280 height=800 refresh_mhz=60000 mode=1280x800 vrefresh=60 clock_khz=75900 selected=yes
+plane id=86 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=24 scaling=false formats=XR24
+plane id=143 kind=overlay zpos=0..7 on_output=yes alpha=true blend_mask=24 scaling=true formats=XR24,AR24
+assign step=two-planes layer=0 buffer=5 plane=86 kind=primary zpos=0 alpha=0x00ffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=two-planes layer=1 buffer=6 plane=143 kind=overlay zpos=1 alpha=0xffff00 blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=two-planes layers=2 assigned=2 planes=86,143
+commit step=two-planes submission=1 validate_us=800 commit_us=300 latency_us=16500
+VERDICT all-two-planes PASS 2 buffers on planes 86,143 (bottom,top)
+error scenario=all-move message="open kernel lease: Permission denied (os error 13)"
+VERDICT all-move FAIL open kernel lease: Permission denied (os error 13)
+lease route=kernel device=/dev/dri/card0 lessee=13 connector=91 connector_name=LVDS-1 crtc=87 primary=86 overlays=143 objects=4
+session scenario=all-combos source=kernel-lease device=/dev/dri/card0 driver=imx-drm profile=imx95 producers=local
+output index=0 id=91 connector=LVDS-1 width=1280 height=800 refresh_mhz=60000 mode=1280x800 vrefresh=60 clock_khz=75900 selected=yes
+commit step=combos submission=1 validate_us=900 commit_us=400 latency_us=17000
+VERDICT all-combos PASS combos done

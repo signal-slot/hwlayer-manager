@@ -1,0 +1,22 @@
+# SYNTHETIC - hand-made drm-harness records for scripts/harness-summary.py --self-test.
+# NOT measurements from a real board: never quote these numbers as evidence.
+# Second `rotate` run on the same source: one frame dropped, one lifecycle
+# violation, one plane-assignment change. This file exists so the self-test
+# can check how the script merges two runs into one group.
+harness version=0.1.0 scenario=rotate args="--connector LVDS --profile imx95 --source kernel-lease --frames 6 --buffers 3 rotate"
+lease route=kernel device=/dev/dri/card0 lessee=2 connector=91 connector_name=LVDS-1 crtc=87 primary=86 overlays=143,144 objects=5
+session scenario=rotate source=kernel-lease device=/dev/dri/card0 driver=imx-drm profile=imx95 producers=local
+output index=0 id=91 connector=LVDS-1 width=1280 height=800 refresh_mhz=60000 mode=1280x800 vrefresh=60 clock_khz=75900 selected=yes
+plane id=86 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=24 scaling=false formats=XR24
+plane id=143 kind=overlay zpos=0..7 on_output=yes alpha=true blend_mask=24 scaling=true formats=XR24,AR24
+plane id=144 kind=overlay zpos=0..7 on_output=yes alpha=true blend_mask=24 scaling=true formats=XR24
+lease_check leased_planes=86,143,144 engine_planes=86,143,144 not_leased=- leased_not_seen=- outputs=1
+step label=rotate frames=6 buffers_per_plane=3 expect="white bars sweep across both planes"
+assign step=rotate layer=0 buffer=5 plane=86 kind=primary zpos=0 alpha=0x00ff00 blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=rotate layer=1 buffer=8 plane=143 kind=overlay zpos=1 alpha=0xffffff blend=Opaque src=0,0,640x400 dst=640,400,640x400
+plan step=rotate layers=2 assigned=2 planes=86,143
+violation what="buffer 8 redrawn before it was released"
+progress frames=6 presented=5 releases=10 violations=1
+rotate_result frames=6 buffers_per_plane=3 presented=5 dropped=1 missed_vblanks=2 latch_timeouts=0 releases=10 order_violations=1 overwrite_avoided=0 assignment_changes=1 planes=86,143 refresh_mhz=60000 period_us=16666 warmup_frames=1 latency_count=5 latency_min_us=15000 latency_median_us=16000 latency_p99_us=16200 latency_max_us=16200 latency_mean_us=15760 interval_count=4 interval_min_us=16100 interval_median_us=16300 interval_p99_us=16900 interval_max_us=16900 interval_mean_us=16450 validate_count=5 validate_min_us=550 validate_median_us=650 validate_p99_us=750 validate_max_us=750 validate_mean_us=650 commit_count=5 commit_min_us=320 commit_median_us=380 commit_p99_us=440 commit_max_us=440 commit_mean_us=380
+resources scenario=rotate wall_ms=2400 cpu_user_ms=300 cpu_sys_ms=110 cpu_pct=17.1 rss_kib=4480 peak_rss_kib=4736
+VERDICT rotate FAIL 5 of 6 frames presented; 1 lifecycle order violations
