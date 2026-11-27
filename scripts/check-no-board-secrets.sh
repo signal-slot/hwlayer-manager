@@ -69,6 +69,44 @@
 #   - FIXTURES below: sample values that another script's self-test writes on
 #     purpose, allowed per file and per text only.
 
+# --c7 BASE_REF [PATH...]: opt-in, reproduces the plan's acceptance grep c7
+#   git diff BASE_REF -- PATHS | grep -Ei '<c7 pattern>'
+# over the added lines only. Default PATHS: README.md CONTRIBUTING.md
+# docs/imx95-zephyr-feasibility.md docs/imx95-zephyr tests/board.
+# Prints "fail <file>: <line>" per hit, "ok" when clean. Exit 0/1/2 as usual.
+if [ "${1:-}" = "--c7" ]; then
+    if [ "$#" -lt 2 ]; then
+        echo "usage: $0 --c7 BASE_REF [PATH...]" >&2
+        exit 2
+    fi
+    c7base=$2
+    shift 2
+    git rev-parse --verify --quiet "$c7base^{commit}" >/dev/null || {
+        echo "check-no-board-secrets: unknown base ref: $c7base" >&2
+        exit 2
+    }
+    if [ "$#" -eq 0 ]; then
+        set -- README.md CONTRIBUTING.md docs/imx95-zephyr-feasibility.md docs/imx95-zephyr tests/board
+    fi
+    c7out=$(mktemp "${TMPDIR:-.}/nbs-c7.XXXXXX") || exit 2
+    trap 'rm -f "$c7out"' EXIT HUP INT TERM
+    git -c core.quotepath=off diff --no-color --no-ext-diff "$c7base" -- "$@" |
+    while IFS= read -r l; do
+        case $l in
+        "+++ /dev/null") file= ;;
+        "+++ b/"*) file=${l#"+++ b/"} ;;
+        "+"*) printf '%s\t%s\n' "$file" "${l#+}" ;;
+        esac
+    done |
+    grep -Ei '([0-9]{1,3}\.){3}[0-9]{1,3}|/dev/tty|password|@[a-z0-9-]+\.' |
+    sed 's/^/fail /; s/\t/: /' >"$c7out"
+    if [ -s "$c7out" ]; then
+        cat "$c7out"
+        exit 1
+    fi
+    echo ok
+    exit 0
+fi
 if [ "$#" -gt 1 ]; then
     echo "usage: $0 [BASE_REF]" >&2
     exit 2

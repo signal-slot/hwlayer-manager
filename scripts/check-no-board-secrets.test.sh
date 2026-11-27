@@ -150,6 +150,44 @@ nrun noarg-full-scan-hit 1 none "board at $ip" "ipv4: a.txt:1"
 )
 if [ $? -eq 1 ] && grep -q 'tty: old.txt:1' "$root/out"; then echo "ok   full-scan-old-line"; else echo "FAIL full-scan-old-line"; cat "$root/out"; fail=1; fi
 
+# --c7 mode: reproduces the plan's c7 grep over added lines of git diff BASE.
+c7run() {
+    name=$1 want=$2 content=$3 grepfor=$4
+    rm -rf "$repo"
+    mkdir -p "$repo/tests/board"
+    (
+        cd "$repo" || exit 2
+        git init -q -b main . &&
+            git config user.email t@example.invalid &&
+            git config user.name t &&
+            echo base >README.md && git add . && git commit -q -m base &&
+            printf '%s\n' "$content" >tests/board/a.txt &&
+            git add . && git commit -q -m change &&
+            sh "$script" --c7 HEAD~1 >"$root/out" 2>&1
+    )
+    got=$?
+    if [ "$got" -eq "$want" ] && grep -q "$grepfor" "$root/out"; then
+        echo "ok   c7-$name"
+    else
+        echo "FAIL c7-$name: want $want ($grepfor) got $got"
+        cat "$root/out" 2>/dev/null
+        fail=1
+    fi
+}
+c7run clean 0 "nothing to see; version 1.2.3" '^ok$'
+c7run ip 1 "board at $ip" '^fail tests/board/a.txt: board at'
+c7run tty 1 "console $tty" '^fail tests/board/a.txt: console'
+c7run email 1 "mail root@""corp.example" '^fail tests/board/a.txt: mail'
+c7run password-ci 1 "Pass""Word here" '^fail '
+(cd "$repo" && sh "$script" --c7 >/dev/null 2>&1)
+if [ $? -eq 2 ]; then echo "ok   c7-usage"; else echo "FAIL c7-usage"; fail=1; fi
+(cd "$repo" && sh "$script" --c7 nosuchref >/dev/null 2>&1)
+if [ $? -eq 2 ]; then echo "ok   c7-bad-base"; else echo "FAIL c7-bad-base"; fail=1; fi
+# Explicit PATH limits the scan; a hit outside it is ignored.
+(cd "$repo" && printf '%s\n' "board at $ip" >tests/board/a.txt && git commit -qam x &&
+    sh "$script" --c7 HEAD~2 README.md >"$root/out" 2>&1)
+if [ $? -eq 0 ] && grep -q '^ok$' "$root/out"; then echo "ok   c7-path-limit"; else echo "FAIL c7-path-limit"; fail=1; fi
+
 # check-no-farm-ids.sh: it scans tracked files, so each case builds a
 # throwaway repository holding a copy of the script plus one file.
 farm=$here/check-no-farm-ids.sh
