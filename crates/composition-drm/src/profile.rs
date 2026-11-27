@@ -9,6 +9,9 @@
 //!
 //! A profile is chosen explicitly through [`crate::DrmOptions::profile`].
 
+mod rk3588;
+mod vc4;
+
 use composition_core::{Capabilities, LayerTraits, PlaneKind, ResourceGroup, ScaleLimits, Size};
 
 /// Which driver's constraints to add to the discovered capabilities.
@@ -115,6 +118,15 @@ pub enum DriverProfile {
     /// Selection by driver name (`stm`) is not done here; the profile is
     /// chosen explicitly like the others.
     Stm32Ltdc,
+    /// Rockchip RK3588 VOP2. The constraint table is not filled yet; see
+    /// `docs/rk3588-backend-design.md`.
+    Rk3588Vop2,
+    /// Raspberry Pi BCM2711 HVS5 (vc4). The constraint table is not filled
+    /// yet; see `docs/hvs-backend-design.md`.
+    Vc4Hvs5,
+    /// Raspberry Pi BCM2712 HVS6 (vc4). The constraint table is not filled
+    /// yet; see `docs/hvs-backend-design.md`.
+    Vc4Hvs6,
 }
 
 impl DriverProfile {
@@ -173,6 +185,9 @@ impl DriverProfile {
                     }
                 }
             }
+            DriverProfile::Rk3588Vop2 => rk3588::apply_rk3588_vop2(caps),
+            DriverProfile::Vc4Hvs5 => vc4::apply_vc4(caps, vc4::Generation::Hvs5),
+            DriverProfile::Vc4Hvs6 => vc4::apply_vc4(caps, vc4::Generation::Hvs6),
         }
     }
 }

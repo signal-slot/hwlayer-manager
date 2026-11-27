@@ -266,6 +266,9 @@ impl Session {
                     DriverProfile::Generic => "generic",
                     DriverProfile::Imx95Dpu => "imx95",
                     DriverProfile::Stm32Ltdc => "stm32",
+                    DriverProfile::Rk3588Vop2 => "rk3588",
+                    DriverProfile::Vc4Hvs5 => "vc4-hvs5",
+                    DriverProfile::Vc4Hvs6 => "vc4-hvs6",
                 },
             )
             .field("producers", options.producers.name())
