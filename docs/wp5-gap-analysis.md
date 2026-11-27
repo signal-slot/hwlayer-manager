@@ -1,6 +1,6 @@
 # WP5 gap analysis: leased output, Weston-owned output, libliftoff
 
-Desk analysis for SoW §4.2 and WP5. Written 2026-11-28. Nothing here is measured, and nothing was run on a board.
+Desk analysis for SoW §4.2 and WP5. Written 2026-11-28. Nothing here is measured, and nothing was run on a board. Sections 1 to 7 are the 2026-11-28 analysis, kept as written except where marked; section 8 records which gaps later files closed.
 
 ## What was read
 
@@ -46,7 +46,7 @@ This holds for upstream `main` only. A vendor or AGL Weston fork, a downstream p
 | `composition-core` is `no_std`, bounded-memory, with a C ABI | source (this repo): `crates/composition-core`, `crates/composition-ffi`; SoW §3.2 |
 | `drm-lease-manager` (AGL): default lease per connector with one CRTC and the planes usable only with it; i.MX95 overlays shared between two CRTCs are left out unless listed in the TOML file; `ENOENT` after revocation | source (recorded): `docs/platform-capabilities.md`, AGL gerrit `src/drm-lease-manager` `master` at `68c48758c46d` |
 | SoW: DRM leasing is exclusive at object level; a lease does not let the engine modify planes on a CRTC Weston still owns | source (this repo): SoW §2, §4.1, §4.2 |
-| The repository is Apache-2.0 and has no `NOTICE`, contribution guidelines or sign-off policy | source (this repo): `LICENSE`; repository contents at `69706c8` |
+| The repository is Apache-2.0. At `69706c8` it had no `NOTICE` and no contribution guidelines; those now exist (section 8). A sign-off policy is still absent | source (this repo): `LICENSE`; `NOTICE`; `CONTRIBUTING.md` (no sign-off or DCO text); repository contents at `69706c8` and HEAD |
 
 ## 2. What Weston offers
 
@@ -168,3 +168,34 @@ Numbered for the tracker; none are filed (filing is outside this item).
 - No claim of measured advantage of this planner over libliftoff or Weston. There is no measurement.
 - Rows tagged source cover only the files and lines named. The Weston read in particular is partial (W5-01).
 - No claim that an upstream proposal would be accepted (SoW WP5 gives none).
+
+## 8. Status of the gaps at HEAD
+
+Updated 2026-11-28. A gap is marked closed only where a file at HEAD answers it; the file is named. Dates are the commit dates from `git log` of the commit that added the file, and all of them are 2026-11-27. Closed means the file exists and covers the gap's wording; it does not mean its content is verified beyond what the file itself says.
+
+| Gap | Status | Closing file (added, commit) | What stays open |
+| --- | --- | --- | --- |
+| W5-01 / WP5-01: which Weston the image ships, and whether it has lease code | Closed as a source read | `docs/weston-imx-lease.md` (2026-11-27, `58a8712`) | That the Toradex 7.8.0 image uses NXP `weston-imx` is inferred, not established (the file's section 5) |
+| W5-04 / WP5-03: advisory or planner-only entry point | Design only | `docs/advisory-planner-design.md` (2026-11-27, `84dd94c`) | Open: it is a proposal. Nothing is implemented in `crates/` or `include/`, and its decisions are still open |
+| W5-05 / WP5-04: cross-check against libliftoff | Design only | `docs/libliftoff-crosscheck.md` (2026-11-27, `4437b16`) | Open: no harness exists and nothing was run |
+| W5-07 / WP5-05: `NOTICE` | Closed in part | `NOTICE` (2026-11-27, `21b1653`) | Copyright holder, below |
+| W5-07 / WP5-05: licences of `drm-lease-manager` and `libdlmclient` | Closed | `docs/third-party-licences.md` (2026-11-27, `21b1653`), section 3.1 | The file lists items it did not read |
+| W5-07 / WP5-05: contribution guidelines | Closed | `CONTRIBUTING.md` (2026-11-27, `107c5c9`), with `.github/pull_request_template.md` (`c86231d`) | Sign-off policy: `CONTRIBUTING.md` has no sign-off or DCO text, so it is open |
+| WP5 minimal documentation: README | Closed | `README.md` (2026-11-27, `4f99c33`) | |
+| WP5 minimal documentation: terms | Closed | `docs/glossary.md` (2026-11-27, `fa5546b`) | |
+| WP5 minimal documentation: change record | Closed | `CHANGELOG.md` (2026-11-27, `039d02f`) | |
+| WP5: reporting security issues | Closed | `SECURITY.md` (2026-11-27, `38ba15a`) | |
+| WP5: reporting dated board results | Closed | `.github/ISSUE_TEMPLATE/board-result.md` (2026-11-27, `22f18ff`) | |
+| Repeatable checks: links, FFI header, board secrets, Zephyr app layout, all CI checks | Closed | `scripts/check-doc-links.sh` (`920e6f1`), `scripts/check-ffi-header.sh` (`2a06164`), `scripts/check-no-board-secrets.sh` (`582b919`), `scripts/check-zephyr-apps.sh` (`a119a09`), `scripts/check-all.sh` (`3686047`); all 2026-11-27 | |
+
+Still open, with no file at HEAD closing them:
+
+- **W5-02 / WP5-02 and W5-03: the full Weston read at a released tag.**
+- **W5-06 / WP5-06 and W5-08: the SoW §4.1 justification for not reusing libliftoff.** Still a desk argument; `docs/libliftoff-crosscheck.md` only proposes the cross-check.
+- **W5-07: the copyright holder.** `LICENSE` names none, and `NOTICE` uses the placeholder "The hwlayer-manager contributors" until the owner decides (`docs/third-party-licences.md`, section 1). The choice of Apache-2.0 or MIT for any upstream offer is not recorded as decided either.
+- **W5-07: the sign-off policy.**
+- **W5-09: the upstream path of `DriverProfile::Imx95Dpu`.**
+- **W5-10 / WP5-07: coexistence evidence.**
+- **W5-11 / WP5-08: reproducible demo and benchmark evidence.** `README.md` says these are not produced, and `docs/m1-imx95-report.md` is not present at HEAD.
+
+The numbered rows in sections 1 to 7 keep their original wording; section 8 is the current status.
