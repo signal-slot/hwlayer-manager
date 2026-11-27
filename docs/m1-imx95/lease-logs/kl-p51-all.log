@@ -1,0 +1,384 @@
+# start_utc=2026-11-27T20:11:29Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --source kernel-lease --planes 51 --seconds 3 all
+harness version=0.1.0 scenario=all args="--connector LVDS --profile imx95 --source kernel-lease --planes 51 --seconds 3 all"
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+session scenario=combos source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51 engine_planes=31,51 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+combo name=1-layer-full layers=1 expect=accept planner=accept planner_planes=31 validate_us=160 test_only=accept planes=31 assigned=1 layer0=plane:31,zpos:0,dst:0,0,1280x800 as_expected=true
+combo name=2-layers layers=2 expect=any planner=accept planner_planes=31,51 validate_us=113 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:426,266,160x100 as_expected=true
+combo name=3-layers-beyond-planes layers=3 expect=planner-refuse planner=refuse planner_reason="NoPlane { layer: 2, reasons: IN_USE }" test_only=not-run as_expected=true
+combo name=1-layer-partial layers=1 expect=any planner=accept planner_planes=31 validate_us=84 test_only=accept planes=31 assigned=1 layer0=plane:31,zpos:0,dst:320,200,160x100 as_expected=true
+combo name=plane-alpha-50 layers=2 expect=any planner=accept planner_planes=31,51 validate_us=62 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=argb-opaque layers=2 expect=any planner=accept planner_planes=31,51 validate_us=92 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=blend-premultiplied layers=2 expect=any planner=accept planner_planes=31,51 validate_us=57 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=blend-coverage layers=2 expect=any planner=accept planner_planes=31,51 validate_us=57 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,160x100 as_expected=true
+combo name=upscale-2x layers=2 expect=any planner=accept planner_planes=31,51 validate_us=92 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,320x200 as_expected=true
+combo name=downscale-2x layers=2 expect=any planner=refuse planner_reason="NoPlane { layer: 1, reasons: SCALING }" test_only=not-run as_expected=true
+combo name=rotate-90 layers=2 expect=any planner=refuse planner_reason="NoPlane { layer: 1, reasons: TRANSFORM }" test_only=not-run as_expected=true
+combo name=off-screen layers=2 expect=any planner=accept planner_planes=31 validate_us=82 test_only=accept planes=31 assigned=1 layer0=plane:31,zpos:0,dst:0,0,1280x800 as_expected=true
+combo name=partly-off-screen layers=2 expect=any planner=accept planner_planes=31,51 validate_us=57 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:1200,400,80x100 as_expected=true
+combo name=nv12 layers=2 expect=any planner=accept planner_planes=31,51 validate_us=90 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:640,400,320x200 as_expected=true
+combo name=nv12-upscale-2x layers=2 expect=any planner=accept planner_planes=31,51 validate_us=58 test_only=accept planes=31,51 assigned=2 layer0=plane:31,zpos:0,dst:0,0,1280x800 layer1=plane:51,zpos:1,dst:320,200,640x400 as_expected=true
+combo name=unsupported-format-HWLX layers=2 expect=planner-refuse planner=refuse planner_reason="NoPlane { layer: 1, reasons: FORMAT }" test_only=not-run as_expected=true
+combos_result combos=16 accepted=12 planner_refused=4 test_only_refused=0 errors=0 planes_on_output=2
+resources scenario=combos wall_ms=7 cpu_user_ms=0 cpu_sys_ms=0 cpu_pct=0.0 rss_kib=880 peak_rss_kib=880
+VERDICT combos PASS 12 accepted, 4 refused by the planner, 0 refused by TEST_ONLY, nothing committed
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+session scenario=two-planes source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51 engine_planes=31,51 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=two-planes layer=1 buffer=2 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=two-planes layers=2 assigned=2 planes=31,51
+commit step=two-planes submission=1 validate_us=145 commit_us=9905 latency_us=9911
+hold step=two-planes seconds=3
+resources scenario=two-planes wall_ms=3015 cpu_user_ms=0 cpu_sys_ms=10 cpu_pct=0.3 rss_kib=876 peak_rss_kib=876
+VERDICT two-planes PASS 2 buffers on planes 31,51 (bottom,top)
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+session scenario=zorder-alpha source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51 engine_planes=31,51 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+step label=a-over-b expect="red (upper left) above green (lower right): overlap is red"
+assign step=a-over-b layer=0 buffer=1 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=160,100,640x400
+assign step=a-over-b layer=1 buffer=2 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=a-over-b layers=2 assigned=2 planes=51,31
+commit step=a-over-b submission=1 validate_us=253 commit_us=5217 latency_us=5227
+hold step=a-over-b seconds=3
+step label=b-over-a expect="green above red: overlap is green"
+assign step=b-over-a layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=160,100,640x400
+assign step=b-over-a layer=1 buffer=2 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=b-over-a layers=2 assigned=2 planes=31,51
+commit step=b-over-a submission=2 validate_us=204 commit_us=149 latency_us=16268
+hold step=b-over-a seconds=3
+step label=plane-alpha-50 expect="red at 50% plane alpha above green: overlap is a red/green mix, rest of red is dark red"
+assign step=plane-alpha-50 layer=0 buffer=1 plane=51 kind=overlay zpos=1 alpha=0x8000 blend=Opaque src=0,0,640x400 dst=160,100,640x400
+assign step=plane-alpha-50 layer=1 buffer=2 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=plane-alpha-50 layers=2 assigned=2 planes=51,31
+commit step=plane-alpha-50 submission=3 validate_us=206 commit_us=148 latency_us=15963
+hold step=plane-alpha-50 seconds=3
+step label=pixel-alpha-premultiplied expect="left half of red opaque, right half 50% pixel alpha over green and black"
+assign step=pixel-alpha-premultiplied layer=0 buffer=3 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Premultiplied src=0,0,640x400 dst=160,100,640x400
+assign step=pixel-alpha-premultiplied layer=1 buffer=2 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x400 dst=480,300,640x400
+plan step=pixel-alpha-premultiplied layers=2 assigned=2 planes=51,31
+commit step=pixel-alpha-premultiplied submission=4 validate_us=205 commit_us=145 latency_us=16088
+hold step=pixel-alpha-premultiplied seconds=3
+resources scenario=zorder-alpha wall_ms=12066 cpu_user_ms=0 cpu_sys_ms=10 cpu_pct=0.1 rss_kib=876 peak_rss_kib=876
+VERDICT zorder-alpha PASS steps a-over-b,b-over-a,plane-alpha-50,pixel-alpha-premultiplied
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+session scenario=move source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51 engine_planes=31,51 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+step label=move frames=240 expect="yellow rectangle moves left to right over a still checkerboard"
+frame n=0 submission=1 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=0 validate_us=153 latency_us=13491
+frame n=1 submission=2 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=4 validate_us=66 latency_us=16763
+frame n=2 submission=3 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=8 validate_us=56 latency_us=16681
+frame n=3 submission=4 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=12 validate_us=80 latency_us=16501
+frame n=4 submission=5 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=16 validate_us=72 latency_us=16579
+frame n=5 submission=6 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=20 validate_us=72 latency_us=16478
+frame n=6 submission=7 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=24 validate_us=125 latency_us=16491
+frame n=7 submission=8 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=28 validate_us=126 latency_us=16520
+frame n=8 submission=9 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=32 validate_us=123 latency_us=16463
+frame n=9 submission=10 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=36 validate_us=124 latency_us=16358
+frame n=10 submission=11 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=40 validate_us=124 latency_us=16482
+frame n=11 submission=12 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=44 validate_us=179 latency_us=16530
+frame n=12 submission=13 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=48 validate_us=148 latency_us=16457
+frame n=13 submission=14 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=52 validate_us=126 latency_us=16481
+frame n=14 submission=15 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=56 validate_us=121 latency_us=16492
+frame n=15 submission=16 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=60 validate_us=121 latency_us=16494
+frame n=16 submission=17 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=64 validate_us=120 latency_us=16496
+frame n=17 submission=18 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=68 validate_us=120 latency_us=16493
+frame n=18 submission=19 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=72 validate_us=125 latency_us=16424
+frame n=19 submission=20 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=76 validate_us=132 latency_us=16517
+frame n=20 submission=21 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=80 validate_us=193 latency_us=16441
+frame n=21 submission=22 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=84 validate_us=175 latency_us=16387
+frame n=22 submission=23 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=88 validate_us=148 latency_us=16395
+frame n=23 submission=24 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=92 validate_us=132 latency_us=16479
+frame n=24 submission=25 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=96 validate_us=126 latency_us=16506
+frame n=25 submission=26 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=100 validate_us=125 latency_us=16520
+frame n=26 submission=27 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=104 validate_us=124 latency_us=16487
+frame n=27 submission=28 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=108 validate_us=125 latency_us=16457
+frame n=28 submission=29 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=112 validate_us=128 latency_us=16490
+frame n=29 submission=30 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=116 validate_us=125 latency_us=16522
+frame n=30 submission=31 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=120 validate_us=146 latency_us=16459
+frame n=31 submission=32 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=124 validate_us=132 latency_us=16481
+frame n=32 submission=33 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=128 validate_us=155 latency_us=16487
+frame n=33 submission=34 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=132 validate_us=147 latency_us=16432
+frame n=34 submission=35 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=136 validate_us=185 latency_us=16381
+frame n=35 submission=36 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=140 validate_us=150 latency_us=16365
+frame n=36 submission=37 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=144 validate_us=134 latency_us=16546
+frame n=37 submission=38 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=148 validate_us=172 latency_us=16394
+frame n=38 submission=39 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=152 validate_us=147 latency_us=16445
+frame n=39 submission=40 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=156 validate_us=129 latency_us=16490
+frame n=40 submission=41 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=160 validate_us=122 latency_us=16465
+frame n=41 submission=42 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=164 validate_us=123 latency_us=16458
+frame n=42 submission=43 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=168 validate_us=124 latency_us=16524
+frame n=43 submission=44 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=172 validate_us=127 latency_us=16446
+frame n=44 submission=45 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=176 validate_us=122 latency_us=16522
+frame n=45 submission=46 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=180 validate_us=123 latency_us=16455
+frame n=46 submission=47 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=184 validate_us=122 latency_us=16530
+frame n=47 submission=48 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=188 validate_us=122 latency_us=16488
+frame n=48 submission=49 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=192 validate_us=121 latency_us=16500
+frame n=49 submission=50 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=196 validate_us=123 latency_us=16485
+frame n=50 submission=51 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=200 validate_us=122 latency_us=16345
+frame n=51 submission=52 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=204 validate_us=131 latency_us=16599
+frame n=52 submission=53 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=208 validate_us=128 latency_us=16532
+frame n=53 submission=54 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=212 validate_us=126 latency_us=16440
+frame n=54 submission=55 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=216 validate_us=128 latency_us=16541
+frame n=55 submission=56 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=220 validate_us=132 latency_us=16465
+frame n=56 submission=57 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=224 validate_us=125 latency_us=16466
+frame n=57 submission=58 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=228 validate_us=130 latency_us=16460
+frame n=58 submission=59 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=232 validate_us=126 latency_us=16512
+frame n=59 submission=60 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=236 validate_us=123 latency_us=16486
+frame n=60 submission=61 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=241 validate_us=124 latency_us=16526
+frame n=61 submission=62 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=245 validate_us=127 latency_us=16486
+frame n=62 submission=63 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=249 validate_us=123 latency_us=16436
+frame n=63 submission=64 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=253 validate_us=125 latency_us=16487
+frame n=64 submission=65 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=257 validate_us=123 latency_us=16492
+frame n=65 submission=66 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=261 validate_us=124 latency_us=16478
+frame n=66 submission=67 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=265 validate_us=123 latency_us=16523
+frame n=67 submission=68 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=269 validate_us=126 latency_us=16509
+frame n=68 submission=69 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=273 validate_us=122 latency_us=16447
+frame n=69 submission=70 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=277 validate_us=123 latency_us=16486
+frame n=70 submission=71 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=281 validate_us=121 latency_us=16387
+frame n=71 submission=72 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=285 validate_us=124 latency_us=16498
+frame n=72 submission=73 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=289 validate_us=126 latency_us=16650
+frame n=73 submission=74 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=293 validate_us=126 latency_us=16490
+frame n=74 submission=75 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=297 validate_us=123 latency_us=16434
+frame n=75 submission=76 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=301 validate_us=125 latency_us=16445
+frame n=76 submission=77 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=305 validate_us=123 latency_us=16548
+frame n=77 submission=78 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=309 validate_us=123 latency_us=16486
+frame n=78 submission=79 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=313 validate_us=121 latency_us=16470
+frame n=79 submission=80 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=317 validate_us=124 latency_us=16504
+frame n=80 submission=81 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=321 validate_us=129 latency_us=16501
+frame n=81 submission=82 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=325 validate_us=126 latency_us=16496
+frame n=82 submission=83 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=329 validate_us=134 latency_us=16471
+frame n=83 submission=84 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=333 validate_us=125 latency_us=16488
+frame n=84 submission=85 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=337 validate_us=123 latency_us=16486
+frame n=85 submission=86 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=341 validate_us=124 latency_us=16486
+frame n=86 submission=87 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=345 validate_us=124 latency_us=16473
+frame n=87 submission=88 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=349 validate_us=130 latency_us=16457
+frame n=88 submission=89 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=353 validate_us=129 latency_us=16501
+frame n=89 submission=90 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=357 validate_us=175 latency_us=16467
+frame n=90 submission=91 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=361 validate_us=151 latency_us=16431
+frame n=91 submission=92 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=365 validate_us=132 latency_us=16442
+frame n=92 submission=93 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=369 validate_us=126 latency_us=16452
+frame n=93 submission=94 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=373 validate_us=124 latency_us=16491
+frame n=94 submission=95 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=377 validate_us=121 latency_us=16486
+frame n=95 submission=96 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=381 validate_us=126 latency_us=16505
+frame n=96 submission=97 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=385 validate_us=123 latency_us=16525
+frame n=97 submission=98 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=389 validate_us=123 latency_us=16469
+frame n=98 submission=99 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=393 validate_us=123 latency_us=16514
+frame n=99 submission=100 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=397 validate_us=123 latency_us=16500
+frame n=100 submission=101 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=401 validate_us=122 latency_us=16500
+frame n=101 submission=102 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=405 validate_us=137 latency_us=16427
+frame n=102 submission=103 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=409 validate_us=128 latency_us=16494
+frame n=103 submission=104 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=413 validate_us=125 latency_us=16491
+frame n=104 submission=105 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=417 validate_us=125 latency_us=16481
+frame n=105 submission=106 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=421 validate_us=125 latency_us=16525
+frame n=106 submission=107 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=425 validate_us=123 latency_us=16486
+frame n=107 submission=108 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=429 validate_us=124 latency_us=16479
+frame n=108 submission=109 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=433 validate_us=123 latency_us=16462
+frame n=109 submission=110 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=437 validate_us=122 latency_us=16502
+frame n=110 submission=111 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=441 validate_us=123 latency_us=16492
+frame n=111 submission=112 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=445 validate_us=124 latency_us=16332
+frame n=112 submission=113 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=449 validate_us=125 latency_us=16595
+frame n=113 submission=114 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=453 validate_us=128 latency_us=16499
+frame n=114 submission=115 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=457 validate_us=128 latency_us=16526
+frame n=115 submission=116 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=461 validate_us=135 latency_us=16448
+frame n=116 submission=117 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=465 validate_us=126 latency_us=16513
+frame n=117 submission=118 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=469 validate_us=133 latency_us=16443
+frame n=118 submission=119 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=473 validate_us=128 latency_us=16542
+frame n=119 submission=120 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=477 validate_us=145 latency_us=16379
+frame n=120 submission=121 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=482 validate_us=142 latency_us=16543
+frame n=121 submission=122 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=486 validate_us=151 latency_us=16430
+frame n=122 submission=123 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=490 validate_us=139 latency_us=16439
+frame n=123 submission=124 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=494 validate_us=130 latency_us=16481
+frame n=124 submission=125 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=498 validate_us=124 latency_us=16508
+frame n=125 submission=126 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=502 validate_us=124 latency_us=16496
+frame n=126 submission=127 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=506 validate_us=124 latency_us=16449
+frame n=127 submission=128 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=510 validate_us=123 latency_us=16528
+frame n=128 submission=129 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=514 validate_us=121 latency_us=16495
+frame n=129 submission=130 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=518 validate_us=124 latency_us=16446
+frame n=130 submission=131 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=522 validate_us=127 latency_us=16467
+frame n=131 submission=132 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=526 validate_us=140 latency_us=16337
+frame n=132 submission=133 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=530 validate_us=130 latency_us=16590
+frame n=133 submission=134 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=534 validate_us=127 latency_us=16510
+frame n=134 submission=135 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=538 validate_us=125 latency_us=16458
+frame n=135 submission=136 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=542 validate_us=133 latency_us=16512
+frame n=136 submission=137 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=546 validate_us=131 latency_us=16467
+frame n=137 submission=138 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=550 validate_us=127 latency_us=16415
+frame n=138 submission=139 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=554 validate_us=123 latency_us=16570
+frame n=139 submission=140 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=558 validate_us=123 latency_us=16489
+frame n=140 submission=141 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=562 validate_us=124 latency_us=16450
+frame n=141 submission=142 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=566 validate_us=123 latency_us=16461
+frame n=142 submission=143 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=570 validate_us=123 latency_us=16513
+frame n=143 submission=144 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=574 validate_us=124 latency_us=16499
+frame n=144 submission=145 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=578 validate_us=122 latency_us=16484
+frame n=145 submission=146 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=582 validate_us=121 latency_us=16373
+frame n=146 submission=147 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=586 validate_us=194 latency_us=16493
+frame n=147 submission=148 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=590 validate_us=146 latency_us=16468
+frame n=148 submission=149 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=594 validate_us=137 latency_us=16452
+frame n=149 submission=150 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=598 validate_us=131 latency_us=16497
+frame n=150 submission=151 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=602 validate_us=130 latency_us=16500
+frame n=151 submission=152 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=606 validate_us=164 latency_us=16391
+frame n=152 submission=153 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=610 validate_us=134 latency_us=16455
+frame n=153 submission=154 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=614 validate_us=127 latency_us=16510
+frame n=154 submission=155 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=618 validate_us=124 latency_us=16453
+frame n=155 submission=156 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=622 validate_us=124 latency_us=16367
+frame n=156 submission=157 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=626 validate_us=122 latency_us=16641
+frame n=157 submission=158 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=630 validate_us=122 latency_us=16468
+frame n=158 submission=159 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=634 validate_us=122 latency_us=16494
+frame n=159 submission=160 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=638 validate_us=123 latency_us=16501
+frame n=160 submission=161 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=642 validate_us=141 latency_us=16489
+frame n=161 submission=162 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=646 validate_us=129 latency_us=16452
+frame n=162 submission=163 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=650 validate_us=125 latency_us=16483
+frame n=163 submission=164 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=654 validate_us=123 latency_us=16496
+frame n=164 submission=165 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=658 validate_us=122 latency_us=16486
+frame n=165 submission=166 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=662 validate_us=123 latency_us=16532
+frame n=166 submission=167 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=666 validate_us=131 latency_us=16492
+frame n=167 submission=168 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=670 validate_us=219 latency_us=16358
+frame n=168 submission=169 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=674 validate_us=130 latency_us=16464
+frame n=169 submission=170 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=678 validate_us=126 latency_us=16521
+frame n=170 submission=171 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=682 validate_us=130 latency_us=16444
+frame n=171 submission=172 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=686 validate_us=125 latency_us=16516
+frame n=172 submission=173 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=690 validate_us=124 latency_us=16434
+frame n=173 submission=174 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=694 validate_us=175 latency_us=16402
+frame n=174 submission=175 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=698 validate_us=127 latency_us=16525
+frame n=175 submission=176 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=702 validate_us=134 latency_us=16448
+frame n=176 submission=177 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=706 validate_us=126 latency_us=16487
+frame n=177 submission=178 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=710 validate_us=126 latency_us=16475
+frame n=178 submission=179 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=714 validate_us=127 latency_us=16311
+frame n=179 submission=180 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=718 validate_us=201 latency_us=16613
+frame n=180 submission=181 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=723 validate_us=151 latency_us=16436
+frame n=181 submission=182 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=727 validate_us=148 latency_us=16435
+frame n=182 submission=183 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=731 validate_us=130 latency_us=16417
+frame n=183 submission=184 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=735 validate_us=126 latency_us=16493
+frame n=184 submission=185 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=739 validate_us=124 latency_us=16482
+frame n=185 submission=186 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=743 validate_us=124 latency_us=16521
+frame n=186 submission=187 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=747 validate_us=123 latency_us=16493
+frame n=187 submission=188 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=751 validate_us=124 latency_us=16521
+frame n=188 submission=189 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=755 validate_us=123 latency_us=16437
+frame n=189 submission=190 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=759 validate_us=123 latency_us=16493
+frame n=190 submission=191 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=763 validate_us=122 latency_us=16527
+frame n=191 submission=192 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=767 validate_us=236 latency_us=16315
+frame n=192 submission=193 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=771 validate_us=150 latency_us=16447
+frame n=193 submission=194 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=775 validate_us=131 latency_us=16484
+frame n=194 submission=195 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=779 validate_us=123 latency_us=16480
+frame n=195 submission=196 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=783 validate_us=123 latency_us=16498
+frame n=196 submission=197 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=787 validate_us=123 latency_us=16490
+frame n=197 submission=198 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=791 validate_us=124 latency_us=16476
+frame n=198 submission=199 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=795 validate_us=123 latency_us=16506
+frame n=199 submission=200 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=799 validate_us=124 latency_us=16508
+frame n=200 submission=201 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=803 validate_us=146 latency_us=16465
+frame n=201 submission=202 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=807 validate_us=174 latency_us=16403
+frame n=202 submission=203 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=811 validate_us=144 latency_us=16438
+frame n=203 submission=204 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=815 validate_us=182 latency_us=16459
+frame n=204 submission=205 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=819 validate_us=126 latency_us=16290
+frame n=205 submission=206 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=823 validate_us=125 latency_us=16611
+frame n=206 submission=207 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=827 validate_us=126 latency_us=16484
+frame n=207 submission=208 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=831 validate_us=125 latency_us=16491
+frame n=208 submission=209 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=835 validate_us=122 latency_us=16491
+frame n=209 submission=210 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=839 validate_us=174 latency_us=16492
+frame n=210 submission=211 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=843 validate_us=120 latency_us=16460
+frame n=211 submission=212 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=847 validate_us=123 latency_us=16478
+frame n=212 submission=213 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=851 validate_us=122 latency_us=16384
+frame n=213 submission=214 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=855 validate_us=143 latency_us=16603
+frame n=214 submission=215 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=859 validate_us=177 latency_us=16410
+frame n=215 submission=216 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=863 validate_us=191 latency_us=16430
+frame n=216 submission=217 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=867 validate_us=124 latency_us=16490
+frame n=217 submission=218 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=871 validate_us=172 latency_us=16420
+frame n=218 submission=219 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=875 validate_us=145 latency_us=16431
+frame n=219 submission=220 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=879 validate_us=148 latency_us=16469
+frame n=220 submission=221 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=883 validate_us=130 latency_us=16471
+frame n=221 submission=222 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=887 validate_us=178 latency_us=16410
+frame n=222 submission=223 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=891 validate_us=123 latency_us=16467
+frame n=223 submission=224 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=895 validate_us=128 latency_us=16512
+frame n=224 submission=225 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=899 validate_us=126 latency_us=16514
+frame n=225 submission=226 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=903 validate_us=125 latency_us=16438
+frame n=226 submission=227 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=907 validate_us=122 latency_us=16492
+frame n=227 submission=228 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=911 validate_us=176 latency_us=16441
+frame n=228 submission=229 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=915 validate_us=122 latency_us=16494
+frame n=229 submission=230 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=919 validate_us=122 latency_us=16492
+frame n=230 submission=231 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=923 validate_us=123 latency_us=16484
+frame n=231 submission=232 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=927 validate_us=123 latency_us=16500
+frame n=232 submission=233 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=931 validate_us=122 latency_us=16487
+frame n=233 submission=234 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=935 validate_us=170 latency_us=16451
+frame n=234 submission=235 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=939 validate_us=121 latency_us=16499
+frame n=235 submission=236 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=943 validate_us=132 latency_us=16476
+frame n=236 submission=237 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=947 validate_us=128 latency_us=16443
+frame n=237 submission=238 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=951 validate_us=125 latency_us=16386
+frame n=238 submission=239 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=955 validate_us=130 latency_us=16581
+frame n=239 submission=240 bottom_plane=31 top_plane=51 bottom_buffer=1 top_buffer=2 top_x=960 validate_us=173 latency_us=16447
+move_result frames=240 bottom_checksum_before=ad2ffa4dee576f25 bottom_checksum_after=ad2ffa4dee576f25 bottom_released=0 latency_count=239 latency_min_us=16290 latency_median_us=16486 latency_p99_us=16650 latency_max_us=16763 latency_mean_us=16478 interval_count=239 interval_min_us=16495 interval_median_us=16668 interval_p99_us=16831 interval_max_us=16906 interval_mean_us=16668
+resources scenario=move wall_ms=5366 cpu_user_ms=1400 cpu_sys_ms=70 cpu_pct=27.4 rss_kib=884 peak_rss_kib=884
+VERDICT move PASS 240 frames, bottom buffer 1 unchanged on plane 31, top on its own plane
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+session scenario=rotate source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51 engine_planes=31,51 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+step label=rotate frames=600 buffers_per_plane=3 period_us=16668 expect="white bars sweep across the blue background and the red rectangle"
+assign step=rotate layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=rotate layer=1 buffer=4 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=rotate layers=2 assigned=2 planes=31,51
+progress frames=100 presented=100 releases=198 violations=0
+progress frames=200 presented=200 releases=398 violations=0
+progress frames=300 presented=300 releases=598 violations=0
+progress frames=400 presented=400 releases=798 violations=0
+progress frames=500 presented=500 releases=998 violations=0
+progress frames=600 presented=600 releases=1198 violations=0
+rotate_result frames=600 buffers_per_plane=3 presented=600 dropped=0 missed_vblanks=0 latch_timeouts=0 releases=1198 order_violations=0 overwrite_avoided=0 assignment_changes=0 planes=31,51 refresh_mhz=59993 period_us=16668 warmup_frames=1 latency_count=599 latency_min_us=9793 latency_median_us=11290 latency_p99_us=12468 latency_max_us=14800 latency_mean_us=11186 interval_count=598 interval_min_us=16415 interval_median_us=16667 interval_p99_us=16891 interval_max_us=16932 interval_mean_us=16668 validate_count=600 validate_min_us=60 validate_median_us=138 validate_p99_us=260 validate_max_us=364 validate_mean_us=149 commit_count=600 commit_min_us=58 commit_median_us=137 commit_p99_us=297 commit_max_us=7476 commit_mean_us=158
+resources scenario=rotate wall_ms=10016 cpu_user_ms=540 cpu_sys_ms=2910 cpu_pct=34.4 rss_kib=996 peak_rss_kib=996
+VERDICT rotate PASS 600 frames, 3 buffers per plane, 1198 releases in order, 0 dropped, 0 missed vblanks
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+session scenario=revoke source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51 engine_planes=31,51 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+step label=revoke frames_before=60 buffers_per_plane=3 expect="white bars sweep, then the lease is revoked and the picture stops changing"
+assign step=revoke layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=revoke layer=1 buffer=4 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=revoke layers=2 assigned=2 planes=31,51
+before_revoke frames=60 releases=0 on_screen=3,6
+lease_revoked lessee=1
+revoke_result first_attempt=Err(Backend(DeviceLost)) first_attempt_us=7732 second_attempt=Err(Plan(UnknownOutput(OutputId(39)))) device_lost_events=1 released=3,6 still_busy=- outputs_after=0 planes_after=0 events=Released{buffer:BufferId(3)},Released{buffer:BufferId(6)},DeviceLost
+resources scenario=revoke wall_ms=1039 cpu_user_ms=170 cpu_sys_ms=340 cpu_pct=49.1 rss_kib=884 peak_rss_kib=896
+VERDICT revoke PASS 60 frames on planes 31,51, then revoked: DeviceLost once, buffers 3,6 released
+SUMMARY passed=6 failed=0
+# end_utc=2026-11-27T20:12:01Z exit_status=0

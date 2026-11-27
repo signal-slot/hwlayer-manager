@@ -1,0 +1,44 @@
+# start_utc=2026-11-27T20:11:16Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --source kernel-lease --producers external --frames 600 rotate
+harness version=0.1.0 scenario=rotate args="--connector LVDS --profile imx95 --source kernel-lease --producers external --frames 600 rotate"
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51,59,67,75,83 objects=8
+session scenario=rotate source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=external
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=59 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=67 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=75 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=83 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51,59,67,75,83 engine_planes=31,51,59,67,75,83 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3f capacity=6
+resource_group consumers=14 planes=0x3f capacity=4
+resource_group consumers=2 planes=0x3f capacity=1
+resource_group consumers=4 planes=0x3f capacity=1
+producer_spawned layer=0 pid=2539
+producer layer=0 pid=2539 device=/dev/dri/card0 was_master=no
+supplied layer=0 pid=2539 buffer=1 width=1280 height=800 pitch=5120 modifier=0x0
+supplied layer=0 pid=2539 buffer=2 width=1280 height=800 pitch=5120 modifier=0x0
+supplied layer=0 pid=2539 buffer=3 width=1280 height=800 pitch=5120 modifier=0x0
+producer_spawned layer=1 pid=2540
+producer layer=1 pid=2540 device=/dev/dri/card0 was_master=no
+supplied layer=1 pid=2540 buffer=4 width=640 height=400 pitch=2560 modifier=0x0
+supplied layer=1 pid=2540 buffer=5 width=640 height=400 pitch=2560 modifier=0x0
+supplied layer=1 pid=2540 buffer=6 width=640 height=400 pitch=2560 modifier=0x0
+step label=rotate frames=600 buffers_per_plane=3 period_us=16668 expect="white bars sweep across the blue background and the red rectangle"
+assign step=rotate layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=rotate layer=1 buffer=4 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=rotate layers=2 assigned=2 planes=31,51
+progress frames=100 presented=100 releases=198 violations=0
+progress frames=200 presented=200 releases=398 violations=0
+progress frames=300 presented=300 releases=598 violations=0
+progress frames=400 presented=400 releases=798 violations=0
+progress frames=500 presented=500 releases=998 violations=0
+progress frames=600 presented=600 releases=1198 violations=0
+rotate_result frames=600 buffers_per_plane=3 presented=600 dropped=0 missed_vblanks=0 latch_timeouts=0 releases=1198 order_violations=0 overwrite_avoided=0 assignment_changes=0 planes=31,51 refresh_mhz=59993 period_us=16668 warmup_frames=1 latency_count=599 latency_min_us=9324 latency_median_us=10599 latency_p99_us=11245 latency_max_us=14444 latency_mean_us=10503 interval_count=598 interval_min_us=16183 interval_median_us=16666 interval_p99_us=17046 interval_max_us=17167 interval_mean_us=16668 validate_count=600 validate_min_us=85 validate_median_us=167 validate_p99_us=292 validate_max_us=391 validate_mean_us=171 commit_count=600 commit_min_us=66 commit_median_us=142 commit_p99_us=267 commit_max_us=16533 commit_mean_us=176
+resources scenario=rotate wall_ms=10023 cpu_user_ms=180 cpu_sys_ms=380 cpu_pct=5.6 rss_kib=1008 peak_rss_kib=1008
+producer_exit layer=0 pid=2539 allocs=3 draws=600 releases=602 refused=0 status=ok
+producer_exit layer=1 pid=2540 allocs=3 draws=600 releases=602 refused=0 status=ok
+producers releases_passed_on=1204 returned_unshown=6 problems=0
+VERDICT rotate PASS 600 frames, 3 buffers per plane, 1198 releases in order, 0 dropped, 0 missed vblanks
+# end_utc=2026-11-27T20:11:26Z exit_status=0
