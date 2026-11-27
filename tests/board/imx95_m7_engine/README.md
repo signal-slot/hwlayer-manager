@@ -14,7 +14,7 @@ Upstream Zephyr only. Nothing here comes from the showcase.
 
 ## Zephyr version
 
-Written against upstream `zephyrproject-rtos/zephyr` `main` at `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7` (2026-11-27), whose `SDK_VERSION` is 1.0.1. **Not yet built with west** at the time of writing (2026-11-28): see "Status".
+Built with upstream `zephyrproject-rtos/zephyr` `main` at `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7` (2026-11-27; the build reports `v4.5.0-5218-ge53873cbd0ef`, Zephyr 4.5.99), with Zephyr SDK 1.0.1 (`arm-zephyr-eabi`, GCC 14.3.0) and the modules `hal_nxp`, `cmsis`, `cmsis_6`, `libmetal` and `open-amp` from that commit's `west.yml`.
 
 ## Build
 
@@ -26,10 +26,10 @@ rustup target add thumbv7em-none-eabihf
 
 ### One step (CMake runs cargo)
 
-From the repository root:
+From the repository root (`target/` is git-ignored; with `ZEPHYR_BASE` set, `west` does not need to run inside the workspace):
 
 ```sh
-west build -b imx95_evk/mimx9596/m7 -d build/imx95_m7_engine tests/board/imx95_m7_engine
+west build -b imx95_evk/mimx9596/m7 -d target/zephyr/imx95_m7_engine tests/board/imx95_m7_engine
 ```
 
 The build runs, from the repository root and with `CARGO_TARGET_DIR` inside the build directory:
@@ -44,7 +44,7 @@ and links the resulting `libcomposition_engine.a`. Cargo runs on every build and
 
 ```sh
 cargo build --locked -p composition-ffi-staticlib --no-default-features --features panic-handler --target thumbv7em-none-eabihf --release
-west build -b imx95_evk/mimx9596/m7 -d build/imx95_m7_engine tests/board/imx95_m7_engine -- \
+west build -b imx95_evk/mimx9596/m7 -d target/zephyr/imx95_m7_engine tests/board/imx95_m7_engine -- \
   -DCOMPOSITION_ENGINE_LIB=$PWD/target/thumbv7em-none-eabihf/release/libcomposition_engine.a
 ```
 
@@ -59,10 +59,10 @@ west build -b imx95_evk/mimx9596/m7 -d build/imx95_m7_engine tests/board/imx95_m
 `mps2/an386` (Cortex-M4F, QEMU) can run the same program, because `thumbv7em-none-eabihf` code runs on an M4 with a single-precision FPU:
 
 ```sh
-west build -b mps2/an386 -d build/imx95_m7_engine_an386 tests/board/imx95_m7_engine -t run
+west build -b mps2/an386 -d target/zephyr/imx95_m7_engine_an386 tests/board/imx95_m7_engine -t run
 ```
 
-That is emulation of a different core, not the i.MX95. `mps2/an385` (Cortex-M3) cannot run thumbv7em code. `mps2/an500` (Cortex-M7) declares no FPU and is not a QEMU target in upstream Zephyr.
+That is emulation of a different core, not the i.MX95. QEMU comes with the Zephyr SDK host tools (`setup.sh -h`). `mps2/an385` (Cortex-M3) cannot run thumbv7em code. `mps2/an500` (Cortex-M7) declares no FPU and is not a QEMU target in upstream Zephyr.
 
 ## Expected output
 
@@ -111,5 +111,8 @@ Zephyr's boot banner (`*** Booting Zephyr OS ... ***`) comes before these lines.
 
 As of 2026-11-28:
 
-- Done: `src/main.c` compiled without warnings for the host (gcc, `-Wall -Wextra`) and ran with the output above, against the hosted library. It also compiled for `thumbv7em-none-eabihf` (clang 21, `-mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-d16 -Os`, with stand-in Zephyr headers) and linked against the release `libcomposition_engine.a` for that target with lld and `--gc-sections`, with no unresolved symbols other than the stubbed `printk`. In that link, the app and the engine took 26440 bytes of `.text`, 8521 of `.rodata` and 28704 of `.bss`. These figures leave out Zephyr itself.
-- Not done: `west build` for `imx95_evk/mimx9596/m7` and the `mps2/an386` emulation run. The machine this was written on had no Zephyr workspace or SDK, and fetching them was not possible there. Not run on any hardware.
+- Done: the one-step `west build -p always -b imx95_evk/mimx9596/m7` above, with the Zephyr commit and SDK named in "Zephyr version". CMake ran cargo and linked the library with no warnings. `zephyr.elf`: 64864 B text, 888 B data, 48537 B bss. In the linker's region map, FLASH used 65756 B of 256 KiB and RAM 49424 B of 256 KiB.
+- Done: `west build -p always -b mps2/an386` of the same application. It links too: 56080 B text, 180 B data, 50330 B bss.
+- Done: `src/main.c` compiled without warnings for the host (gcc, `-Wall -Wextra`) and ran with the output above, against the hosted library.
+- Not done: running it under QEMU on `mps2/an386`. The SDK host tools, which bring QEMU, were not installed on the build machine. So the expected output above comes from the host run, not from emulation.
+- Not done: any run on hardware.
