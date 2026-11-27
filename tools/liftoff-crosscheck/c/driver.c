@@ -689,7 +689,7 @@ int main(int argc, char **argv)
 	struct responder r = { .mode = MODE_PIPE };
 	int request_fd = STDOUT_FILENO, answer_fd = STDIN_FILENO;
 	/* Far beyond the 1 ms default, so the search runs to its end. */
-	int64_t timeout_ns = INT_MAX;
+	int64_t timeout_ns = INT64_C(60000000000);
 	const char *file = NULL;
 
 	for (int i = 1; i < argc; i++) {
@@ -705,7 +705,7 @@ int main(int argc, char **argv)
 		} else if (!strcmp(a, "--timeout-ns") && i + 1 < argc) {
 			char *end;
 			long long v = strtoll(argv[++i], &end, 10);
-			if (*end || v <= 0 || v > INT_MAX)
+			if (*end || v <= 0)
 				usage();
 			timeout_ns = v;
 		} else if (!strcmp(a, "--verbose")) {

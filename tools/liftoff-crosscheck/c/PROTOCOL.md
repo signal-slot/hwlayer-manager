@@ -32,7 +32,7 @@ liftoff-xcheck-driver [--accept-all | --reject-all] [--request-fd N]
 - `--request-fd N`: write request lines to fd N (default 1, stdout, mixed with
   the result lines). `--answer-fd N`: read answers from fd N (default 0,
   stdin).
-- `--timeout-ns N`: libliftoff's `timeout_ns` (default `INT_MAX`, about 2.1 s,
+- `--timeout-ns N`: libliftoff's `timeout_ns` (an `int64_t`; default 60 s,
   against libliftoff's 1 ms default). The time the answering side takes counts
   against this deadline.
 - `--verbose`: libliftoff's debug log goes to stderr. Without it only
