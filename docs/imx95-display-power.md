@@ -33,11 +33,18 @@ It does not repeat:
 
 Limits, stated plainly:
 
-- **Line numbers were counted by hand.** This node could not clone or download
-  archives, so files were read as raw HTTPS text and their lines counted by
-  hand. There is one cross-check: the `displaymix.cfg` lines below (39, 49,
-  50–51, 60, 64–65) match the tarball-exact numbers in
-  [imx95-sm-display-lm.md](imx95-sm-display-lm.md). For the LX files
+- **SM line numbers checked against a clone.** On 2026-11-28 a shallow clone
+  of `rel_imx_sm_2025q3` (HEAD `af1e3702`) was read. These SM citations were
+  checked line by line against it and are exact: `dev_sm_power.h`,
+  `dev_sm_power.c`, `dev_sm.c`, `dev_sm_config.c`, `dev_sm_reset.h`,
+  `rpc_scmi_power.c`, `rpc_scmi_reset.c`, `lmm_power.c`, `lmm_power.h`,
+  `config_user.h`, `config_scmi.h`, `dev_sm_api.h` and `fsl_src.c`. The SM
+  citations into `fsl_reset.c`, `rpc_scmi.c`, `lmm_sys.c`, `mx95evk.cfg`,
+  `configtool.pl` and `config.md` were not re-checked. The `displaymix.cfg`
+  lines below (39, 49, 50–51, 60, 64–65) match the tarball-exact numbers in
+  [imx95-sm-display-lm.md](imx95-sm-display-lm.md).
+- **LX line numbers were counted by hand.** The Linux files were read as raw
+  HTTPS text and their lines counted by hand. For the LX files
   `scmi_pm_domain.c`, `imx95-blk-ctrl.c`, `imx95-ldb.c`,
   `phy-fsl-imx8mp-lvds.c`, `dpu95-drv.c` and `irq-imx-irqsteer.c`, the count
   matched GitHub's line total for each file. All other numbers could be off by
@@ -81,34 +88,46 @@ and TRDC, not as a runtime dependency.
 | On power-down, `DEV_SM_DisplayPowerDownPre` only saves the LDB PLL context (`FRACTPLL_GetContext`). It saves no DPU or BLK_CTRL registers | SM `dev_sm_config.c:786-803` (:790); state at :63, :66; hook called from `dev_sm.c:352-353` | read from source |
 | At SM boot, `DEV_SM_Init` runs `DEV_SM_PowerUpPost` for each domain that is already on ("load state (BLK_CTRL, RDC, etc.)") | SM `dev_sm.c:148,162` | read from source |
 | The SM code has **no hard-coded write to `BLK_CTRL_DISPLAYMIX`**. Camera and GPU have hard-coded writes (`DEV_SM_CameraConfigLoad`, `dev_sm_config.c:92-97`; `BLK_CTRL_GPUMIX->GPURESET`, `:276`); display does not | SM `dev_sm_config.c`, `dev_sm_power.c` (the only BLK_CTRL in it is AONMIX, :67-69) | read from source |
-| Any SM write to display BLK_CTRL can only come from the board's `SM_DISPLAY_CONFIG` list. Its content (`configs/mx95evk/config_user.h` or the equivalent) was **not read** | — | not read |
+| Any SM write to display BLK_CTRL can only come from the board's `SM_DISPLAY_CONFIG` list or an `SM_DISPLAY_CONFIG_FUNC`. In `mx95evk` the list is **empty** (`{ SM_CFG_END }`). `SM_DISPLAY_CONFIG_FUNC` was not found in `config_user.h`, `config_scmi.h`, `config_board.h`, `brd_sm.h` or the start of `brd_sm.c`; the rest of the tree was not searched | SM `configs/mx95evk/config_user.h:92-95` | read from source |
 
 Consequences (**inferred** from the rows above):
 
 - A power cycle of `PD_DISPLAY` loses all DPU, DISPLAY_BLK_CTRL, LVDS CSR and
   irqsteer register state. The SM restores only TRDC D, its board list and the
   LDB PLL. Whoever drives the display must reprogram everything else after
-  each power-up, and has no notice that one happened (§5).
+  each power-up, and has no notice that one happened (§4).
 - In practice **DISPLAY_BLK_CTRL is programmed by the OS that owns the
   display**: Linux's `imx95-blk-ctrl` driver (§6), and on Zephyr the direct
   `PIXEL_LINK_CTRL` write in `soc_init()` (see
   [imx95-m7-scmi.md](imx95-m7-scmi.md)). The SM's part is TRDC plus an
-  optional board list.
-- `LMM_PowerStateSet` says "device will check if changed"
-  (`lmm_power.c:107`), but no such check is visible in
-  `DEV_SM_PowerStateSet`. Whether a second ON vote (for example from the M7
-  while Linux already holds the domain on) re-runs `SRC_MixSoftPowerUp` and
-  the TRDC/config reload on a live display was **not resolved**. The answer
-  depends on `SRC_MixSoftPowerUp`'s behaviour on an already-powered slice,
-  which is SDK code that was not read. Verify this before relying on a shared
-  ON vote.
+  optional board list, and under `mx95evk` that list is empty.
+- **A second ON vote does not reload a live display.** No layer checks
+  whether the state changed:
+  - `PowerStateUpdate` calls `LMM_PowerStateSet` ("LMM will check if
+    changed", `rpc_scmi_power.c:827-828`).
+  - `LMM_PowerStateSet` calls `SM_POWERSTATESET` ("device will check if
+    changed", `lmm_power.c:107-108`).
+  - `SM_POWERSTATESET` is `DEV_SM_PowerStateSet` (`sm/dev/dev_sm_api.h:188-191`;
+    the board's `brd_sm.h:76` overrides only `SM_SYSTEMRESET`).
+  - `DEV_SM_PowerStateSet` itself has no such check.
+
+  The check lives in `SRC_MixSoftPowerUp`
+  (`devices/MIMX9/drivers/fsl_src.c:615-692`). It runs the power-up sequence
+  and returns `true` only when `FUNC_STAT_PSW_STAT` is set (:629-670).
+  Otherwise it returns `false`, and `DEV_SM_PowerStateSet` then skips
+  `DEV_SM_PowerUpPost` (`dev_sm_power.c:192-194`), so there is no TRDC D,
+  config or LDB PLL reload. It always masks and restores the GPC LP handshake
+  and switches to software power control and back (:624, :627, :673,
+  :676-688). All of this is read from source. That a set `PSW_STAT` means
+  "switch off" is **inferred** from the code's structure: the bit's meaning
+  in the reference manual was not read.
 
 ## 4. Who may switch PD_DISPLAY: SCMI permission and aggregation
 
 | Finding | Citation | Tag |
 |---|---|---|
 | SCMI `POWER_STATE_SET` needs `pdPerms[domain] >= SM_SCMI_PERM_SET`; otherwise it returns `SM_ERR_DENIED`. Only synchronous requests are supported | SM `sm/rpc/scmi/rpc_scmi_power.c:563,606-611,617-618` | read from source |
-| `POWER_STATE_GET` returns the hardware state through `LMM_PowerStateGet` and then `DEV_SM_PowerStateGet`, not the caller's vote. The permission it needs was not read | SM `rpc_scmi_power.c:665,686`; `lmm_power.c:129-133` | read from source |
+| `POWER_STATE_GET` returns the hardware state through `LMM_PowerStateGet` and then `DEV_SM_PowerStateGet`, not the caller's vote. **It checks no `pdPerms`**, only the length and the domain ID, so any agent may read any domain's state. `POWER_DOMAIN_ATTRIBUTES` reports sync set support only to an agent with `pdPerms >= SET` | SM `rpc_scmi_power.c:665-708` (:672, :678, :686), `:533-537`; `lmm_power.c:129-134` | read from source |
 | **There are no power-state notifications.** `COMMAND_SUPPORTED_MASK` is `0x1003F`, with the comment "Sync responses only, no notificaions", and `POWER_ATTR_CHANGE(0)` | SM `rpc_scmi_power.c:58,524-526` | read from source |
 | There are two levels of voting. Each agent's vote is kept in `s_powerState[domain][agent]` (SCMI layer, max over the agents of one SCMI instance), and each LM's vote in `s_powerState[domain][lm]` (LMM layer, max over all LMs). The domain goes off only when every LM votes off | SM `rpc_scmi_power.c:300,796-828` (:815, :818, :828); `sm/lmm/lmm_power.c:52,77-108` (:99, :101-104, :108) | read from source |
 | The docs say the same: `SM_SCMI_PERM_SET` is "aggregated across agents and LM"; `SM_SCMI_PERM_ALL` "is currently equivalent to" `EXCLUSIVE`, which does no aggregation and gives "handing a display over from one LM to another" as its use case; and the tool does "not prevent violating the isolation" | SM `sm/doc/config.md`, section SCMI (`{#SCMI_CONFIG}`); `sm/lmm/lmm.dox`, LMM group intro. Lines not counted | read from source |
@@ -205,11 +224,12 @@ and the observation):
   `RPC_SCMI_BaseDispatchReset`, then `RPC_SCMI_PowerDispatchReset`, then
   `PowerResetAgentConfig`. That last function turns every ON vote of LM2's
   agents into OFF and re-aggregates (SM `sm/rpc/scmi/rpc_scmi.c:448-472`;
-  `rpc_scmi_power.c` `PowerResetAgentConfig` :767-778; `sm/lmm/lmm_sys.c`
+  `rpc_scmi_power.c` `PowerResetAgentConfig` :767-785; `sm/lmm/lmm_sys.c`
   :1070-1125, :1088; read from source). The display domain therefore drops
   when Linux resets, unless another LM votes ON. `LMM_PowerStateReset`
-  (`lmm_power.c:120-124`) clears a vote without applying it. No caller was
-  found in the files read, and the rest of the repository was not searched.
+  (`lmm_power.c:120-124`) clears a vote without applying it. It is documented
+  as "used **only** to clean up the LM state after testing"
+  (`lmm_power.h:134-136`), so it plays no part here (read from source).
 
 ## 7. If Linux powers the domain off while the M7 is using it
 
@@ -219,7 +239,7 @@ Everything in this section is **inferred** from §3 to §6.
 |---|---|
 | **No** (stock `mx95evk`: the M7 agent has no `pdPerms[PD_DISPLAY]`) | The aggregate drops to OFF. The SM runs `DEV_SM_DisplayPowerDownPre` (saves only the LDB PLL) and then `SRC_MixSoftPowerDown`, and the whole DISPLAYMIX loses power. The M7 gets no SCMI notification (none is supported). Scanout stops and the panel loses its signal. DPU, BLK_CTRL, LVDS CSR and irqsteer state is lost, and the DPU interrupts (vblank/latch) stop. What an M7 access to the unpowered mix returns (bus error, hang, or reads of 0) was **not read** in any source |
 | **Yes** (an M7 vote of at least `SET`) | The aggregate stays ON and the mix stays powered. Linux's own drivers still change the hardware on the way down. `dpu95_runtime_suspend` gates the DPU's axi, apb and ocram clocks, which are Linux's SCMI clocks (see [imx95-m7-scmi.md](imx95-m7-scmi.md)), and on resume Linux re-initialises the DPU submodules and QoS and writes 0 to the LDB control register. **A vote does not protect the M7 from Linux's driver activity.** The display nodes must be disabled in Linux, or the resources moved by TRDC |
-| Either | The M7 can poll `POWER_STATE_GET` (it returns the hardware state) to see that the mix went off. It must then reprogram everything outside TRDC D, `SM_DISPLAY_CONFIG` and the LDB PLL. Whether the M7 agent has GET permission for `PD_DISPLAY` without a vote was not read |
+| Either | The M7 can poll `POWER_STATE_GET` to see that the mix went off. It returns the hardware state and needs no permission (§4), so this works under stock `mx95evk` too. The M7 must then reprogram everything outside TRDC D, `SM_DISPLAY_CONFIG` and the LDB PLL |
 
 Summary for M2:
 
@@ -236,15 +256,18 @@ Summary for M2:
 
 ## 8. Not done / open
 
-- The content of the board list `SM_DISPLAY_CONFIG`
-  (`configs/mx95evk/config_user.h`), and therefore whether the SM writes any
-  DISPLAY_BLK_CTRL register at power-up.
-- `SRC_MixSoftPowerUp` on a slice that is already powered (the second-vote
-  question in §3), and the SDK `fsl_power.h` values.
-- The SCMI permission that `POWER_STATE_GET` needs.
+- Resolved on 2026-11-28 against the clone, and folded into §3, §4 and §6:
+  - the `mx95evk` `SM_DISPLAY_CONFIG` list (empty);
+  - a second ON vote on a powered slice (it does not reload the display);
+  - the permission `POWER_STATE_GET` needs (none);
+  - the callers of `LMM_PowerStateReset` (test only).
+- A tree-wide search for `SM_DISPLAY_CONFIG_FUNC`, and the SDK `fsl_power.h`
+  values.
+- The meaning of `FUNC_STAT_PSW_STAT` in the reference manual.
 - The Toradex Verdin SM configuration and the Toradex kernel deltas to the
   drivers in §6.
 - The second half of `drivers/base/power/domain.c` (`pm_genpd_init`, noirq
   suspend), which was read only as a summary.
-- Every hand-counted line number should be re-checked with `grep -n` on a
-  checkout at the pins.
+- Every hand-counted LX line number, and the SM citations listed as not
+  re-checked in §1, should be checked with `grep -n` on a checkout at the
+  pins.
