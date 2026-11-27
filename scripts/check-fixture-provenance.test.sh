@@ -23,7 +23,7 @@ expect good 0 clean sh "$script" "$data/good.rs" "$data/good-nodata.rs" "$data/g
 expect nosource 1 'bad-nosource.rs:1: provenance' sh "$script" "$data/bad-nosource.rs"
 expect nodate 1 'bad-nodate.rs:1: provenance' sh "$script" "$data/bad-nodate.rs"
 expect split 1 'bad-split.rs:1: provenance' sh "$script" "$data/bad-split.rs"
-expect include 1 'bad-include.rs:3: runtime-read' sh "$script" "$data/bad-include.rs"
+expect include 1 'bad-include.rs:2: runtime-read' sh "$script" "$data/bad-include.rs"
 expect mixed 1 'bad-nodate.rs' sh "$script" "$data/good.rs" "$data/bad-nodate.rs"
 expect badopt 2 usage sh "$script" -x
 expect missing 2 'not a file' sh "$script" "$data/nonexistent.rs"
