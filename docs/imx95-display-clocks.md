@@ -34,6 +34,11 @@ this node. The files were therefore read over HTTPS through a page fetcher
 code are verbatim, but **line numbers are approximate** unless a row gives an
 exact number. The line numbers given for `fsl_fract_pll.c`, `fsl_ccm.c` and
 `example.cfg` were counted on the fetched raw text and should be within ±2.
+As a spot check, `CCM_RootSetRate` sits at exactly the counted lines
+(145-230, guard 149, divider write 223-225) in a local clone of imx-sm
+`master` (`eec232878ab7`, 2026-11-28). That clone could not be checked out
+at the pin on this node, and `master` is 218 commits ahead of `af1e3702`, so
+it is not used as a source for anything else here.
 Re-check against a clone before citing a line elsewhere. **Not read**: the
 `imx95-19x19-verdin.dts` base file in C2, the `CCM_CLOCK_ROOT_DIV_MASK`
 register header, and `mx95evk.cfg`'s own definition of `OWNER`.
@@ -41,6 +46,16 @@ register header, and `mx95evk.cfg`'s own definition of `OWNER`.
 Everything about the SM below describes **NXP's `mx95evk` configuration**.
 That the Verdin's SM grants the same permissions is **inferred** and
 unchecked.
+
+**Newer SM releases change this path.** GitHub's compare of `af1e3702`
+with `master` `eec232878ab7` (2026-11-28) lists a new
+`boards/mcimx95evk/sm/brd_sm_clock.c`. Its `BRD_SM_ClockInit` sets an
+extended "SRCPRE" config on `DEV_SM_CLK_LDBPLL` and `DEV_SM_CLK_DISP1PIX`.
+Its `BRD_SM_ClockRateSet`, which becomes `SM_CLOCKRATESET`, reprograms
+VIDEOPLL1 with `FRACTPLL_UpdateRate` for a fixed table of pixel rates. This
+was read from the compare listing only, not from the files. So the
+rate-set path of §4.3 holds for `af1e3702` and may differ in the SM that
+Toradex 7.8.0 ships, whose revision is unknown (inferred).
 
 ## 2. The display clock tree
 
