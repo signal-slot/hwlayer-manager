@@ -80,7 +80,7 @@ PROC_ROOT=$p SYSFS_ROOT=$s DMESG_CMD=false sh "$script" >"$root/out" 2>&1
 has "not readable reported" "not readable"
 
 # the script must not redirect output to any file
-if grep -v '^[[:space:]]*#' "$script" | sed 's/2>&1//g' | grep -q '>'; then
+if grep -v '^[[:space:]]*#' "$script" | sed -e 's/2>&1//g' -e 's/<redacted>//g' | grep -q '>'; then
     bad "no file redirection"
 else
     ok "no file redirection"
