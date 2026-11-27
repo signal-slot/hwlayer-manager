@@ -27,4 +27,15 @@ Files whose name ends in `.s<seed>.<model>.xcheck` were written by `sweep` (GEN_
 | `stm32mp257-probe.observed.rand.0028.reordered.xcheck` | the same, layer order = planes' current zpos order | S7-3 check | both-accept / both-accept |
 | `rk3588.observed.rand.0005.s74a1119c5f6bf35c.full.xcheck` | `topologies/rk3588.xcheck` | expected (S7-3) | core-only / core-only |
 | `stm32mp257.observed.rand.0015.s8570e2b48eb42e2d.full.xcheck` | `topologies/stm32mp257.xcheck` | expected (S7-3) | core-only / core-only |
+| `imx95-observed.observed.fill.0002.s952efad51700068f.full.xcheck` | `topologies/imx95-observed.xcheck` (step (f)) | expected (S7-3, equal overlay zpos) | core-only / core-only |
+| `imx95-observed.observed.fill.0002.fixed-zpos.xcheck` | the same, zpos pinned to `zpos_now` | S7-3 check | both-reject / both-reject |
+| `imx95-observed.observed.fill.0002.distinct-zpos.xcheck` | the same, distinct `zpos_now` 0..5 | S7-3 check | both-accept / both-accept |
+| `imx95-observed.observed.fill.0002.primary-low.xcheck` | the same, only plane 31 `zpos_now` 5 to 0 | S7-3 check (overlay tie suffices) | core-only / core-only |
+| `imx95-observed.observed.zperm.0004.s5693e069655b9e7d.full.xcheck` | `topologies/imx95-observed.xcheck` | expected (S7-3) | core-only / core-only |
+| `imx95-observed.observed.alpha0.0007.sad76bc5a392349d8.full.xcheck` | `topologies/imx95-observed.xcheck` | expected (S7-3, S7-4 holds) | core-only / core-only |
+| `imx95-observed.observed.tie.0004.sbf2dd12ae41bc1ad.full.xcheck` | `topologies/imx95-observed.xcheck` | expected (S7-3, not S7-13) | core-only / core-only |
+| `imx95-observed.observed.tie.0004.distinct-zpos.xcheck` | the same, distinct `zpos_now` 0..5 | S7-13 check | both-accept / both-accept |
+| `imx95-observed.observed.rand.0000.s8a39869f327c1bbb.full.xcheck` | `topologies/imx95-observed.xcheck` | expected (S7-3 with S7-10) | both-reject / core-only |
+| `imx95-observed.observed.scale.0000.s78a620fc399d5bcd.structural.xcheck` | `topologies/imx95-observed.xcheck` | expected (S7-10) | liftoff-only / both-accept |
+| `imx95-observed.observed.rand.0062.scea6633d796d7d17.structural.xcheck` | `topologies/imx95-observed.xcheck` | expected (S7-10) | liftoff-only / both-accept |
 | `stm32mp257.observed.rand.0018.lone-reflection.xcheck` | `topologies/stm32mp257.xcheck` | artefact, fixed | both-accept / both-accept (was invalid-assignment(core) / core-error(BackendRejected)) |

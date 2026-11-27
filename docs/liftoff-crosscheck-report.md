@@ -8,7 +8,7 @@ Step (d), the sweep, and step (e), this report, of [the cross-check design](libl
 - **Nothing ran on a board.** Everything ran on one Linux build host, with libliftoff linked against a fake libdrm whose `TEST_ONLY` commits are answered by the Rust model.
 - **Not in CI.** The harness is outside the root workspace and runs by hand.
 - **Counts toward no milestone.** These runs are not evidence for M1, M2 or M3.
-- Step (f), the run on the observed i.MX95 dump (`topologies/imx95-observed.xcheck`), is not part of this report.
+- Step (f), the run on the observed i.MX95 dump (`topologies/imx95-observed.xcheck`), is not part of the sections above; it is the last section, "Step (f)".
 
 Tags, as in [`platform-capabilities.md`](platform-capabilities.md): **observed** (from a board, with its date) is used here only for where an input came from: the probe dumps were observed on 2026-11-28, and nothing in this report observed a board. **source** means read from libliftoff `c4226a7`, from `crates/composition-core` or from the harness. **inferred** means a conclusion drawn from those. The outcomes in the tables are results of the host run of 2026-11-28 (harness output). They are not KMS observations, so they carry none of the board tags.
 
@@ -166,3 +166,42 @@ On supplementary inputs only; none of the inputs this item names reaches them.
 - **One model, over a pipe** (the design's open decision, section 8): the Rust side answers every libliftoff `TEST_ONLY` commit from its own model (`src/model.rs`), so the rules exist once; the C driver has no model. This is the design's stated preference, not an owner decision.
 - **`composition-drm` is a path dependency** of the harness, besides `composition-core`, so that `profile imx95dpu` runs through `DriverProfile::Imx95Dpu.apply`. The root `Cargo.toml`, `Cargo.lock` and CI are unchanged.
 - The hand-written topologies under `topologies/` and the committed section-7 and calibration frames were run in addition to the five inputs that step (d) names. Their results are kept separate in the tables.
+
+## Step (f): sweep on the observed i.MX95 topology (2026-11-28)
+
+Step (f) of the design's order of work: the sweep of `topologies/imx95-observed.xcheck`.
+
+**Origin: observed** (as printed on every result line: `observed 2026-11-28 imx95-probe-2026-11-28.txt at commit eab4162`). The input is a recorded probe dump of the i.MX95 board, written into an xcheck file by hand and run on the host. **No hardware claim, no timing claim** (the 73 s of wall time is the host's, not a board's). The runs ran on no board, are not in CI, and count toward none of M1, M2 or M3. The zpos values in the file are the compositor's state at capture time, not a driver default (**observed** 2026-11-28, comment in the topology file).
+
+**Run.** Repository `ba1a840`, libliftoff `c4226a7` (checkout in `$CONNECTED_DEPS_DIR/libliftoff`, built in `$TMPDIR`, not vendored), `GEN_VERSION=1`, seed `0x5eed11f70ffc4226`, 200 samples, defaults as in "Versions". The command was the one of the "Commands" section, `sweep topologies/imx95-observed.xcheck --driver "$DRIVER"`; the file name is part of the case seeds, so the random frames reproduce only under that name. Topology: output 39 (1280x800) with plane 31 (primary, the only one attached at capture, `zpos_now=5`), plane 42 (primary of the second CRTC, mask `0x0`, unreachable), and overlays 51, 59, 67, 75, 83 (all `zpos_now=1`); every plane `zpos=0..5`, `profile imx95dpu`.
+
+### Summary (450 frames per setting; no `unstable`, `skipped`, `invalid-assignment`, `core-error` or deadline frame)
+
+| Setting | both-accept | both-reject | core-only | liftoff-only |
+| --- | --- | --- | --- | --- |
+| structural | 70 | 207 | 156 | 17 |
+| full | 80 | 193 | 177 | 0 |
+
+By family (structural / full core-only): `fill` 4 / 4, `zperm` 104 / 104, `tie` 8 / 8, `alpha0` 10 / 10, `rand` 30 / 51; `fmt` agrees everywhere (26 both-accept). The 17 structural liftoff-only frames are `scale` 12 and `rand` 5.
+
+### Triage
+
+| Difference | Frames | Verdict | Check that classes it | Frame file |
+| --- | --- | --- | --- | --- |
+| core-only, both settings: core plans on 31 and overlays, libliftoff places 2 of n layers (one overlay and the primary) and composites the rest | 156 structural / 177 full, in `fill`, `zperm`, `tie`, `alpha0`, `rand`. Every one has libliftoff `placed=2/n` | **expected (S7-3)** | Replaying the whole sweep with every plane's zpos pinned to `zpos_now` (`zpos=fixed:N`): core-only is 0 in all 450 frames of both settings, the frames become both-reject (core `NoPlane`, `Z_ORDER`) or both-accept. With distinct `zpos_now` (plane 31: 0, overlays 51..83: 1..5, ranges kept) core-only is also 0 in all 450. So core's plans depend on restacking planes (**inferred**). The checks on single frames are in the files named here | `findings/imx95-observed.observed.fill.0002.s952efad51700068f.full.xcheck` (core-only both settings), `.fixed-zpos.xcheck` (both-reject), `.distinct-zpos.xcheck` (both-accept); likewise `...zperm.0004.s5693e069655b9e7d.full`, `...alpha0.0007.sad76bc5a392349d8.full`, `...tie.0004.sbf2dd12ae41bc1ad.full` (and `tie.0004.distinct-zpos`: both-accept although the layers keep their equal z) |
+| the same, on frames with equal layer `z` and on frames with alpha-0 layers | `tie` 8, `alpha0` 10 per setting | **expected (S7-3)**, not S7-13 or S7-4 | The `tie` frames become both-accept when only the planes' `zpos_now` is made distinct, with the layers' equal z kept, so the layer-tie mapping (S7-13) is not the cause. The `alpha0` frames behave as their frames without the alpha-0 layers (S7-4 holds) | `findings/imx95-observed.observed.tie.0004.*`, `findings/imx95-observed.observed.alpha0.0007.sad76bc5a392349d8.full.xcheck` |
+| core-only under `full` only, where `structural` is both-reject | `rand` 21 (51 against 30) | **expected (S7-3 with S7-10)** | Under `structural`, core has no scaler (generic profile) and refuses on `SCALING`, so the frame is both-reject; under `full`, `profile imx95dpu` gives core its scaler, and core's plan hits the S7-3 case. With the zpos pinned, the 21 are both-reject or both-accept | `findings/imx95-observed.observed.rand.0000.s8a39869f327c1bbb.full.xcheck` (structural both-reject, full core-only) |
+| liftoff-only under `structural`, core `NoPlane { OUTPUT \| SCALING }` | 17: `scale` 12, `rand` 5; all 17 carry that reason | **expected (S7-10)** | Gone under `full` (no liftoff-only frame; the files below are both-accept under `full`) | `findings/imx95-observed.observed.scale.0000.s78a620fc399d5bcd.structural.xcheck`, `findings/imx95-observed.observed.rand.0062.scea6633d796d7d17.structural.xcheck` |
+
+No frame was classed **artefact** or **lead**, and the harness needed no fix. The extra variants of `fill.0002` and `tie.0004` were derived by hand (first comment line of each file). The variant `findings/imx95-observed.observed.fill.0002.primary-low.xcheck` (only plane 31's `zpos_now` changed from 5 to 0, the overlays still tie at 1) is still core-only: for those intersecting layers, the five overlays at one zpos are enough to cause the refusal, the primary's position is not (**inferred**; libliftoff refuses two intersecting layers on planes of equal zpos, `notes/libliftoff-c4226a7.md` section 8, rule 3, the library's `zpos-4x-intersect-partial` case). For the disjoint `tie.0004` frame the two causes were not separated.
+
+Rows with no difference: S7-1 (partial allocations occur inside both-reject), S7-2 (no liftoff-only frame without `SCALING`), S7-5, S7-6, S7-8 (no `unstable` frame), S7-9, S7-11, S7-12 (all frames inside the output), S7-13, S7-14, S7-15, S7-16, S7-17. S7-7: no `LimitExceeded` (at most 6 layers).
+
+### Against the synthetic i.MX95 stream
+
+The synthetic stream (`fixtures/imx95-synthetic.xcheck`, **synthetic**) has the same plane count and `profile imx95dpu` but `zpos_now` 0, 1, 2, 3, 4, 5. There, the only core-only frame is `scaled_small` (S7-12) and all other differences are S7-10 liftoff-only frames. On the observed plane set the results differ: 156 / 177 core-only frames that the synthetic stream does not show. Their cause is the one input difference that matters, the planes' current zpos (equal at 1 on the five overlays, 5 on the primary), since with distinct `zpos_now` they disappear (the check above). Other differences between the two files (output size 1280x800 against 1920x1080, `transforms=-` against `normal`, plane ids, an unreachable second primary) change frame content and so the seeds, so counts of the two sweeps are not comparable frame by frame. The S7-10 part (liftoff-only under `structural`, gone under `full`) is the same in both.
+
+### For the planner owner (not changed here)
+
+- Core's plan for this plane set restacks planes freely (`zpos=0..5`). Whether the i.MX95 driver lets a client change `zpos` of these planes in one atomic commit, and whether equal `zpos` on the overlays is a Weston default, is not shown by this run (**inferred** only; a hardware question that this host run cannot answer). libliftoff only reads the current zpos values, so with the recorded state it refuses these frames.
+- No change in `crates/composition-core/src/**` looks necessary from this sweep.

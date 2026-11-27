@@ -1,0 +1,118 @@
+# finding of liftoff-crosscheck sweep: core-only
+# GEN_VERSION=1 seed=0x5eed11f70ffc4226 case_seed=0x8a39869f327c1bbb
+# family=rand index=0000 topology=imx95-observed model=full
+xcheck 1
+origin observed 2026-11-28 imx95-probe-2026-11-28.txt at commit eab4162
+profile imx95dpu
+output 39 1280 800 59993
+plane 31 kind=primary outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 42 kind=primary outputs=0x0 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 51 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 59 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 67 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 75 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+plane 83 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format NV12 0x0
+  format NV21 0x0
+buffer 1 320 240 AR24 0x0
+buffer 2 33 33 AR24 0x0
+buffer 3 16 16 AR24 0x0
+buffer 4 160 90 AR24 0x0
+buffer 5 320 240 RG16 0x0
+frame rand.0000 output=39
+  layer buffer=1 src=0,0,320,240 dst=189,111,320,240 z=5 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,33,33 dst=1247,108,33,33 z=0 alpha=32768 blend=premul transform=normal
+  layer buffer=3 src=0,0,16,16 dst=1099,534,16,16 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=4 src=0,0,160,90 dst=60,45,641,361 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,320,240 dst=771,139,320,240 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=5 src=0,0,320,240 dst=189,476,320,240 z=2 alpha=32768 blend=premul transform=normal
+end
