@@ -77,9 +77,28 @@ impl Vkms {
             .expect("select CRC source");
         let data = File::open(format!("{dir}/data")).expect("open CRC data");
         let mut lines = BufReader::new(data).lines();
-        // The first entries may predate the latest commit.
-        let line = lines.nth(3).expect("CRC entry").expect("read CRC");
-        line.split_whitespace().last().unwrap().to_string()
+        // The first entries may predate the latest commit, and vkms composes
+        // on a worker that can lag a vblank behind the page-flip event. Skip
+        // the first few, then wait until the CRC has been steady for a few
+        // frames: the display is static, so a changing value is still stale.
+        const STEADY: usize = 4;
+        let mut run: Vec<String> = Vec::new();
+        for line in lines.by_ref().skip(3).take(40) {
+            let crc = line
+                .expect("read CRC")
+                .split_whitespace()
+                .last()
+                .unwrap()
+                .to_string();
+            if run.last().is_some_and(|last| *last != crc) {
+                run.clear();
+            }
+            run.push(crc);
+            if run.len() == STEADY {
+                return run.pop().unwrap();
+            }
+        }
+        panic!("CRC never settled");
     }
 }
 
