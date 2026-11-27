@@ -797,6 +797,7 @@ fn lists_linear(plane: &PlaneCaps, format: PixelFormat) -> bool {
 enum TestOnly {
     Ok,
     Rejected(u32),
+    RejectedUntilLimit(u32),
     Failed(BackendError),
 }
 
@@ -807,6 +808,9 @@ impl TestOnly {
             TestOnly::Rejected(candidates) => {
                 format!("rejected (EINVAL/ERANGE/ENOSPC, {candidates} candidate(s))")
             }
+            TestOnly::RejectedUntilLimit(candidates) => format!(
+                "rejected (EINVAL/ERANGE/ENOSPC, {candidates} candidate(s) until the search limit)"
+            ),
             TestOnly::Failed(BackendError::Platform(errno)) => format!(
                 "errno {errno} ({})",
                 std::io::Error::from_raw_os_error(*errno)
@@ -834,23 +838,24 @@ fn evaluate(
 ) -> Result<TestOnly, PlanError> {
     let backend = engine.backend_mut();
     let mut failure = None;
-    let planned = plan_with(
-        frame,
-        caps,
-        lookup,
-        SearchLimits::default(),
-        |plan| match backend.check(frame, plan) {
+    let mut checked = 0;
+    let planned = plan_with(frame, caps, lookup, SearchLimits::default(), |plan| {
+        checked += 1;
+        match backend.check(frame, plan) {
             Ok(()) => Verdict::Accept,
             Err(BackendError::Rejected) => Verdict::TryNext,
             Err(error) => {
                 failure = Some(error);
                 Verdict::GiveUp
             }
-        },
-    );
+        }
+    });
     match planned {
         Ok(_) => Ok(TestOnly::Ok),
         Err(PlanError::BackendRejected { candidates }) => Ok(TestOnly::Rejected(candidates)),
+        // Legal plans existed, and the check refused every one it was
+        // offered before the search limits ran out.
+        Err(PlanError::LimitExceeded) if checked > 0 => Ok(TestOnly::RejectedUntilLimit(checked)),
         Err(PlanError::Aborted) => Ok(TestOnly::Failed(
             failure.unwrap_or(BackendError::Platform(0)),
         )),
