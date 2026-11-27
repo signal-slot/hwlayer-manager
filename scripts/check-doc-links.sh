@@ -65,9 +65,8 @@ slugs() {
 }
 
 tab=$(printf '\t')
-files=$(git ls-files '*.md')
 
-for f in $files; do
+git ls-files '*.md' | while IFS= read -r f; do
     [ -f "$f" ] || continue
     dir=$(dirname "$f")
     extract_links "$f" | while IFS=$tab read -r ln target; do
