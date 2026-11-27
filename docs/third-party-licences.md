@@ -24,32 +24,32 @@ Tags:
 
 Source: `cargo metadata --locked --format-version 1` on 2026-11-28 (cargo 1.98.0-nightly). The licence is the `license` field of each crate's own `Cargo.toml`, as published on crates.io; **read from source (2026-11-28)** for every row. Every crate comes from `https://crates.io` (registry `https://github.com/rust-lang/crates.io-index`). The version plus the checksum in `Cargo.lock` pins the exact source. `Cargo.lock` lists 26 packages: 8 workspace crates and the 18 external ones below.
 
-"Used by" lists the workspace crates that reach the crate, directly or through other crates. "How" says how the crate ends up in a build:
+"Used by" lists the workspace crates that reach the crate, directly or through other crates. "Kind" is the dependency kind (`normal`, `dev` or `build`) of the edge from the workspace crate, taken from `dep_kinds` in the `cargo metadata` resolve graph; it is `normal` for every row, because no workspace crate declares a `[dev-dependencies]` or `[build-dependencies]` entry on an external crate (checked 2026-11-28). Proc-macro crates are `normal` dependencies of the crate that uses them. "How" says how the crate ends up in a build:
 
 - **linked**: compiled into the binary or library.
 - **build only**: a proc-macro or its dependency. It runs in the compiler and is not in the output.
 - **other targets only**: behind a `cfg` for targets other than Linux. `cargo tree --target x86_64-unknown-linux-gnu` and `--target aarch64-unknown-linux-gnu` do not include it, so no build this project makes today compiles it.
 
-| Crate | Version | SPDX licence | Used by | How | Fit with Apache-2.0 (inferred, not legal advice) |
-| --- | --- | --- | --- | --- | --- |
-| `bitflags` | 2.13.2 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init | linked | yes; Apache-2.0 can be chosen |
-| `bytemuck` | 1.25.2 | `Zlib OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness | linked | yes; Apache-2.0 can be chosen |
-| `bytemuck_derive` | 1.12.1 | `Zlib OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness | build only (proc-macro) | yes |
-| `drm` | 0.15.0 | `MIT` | composition-drm, composition-drm-harness (both direct) | linked | yes; keep its MIT notice when a binary is distributed |
-| `drm-ffi` | 0.9.1 | `MIT` | composition-drm, composition-drm-harness | linked | yes; keep its MIT notice |
-| `drm-fourcc` | 2.2.0 | `MIT` | composition-drm, composition-drm-harness | linked | yes; keep its MIT notice |
-| `drm-sys` | 0.8.1 | `MIT` | composition-drm, composition-drm-harness | linked | yes; keep its MIT notice |
-| `errno` | 0.3.15 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init (through `rustix`) | other targets only | yes |
-| `libc` | 0.2.191 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init (through `drm`, `drm-sys`, `errno`) | other targets only | yes |
-| `linux-raw-sys` | 0.9.4 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness (through `drm-sys`) | linked | yes; Apache-2.0 can be chosen |
-| `linux-raw-sys` | 0.12.1 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness, vm-init (through `rustix`) | linked | yes; Apache-2.0 can be chosen |
-| `proc-macro2` | 1.0.107 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness | build only | yes |
-| `quote` | 1.0.47 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness | build only | yes |
-| `rustix` | 1.1.6 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness, vm-init (all direct) | linked | yes; Apache-2.0 can be chosen |
-| `syn` | 3.0.10 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness | build only | yes |
-| `unicode-ident` | 1.0.27 | `(MIT OR Apache-2.0) AND Unicode-3.0` | composition-drm, composition-drm-harness | build only | yes; Unicode-3.0 is a permissive licence for the Unicode data tables |
-| `windows-link` | 0.2.1 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init | other targets only | yes |
-| `windows-sys` | 0.61.2 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init | other targets only | yes |
+| Crate | Version | SPDX licence | Used by | Kind | How | Fit with Apache-2.0 (inferred, not legal advice) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `bitflags` | 2.13.2 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init | normal | linked | yes; Apache-2.0 can be chosen |
+| `bytemuck` | 1.25.2 | `Zlib OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness | normal | linked | yes; Apache-2.0 can be chosen |
+| `bytemuck_derive` | 1.12.1 | `Zlib OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness | normal | build only (proc-macro) | yes |
+| `drm` | 0.15.0 | `MIT` | composition-drm, composition-drm-harness (both direct) | normal | linked | yes; keep its MIT notice when a binary is distributed |
+| `drm-ffi` | 0.9.1 | `MIT` | composition-drm, composition-drm-harness | normal | linked | yes; keep its MIT notice |
+| `drm-fourcc` | 2.2.0 | `MIT` | composition-drm, composition-drm-harness | normal | linked | yes; keep its MIT notice |
+| `drm-sys` | 0.8.1 | `MIT` | composition-drm, composition-drm-harness | normal | linked | yes; keep its MIT notice |
+| `errno` | 0.3.15 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init (through `rustix`) | normal | other targets only | yes |
+| `libc` | 0.2.191 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init (through `drm`, `drm-sys`, `errno`) | normal | other targets only | yes |
+| `linux-raw-sys` | 0.9.4 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness (through `drm-sys`) | normal | linked | yes; Apache-2.0 can be chosen |
+| `linux-raw-sys` | 0.12.1 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness, vm-init (through `rustix`) | normal | linked | yes; Apache-2.0 can be chosen |
+| `proc-macro2` | 1.0.107 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness | normal | build only | yes |
+| `quote` | 1.0.47 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness | normal | build only | yes |
+| `rustix` | 1.1.6 | `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT` | composition-drm, composition-drm-harness, vm-init (all direct) | normal | linked | yes; Apache-2.0 can be chosen |
+| `syn` | 3.0.10 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness | normal | build only | yes |
+| `unicode-ident` | 1.0.27 | `(MIT OR Apache-2.0) AND Unicode-3.0` | composition-drm, composition-drm-harness | normal | build only | yes; Unicode-3.0 is a permissive licence for the Unicode data tables |
+| `windows-link` | 0.2.1 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init | normal | other targets only | yes |
+| `windows-sys` | 0.61.2 | `MIT OR Apache-2.0` | composition-drm, composition-drm-harness, vm-init | normal | other targets only | yes |
 
 What this means per build (inferred from `cargo tree -e normal` on 2026-11-28):
 
@@ -132,3 +132,15 @@ Fit (inferred, not legal advice): Zephyr's main licence is the same as this repo
 - Zephyr and its modules: waiting for the pin (section 3.6).
 - The demo firmware that `docs/twoplane-backend.md` names (`display_port_<soc>.c`, outside this repository): no document pins a URL or commit, and no copy could be read on 2026-11-28. Its licence is not read. It is not a build input of this repository.
 - The copyright holder named in `NOTICE` is a placeholder (section 1).
+
+## 5. Regenerating the Rust table
+
+Checked 2026-11-28: every non-workspace package of `cargo metadata --format-version 1 --locked` (26 packages minus the 8 workspace members = 18) appears in section 2 with the same version and the same `license` field. `composition-core` has no dependencies at all, so it appears in no "Used by" cell except as a workspace crate.
+
+To regenerate, after `cargo fetch --locked`:
+
+```sh
+cargo metadata --format-version 1 --locked > metadata.json
+```
+
+Take every entry of `packages` whose `id` is not in `workspace_members` and print its `name`, `version` and `license`. For the "Used by" and "Kind" columns, walk `resolve.nodes[].deps[]` from each workspace member and read `dep_kinds[].kind` (`null` is `normal`, otherwise `dev` or `build`). `cargo tree -e normal,build,dev --target all -i <crate>` gives the same answer per crate. Update the package count in section 2 and the date above when `Cargo.lock` changes.
