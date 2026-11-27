@@ -1,0 +1,4 @@
+# SYNTHETIC fixture: invented numbers for the self-test, not a measurement.
+# date: 2026-01-03
+CETRACE v=1 ev=hdr seq=0 src=zephyr clock=cyc32 freq_hz=1000000 t0=0 at_unit=same build="synthetic" board="synthetic"
+CETRACE v=1 ev=commit seq=1 t=100 at=0 out=0 result=ok sub=1

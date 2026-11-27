@@ -1,0 +1,5 @@
+# SYNTHETIC fixture: invented numbers, deliberately inconsistent (seq gap, latch of a sub never committed).
+# date: 2026-01-02
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=0 at_unit=same build="synthetic" board="synthetic"
+CETRACE v=1 ev=commit seq=1 t=100 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=3 t=200 at=0 out=0 sub=9
