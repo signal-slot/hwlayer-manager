@@ -24,7 +24,9 @@ check_app() {
     if grep -rIqE '(^|[^0-9.])([0-9]{1,3}\.){3}[0-9]{1,3}([^0-9.]|$)' "$app" 2>/dev/null; then
         reasons="$reasons contains an IPv4 address;"
     fi
-    if grep -rIqF '/dev/tty' "$app" 2>/dev/null; then
+    # /dev/ttyRPMSG* is the Linux rpmsg_tty node, not a UART path.
+    if grep -rIhoE '/dev/tty[A-Za-z0-9_]*' "$app" 2>/dev/null |
+        grep -qvE '^/dev/ttyRPMSG'; then
         reasons="$reasons contains /dev/tty;"
     fi
     if grep -rIqi 'password' "$app" 2>/dev/null; then
