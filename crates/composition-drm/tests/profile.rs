@@ -142,7 +142,7 @@ fn full_group_table_does_not_panic_and_keeps_existing_groups() {
 // ---- DriverProfile::Stm32Ltdc ----
 
 const LTDC_LIMITS: ScaleLimits = ScaleLimits {
-    max_upscale: 32 << 16,
+    max_upscale: 1080 << 16,
     max_downscale: 1 << 16,
 };
 const OUT: OutputId = OutputId(0);
@@ -158,8 +158,8 @@ impl BufferLookup for Buffers {
         let size = match buffer {
             RGB => Size::new(1920, 1080),
             SMALL => Size::new(960, 540),
-            // 30x17 upscaled to 960x540 is 32.0x horizontally.
-            TINY => Size::new(30, 17),
+            // One pixel: any destination width is the factor.
+            TINY => Size::new(1, 1),
             _ => return None,
         };
         Some(BufferInfo {
@@ -256,11 +256,12 @@ fn ltdc_upscale_at_the_bound_accepted_and_above_refused() {
     // 2x up.
     let two = Layer::new(SMALL, Rect::new(0, 0, 480, 270), dst, 0);
     assert_eq!(plan_one(two), Ok(1));
-    // 30x17 to 960x540: 32.0x horizontally, 31.76x vertically.
-    let at = Layer::new(TINY, Rect::new(0, 0, 30, 17), dst, 0);
+    // 1x1 to 1080x1: 1080.0x horizontally (observed 2026-11-27: no bound
+    // up to the mode size).
+    let at = Layer::new(TINY, Rect::new(0, 0, 1, 1), Rect::new(0, 0, 1080, 1), 0);
     assert_eq!(plan_one(at), Ok(1));
-    // 960/29 = 33.1x horizontally.
-    let above = Layer::new(TINY, Rect::new(0, 0, 29, 17), dst, 0);
+    // 1x1 to 1081x1: 1081.0x horizontally.
+    let above = Layer::new(TINY, Rect::new(0, 0, 1, 1), Rect::new(0, 0, 1081, 1), 0);
     assert_eq!(
         plan_one(above),
         Err(PlanError::NoPlane {
