@@ -1,0 +1,21 @@
+# start_utc=2026-11-27T20:12:11Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --source dlm --lease lvds --dlm-dir /tmp/lease-dlm --connector LVDS --profile imx95 --seconds 30 two-planes
+harness version=0.1.0 scenario=two-planes args="--source dlm --lease lvds --dlm-dir /tmp/lease-dlm --connector LVDS --profile imx95 --seconds 30 two-planes"
+lease route=drm-lease-manager socket=/tmp/lease-dlm/lvds
+session scenario=two-planes source=dlm device=/tmp/lease-dlm/lvds driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+resource_group consumers=1 planes=0x3 capacity=6
+resource_group consumers=14 planes=0x3 capacity=4
+resource_group consumers=2 planes=0x3 capacity=1
+resource_group consumers=4 planes=0x3 capacity=1
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=two-planes layer=1 buffer=2 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=two-planes layers=2 assigned=2 planes=31,51
+commit step=two-planes submission=1 validate_us=189 commit_us=13982 latency_us=13988
+hold step=two-planes seconds=30
+resources scenario=two-planes wall_ms=30022 cpu_user_ms=0 cpu_sys_ms=10 cpu_pct=0.0 rss_kib=876 peak_rss_kib=876
+VERDICT two-planes PASS 2 buffers on planes 31,51 (bottom,top)
+# end_utc=2026-11-27T20:12:41Z exit_status=0

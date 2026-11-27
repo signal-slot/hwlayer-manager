@@ -1,0 +1,15 @@
+lessor pid=2580 device=/dev/dri/card0 socket=/tmp/lease-dlm/lvds connector=LVDS-1 planes=31,51
+lessor_client n=1
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+lease_ended lessee=1 why="the lessee closed its descriptor"
+lessor_client n=2
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+lease_ended lessee=1 why="the lessee closed its descriptor"
+lessor_client n=3
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+lease_ended lessee=1 why="the lessee closed its descriptor"
+lessor_client n=4
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4
+lease_ended lessee=1 why="the lessee closed its descriptor"
+lessor_client n=5
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51 objects=4

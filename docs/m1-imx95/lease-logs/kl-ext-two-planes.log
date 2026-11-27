@@ -1,0 +1,35 @@
+# start_utc=2026-11-27T20:09:17Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --source kernel-lease --producers external --connector LVDS --profile imx95 --seconds 30 two-planes
+harness version=0.1.0 scenario=two-planes args="--source kernel-lease --producers external --connector LVDS --profile imx95 --seconds 30 two-planes"
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51,59,67,75,83 objects=8
+session scenario=two-planes source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=external
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=59 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=67 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=75 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=83 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51,59,67,75,83 engine_planes=31,51,59,67,75,83 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3f capacity=6
+resource_group consumers=14 planes=0x3f capacity=4
+resource_group consumers=2 planes=0x3f capacity=1
+resource_group consumers=4 planes=0x3f capacity=1
+producer_spawned layer=0 pid=2504
+producer layer=0 pid=2504 device=/dev/dri/card0 was_master=no
+supplied layer=0 pid=2504 buffer=1 width=1280 height=800 pitch=5120 modifier=0x0
+producer_spawned layer=1 pid=2505
+producer layer=1 pid=2505 device=/dev/dri/card0 was_master=no
+supplied layer=1 pid=2505 buffer=2 width=640 height=400 pitch=2560 modifier=0x0
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=two-planes layer=1 buffer=2 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=two-planes layers=2 assigned=2 planes=31,51
+commit step=two-planes submission=1 validate_us=150 commit_us=5822 latency_us=5828
+hold step=two-planes seconds=30
+resources scenario=two-planes wall_ms=30014 cpu_user_ms=0 cpu_sys_ms=10 cpu_pct=0.0 rss_kib=880 peak_rss_kib=880
+producer_exit layer=0 pid=2504 allocs=1 draws=0 releases=0 refused=0 status=ok
+producer_exit layer=1 pid=2505 allocs=1 draws=0 releases=0 refused=0 status=ok
+producers releases_passed_on=0 returned_unshown=0 problems=0
+VERDICT two-planes PASS 2 buffers on planes 31,51 (bottom,top)
+# end_utc=2026-11-27T20:09:47Z exit_status=0

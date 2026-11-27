@@ -1,0 +1,27 @@
+# start_utc=2026-11-27T20:11:26Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --connector LVDS --profile imx95 --source kernel-lease revoke
+harness version=0.1.0 scenario=revoke args="--connector LVDS --profile imx95 --source kernel-lease revoke"
+lease route=kernel device=/dev/dri/card0 lessee=1 connector=41 connector_name=LVDS-1 crtc=39 primary=31 overlays=51,59,67,75,83 objects=8
+session scenario=revoke source=kernel-lease device=/dev/dri/card0 driver=imx95-dpu profile=imx95 producers=local
+output index=0 id=39 connector=LVDS-1 width=1280 height=800 refresh_mhz=59993 mode=1280x800 vrefresh=60 clock_khz=71100 selected=yes
+plane id=31 kind=primary zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=51 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=59 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=67 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=75 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+plane id=83 kind=overlay zpos=0..5 on_output=yes alpha=true blend_mask=7 scaling=true formats=AR24,XR24,AB24,XB24,RA24,RX24,BA24,BX24,RG16,YUYV,UYVY,NV12,NV21
+lease_check leased_planes=31,51,59,67,75,83 engine_planes=31,51,59,67,75,83 not_leased=- leased_not_seen=- outputs=1
+resource_group consumers=1 planes=0x3f capacity=6
+resource_group consumers=14 planes=0x3f capacity=4
+resource_group consumers=2 planes=0x3f capacity=1
+resource_group consumers=4 planes=0x3f capacity=1
+step label=revoke frames_before=60 buffers_per_plane=3 expect="white bars sweep, then the lease is revoked and the picture stops changing"
+assign step=revoke layer=0 buffer=1 plane=31 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1280x800 dst=0,0,1280x800
+assign step=revoke layer=1 buffer=4 plane=51 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,640x400 dst=320,200,640x400
+plan step=revoke layers=2 assigned=2 planes=31,51
+before_revoke frames=60 releases=0 on_screen=3,6
+lease_revoked lessee=1
+revoke_result first_attempt=Err(Backend(DeviceLost)) first_attempt_us=7694 second_attempt=Err(Plan(UnknownOutput(OutputId(39)))) device_lost_events=1 released=3,6 still_busy=- outputs_after=0 planes_after=0 events=Released{buffer:BufferId(3)},Released{buffer:BufferId(6)},DeviceLost
+resources scenario=revoke wall_ms=1014 cpu_user_ms=120 cpu_sys_ms=340 cpu_pct=45.3 rss_kib=892 peak_rss_kib=892
+VERDICT revoke PASS 60 frames on planes 31,51, then revoked: DeviceLost once, buffers 3,6 released
+# end_utc=2026-11-27T20:11:27Z exit_status=0
