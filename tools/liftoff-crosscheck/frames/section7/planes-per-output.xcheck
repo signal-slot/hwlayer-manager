@@ -1,0 +1,37 @@
+xcheck 1
+# Section 7 row: "planes visible per output" (one output per run in v1; both planners see the planes
+# whose mask includes it). Outputs 31 and 32 are core output indices 0 and 1.
+# Plane 90: primary, output 31 only (mask 0x1). Plane 91: primary, output 32 only (0x2).
+# Plane 92: overlay, both (0x3).
+# Frames, model setting, predicted class (all INFERRED; nothing has been run), both models:
+#   output-31-two-layers    both-accept (planes 90 and 92).
+#   output-32-two-layers    both-accept (planes 91 and 92).
+#   output-32-three-layers  both-reject (only planes 91 and 92 reach output 32; plane 90 does not).
+#   output-31-one-layer     both-accept (control).
+origin synthetic 2026-11-28 two-output topology with per-output primary planes and one shared overlay, for the planes per output row
+profile generic
+output 31 1920 1080 60000
+output 32 1920 1080 60000
+plane 90 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 91 kind=primary outputs=0x2 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 92 kind=overlay outputs=0x3 zpos=fixed:1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+buffer 1 1920 1080 AR24 0x0
+frame output-31-two-layers output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame output-32-two-layers output=32
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame output-32-three-layers output=32
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+end
+frame output-31-one-layer output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end

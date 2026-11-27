@@ -1,0 +1,41 @@
+xcheck 1
+# Section 7 row: "zpos and intersection" (libliftoff preserves relative zpos only
+# between layers that intersect; core's Z_ORDER covers every placed layer).
+# Frames, model setting, predicted class (all INFERRED; nothing has been run):
+#   swapped-disjoint     structural and full: liftoff-only. The NV12 layer (z 0) can only use
+#                        plane 11 (zpos 1) and the ARGB layer (z 1) only plane 10 (zpos 0): the
+#                        order is inverted, which core refuses (Z_ORDER); libliftoff does not
+#                        care because the two layers do not intersect.
+#   swapped-overlapping  both-reject: same planes, but the layers intersect, so libliftoff keeps
+#                        the order too.
+#   ordered-disjoint     both-accept (control, order matches the planes).
+#   ordered-overlapping  both-accept (control).
+# Planes have fixed zpos so the row "programmable zpos" does not interfere.
+# Contract row: a libliftoff partial placement on swapped-overlapping is extra data only.
+origin synthetic 2026-11-28 two-plane fixed-zpos topology, plane 10 ARGB only, plane 11 NV12 only, for the zpos and intersection row
+profile generic
+output 31 1920 1080 60000
+plane 10 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 11 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+buffer 3 960 1080 AR24 0x0
+buffer 4 960 1080 NV12 0x0
+frame swapped-disjoint output=31
+  layer buffer=4 src=0,0,960,1080 dst=0,0,960,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=3 src=0,0,960,1080 dst=960,0,960,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame swapped-overlapping output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame ordered-disjoint output=31
+  layer buffer=3 src=0,0,960,1080 dst=0,0,960,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=4 src=0,0,960,1080 dst=960,0,960,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame ordered-overlapping output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end

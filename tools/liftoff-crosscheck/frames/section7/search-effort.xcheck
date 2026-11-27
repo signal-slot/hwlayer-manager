@@ -1,0 +1,77 @@
+xcheck 1
+# Section 7 row: "search effort" (core: SearchLimits, 20000 steps and 32 backend checks;
+# libliftoff: a deadline, raised by the harness, which records whether it was reached).
+# Ten planes, ids 50..59, zpos 0..15, zpos_now = index. Only plane 50 (the primary) lists NV12.
+# Frames, model setting, predicted class (all INFERRED; nothing has been run):
+#   ten-argb-layers          both-accept (control, first fit).
+#   nv12-lowest-nine-argb    both-accept (control: the NV12 layer is lowest and goes to plane 50,
+#                            the AR24 layers fill planes 51..59).
+#   eight-argb-two-nv12-late both-reject in outcome. Two NV12 layers for one NV12 plane cannot be
+#                            placed. Core: either a quick NoPlane or, if it explores the
+#                            permutations of the first eight layers before reaching the late
+#                            failure (about 9P8 = 362880 nodes), core-error(LimitExceeded).
+#                            UNCERTAIN which; libliftoff: partial placement, the deadline flag
+#                            may be set. The row's liftoff-only class is not expected here.
+# The frames overlap fully, so the zpos relation matters, but the plane order matches.
+origin synthetic 2026-11-28 ten-plane topology with one NV12-capable plane, for the search effort row
+profile generic
+output 31 1920 1080 60000
+plane 50 kind=primary outputs=0x1 zpos=0..15 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 51 kind=overlay outputs=0x1 zpos=0..15 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 52 kind=overlay outputs=0x1 zpos=0..15 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 53 kind=overlay outputs=0x1 zpos=0..15 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 54 kind=overlay outputs=0x1 zpos=0..15 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 55 kind=overlay outputs=0x1 zpos=0..15 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 56 kind=overlay outputs=0x1 zpos=0..15 zpos_now=6 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 57 kind=overlay outputs=0x1 zpos=0..15 zpos_now=7 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 58 kind=overlay outputs=0x1 zpos=0..15 zpos_now=8 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 59 kind=overlay outputs=0x1 zpos=0..15 zpos_now=9 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+frame ten-argb-layers output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=6 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=7 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=8 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=9 alpha=65535 blend=premul transform=normal
+end
+frame nv12-lowest-nine-argb output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=6 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=7 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=8 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=9 alpha=65535 blend=premul transform=normal
+end
+frame eight-argb-two-nv12-late output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=6 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=7 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=8 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=9 alpha=65535 blend=premul transform=normal
+end

@@ -1,0 +1,38 @@
+xcheck 1
+# Section 7 row: "zpos tie rule" (core: equal z_order stacks in frame order, later on top; the
+# harness maps layers to distinct zpos ranks of the same stable sort). A wrong mapping would
+# show as a difference on these frames: a sanity test, to be run first.
+# Plane 70 (zpos fixed 0) lists ARGB only, plane 71 (zpos fixed 1) NV12 only, so the stacking
+# order decides feasibility. Layers overlap fully.
+# Frames, model setting, predicted class (all INFERRED; nothing has been run), both models:
+#   tie-argb-then-nv12      both-accept (NV12, later, is on top: plane 71).
+#   tie-nv12-then-argb      both-reject (ARGB, later, would have to be on top; plane 70 is below).
+#   distinct-z-beats-order  both-reject (explicit z puts ARGB above NV12 although it comes first
+#                           in the frame: the same wiring as the previous frame).
+#   distinct-z-and-order    both-accept (control).
+# A difference on the tie frames only is a candidate harness artefact (the row's concern).
+origin synthetic 2026-11-28 two-plane fixed-zpos topology for the zpos tie rule row
+profile generic
+output 31 1920 1080 60000
+plane 70 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 71 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+frame tie-argb-then-nv12 output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame tie-nv12-then-argb output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame distinct-z-beats-order output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+end
+frame distinct-z-and-order output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+end
