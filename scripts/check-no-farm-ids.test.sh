@@ -12,7 +12,7 @@ trap 'rm -rf "$root"' EXIT HUP INT TERM
 repo=$root/r
 fail=0
 
-ip="10.1.2.3"
+ip="10.1.2"".3"
 tsnet="board7.tail1234.ts"".net"
 tsup=$(printf '%s' "$tsnet" | tr a-z A-Z)
 tty="/dev/tty""USB0"
@@ -82,7 +82,7 @@ frun fixture-own-file 0 scripts/check-zephyr-apps.test.sh "echo 192.168.""1.5"
 frun fixture-wrong-string 1 scripts/check-zephyr-apps.test.sh "echo $ip"
 
 # Exclusions: the lockfile is never scanned.
-frun excluded-lockfile 0 Cargo.lock "version = \"1.2.3.4\""
+frun excluded-lockfile 0 Cargo.lock "version = \"1.2.3"".4\""
 
 # Several categories in one file: every category is reported, exit is 1.
 frun multi 1 a.txt "$ip

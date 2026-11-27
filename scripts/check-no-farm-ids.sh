@@ -44,6 +44,17 @@ FIXTURES=(
   'scripts/check-no-board-secrets.sh|Password=x|FIXTURES table entry that names the credential sample to allow'
   'scripts/check-zephyr-apps.test.sh|192.168.1.5|fixture: private-range sample the Zephyr-app check must reject'
   'scripts/check-zephyr-apps.test.sh|/dev/ttyUSB0|fixture: serial path the Zephyr-app check must reject'
+  'scripts/check-no-board-secrets.test.sh|linux-kernel@vger.kernel.org|fixture: public mailing-list address the secret scan must accept'
+  'scripts/board-run-bundle.test.sh|10.9.8.7|fixture: fake board address passed to the fake program and scrubbed'
+  'scripts/board-run-bundle.test.sh|aa:bb:cc:dd:ee:ff|fixture: fake MAC the test asserts is scrubbed'
+  'scripts/testdata/board-run-bundle/fake-cmd.sh|10.9.8.7|fixture: fake board address the scrubber must remove'
+  'scripts/testdata/board-run-bundle/fake-cmd.sh|/dev/ttyUSB3|fixture: fake serial path the scrubber must remove'
+  'scripts/testdata/board-run-bundle/fake-cmd.sh|aa:bb:cc:dd:ee:ff|fixture: fake MAC the scrubber must remove'
+  'scripts/testdata/scrub-kms-dump/input.txt|02:00:5e:10:00:01|fixture: documentation MAC the scrubber must remove'
+  'scripts/testdata/scrub-kms-dump/input.txt|/dev/ttyUSB7|fixture: fake serial paths the scrubber must remove'
+  'scripts/testdata/scrub-kms-dump/input.txt|password=hunter2|fixture: fake credentials the scrubber must remove'
+  'scripts/scrub-kms-dump-README.md|`/dev/serial/by-id/*`|doc: table row naming the serial path shape the scrubber replaces'
+  'crates/composition-drm/tests/common/recorded.rs|(token: &str)|Rust parameter named token, not a credential'
 )
 
 # Never scanned: this script (holds the patterns) and the lockfile.
