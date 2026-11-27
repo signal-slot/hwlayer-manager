@@ -1,0 +1,4 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 row "Search effort" (smallest case; no effect expected) and a frame that needs every plane.
+uses-every-plane    structural=both-accept full=both-accept
+one-spare-plane     structural=both-accept full=both-accept

@@ -1,0 +1,8 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 row "zpos and intersection" (the expected liftoff-only case).
+# NV12 fits only the zpos-2 plane (12); AR24 fits planes 10 and 11. The lower layer (NV12)
+# must therefore sit on a higher plane than the upper layer (AR24).
+# libliftoff keeps relative zpos only between intersecting layers; core's Z_ORDER covers every placed layer.
+disjoint-inverted   structural=liftoff-only full=liftoff-only
+overlap-inverted    structural=both-reject  full=both-reject
+disjoint-ordered    structural=both-accept  full=both-accept   # control

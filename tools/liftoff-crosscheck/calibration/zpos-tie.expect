@@ -1,0 +1,7 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: docs/libliftoff-crosscheck.md section 7 row "zpos tie rule".
+# Both planners should accept: equal z_order stacks in frame order, and the harness maps ties to distinct ranks.
+# A difference here is an artefact of the tie mapping first, not a planner finding.
+tie-two-overlap     structural=both-accept full=both-accept
+tie-three-overlap   structural=both-accept full=both-accept
+tie-mixed           structural=both-accept full=both-accept

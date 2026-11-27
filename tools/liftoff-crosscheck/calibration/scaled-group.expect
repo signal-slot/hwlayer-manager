@@ -1,0 +1,12 @@
+# PREDICTIONS (inferred), not results. Written 2026-11-28 before any run.
+# Calibrates: section 7 row "Knowledge gap, scaling/groups".
+# Planes 11 and 12 can scale and share one unit (capacity 1); planes 10 and 13 cannot scale.
+# A 2x upscaled layer needs plane 11 or 12; two scaled layers exceed the group capacity.
+# structural: libliftoff and the structural model know nothing of scaling or groups, so liftoff accepts.
+#   Core run with profile generic: if it applies the explicit scaling/group lines it rejects (the design's
+#   "knowledge gap" class, written knowledge-gap below); if it ignores them it accepts (both-accept).
+#   The design does not settle which; this file is meant to show it.
+# full: the model refuses what the group cannot hold, so both reject.
+one-scaled    structural=both-accept full=both-accept
+two-scaled    structural=knowledge-gap|both-accept full=both-reject
+three-scaled  structural=knowledge-gap|both-accept full=both-reject
