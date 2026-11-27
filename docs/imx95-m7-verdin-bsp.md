@@ -254,8 +254,9 @@ All *inferred* from sections 1-4; nothing was built or tried.
   DT is represented only by Toradex-authored U-Boot/Linux patches.
 - Toradex `meta-toradex-*` recipes, U-Boot tree and any MCUXpresso SDK
   `verdin_imx95` board: GitHub 404 for the two repos tried; no evidence for or
-  against an SDK board. The Toradex i.MX95 Zephyr blog was not read (fetch not
-  permitted).
+  against an SDK board. The Toradex i.MX95 Zephyr blog
+  (https://www.toradex.com/blog/imx95-zephyr-asymmetric-multiprocessing)
+  returned HTTP 403 to the fetch helper on 2026-11-28 and was not read.
 - M7 console LPUART on Verdin and its pad names and SODIMM/Mallow header pins
   (the i.MX 95 tab of the Toradex load-firmware page did not extract).
 - The SMARC v2 diff and the NXP community LPUART3 thread (403; used only from
