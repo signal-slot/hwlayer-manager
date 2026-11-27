@@ -1,0 +1,9 @@
+hwlayer-manager
+Copyright 2026 The hwlayer-manager contributors
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full terms.
+
+This repository does not include third-party source code. Third-party
+crates and upstream projects used to build or test it, with their
+licences, are listed in docs/third-party-licences.md.
