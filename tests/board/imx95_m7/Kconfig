@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "hwlayer-manager i.MX95 M7 probe"
+
+source "Kconfig.zephyr"
+
+menu "hwlayer-manager i.MX95 M7 probe"
+
+config HWLM_RPMSG
+	bool "Send the report over rpmsg (Linux remoteproc resource table)"
+	default y
+	depends on OPENAMP_RSC_TABLE
+	help
+	  Create one rpmsg endpoint and answer every message from Linux with
+	  the same report that is printed on the console UART. Needs the
+	  resource table and the mailbox set up in the board overlay.
+
+config HWLM_RPMSG_EPT_NAME
+	string "rpmsg endpoint (channel) name"
+	default "rpmsg-tty"
+	depends on HWLM_RPMSG
+	help
+	  Name announced to Linux. "rpmsg-tty" binds the upstream Linux
+	  rpmsg_tty driver (/dev/ttyRPMSG*). "rpmsg-client-sample" binds the
+	  Linux rpmsg client sample, which sends first and logs replies to
+	  the kernel log.
+
+config HWLM_DPU_PROBE
+	bool "Read DPU identification and status registers (read-only)"
+	default n
+	help
+	  Read a few display controller registers and print them. The probe
+	  never writes a display register. Before any display read it asks
+	  the System Manager (SCMI, read-only queries) whether the display
+	  power domain is on and the display APB clock is enabled, and it
+	  skips the reads otherwise. Each read runs with bus faults ignored,
+	  so an access the M7 is not allowed to make is reported, not fatal.
+	  A read can still stall if the display mix is clock-gated in a way
+	  the System Manager does not report. Enable this only while Linux
+	  keeps the display running. Off by default.
+
+endmenu
