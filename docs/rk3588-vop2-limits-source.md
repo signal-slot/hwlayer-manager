@@ -29,6 +29,16 @@ v6.18 only on the strength of the cache directory name and of their content
 with a raw per-file fetch of the three paths at the pinned commit before
 relying on a single line number.
 
+Tag-object check (2026-11-28): **not verified.** The pinned tag object
+`f7b88edb52c8dd01b7e576390d658ae6eef0e134` and the commit
+`7d0a66e4bb9081d75c82ec4957c50034cb0ea449` it should peel to are the values
+recorded in `docs/stm32mp257-ltdc-source-full.md`, copied here and not
+confirmed. An attempt to run `git ls-remote` on the kernel.org tree for
+`refs/tags/v6.18` and `refs/tags/v6.18^{}` was refused in this run (the
+credential helper failed, and the further network commands were not
+permitted), so no peeled hash was obtained. To close this, run that
+`git ls-remote` and compare the two lines with the hashes above.
+
 ## Tags
 
 Each statement is tagged `read from source` or `inferred`, with the date
