@@ -1,0 +1,22 @@
+# observed 2026-11-28, kernel 6.18.50+rpt-rpi-2712, Raspberry Pi 5 (BCM2712), idle (fbcon on HDMI-A-1 1920x1080)
+# read-only: sudo cat of /sys/kernel/debug/dri/1/<file>; passed through scripts/scrub-kms-dump.py (no identifiers found)
+HVS chan 0:
+dlist: 64: 0x490cc004
+dlist: 65: 0x00000000
+dlist: 66: 0x0000fff0
+dlist: 67: 0x0437077f
+dlist: 68: 0x800000e8
+dlist: 69: 0x0000000a
+dlist: 70: 0x7fc00000
+dlist: 71: 0x00000f00
+dlist: 72: 0x80000000
+dlist: 73: 0x80000000
+HVS chan 1 disabled
+HVS chan 2 disabled
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000040 + 0000000a]
+Stale nodes:
+# --- hvs_underrun ---
+0
