@@ -12,14 +12,31 @@
 #                   (default 60, assumed, not read from the sink) it gives
 #                   `rotate --frames HOLD*FPS --buffers 3`
 #   --frames N      A2 frame count, overrides --hold/--fps
-#   --seconds N     how long each picture is held in A1, A3, A5 (default 3)
+#   --seconds N     how long each picture is held in A1, A3, A4, A5 (default
+#                   3); a hold that a picture is taken 20 s or more into
+#                   needs --seconds of 25 or more
 #   --allow-drops N dropped frames A2 may report (default 0)
 #   --stop-wait N   seconds to wait for a signalled run to exit (default 10)
 #   --device PATH, --connector NAME, --profile NAME
 #                   passed to the harness unchanged when given
-#   --hook CMD      command called as `CMD ROW PHASE` (PHASE is hold-start
-#                   or hold-end) around each hold, so the caller can take a
-#                   camera or KVM picture; its failure is only noted
+#   --hook CMD      command called as `CMD ROW PHASE [LABEL]` around each
+#                   hold, so the caller can take a camera or KVM picture; its
+#                   failure is only noted. hold-start is called once the
+#                   hold is under way (the first `commit` record of the run
+#                   is seen), while the hold goes on, so the hook may sleep
+#                   and then take its picture; hold-end follows the end of
+#                   the hold. PHASEs, by row (LABEL in brackets):
+#                     A1  hold-start/hold-end [master | kernel-lease]
+#                     A2  hold-start/hold-end
+#                     A3  hold-start/hold-end [TERM | KILL]: the run before
+#                         the signal, held --seconds; the signal follows
+#                         hold-end at once
+#                         post-stop-start/post-stop-end [TERM | KILL]: the
+#                         process has exited; the screen is held --seconds
+#                         restart-start/restart-end [TERM | KILL]: the
+#                         restarted run, held --seconds
+#                     A4  hold-start/hold-end: the revoke run
+#                     A5  hold-start/hold-end: the probe run
 #
 # Rows (each writes OUT/ROW/result.txt: first line
 # `SCENARIO <name> PASS|FAIL|BLOCKED|NOT-RUN`, then the evidence lines, and
@@ -40,7 +57,10 @@
 #                    before_revoke.
 #   A5 modeset       modes of the selected connector are read from
 #                    ${DRM_SYSFS:-/sys/class/drm}/card*-CONNECTOR/modes
-#                    (the harness prints only the selected mode). One mode:
+#                   (the harness prints only the selected mode); the harness
+#                   name (`HDMIA-1`, `DisplayPort-2`) is mapped to the sysfs
+#                   name (`HDMI-A-1`, `DP-2`) and the card number is taken
+#                   from --device (any card without it). One mode:
 #                    BLOCKED. More: BLOCKED "harness has no modeset
 #                    scenario" (the harness has no mode option); never PASS.
 #
@@ -63,6 +83,8 @@ allow_drops=0
 stop_wait=10
 hook=
 common=
+device=
+seconds_given=
 while [ $# -gt 0 ]; do
 	case $1 in
 	--out) shift; out=${1:-} ;;
@@ -70,11 +92,11 @@ while [ $# -gt 0 ]; do
 	--hold) shift; hold=${1:-} ;;
 	--fps) shift; fps=${1:-} ;;
 	--frames) shift; frames=${1:-} ;;
-	--seconds) shift; seconds=${1:-} ;;
+	--seconds) shift; seconds=${1:-}; seconds_given=1 ;;
 	--allow-drops) shift; allow_drops=${1:-} ;;
 	--stop-wait) shift; stop_wait=${1:-} ;;
 	--hook) shift; hook=${1:-} ;;
-	--device) shift; common="$common --device ${1:-}" ;;
+	--device) shift; device=${1:-}; common="$common --device ${1:-}" ;;
 	--connector) shift; common="$common --connector ${1:-}" ;;
 	--profile) shift; common="$common --profile ${1:-}" ;;
 	--) shift; break ;;
@@ -114,7 +136,55 @@ note() { ev="$ev$*
 fail() { bad="$bad$*
 "; }
 
-runhook() { [ -z "$hook" ] || $hook "$1" "$2" || note "hook $1 $2 failed"; }
+# runhook ROW PHASE [LABEL]
+runhook() {
+	[ -z "$hook" ] || $hook "$1" "$2" ${3:+"$3"} || note "hook $1 $2 ${3:-} failed"
+}
+
+# run_held ROW LABEL START END LOG CMD...: run CMD in the background, call
+# the hook START once its first commit is seen (or it has ended), wait for
+# it, then call the hook END. Sets rc to its exit status.
+run_held() {
+	hrow=$1 hlab=$2 hs=$3 he=$4 hlog=$5
+	shift 5
+	"$@" > "$hlog" 2>&1 &
+	hpid=$!
+	t=0
+	while [ "$(count "$hlog" commit)" -eq 0 ] && kill -0 "$hpid" 2>/dev/null \
+		&& ! grep -q '^VERDICT ' "$hlog" \
+		&& [ "$t" -lt $((stop_wait * 10)) ]; do
+		sleep 0.1; t=$((t + 1))
+	done
+	runhook "$hrow" "$hs" "$hlab"
+	wait "$hpid"
+	rc=$?
+	runhook "$hrow" "$he" "$hlab"
+}
+
+# hold_for ROW START END LABEL: hold --seconds with the hook START running
+# meanwhile, then call END.
+hold_for() {
+	sleep "$seconds" &
+	hsp=$!
+	runhook "$1" "$2" "$4"
+	wait "$hsp"
+	runhook "$1" "$3" "$4"
+}
+
+# sysfs_conn NAME: the harness's connector name (Debug of the interface, then
+# `-index`) as sysfs spells it; a name that is already sysfs's is kept.
+sysfs_conn() {
+	case $1 in *-[0-9]*) ;; *) echo "$1"; return ;; esac
+	hi=${1##*-}
+	ht=${1%-*}
+	case $ht in
+	HDMIA) ht=HDMI-A ;; HDMIB) ht=HDMI-B ;;
+	DisplayPort) ht=DP ;; EmbeddedDisplayPort) ht=eDP ;;
+	DVII) ht=DVI-I ;; DVID) ht=DVI-D ;; DVIA) ht=DVI-A ;;
+	SVideo) ht=SVIDEO ;; NinePinDIN) ht=DIN ;;
+	esac
+	echo "$ht-$hi"
+}
 
 # check_verdict LOG NAME RC: exit status and VERDICT line.
 check_verdict() {
@@ -137,11 +207,12 @@ check_commits() {
 	[ "$l" -eq "$c" ] || fail "latched=$l differs from commits=$c"
 }
 
-# run_two_planes LOG SOURCE: the A1 check on one source.
+# run_two_planes LOG SOURCE [ROW LABEL START END]: the A1 check on one
+# source; the hook defaults are A1, the source, hold-start, hold-end.
 run_two_planes() {
 	# shellcheck disable=SC2086
-	"$harness" $common --source "$2" --seconds "$seconds" two-planes > "$1" 2>&1
-	rc=$?
+	run_held "${3:-A1}" "${4:-$2}" "${5:-hold-start}" "${6:-hold-end}" "$1" \
+		"$harness" $common --source "$2" --seconds "$seconds" two-planes
 	note "-- two-planes --source $2"
 	check_verdict "$1" two-planes "$rc"
 	check_commits "$1"
@@ -169,12 +240,9 @@ row_a1() {
 row_a2() {
 	d=$out/A2; mkdir -p "$d"
 	note "hold=${hold}s fps=${fps} (assumed) frames=$frames buffers=3 allow_drops=$allow_drops"
-	runhook A2 hold-start
 	# shellcheck disable=SC2086
-	"$harness" $common --source master --frames "$frames" --buffers 3 \
-		rotate > "$d/rotate.log" 2>&1
-	rc=$?
-	runhook A2 hold-end
+	run_held A2 "" hold-start hold-end "$d/rotate.log" \
+		"$harness" $common --source master --frames "$frames" --buffers 3 rotate
 	check_verdict "$d/rotate.log" rotate "$rc"
 	f=$d/rotate.log
 	p=$(fld "$f" rotate_result presented)
@@ -213,13 +281,12 @@ stop_run() {
 		fail "$sig: no commit before the signal"
 		return
 	fi
-	runhook A3 hold-start
+	hold_for A3 hold-start hold-end "$sig"
 	kill -"$sig" "$pid"
 	t=0
 	while kill -0 "$pid" 2>/dev/null && [ "$t" -lt $((stop_wait * 10)) ]; do
 		sleep 0.1; t=$((t + 1))
 	done
-	runhook A3 hold-end
 	if kill -0 "$pid" 2>/dev/null; then
 		kill -KILL "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
 		fail "$sig: still running after ${stop_wait}s"
@@ -227,6 +294,7 @@ stop_run() {
 	fi
 	wait "$pid"; rc=$?
 	note "$sig: exit=$rc after commits=$(count "$log" commit)"
+	hold_for A3 post-stop-start post-stop-end "$sig"
 	case $sig:$rc in
 	TERM:0|TERM:143|KILL:137) ;;
 	*) fail "$sig: unexpected exit status $rc" ;;
@@ -238,16 +306,17 @@ row_a3() {
 	for sig in TERM KILL; do
 		stop_run "$d/$sig.log" "$sig"
 		# Restart and repeat A1's check.
-		run_two_planes "$d/restart-after-$sig.log" master
+		run_two_planes "$d/restart-after-$sig.log" master A3 "$sig" \
+			restart-start restart-end
 	done
 }
 
 row_a4() {
 	d=$out/A4; mkdir -p "$d"; f=$d/revoke.log
 	# shellcheck disable=SC2086
-	"$harness" $common --source kernel-lease --frames 60 --buffers 3 \
-		--seconds "$seconds" revoke > "$f" 2>&1
-	rc=$?
+	run_held A4 "" hold-start hold-end "$f" \
+		"$harness" $common --source kernel-lease --frames 60 --buffers 3 \
+		--seconds "$seconds" revoke
 	check_verdict "$f" revoke "$rc"
 	fa=$(fld "$f" revoke_result first_attempt)
 	lost=$(fld "$f" revoke_result device_lost_events)
@@ -271,9 +340,11 @@ row_a4() {
 
 row_a5() {
 	d=$out/A5; mkdir -p "$d"; f=$d/probe.log
+	s=1
+	[ -z "$seconds_given" ] || s=$seconds
 	# shellcheck disable=SC2086
-	"$harness" $common --source master --seconds 1 two-planes > "$f" 2>&1
-	rc=$?
+	run_held A5 "" hold-start hold-end "$f" \
+		"$harness" $common --source master --seconds "$s" two-planes
 	conn=$(awk '$1=="output" && /selected=yes/ { for (i=2;i<=NF;i++)
 		if (index($i,"connector=")==1) c=substr($i,11) } END{print c}' "$f")
 	if [ "$rc" -ne 0 ] || [ -z "$conn" ]; then
@@ -281,14 +352,19 @@ row_a5() {
 		fail "no selected output to read modes from"
 		return
 	fi
-	note "connector=$conn selected mode=$(fld "$f" output mode)"
+	sconn=$(sysfs_conn "$conn")
+	selmode=$(awk '$1 == "output" && /selected=yes/ { for (i = 2; i <= NF; i++)
+		if (index($i, "mode=") == 1) m = substr($i, 6) } END { print m }' "$f")
+	note "connector=$conn (sysfs $sconn) selected mode=$selmode"
+	cards="card*"
+	case $device in */card[0-9]*) cards=card${device##*card} ;; esac
 	mf=
-	for c in "${DRM_SYSFS:-/sys/class/drm}"/card*-"$conn"/modes; do
+	for c in "${DRM_SYSFS:-/sys/class/drm}"/$cards-"$sconn"/modes; do
 		[ -r "$c" ] && { mf=$c; break; }
 	done
 	if [ -z "$mf" ]; then
 		forced=BLOCKED
-		note "BLOCKED: no readable modes file for connector $conn"
+		note "BLOCKED: no readable modes file for connector $sconn"
 		return
 	fi
 	sort -u "$mf" > "$d/modes.txt"

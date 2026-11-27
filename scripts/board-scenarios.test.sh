@@ -8,6 +8,9 @@
 #                 ignoreterm | termexit1
 #   MOCK_ROT      rotate: ok | drop | norelease | noresult | exit1
 #   MOCK_REV      revoke: ok | commitafter | nolost | busy | exit1
+#   MOCK_CONN     connector name of the selected output (default HDMI-A-1;
+#                 the real harness prints e.g. HDMIA-1, DisplayPort-2)
+#   MOCK_OUT2     if set, a second, unselected output record follows
 
 here=$(cd "$(dirname "$0")" && pwd)
 script=$here/board-scenarios.sh
@@ -28,7 +31,8 @@ for a; do
 done
 echo "harness version=0.1.0 scenario=$scen args=\"$*\""
 echo "session scenario=$scen source=$src device=/dev/dri/card0 driver=mockdrm master=yes"
-echo "output index=0 id=31 connector=HDMI-A-1 width=1920 height=1080 refresh_mhz=60000 mode=1920x1080 vrefresh=60 clock_khz=148500 selected=yes"
+echo "output index=0 id=31 connector=${MOCK_CONN:-HDMI-A-1} width=1920 height=1080 refresh_mhz=60000 mode=1920x1080 vrefresh=60 clock_khz=148500 selected=yes"
+[ -n "$MOCK_OUT2" ] && echo "output index=1 id=32 connector=DSI-1 width=640 height=480 refresh_mhz=60000 mode=640x480 vrefresh=60 clock_khz=25000 selected=no"
 [ "$src" = kernel-lease ] && echo "lease route=kernel device=/dev/dri/card0 lessee=1 connector=31 connector_name=HDMI-A-1 crtc=40 primary=50 overlays=51,52 objects=5"
 verdict() { echo "VERDICT $1 $2 $3"; }
 case $scen in
@@ -164,6 +168,80 @@ E="DRM_SYSFS=$T/sys2"; t "A5 second mode" A5 "SCENARIO modeset BLOCKED" 3
 has A5 "harness has no modeset scenario"
 E="DRM_SYSFS=$T/sys0"; t "A5 no modes file" A5 "SCENARIO modeset BLOCKED" 3
 E="DRM_SYSFS=$T/sys2 MOCK_TP=exit1"; t "A5 harness fails" A5 "SCENARIO modeset FAIL" 1
+
+# A5: the harness's connector name is mapped to sysfs's (bug 1).
+mkdir -p "$T/sysh/card0-HDMI-A-1" "$T/sysd/card1-DP-2" "$T/sysb/card0-DVI-I-1"
+printf '1920x1080\n1280x720\n' > "$T/sysh/card0-HDMI-A-1/modes"
+printf '1920x1080\n1280x720\n' > "$T/sysd/card1-DP-2/modes"
+printf '1920x1080\n1280x720\n' > "$T/sysb/card0-DVI-I-1/modes"
+E="DRM_SYSFS=$T/sysh MOCK_CONN=HDMIA-1"; t "A5 HDMIA-1 maps to HDMI-A-1" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "harness has no modeset scenario"
+has A5 "connector=HDMIA-1 (sysfs HDMI-A-1)"
+E="DRM_SYSFS=$T/sysd MOCK_CONN=DisplayPort-2"; t "A5 DisplayPort-2 maps to DP-2" A5 "SCENARIO modeset BLOCKED" 3 --device /dev/dri/card1
+has A5 "harness has no modeset scenario"
+E="DRM_SYSFS=$T/sysd MOCK_CONN=DisplayPort-2"; t "A5 DP any card" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "harness has no modeset scenario"
+E="DRM_SYSFS=$T/sysd MOCK_CONN=DisplayPort-2"; t "A5 card number from --device" A5 "SCENARIO modeset BLOCKED" 3 --device /dev/dri/card0
+has A5 "no readable modes file for connector DP-2"
+E="DRM_SYSFS=$T/sysb MOCK_CONN=DVII-1"; t "A5 DVII-1 maps to DVI-I-1" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "harness has no modeset scenario"
+E="DRM_SYSFS=$T/sysh MOCK_CONN=HDMI-A-1"; t "A5 sysfs-style name kept" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "harness has no modeset scenario"
+# The selected mode is reported, not the last output's.
+E="DRM_SYSFS=$T/sys2 MOCK_OUT2=1"; t "A5 selected mode among outputs" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "selected mode=1920x1080"
+
+# ---- picture hooks: ROW PHASE LABEL per call; A3 has post-stop and restart
+# phases.
+printf '#!/bin/sh\necho "$1 $2 ${3:--}" >> "%s/hook3.log"\n' "$T" > "$T/hook3"
+chmod +x "$T/hook3"
+hookrun() { # ROW NAME
+	rm -f "$T/hook3.log"
+	t "hooks $1" "$1" "SCENARIO $2 PASS" 0 --hook "$T/hook3"
+}
+hookrun A1 startup
+[ "$(cat "$T/hook3.log")" = "A1 hold-start master
+A1 hold-end master
+A1 hold-start kernel-lease
+A1 hold-end kernel-lease" ] && ok || { bad "A1 hook calls"; cat "$T/hook3.log" >&2; }
+hookrun A3 stop-restart
+[ "$(cat "$T/hook3.log")" = "A3 hold-start TERM
+A3 hold-end TERM
+A3 post-stop-start TERM
+A3 post-stop-end TERM
+A3 restart-start TERM
+A3 restart-end TERM
+A3 hold-start KILL
+A3 hold-end KILL
+A3 post-stop-start KILL
+A3 post-stop-end KILL
+A3 restart-start KILL
+A3 restart-end KILL" ] && ok || { bad "A3 hook calls"; cat "$T/hook3.log" >&2; }
+hookrun A4 lease-loss
+[ "$(cat "$T/hook3.log")" = "A4 hold-start -
+A4 hold-end -" ] && ok || { bad "A4 hook calls"; cat "$T/hook3.log" >&2; }
+rm -f "$T/hook3.log"
+E="DRM_SYSFS=$T/sys2"; t "hooks A5" A5 "SCENARIO modeset BLOCKED" 3 --hook "$T/hook3"
+[ "$(cat "$T/hook3.log")" = "A5 hold-start -
+A5 hold-end -" ] && ok || { bad "A5 hook calls"; cat "$T/hook3.log" >&2; }
+# A hook failure is only noted.
+printf '#!/bin/sh\nexit 1\n' > "$T/hookfail"; chmod +x "$T/hookfail"
+t "failing hook" A1 "SCENARIO startup PASS" 0 --hook "$T/hookfail"
+has A1 "hook A1 hold-start master failed"
+# hold-start runs while the run is under way: its log already has a commit.
+printf '#!/bin/sh\ngrep -c "^commit" "%s/out/$1/probe.log" >> "%s/hook4.log"\n' "$T" "$T" > "$T/hook4"
+chmod +x "$T/hook4"; rm -f "$T/hook4.log"
+E="DRM_SYSFS=$T/sys2"; t "hold-start after first commit" A5 "SCENARIO modeset BLOCKED" 3 --hook "$T/hook4"
+[ "$(sed -n 1p "$T/hook4.log")" = 1 ] && ok || bad "hold-start before the first commit"
+# --seconds reaches the A5 probe, and the A3 post-stop hold lasts that long.
+E="DRM_SYSFS=$T/sys2"; t "A5 probe uses --seconds" A5 "SCENARIO modeset BLOCKED" 3 --seconds 2
+grep -q 'seconds=2' "$T/out/A5/probe.log" && ok || bad "A5 probe lacks --seconds 2"
+printf '#!/bin/sh\ndate +%%s >> "%s/hook5.log"\n' "$T" > "$T/hook5"; chmod +x "$T/hook5"
+rm -f "$T/hook5.log"
+t "A3 holds last --seconds" A3 "SCENARIO stop-restart PASS" 0 --seconds 1 --hook "$T/hook5"
+# calls: hold-start, hold-end, post-stop-start, post-stop-end, ...
+a=$(sed -n 3p "$T/hook5.log"); b=$(sed -n 4p "$T/hook5.log")
+[ $((b - a)) -ge 1 ] && ok || bad "post-stop hold shorter than --seconds ($a..$b)"
 
 # ---- selection, summary, hook, usage
 rm -rf "$T/out"
