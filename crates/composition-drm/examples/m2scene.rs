@@ -8,6 +8,10 @@
 //!   --frames N      number of frames to commit (default 300)
 //!   --output N      index of the output in the backend's capabilities (default 0)
 //!   --profile P     driver profile: generic (default) or imx95 (`DriverProfile::Imx95Dpu`)
+//!   --plane-alpha A plane alpha of `top`, decimal or 0x-hex (default 0x8000, the scene's);
+//!                   any other value is a variant, not the scene, and the RUN line says
+//!                   `alpha=A`. Meant for drivers without plane alpha (vkms), which refuse
+//!                   the scene with `plan.no_plane ... reasons=0x10`
 //!   --dry-run       open no device: print the RUN line, the scene and the plan
 //!                   the planner makes for it on a modelled topology, then exit
 //! ```
@@ -44,7 +48,7 @@
 //! # Output
 //!
 //! ```text
-//! RUN date=YYYY-MM-DD side=linux stage=B tool=m2scene-<version> time=<ISO 8601 UTC> frames=N mode=device|dry-run
+//! RUN date=YYYY-MM-DD side=linux stage=B tool=m2scene-<version> time=<ISO 8601 UTC> frames=N mode=device|dry-run [alpha=A]
 //! DEVICE / KERNEL / DRIVER / MODE lines
 //! SCENE layer=base buffer=1,3 format=AR24 src=0,0,WxH dst=0,0,WxH zorder=0 blend=premultiplied alpha=0xffff
 //! SCENE layer=top ...
@@ -55,7 +59,8 @@
 //! ```
 //!
 //! The `RUN` line's date is the system clock (UTC) when the run started; it
-//! is the form `scripts/m2-compare-report.py` reads. `CETRACE` lines follow
+//! is the form `scripts/m2-compare-report.py` reads. `RESULT` counts every
+//! commit, including the final empty frame. `CETRACE` lines follow
 //! `docs/trace-format.md` §3: `t` and `at` are `CLOCK_MONOTONIC`
 //! nanoseconds (the engine is given the same clock through `advance_time`,
 //! hence `at_unit=same`); `latched` lines carry `tev`, the page-flip
@@ -86,7 +91,7 @@ use composition_drm::{DriverProfile, DrmBackend, DrmOptions, LatchInfo};
 use drm::Device as _;
 
 const USAGE: &str =
-    "usage: m2scene [--device PATH] [--frames N] [--output N] [--profile generic|imx95] [--dry-run]";
+    "usage: m2scene [--device PATH] [--frames N] [--output N] [--profile generic|imx95] [--plane-alpha A] [--dry-run]";
 
 /// Plane alpha of `top`: one half (`m2_scene.rs`).
 const HALF_ALPHA: u16 = 0x8000;
@@ -104,6 +109,7 @@ struct Options {
     frames: u32,
     output: usize,
     profile: DriverProfile,
+    plane_alpha: u16,
     dry_run: bool,
 }
 
@@ -113,6 +119,7 @@ fn parse_args() -> Result<Options, String> {
         frames: 300,
         output: 0,
         profile: DriverProfile::Generic,
+        plane_alpha: HALF_ALPHA,
         dry_run: false,
     };
     let mut args = std::env::args().skip(1);
@@ -127,6 +134,15 @@ fn parse_args() -> Result<Options, String> {
                     "generic" => DriverProfile::Generic,
                     "imx95" => DriverProfile::Imx95Dpu,
                     other => return Err(format!("unknown profile {other}")),
+                }
+            }
+            "--plane-alpha" => {
+                let text = value("--plane-alpha")?;
+                options.plane_alpha = match text.strip_prefix("0x") {
+                    Some(hex) => {
+                        u16::from_str_radix(hex, 16).map_err(|_| format!("bad number {text}"))?
+                    }
+                    None => number(&text)?,
                 }
             }
             "--dry-run" => options.dry_run = true,
@@ -188,7 +204,7 @@ fn rect_text(r: Rect) -> String {
 }
 
 /// The scene's two layers for an output of `size`, from buffer slot `slot`.
-fn scene(size: Size, slot: usize) -> [Layer; 2] {
+fn scene(size: Size, slot: usize, alpha: u16) -> [Layer; 2] {
     let (base, top) = SLOTS[slot];
     let full = Rect::new(0, 0, size.width, size.height);
     let top_size = top_size(size);
@@ -201,7 +217,7 @@ fn scene(size: Size, slot: usize) -> [Layer; 2] {
         },
         Layer {
             blend: BlendMode::Premultiplied,
-            alpha: HALF_ALPHA,
+            alpha,
             ..Layer::new(
                 top,
                 Rect::new(0, 0, top_size.width, top_size.height),
@@ -224,10 +240,10 @@ fn buffer_info(size: Size) -> BufferInfo {
     }
 }
 
-fn print_scene(size: Size) {
+fn print_scene(size: Size, alpha: u16) {
     let names = ["base", "top"];
-    let slot0 = scene(size, 0);
-    let slot1 = scene(size, 1);
+    let slot0 = scene(size, 0, alpha);
+    let slot1 = scene(size, 1, alpha);
     for (i, layer) in slot0.iter().enumerate() {
         println!(
             "SCENE layer={} buffer={},{} format={} src={} dst={} zorder={} blend=premultiplied alpha=0x{:04x}",
@@ -640,9 +656,9 @@ fn dry_run(options: &Options, clock: Clock) -> ExitCode {
         DOC_SIZE.width, DOC_SIZE.height
     );
     println!("DEVICE {} (not opened)", options.device);
-    print_scene(DOC_SIZE);
+    print_scene(DOC_SIZE, options.plane_alpha);
     let caps = modelled_dpu(DOC_SIZE);
-    let layers = scene(DOC_SIZE, 0);
+    let layers = scene(DOC_SIZE, 0, options.plane_alpha);
     let buffers = Buffers(vec![
         (layers[0].buffer, buffer_info(DOC_SIZE)),
         (layers[1].buffer, buffer_info(top_size(DOC_SIZE))),
@@ -815,7 +831,7 @@ fn device_run(options: &Options, clock: Clock) -> ExitCode {
         options.output,
         output.id.0
     );
-    print_scene(size);
+    print_scene(size, options.plane_alpha);
     println!("{}", engine.trace().header(&driver));
 
     let mut errors = Vec::new();
@@ -854,7 +870,7 @@ fn device_run(options: &Options, clock: Clock) -> ExitCode {
     let mut latches = HashMap::new();
     if errors.is_empty() {
         for frame_no in 0..options.frames {
-            let layers = scene(size, frame_no as usize % SLOTS.len());
+            let layers = scene(size, frame_no as usize % SLOTS.len(), options.plane_alpha);
             let frame = Frame {
                 output: output.id,
                 layers: &layers,
@@ -945,10 +961,15 @@ fn main() -> ExitCode {
     let clock = Clock::new();
     let (date, time) = utc_now();
     println!(
-        "RUN date={date} side=linux stage=B tool=m2scene-{} time={time} frames={} mode={}",
+        "RUN date={date} side=linux stage=B tool=m2scene-{} time={time} frames={} mode={}{}",
         env!("CARGO_PKG_VERSION"),
         options.frames,
-        if options.dry_run { "dry-run" } else { "device" }
+        if options.dry_run { "dry-run" } else { "device" },
+        if options.plane_alpha == HALF_ALPHA {
+            String::new()
+        } else {
+            format!(" alpha=0x{:04x}", options.plane_alpha)
+        }
     );
     if options.dry_run {
         dry_run(&options, clock)
