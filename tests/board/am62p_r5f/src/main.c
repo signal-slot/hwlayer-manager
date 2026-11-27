@@ -10,6 +10,8 @@
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
+#include <mcui/am62p_dss.h>
+#include <mcui/panel_sn65dsi83.h>
 
 #include "scenes.h"
 
@@ -27,6 +29,8 @@
 extern const struct ce_twoplane_hw ce_twoplane_hw_am62p;
 
 static const struct device *const display = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+/* The panel whose backlight this core may switch, if the board has one. */
+static const struct device *const panel = DEVICE_DT_GET_ANY(mcui_sn65dsi83_lvds_panel);
 
 /* Given at every vsync (port wake), taken by the thread that polls the engine. */
 static K_SEM_DEFINE(vsync_sem, 0, 1);
@@ -90,6 +94,18 @@ int main(void)
 		.app_size = sizeof(app_mem[0]),
 		.hold_ms = TEST_HOLD_MS,
 	};
+
+	/* The driver leaves the output off: start the panel's timing, then the
+	 * backlight (a no-op where Linux holds it). The safety plane scans the
+	 * driver's front buffer, which is clear, until the first scene.
+	 */
+	int rc = am62p_dss_output_enable(display, true);
+
+	printk("board test: output enable %d\n", rc);
+	if (panel != NULL && device_is_ready(panel)) {
+		rc = panel_sn65dsi83_backlight(panel, true);
+		printk("board test: backlight %d\n", rc);
+	}
 
 	(void)scenes_run(&env);
 
