@@ -111,14 +111,14 @@ name      = "hdr" | "check" | "validate" | "commit" | "latched" | "released"
           | "dropped" | "latch_timeout" | "device_lost" | "caps_changed" ;
 field     = key "=" value ;
 key       = lower { lower | digit | "_" } ;
-value     = token | quoted ;
-token     = 1*( ALPHA | digit | "-" | "_" | "." | ":" | "/" | "," | ";" ) ;
+value     = word | quoted ;
+word      = 1*( ALPHA | digit | "-" | "_" | "." | ":" | "/" | "," | ";" ) ;
 quoted    = DQUOTE *( any char except DQUOTE and LF ) DQUOTE ;   (* hdr only *)
 uint      = digit { digit } ;
 SP        = " " ;
 ```
 
-A `token` may contain `;` and `,` so the `assign=` list (3.6) is one value.
+A `word` may contain `;` and `,` so the `assign=` list (3.6) is one value.
 Field order after `ev=` is as in 3.4 so a plain text tool can cut columns,
 but a parser must not depend on it. A value holds no space (so a split on
 SP, then on the first `=`, is a complete parser), except the `quoted` form,
