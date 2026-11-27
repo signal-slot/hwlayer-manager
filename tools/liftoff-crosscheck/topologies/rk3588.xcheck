@@ -1,0 +1,306 @@
+# Hand-written xcheck v1 topology: RK3588 (VOP2), NanoPC-T6 recording.
+#
+# Source file : docs/observed/rk3588-topology.md (observed 2026-11-28, kernel
+#               6.18.55 recording, topology session only, no frame submitted)
+# Commit      : eab4162 (HEAD when this file was written)
+# Observed    : 2026-11-28
+# Constraints : read from docs/rk3588-backend-design.md (design note of
+#               2026-11-28); only limits that note states are written below.
+# This file gives no hardware claim. It is a recorded description plus
+# limits quoted from a design note; no frame was ever run on it.
+#
+# Truncation: the probe prints at most 32 formats per plane (design
+# libliftoff-crosscheck.md section 3). The Cluster planes (33, 39, 45, 51)
+# have more than 32 (format, modifier) pairs; their lists below end inside
+# the AFBC 0x800000000000011 group exactly as in the dump, so the planes
+# here accept fewer pairs than the real ones. Esmart lists are complete (21).
+#
+# zpos_now: the reset order recorded in the dump (normalized-zpos = plane
+# index 0..7, Cluster0 0 ... Esmart3 7; rk3588-backend-design.md section 5
+# and the dump's Planes section).
+#
+# Not documented, so written as the 'none' value (no invented limit):
+#   full_output=0 on every plane, no 'group' line (design section 4 says no
+#   scaler group is needed; a layer-budget group of capacity 8 is left out
+#   until the budget is observed, Q4), transforms=- (the dump did not read
+#   the rotation bitmask; the design's rotation table depends on the
+#   buffer modifier and has no per-plane form), Cluster1 outputs=0x0 as the
+#   probe printed it (only the connected output is modelled).
+xcheck 1
+origin observed 2026-11-28 rk3588-topology.md at commit eab4162; constraints read from rk3588-backend-design.md
+profile generic
+
+# observed 2026-11-28: video_port0, crtc 81, 1920x1080 @ 60.000 Hz
+output 81 1920 1080 60000
+
+# Cluster0-win0, reset zpos 0
+# scaling: rk3588-backend-design.md section 4 table, Cluster column (read from source:
+#   Cluster hardware 4x; the kernel check lets 1/8..8 through, the tighter
+#   Cluster figure is the safe choice, inferred). 4x = 0x40000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 33 kind=primary outputs=0x1 zpos=0..7 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x40000/down:0x40000 max_source=4096x7680 full_output=0
+  format XR30 0x800000000000001
+  format XB30 0x800000000000001
+  format XR24 0x800000000000001
+  format AR24 0x800000000000001
+  format XB24 0x800000000000001
+  format AB24 0x800000000000001
+  format RG24 0x800000000000001
+  format BG24 0x800000000000001
+  format RG16 0x800000000000001
+  format BG16 0x800000000000001
+  format YU08 0x800000000000001
+  format YU10 0x800000000000001
+  format YUYV 0x800000000000001
+  format Y210 0x800000000000001
+  format XR30 0x800000000000041
+  format XB30 0x800000000000041
+  format XR24 0x800000000000041
+  format AR24 0x800000000000041
+  format XB24 0x800000000000041
+  format AB24 0x800000000000041
+  format RG24 0x800000000000041
+  format BG24 0x800000000000041
+  format RG16 0x800000000000041
+  format BG16 0x800000000000041
+  format YU08 0x800000000000041
+  format YU10 0x800000000000041
+  format YUYV 0x800000000000041
+  format Y210 0x800000000000041
+  format XR30 0x800000000000011
+  format XB30 0x800000000000011
+  format XR24 0x800000000000011
+  format AR24 0x800000000000011
+
+# Cluster1-win0, reset zpos 1
+# scaling: rk3588-backend-design.md section 4 table, Cluster column (read from source:
+#   Cluster hardware 4x; the kernel check lets 1/8..8 through, the tighter
+#   Cluster figure is the safe choice, inferred). 4x = 0x40000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 39 kind=primary outputs=0x0 zpos=0..7 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x40000/down:0x40000 max_source=4096x7680 full_output=0
+  format XR30 0x800000000000001
+  format XB30 0x800000000000001
+  format XR24 0x800000000000001
+  format AR24 0x800000000000001
+  format XB24 0x800000000000001
+  format AB24 0x800000000000001
+  format RG24 0x800000000000001
+  format BG24 0x800000000000001
+  format RG16 0x800000000000001
+  format BG16 0x800000000000001
+  format YU08 0x800000000000001
+  format YU10 0x800000000000001
+  format YUYV 0x800000000000001
+  format Y210 0x800000000000001
+  format XR30 0x800000000000041
+  format XB30 0x800000000000041
+  format XR24 0x800000000000041
+  format AR24 0x800000000000041
+  format XB24 0x800000000000041
+  format AB24 0x800000000000041
+  format RG24 0x800000000000041
+  format BG24 0x800000000000041
+  format RG16 0x800000000000041
+  format BG16 0x800000000000041
+  format YU08 0x800000000000041
+  format YU10 0x800000000000041
+  format YUYV 0x800000000000041
+  format Y210 0x800000000000041
+  format XR30 0x800000000000011
+  format XB30 0x800000000000011
+  format XR24 0x800000000000011
+  format AR24 0x800000000000011
+
+# Cluster2-win0, reset zpos 2
+# scaling: rk3588-backend-design.md section 4 table, Cluster column (read from source:
+#   Cluster hardware 4x; the kernel check lets 1/8..8 through, the tighter
+#   Cluster figure is the safe choice, inferred). 4x = 0x40000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 45 kind=overlay outputs=0x1 zpos=0..7 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x40000/down:0x40000 max_source=4096x7680 full_output=0
+  format XR30 0x800000000000001
+  format XB30 0x800000000000001
+  format XR24 0x800000000000001
+  format AR24 0x800000000000001
+  format XB24 0x800000000000001
+  format AB24 0x800000000000001
+  format RG24 0x800000000000001
+  format BG24 0x800000000000001
+  format RG16 0x800000000000001
+  format BG16 0x800000000000001
+  format YU08 0x800000000000001
+  format YU10 0x800000000000001
+  format YUYV 0x800000000000001
+  format Y210 0x800000000000001
+  format XR30 0x800000000000041
+  format XB30 0x800000000000041
+  format XR24 0x800000000000041
+  format AR24 0x800000000000041
+  format XB24 0x800000000000041
+  format AB24 0x800000000000041
+  format RG24 0x800000000000041
+  format BG24 0x800000000000041
+  format RG16 0x800000000000041
+  format BG16 0x800000000000041
+  format YU08 0x800000000000041
+  format YU10 0x800000000000041
+  format YUYV 0x800000000000041
+  format Y210 0x800000000000041
+  format XR30 0x800000000000011
+  format XB30 0x800000000000011
+  format XR24 0x800000000000011
+  format AR24 0x800000000000011
+
+# Cluster3-win0, reset zpos 3
+# scaling: rk3588-backend-design.md section 4 table, Cluster column (read from source:
+#   Cluster hardware 4x; the kernel check lets 1/8..8 through, the tighter
+#   Cluster figure is the safe choice, inferred). 4x = 0x40000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 51 kind=overlay outputs=0x1 zpos=0..7 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x40000/down:0x40000 max_source=4096x7680 full_output=0
+  format XR30 0x800000000000001
+  format XB30 0x800000000000001
+  format XR24 0x800000000000001
+  format AR24 0x800000000000001
+  format XB24 0x800000000000001
+  format AB24 0x800000000000001
+  format RG24 0x800000000000001
+  format BG24 0x800000000000001
+  format RG16 0x800000000000001
+  format BG16 0x800000000000001
+  format YU08 0x800000000000001
+  format YU10 0x800000000000001
+  format YUYV 0x800000000000001
+  format Y210 0x800000000000001
+  format XR30 0x800000000000041
+  format XB30 0x800000000000041
+  format XR24 0x800000000000041
+  format AR24 0x800000000000041
+  format XB24 0x800000000000041
+  format AB24 0x800000000000041
+  format RG24 0x800000000000041
+  format BG24 0x800000000000041
+  format RG16 0x800000000000041
+  format BG16 0x800000000000041
+  format YU08 0x800000000000041
+  format YU10 0x800000000000041
+  format YUYV 0x800000000000041
+  format Y210 0x800000000000041
+  format XR30 0x800000000000011
+  format XB30 0x800000000000011
+  format XR24 0x800000000000011
+  format AR24 0x800000000000011
+
+# Esmart0-win0, reset zpos 4
+# scaling: rk3588-backend-design.md section 4 table, Esmart column (read from source:
+#   Esmart hardware 8x). 8x = 0x80000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 57 kind=overlay outputs=0x1 zpos=0..7 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x80000/down:0x80000 max_source=4096x7680 full_output=0
+  format XR24 0x0
+  format AR24 0x0
+  format XB24 0x0
+  format AB24 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format NV16 0x0
+  format NV61 0x0
+  format NV20 0x0
+  format NV24 0x0
+  format NV42 0x0
+  format NV30 0x0
+  format NV15 0x0
+  format YVYU 0x0
+  format VYUY 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+
+# Esmart1-win0, reset zpos 5
+# scaling: rk3588-backend-design.md section 4 table, Esmart column (read from source:
+#   Esmart hardware 8x). 8x = 0x80000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 63 kind=overlay outputs=0x1 zpos=0..7 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x80000/down:0x80000 max_source=4096x7680 full_output=0
+  format XR24 0x0
+  format AR24 0x0
+  format XB24 0x0
+  format AB24 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format NV16 0x0
+  format NV61 0x0
+  format NV20 0x0
+  format NV24 0x0
+  format NV42 0x0
+  format NV30 0x0
+  format NV15 0x0
+  format YVYU 0x0
+  format VYUY 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+
+# Esmart2-win0, reset zpos 6
+# scaling: rk3588-backend-design.md section 4 table, Esmart column (read from source:
+#   Esmart hardware 8x). 8x = 0x80000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 69 kind=overlay outputs=0x1 zpos=0..7 zpos_now=6 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x80000/down:0x80000 max_source=4096x7680 full_output=0
+  format XR24 0x0
+  format AR24 0x0
+  format XB24 0x0
+  format AB24 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format NV16 0x0
+  format NV61 0x0
+  format NV20 0x0
+  format NV24 0x0
+  format NV42 0x0
+  format NV30 0x0
+  format NV15 0x0
+  format YVYU 0x0
+  format VYUY 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+
+# Esmart3-win0, reset zpos 7
+# scaling: rk3588-backend-design.md section 4 table, Esmart column (read from source:
+#   Esmart hardware 8x). 8x = 0x80000 in 16.16.
+# max_source: rk3588-backend-design.md section 4 table, max_source row (read from source:
+#   4096x7680; splice doubles the width only for hdisplay > 4096, not modelled).
+plane 75 kind=overlay outputs=0x1 zpos=0..7 zpos_now=7 alpha=1 blend=opaque,premul,coverage transforms=- scaling=up:0x80000/down:0x80000 max_source=4096x7680 full_output=0
+  format XR24 0x0
+  format AR24 0x0
+  format XB24 0x0
+  format AB24 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format NV16 0x0
+  format NV61 0x0
+  format NV20 0x0
+  format NV24 0x0
+  format NV42 0x0
+  format NV30 0x0
+  format NV15 0x0
+  format YVYU 0x0
+  format VYUY 0x0
+  format YUYV 0x0
+  format UYVY 0x0
