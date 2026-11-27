@@ -1,0 +1,2 @@
+plane 5 type primary possible crtcs 0b1 (3)
+  IN_FORMATS (3): XR24:0x0 AR24:0x0
