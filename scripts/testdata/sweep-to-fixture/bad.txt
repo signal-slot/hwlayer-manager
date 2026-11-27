@@ -1,0 +1,4 @@
+# SYNTHETIC fixture: malformed lines, invented values.
+COMBO k=two planes=31,42 scale=none result=ok
+MODIFIER plane=42 format=XR24 modifier=0x0 listed=maybe addfb=ok test_only=ok
+REPLACE second=EBUSY

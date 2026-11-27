@@ -1,0 +1,5 @@
+# SYNTHETIC fixture: invented values, not board data.
+DATE 2000-01-01
+RESULT plane=42 kind=Overlay format=XR24 max_upscale_h=4.0000 max_upscale_v=4.0000 max_upscale_both=2.0000 downscale=partial min_downscale=0.5000
+RESULT plane=31 kind=Primary format=XR24 max_upscale_h=none max_upscale_v=none max_upscale_both=none downscale=rejected min_downscale=none
+VERDICT scale_probe: OK synthetic
