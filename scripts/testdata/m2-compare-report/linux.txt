@@ -1,0 +1,8 @@
+# SYNTHETIC fixture: invented numbers for the self-test, not a measurement.
+RUN date=2026-01-02 side=linux stage=A commit=0000000 tool=synthetic
+METRIC id=M-1.median name="frame interval median" unit=ms value=16.67
+METRIC id=M-1.max name="frame interval max" unit=ms value=17.5
+METRIC id=M-2a.p95 name="submit-to-latch p95" unit=ms value=8.2
+METRIC id=M-3.dropped name="dropped frames" unit=frames value=0
+METRIC id=M-5.plane name="plane assignment" value=plane 31 primary, plane 42 overlay
+METRIC id=M-7.mem name="memory" unit=KiB value=
