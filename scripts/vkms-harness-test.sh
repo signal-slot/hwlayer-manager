@@ -101,5 +101,6 @@ timeout "$vm_timeout" qemu-system-x86_64 $accel -smp 2 -m 1024 -nographic -vga n
     < /dev/null | tr -d '\r' > "$work/console.log" || true
 
 # Show the commands' output only; the full console is kept in console.log.
-sed -n '/^--- command: /,/^VM_TEST_RESULT=/p' "$work/console.log"
+# Not anchored: the first line follows the firmware's escape sequences.
+sed -n '/--- command: /,/^VM_TEST_RESULT=/p' "$work/console.log" | sed 's/^.*--- command: /--- command: /'
 grep -q '^VM_TEST_RESULT=0' "$work/console.log"
