@@ -137,6 +137,40 @@ fn backend_behind_a_fake_driver() {
     print!("{}", String::from_utf8_lossy(&output.stdout));
 }
 
+/// The board test's scene sequence (`tests/board/am62p_r5f/src/scenes.c`)
+/// on the backend behind a fake driver and panel: what the firmware judges
+/// by itself, and what each scene's photograph should show.
+#[test]
+fn board_scenes_behind_a_fake_panel() {
+    let library = build_static_library();
+    let board = backend_dir().join("../../tests/board/am62p_r5f");
+
+    let program = scratch_dir().join("composition_board_scenes");
+    run(
+        Command::new(compiler())
+            .args(FLAGS)
+            .arg("-I")
+            .arg(engine_include())
+            .arg("-I")
+            .arg(backend_dir())
+            .arg("-I")
+            .arg(board.join("src"))
+            .arg(backend_dir().join("ce_twoplane.c"))
+            .arg(board.join("src/scenes.c"))
+            .arg(board.join("host/fake_panel.c"))
+            .arg(&library)
+            .args(["-lpthread", "-ldl", "-lm"])
+            .arg("-o")
+            .arg(&program),
+        "the C compiler",
+    );
+    let output = run(&mut Command::new(&program), "the board scenes on the host");
+    let console = String::from_utf8_lossy(&output.stdout);
+    print!("{console}");
+    assert!(console.contains("RESULT PASS"), "{console}");
+    assert_eq!(console.matches("PANEL ").count(), 8, "{console}");
+}
+
 /// The compiler's own headers (stddef.h, stdbool.h, stdint.h), which
 /// `-nostdinc` drops along with the C library's.
 fn compiler_include_dir() -> PathBuf {
