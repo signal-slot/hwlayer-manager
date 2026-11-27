@@ -1,0 +1,1597 @@
+# date: 2026-11-27 (UTC)
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B Rev 1.1 (BCM2712, vc4 driver, HVS6), HDMI 1920x1080@60, no display manager running
+# command: probe --raw /dev/dri/card1
+# binaries: built from repository commit 963eb8f (scripts/cross-aarch64.sh, aarch64-unknown-linux-musl)
+# EDID: the dump carries only the EDID blob size and id, no EDID bytes; no serial-like values appear, nothing was removed.
+device /dev/dri/card1, driver vc4
+output 0: crtc 94 1920x1080 @ 60.000 Hz
+plane 83 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 118 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 129 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 140 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 151 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 162 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 173 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 184 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 195 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 206 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 217 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 228 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 239 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 250 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 657 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+
+raw
+driver: name vc4 version 0.0.0 date 0 description Broadcom VC4 graphics
+client caps: universal planes true, atomic true
+driver cap addfb2 modifiers: 1
+driver cap dumb buffers: 1
+driver cap dumb prefer shadow: 0
+driver cap cursor width: 64
+driver cap cursor height: 64
+driver cap async page flip: 1
+driver cap atomic async page flip: 1
+resources: 2 connectors, 4 crtcs, 4 encoders
+connectors
+connector 35 interface HDMIA (11) state Connected
+  current encoder 34
+  encoder 34 possible crtcs 0b100 (94)
+  modes (20):
+    1920x1080 @ 60.000 Hz
+    1920x1080 @ 60.000 Hz
+    1920x1080 @ 59.940 Hz
+    1920x1080 @ 50.000 Hz
+    1920x1080 @ 25.000 Hz
+    1280x1024 @ 75.024 Hz
+    1280x1024 @ 60.019 Hz
+    1280x720 @ 60.000 Hz
+    1280x720 @ 60.000 Hz
+    1280x720 @ 59.940 Hz
+    1280x720 @ 50.000 Hz
+    1024x768 @ 75.028 Hz
+    1024x768 @ 60.003 Hz
+    800x600 @ 75.000 Hz
+    800x600 @ 60.316 Hz
+    640x480 @ 75.000 Hz
+    640x480 @ 60.000 Hz
+    640x480 @ 59.940 Hz
+    640x480 @ 59.940 Hz
+    720x400 @ 70.081 Hz
+  properties:
+    EDID: immutable blob, 256 bytes value 682
+    DPMS: mutable enum [On=0, Standby=1, Suspend=2, Off=3] value 0
+    link-status: mutable enum [Good=0, Bad=1] value 0
+    non-desktop: immutable boolean value 0
+    TILE: immutable blob, unreadable value 0
+    CRTC_ID: mutable atomic value 94
+    max bpc: mutable range 8..=12 value 8
+    HDR_OUTPUT_METADATA: mutable blob, unreadable value 0
+    Colorspace: mutable enum [Default=0, SMPTE_170M_YCC=1, BT709_YCC=2, XVYCC_601=3, XVYCC_709=4, SYCC_601=5, opYCC_601=6, opRGB=7, BT2020_CYCC=8, BT2020_RGB=9, BT2020_YCC=10, DCI-P3_RGB_D65=11, DCI-P3_RGB_Theater=12] value 0
+    left margin: mutable range 0..=100 value 0
+    right margin: mutable range 0..=100 value 0
+    top margin: mutable range 0..=100 value 0
+    bottom margin: mutable range 0..=100 value 0
+    Broadcast RGB: mutable enum [Automatic=0, Full=1, Limited 16:235=2] value 0
+connector 44 interface HDMIA (11) state Disconnected
+  current encoder none
+  encoder 43 possible crtcs 0b1000 (106)
+  modes (0):
+  properties:
+    EDID: immutable blob, unreadable value 0
+    DPMS: mutable enum [On=0, Standby=1, Suspend=2, Off=3] value 0
+    link-status: mutable enum [Good=0, Bad=1] value 0
+    non-desktop: immutable boolean value 0
+    TILE: immutable blob, unreadable value 0
+    CRTC_ID: mutable atomic value 0
+    max bpc: mutable range 8..=12 value 8
+    HDR_OUTPUT_METADATA: mutable blob, unreadable value 0
+    Colorspace: mutable enum [Default=0, SMPTE_170M_YCC=1, BT709_YCC=2, XVYCC_601=3, XVYCC_709=4, SYCC_601=5, opYCC_601=6, opRGB=7, BT2020_CYCC=8, BT2020_RGB=9, BT2020_YCC=10, DCI-P3_RGB_D65=11, DCI-P3_RGB_Theater=12] value 0
+    left margin: mutable range 0..=100 value 0
+    right margin: mutable range 0..=100 value 0
+    top margin: mutable range 0..=100 value 0
+    bottom margin: mutable range 0..=100 value 0
+    Broadcast RGB: mutable enum [Automatic=0, Full=1, Limited 16:235=2] value 0
+crtcs
+crtc 59 inactive
+  properties:
+    ACTIVE: mutable atomic boolean value 0
+    MODE_ID: mutable atomic blob, unreadable value 0
+    OUT_FENCE_PTR: mutable atomic range 0..=18446744073709551615 value 0
+    VRR_ENABLED: mutable boolean value 0
+    BACKGROUND_COLOR: mutable range 0..=18446744073709551615 value 18446462598732840960
+crtc 78 inactive
+  properties:
+    ACTIVE: mutable atomic boolean value 0
+    MODE_ID: mutable atomic blob, unreadable value 0
+    OUT_FENCE_PTR: mutable atomic range 0..=18446744073709551615 value 0
+    VRR_ENABLED: mutable boolean value 0
+    BACKGROUND_COLOR: mutable range 0..=18446744073709551615 value 18446462598732840960
+crtc 94 active 1920x1080 @ 60.000 Hz
+  properties:
+    ACTIVE: mutable atomic boolean value 1
+    MODE_ID: mutable atomic blob, 68 bytes value 681
+    OUT_FENCE_PTR: mutable atomic range 0..=18446744073709551615 value 0
+    VRR_ENABLED: mutable boolean value 0
+    BACKGROUND_COLOR: mutable range 0..=18446744073709551615 value 18446462598732840960
+crtc 106 inactive
+  properties:
+    ACTIVE: mutable atomic boolean value 0
+    MODE_ID: mutable atomic blob, unreadable value 0
+    OUT_FENCE_PTR: mutable atomic range 0..=18446744073709551615 value 0
+    VRR_ENABLED: mutable boolean value 0
+    BACKGROUND_COLOR: mutable range 0..=18446744073709551615 value 18446462598732840960
+planes
+plane 48 type primary possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 49
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: immutable range 0..=0 value 0
+plane 67 type primary possible crtcs 0b10 (78)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 68
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: immutable range 0..=0 value 0
+plane 83 type primary possible crtcs 0b100 (94)
+  attached to crtc 94
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic value 680
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 94
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 1920
+    CRTC_H: mutable atomic range 0..=2147483647 value 1080
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 125829120
+    SRC_H: mutable atomic range 0..=4294967295 value 70778880
+    IN_FORMATS: immutable blob, 328 bytes value 84
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 2
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: immutable range 0..=0 value 0
+plane 95 type primary possible crtcs 0b1000 (106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 96
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: immutable range 0..=0 value 0
+plane 107 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 108
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 1
+plane 118 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 119
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 2
+plane 129 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 130
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 3
+plane 140 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 141
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 4
+plane 151 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 152
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 5
+plane 162 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 163
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 6
+plane 173 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 174
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 7
+plane 184 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 185
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 8
+plane 195 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 196
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 9
+plane 206 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 207
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 10
+plane 217 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 218
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 11
+plane 228 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 229
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 12
+plane 239 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 240
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 13
+plane 250 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 251
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 14
+plane 261 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 262
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 15
+plane 272 type overlay possible crtcs 0b1110 (78 94 106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 273
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 16
+plane 283 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 284
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 1
+plane 294 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 295
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 2
+plane 305 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 306
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 3
+plane 316 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 317
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 4
+plane 327 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 328
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 5
+plane 338 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 339
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 6
+plane 349 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 350
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 7
+plane 360 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 361
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 8
+plane 371 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 372
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 9
+plane 382 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 383
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 10
+plane 393 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 394
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 11
+plane 404 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 405
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 12
+plane 415 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 416
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 13
+plane 426 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 427
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 14
+plane 437 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 438
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 15
+plane 448 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 449
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 16
+plane 459 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 460
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 17
+plane 470 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 471
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 18
+plane 481 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 482
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 19
+plane 492 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 493
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 20
+plane 503 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 504
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 21
+plane 514 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 515
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 22
+plane 525 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 526
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 23
+plane 536 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 537
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 24
+plane 547 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 548
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 25
+plane 558 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 559
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 26
+plane 569 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 570
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 27
+plane 580 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 581
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 28
+plane 591 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 592
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 29
+plane 602 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 603
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 30
+plane 613 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 614
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 31
+plane 624 type overlay possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 625
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 32
+plane 635 type cursor possible crtcs 0b1 (59)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 2
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 636
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 17
+plane 646 type cursor possible crtcs 0b10 (78)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 2
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 647
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 17
+plane 657 type cursor possible crtcs 0b100 (94)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 2
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 658
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 17
+plane 668 type cursor possible crtcs 0b1000 (106)
+  attached to none
+  IN_FORMATS (59): XR24:0x700000000000001 AR24:0x700000000000001 AB24:0x700000000000001 XB24:0x700000000000001 RG16:0x700000000000001 BG16:0x700000000000001 AR15:0x700000000000001 XR15:0x700000000000001 NV12:0x700000000000004 NV21:0x700000000000004 P030:0x700000000000004 NV12:0x700000000000003 NV21:0x700000000000003 NV12:0x700000000000005 NV21:0x700000000000005 XR24:0x0 AR24:0x0 AB24:0x0 XB24:0x0 RX24:0x0 RA24:0x0 BX24:0x0 BA24:0x0 RG16:0x0 BG16:0x0 AR15:0x0 XR15:0x0 RG24:0x0 BG24:0x0 YU16:0x0 YV16:0x0 YU24:0x0 YV24:0x0 YU12:0x0 YV12:0x0 NV12:0x0 NV21:0x0 NV16:0x0 NV61:0x0 XR30:0x0 AR30:0x0 AB30:0x0 XB30:0x0 RGB8:0x0 BGR8:0x0 XR12:0x0 AR12:0x0 XB12:0x0 AB12:0x0 BX12:0x0 BA12:0x0 RX12:0x0 RA12:0x0 P010:0x0 P012:0x0 P016:0x0 S010:0x0 S012:0x0 S016:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 2
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    IN_FORMATS: immutable blob, 328 bytes value 669
+    alpha: mutable range 0..=65535 value 65535
+    pixel blend mode: mutable enum [None=2, Pre-multiplied=0, Coverage=1] value 0
+    rotation: mutable value 1
+    COLOR_ENCODING: mutable enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2] value 1
+    COLOR_RANGE: mutable enum [YCbCr limited range=0, YCbCr full range=1] value 0
+    SCALING_FILTER: mutable enum [Default=0, Nearest Neighbor=1] value 0
+    CHROMA_SITING_H: mutable range 0..=65536 value 0
+    CHROMA_SITING_V: mutable range 0..=65536 value 0
+    zpos: mutable range 1..=17 value 17

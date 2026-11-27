@@ -1,0 +1,1685 @@
+# date: 2026-11-27 (UTC)
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B Rev 1.1 (BCM2712, vc4 driver, HVS6), HDMI 1920x1080@60, no display manager running
+# command: props /dev/dri/card1
+# binaries: built from repository commit 963eb8f (scripts/cross-aarch64.sh, aarch64-unknown-linux-musl)
+# EDID: the dump carries only the EDID blob id, no EDID bytes; no serial-like values appear, nothing was removed.
+device /dev/dri/card1, driver vc4 0.0.0 (Broadcom VC4 graphics), date 0
+crtc 59 (index 0): no mode
+    ACTIVE (id 22): bool [atomic] = 0
+    BACKGROUND_COLOR (id 30): range 0..=18446744073709551615 = 18446462598732840960
+    MODE_ID (id 23): blob [atomic] = 0
+    OUT_FENCE_PTR (id 19): range 0..=18446744073709551615 [atomic] = 0
+    VRR_ENABLED (id 24): bool = 0
+crtc 78 (index 1): no mode
+    ACTIVE (id 22): bool [atomic] = 0
+    BACKGROUND_COLOR (id 30): range 0..=18446744073709551615 = 18446462598732840960
+    MODE_ID (id 23): blob [atomic] = 0
+    OUT_FENCE_PTR (id 19): range 0..=18446744073709551615 [atomic] = 0
+    VRR_ENABLED (id 24): bool = 0
+crtc 94 (index 2): 1920x1080@60
+    ACTIVE (id 22): bool [atomic] = 1
+    BACKGROUND_COLOR (id 30): range 0..=18446744073709551615 = 18446462598732840960
+    MODE_ID (id 23): blob [atomic] = 681
+    OUT_FENCE_PTR (id 19): range 0..=18446744073709551615 [atomic] = 0
+    VRR_ENABLED (id 24): bool = 0
+crtc 106 (index 3): no mode
+    ACTIVE (id 22): bool [atomic] = 0
+    BACKGROUND_COLOR (id 30): range 0..=18446744073709551615 = 18446462598732840960
+    MODE_ID (id 23): blob [atomic] = 0
+    OUT_FENCE_PTR (id 19): range 0..=18446744073709551615 [atomic] = 0
+    VRR_ENABLED (id 24): bool = 0
+connector 35 HDMIA-1: Connected, 20 modes
+    Broadcast RGB (id 42): enum {Automatic=0, Full=1, Limited 16:235=2} = 0 (Automatic)
+    CRTC_ID (id 20): object crtc [atomic] = 94
+    Colorspace (id 41): enum {Default=0, SMPTE_170M_YCC=1, BT709_YCC=2, XVYCC_601=3, XVYCC_709=4, SYCC_601=5, opYCC_601=6, opRGB=7, BT2020_CYCC=8, BT2020_RGB=9, BT2020_YCC=10, DCI-P3_RGB_D65=11, DCI-P3_RGB_Theater=12} = 0 (Default)
+    DPMS (id 2): enum {On=0, Standby=1, Suspend=2, Off=3} = 0 (On)
+    EDID (id 1): blob [immutable] = 682
+    HDR_OUTPUT_METADATA (id 7): blob = 0
+    TILE (id 4): blob [immutable] = 0
+    bottom margin (id 40): range 0..=100 = 0
+    left margin (id 37): range 0..=100 = 0
+    link-status (id 5): enum {Good=0, Bad=1} = 0 (Good)
+    max bpc (id 36): range 8..=12 = 8
+    non-desktop (id 6): bool [immutable] = 0
+    right margin (id 38): range 0..=100 = 0
+    top margin (id 39): range 0..=100 = 0
+connector 44 HDMIA-2: Disconnected, 0 modes
+    Broadcast RGB (id 47): enum {Automatic=0, Full=1, Limited 16:235=2} = 0 (Automatic)
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    Colorspace (id 46): enum {Default=0, SMPTE_170M_YCC=1, BT709_YCC=2, XVYCC_601=3, XVYCC_709=4, SYCC_601=5, opYCC_601=6, opRGB=7, BT2020_CYCC=8, BT2020_RGB=9, BT2020_YCC=10, DCI-P3_RGB_D65=11, DCI-P3_RGB_Theater=12} = 0 (Default)
+    DPMS (id 2): enum {On=0, Standby=1, Suspend=2, Off=3} = 0 (On)
+    EDID (id 1): blob [immutable] = 0
+    HDR_OUTPUT_METADATA (id 7): blob = 0
+    TILE (id 4): blob [immutable] = 0
+    bottom margin (id 40): range 0..=100 = 0
+    left margin (id 37): range 0..=100 = 0
+    link-status (id 5): enum {Good=0, Bad=1} = 0 (Good)
+    max bpc (id 45): range 8..=12 = 8
+    non-desktop (id 6): bool [immutable] = 0
+    right margin (id 38): range 0..=100 = 0
+    top margin (id 39): range 0..=100 = 0
+plane 48: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 56): range 0..=65536 = 0
+    CHROMA_SITING_V (id 57): range 0..=65536 = 0
+    COLOR_ENCODING (id 53): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 54): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 49
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 55): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 50): range 0..=65535 = 65535
+    pixel blend mode (id 51): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 52): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 58): range 0..=0 [immutable] = 0
+plane 67: possible_crtcs 0b10 (crtc indices [1]), current crtc None, fb None
+    CHROMA_SITING_H (id 75): range 0..=65536 = 0
+    CHROMA_SITING_V (id 76): range 0..=65536 = 0
+    COLOR_ENCODING (id 72): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 73): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 68
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 74): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 69): range 0..=65535 = 65535
+    pixel blend mode (id 70): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 71): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 77): range 0..=0 [immutable] = 0
+plane 83: possible_crtcs 0b100 (crtc indices [2]), current crtc Some(94), fb Some(680)
+    CHROMA_SITING_H (id 91): range 0..=65536 = 0
+    CHROMA_SITING_V (id 92): range 0..=65536 = 0
+    COLOR_ENCODING (id 88): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 89): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 1080
+    CRTC_ID (id 20): object crtc [atomic] = 94
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 1920
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 680
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 84
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 90): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 70778880
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 125829120
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 85): range 0..=65535 = 65535
+    pixel blend mode (id 86): enum {None=2, Pre-multiplied=0, Coverage=1} = 2 (None)
+    rotation (id 87): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 93): range 0..=0 [immutable] = 0
+plane 95: possible_crtcs 0b1000 (crtc indices [3]), current crtc None, fb None
+    CHROMA_SITING_H (id 103): range 0..=65536 = 0
+    CHROMA_SITING_V (id 104): range 0..=65536 = 0
+    COLOR_ENCODING (id 100): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 101): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 96
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 102): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 97): range 0..=65535 = 65535
+    pixel blend mode (id 98): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 99): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 105): range 0..=0 [immutable] = 0
+plane 107: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 115): range 0..=65536 = 0
+    CHROMA_SITING_V (id 116): range 0..=65536 = 0
+    COLOR_ENCODING (id 112): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 113): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 108
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 114): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 109): range 0..=65535 = 65535
+    pixel blend mode (id 110): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 111): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 117): range 1..=17 = 1
+plane 118: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 126): range 0..=65536 = 0
+    CHROMA_SITING_V (id 127): range 0..=65536 = 0
+    COLOR_ENCODING (id 123): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 124): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 119
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 125): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 120): range 0..=65535 = 65535
+    pixel blend mode (id 121): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 122): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 128): range 1..=17 = 2
+plane 129: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 137): range 0..=65536 = 0
+    CHROMA_SITING_V (id 138): range 0..=65536 = 0
+    COLOR_ENCODING (id 134): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 135): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 130
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 136): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 131): range 0..=65535 = 65535
+    pixel blend mode (id 132): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 133): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 139): range 1..=17 = 3
+plane 140: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 148): range 0..=65536 = 0
+    CHROMA_SITING_V (id 149): range 0..=65536 = 0
+    COLOR_ENCODING (id 145): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 146): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 141
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 147): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 142): range 0..=65535 = 65535
+    pixel blend mode (id 143): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 144): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 150): range 1..=17 = 4
+plane 151: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 159): range 0..=65536 = 0
+    CHROMA_SITING_V (id 160): range 0..=65536 = 0
+    COLOR_ENCODING (id 156): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 157): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 152
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 158): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 153): range 0..=65535 = 65535
+    pixel blend mode (id 154): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 155): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 161): range 1..=17 = 5
+plane 162: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 170): range 0..=65536 = 0
+    CHROMA_SITING_V (id 171): range 0..=65536 = 0
+    COLOR_ENCODING (id 167): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 168): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 163
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 169): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 164): range 0..=65535 = 65535
+    pixel blend mode (id 165): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 166): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 172): range 1..=17 = 6
+plane 173: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 181): range 0..=65536 = 0
+    CHROMA_SITING_V (id 182): range 0..=65536 = 0
+    COLOR_ENCODING (id 178): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 179): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 174
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 180): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 175): range 0..=65535 = 65535
+    pixel blend mode (id 176): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 177): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 183): range 1..=17 = 7
+plane 184: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 192): range 0..=65536 = 0
+    CHROMA_SITING_V (id 193): range 0..=65536 = 0
+    COLOR_ENCODING (id 189): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 190): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 185
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 191): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 186): range 0..=65535 = 65535
+    pixel blend mode (id 187): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 188): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 194): range 1..=17 = 8
+plane 195: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 203): range 0..=65536 = 0
+    CHROMA_SITING_V (id 204): range 0..=65536 = 0
+    COLOR_ENCODING (id 200): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 201): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 196
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 202): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 197): range 0..=65535 = 65535
+    pixel blend mode (id 198): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 199): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 205): range 1..=17 = 9
+plane 206: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 214): range 0..=65536 = 0
+    CHROMA_SITING_V (id 215): range 0..=65536 = 0
+    COLOR_ENCODING (id 211): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 212): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 207
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 213): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 208): range 0..=65535 = 65535
+    pixel blend mode (id 209): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 210): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 216): range 1..=17 = 10
+plane 217: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 225): range 0..=65536 = 0
+    CHROMA_SITING_V (id 226): range 0..=65536 = 0
+    COLOR_ENCODING (id 222): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 223): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 218
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 224): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 219): range 0..=65535 = 65535
+    pixel blend mode (id 220): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 221): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 227): range 1..=17 = 11
+plane 228: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 236): range 0..=65536 = 0
+    CHROMA_SITING_V (id 237): range 0..=65536 = 0
+    COLOR_ENCODING (id 233): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 234): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 229
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 235): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 230): range 0..=65535 = 65535
+    pixel blend mode (id 231): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 232): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 238): range 1..=17 = 12
+plane 239: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 247): range 0..=65536 = 0
+    CHROMA_SITING_V (id 248): range 0..=65536 = 0
+    COLOR_ENCODING (id 244): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 245): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 240
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 246): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 241): range 0..=65535 = 65535
+    pixel blend mode (id 242): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 243): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 249): range 1..=17 = 13
+plane 250: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 258): range 0..=65536 = 0
+    CHROMA_SITING_V (id 259): range 0..=65536 = 0
+    COLOR_ENCODING (id 255): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 256): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 251
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 257): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 252): range 0..=65535 = 65535
+    pixel blend mode (id 253): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 254): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 260): range 1..=17 = 14
+plane 261: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 269): range 0..=65536 = 0
+    CHROMA_SITING_V (id 270): range 0..=65536 = 0
+    COLOR_ENCODING (id 266): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 267): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 262
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 268): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 263): range 0..=65535 = 65535
+    pixel blend mode (id 264): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 265): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 271): range 1..=17 = 15
+plane 272: possible_crtcs 0b1110 (crtc indices [1,2,3]), current crtc None, fb None
+    CHROMA_SITING_H (id 280): range 0..=65536 = 0
+    CHROMA_SITING_V (id 281): range 0..=65536 = 0
+    COLOR_ENCODING (id 277): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 278): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 273
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 279): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 274): range 0..=65535 = 65535
+    pixel blend mode (id 275): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 276): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 282): range 1..=17 = 16
+plane 283: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 291): range 0..=65536 = 0
+    CHROMA_SITING_V (id 292): range 0..=65536 = 0
+    COLOR_ENCODING (id 288): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 289): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 284
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 290): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 285): range 0..=65535 = 65535
+    pixel blend mode (id 286): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 287): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 293): range 1..=17 = 1
+plane 294: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 302): range 0..=65536 = 0
+    CHROMA_SITING_V (id 303): range 0..=65536 = 0
+    COLOR_ENCODING (id 299): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 300): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 295
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 301): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 296): range 0..=65535 = 65535
+    pixel blend mode (id 297): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 298): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 304): range 1..=17 = 2
+plane 305: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 313): range 0..=65536 = 0
+    CHROMA_SITING_V (id 314): range 0..=65536 = 0
+    COLOR_ENCODING (id 310): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 311): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 306
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 312): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 307): range 0..=65535 = 65535
+    pixel blend mode (id 308): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 309): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 315): range 1..=17 = 3
+plane 316: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 324): range 0..=65536 = 0
+    CHROMA_SITING_V (id 325): range 0..=65536 = 0
+    COLOR_ENCODING (id 321): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 322): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 317
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 323): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 318): range 0..=65535 = 65535
+    pixel blend mode (id 319): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 320): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 326): range 1..=17 = 4
+plane 327: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 335): range 0..=65536 = 0
+    CHROMA_SITING_V (id 336): range 0..=65536 = 0
+    COLOR_ENCODING (id 332): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 333): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 328
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 334): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 329): range 0..=65535 = 65535
+    pixel blend mode (id 330): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 331): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 337): range 1..=17 = 5
+plane 338: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 346): range 0..=65536 = 0
+    CHROMA_SITING_V (id 347): range 0..=65536 = 0
+    COLOR_ENCODING (id 343): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 344): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 339
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 345): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 340): range 0..=65535 = 65535
+    pixel blend mode (id 341): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 342): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 348): range 1..=17 = 6
+plane 349: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 357): range 0..=65536 = 0
+    CHROMA_SITING_V (id 358): range 0..=65536 = 0
+    COLOR_ENCODING (id 354): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 355): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 350
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 356): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 351): range 0..=65535 = 65535
+    pixel blend mode (id 352): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 353): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 359): range 1..=17 = 7
+plane 360: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 368): range 0..=65536 = 0
+    CHROMA_SITING_V (id 369): range 0..=65536 = 0
+    COLOR_ENCODING (id 365): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 366): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 361
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 367): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 362): range 0..=65535 = 65535
+    pixel blend mode (id 363): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 364): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 370): range 1..=17 = 8
+plane 371: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 379): range 0..=65536 = 0
+    CHROMA_SITING_V (id 380): range 0..=65536 = 0
+    COLOR_ENCODING (id 376): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 377): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 372
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 378): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 373): range 0..=65535 = 65535
+    pixel blend mode (id 374): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 375): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 381): range 1..=17 = 9
+plane 382: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 390): range 0..=65536 = 0
+    CHROMA_SITING_V (id 391): range 0..=65536 = 0
+    COLOR_ENCODING (id 387): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 388): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 383
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 389): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 384): range 0..=65535 = 65535
+    pixel blend mode (id 385): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 386): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 392): range 1..=17 = 10
+plane 393: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 401): range 0..=65536 = 0
+    CHROMA_SITING_V (id 402): range 0..=65536 = 0
+    COLOR_ENCODING (id 398): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 399): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 394
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 400): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 395): range 0..=65535 = 65535
+    pixel blend mode (id 396): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 397): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 403): range 1..=17 = 11
+plane 404: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 412): range 0..=65536 = 0
+    CHROMA_SITING_V (id 413): range 0..=65536 = 0
+    COLOR_ENCODING (id 409): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 410): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 405
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 411): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 406): range 0..=65535 = 65535
+    pixel blend mode (id 407): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 408): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 414): range 1..=17 = 12
+plane 415: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 423): range 0..=65536 = 0
+    CHROMA_SITING_V (id 424): range 0..=65536 = 0
+    COLOR_ENCODING (id 420): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 421): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 416
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 422): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 417): range 0..=65535 = 65535
+    pixel blend mode (id 418): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 419): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 425): range 1..=17 = 13
+plane 426: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 434): range 0..=65536 = 0
+    CHROMA_SITING_V (id 435): range 0..=65536 = 0
+    COLOR_ENCODING (id 431): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 432): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 427
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 433): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 428): range 0..=65535 = 65535
+    pixel blend mode (id 429): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 430): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 436): range 1..=17 = 14
+plane 437: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 445): range 0..=65536 = 0
+    CHROMA_SITING_V (id 446): range 0..=65536 = 0
+    COLOR_ENCODING (id 442): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 443): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 438
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 444): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 439): range 0..=65535 = 65535
+    pixel blend mode (id 440): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 441): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 447): range 1..=17 = 15
+plane 448: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 456): range 0..=65536 = 0
+    CHROMA_SITING_V (id 457): range 0..=65536 = 0
+    COLOR_ENCODING (id 453): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 454): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 449
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 455): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 450): range 0..=65535 = 65535
+    pixel blend mode (id 451): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 452): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 458): range 1..=17 = 16
+plane 459: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 467): range 0..=65536 = 0
+    CHROMA_SITING_V (id 468): range 0..=65536 = 0
+    COLOR_ENCODING (id 464): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 465): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 460
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 466): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 461): range 0..=65535 = 65535
+    pixel blend mode (id 462): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 463): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 469): range 1..=17 = 17
+plane 470: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 478): range 0..=65536 = 0
+    CHROMA_SITING_V (id 479): range 0..=65536 = 0
+    COLOR_ENCODING (id 475): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 476): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 471
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 477): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 472): range 0..=65535 = 65535
+    pixel blend mode (id 473): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 474): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 480): range 1..=17 = 18
+plane 481: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 489): range 0..=65536 = 0
+    CHROMA_SITING_V (id 490): range 0..=65536 = 0
+    COLOR_ENCODING (id 486): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 487): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 482
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 488): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 483): range 0..=65535 = 65535
+    pixel blend mode (id 484): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 485): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 491): range 1..=17 = 19
+plane 492: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 500): range 0..=65536 = 0
+    CHROMA_SITING_V (id 501): range 0..=65536 = 0
+    COLOR_ENCODING (id 497): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 498): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 493
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 499): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 494): range 0..=65535 = 65535
+    pixel blend mode (id 495): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 496): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 502): range 1..=17 = 20
+plane 503: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 511): range 0..=65536 = 0
+    CHROMA_SITING_V (id 512): range 0..=65536 = 0
+    COLOR_ENCODING (id 508): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 509): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 504
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 510): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 505): range 0..=65535 = 65535
+    pixel blend mode (id 506): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 507): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 513): range 1..=17 = 21
+plane 514: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 522): range 0..=65536 = 0
+    CHROMA_SITING_V (id 523): range 0..=65536 = 0
+    COLOR_ENCODING (id 519): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 520): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 515
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 521): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 516): range 0..=65535 = 65535
+    pixel blend mode (id 517): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 518): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 524): range 1..=17 = 22
+plane 525: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 533): range 0..=65536 = 0
+    CHROMA_SITING_V (id 534): range 0..=65536 = 0
+    COLOR_ENCODING (id 530): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 531): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 526
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 532): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 527): range 0..=65535 = 65535
+    pixel blend mode (id 528): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 529): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 535): range 1..=17 = 23
+plane 536: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 544): range 0..=65536 = 0
+    CHROMA_SITING_V (id 545): range 0..=65536 = 0
+    COLOR_ENCODING (id 541): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 542): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 537
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 543): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 538): range 0..=65535 = 65535
+    pixel blend mode (id 539): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 540): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 546): range 1..=17 = 24
+plane 547: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 555): range 0..=65536 = 0
+    CHROMA_SITING_V (id 556): range 0..=65536 = 0
+    COLOR_ENCODING (id 552): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 553): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 548
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 554): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 549): range 0..=65535 = 65535
+    pixel blend mode (id 550): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 551): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 557): range 1..=17 = 25
+plane 558: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 566): range 0..=65536 = 0
+    CHROMA_SITING_V (id 567): range 0..=65536 = 0
+    COLOR_ENCODING (id 563): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 564): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 559
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 565): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 560): range 0..=65535 = 65535
+    pixel blend mode (id 561): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 562): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 568): range 1..=17 = 26
+plane 569: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 577): range 0..=65536 = 0
+    CHROMA_SITING_V (id 578): range 0..=65536 = 0
+    COLOR_ENCODING (id 574): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 575): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 570
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 576): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 571): range 0..=65535 = 65535
+    pixel blend mode (id 572): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 573): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 579): range 1..=17 = 27
+plane 580: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 588): range 0..=65536 = 0
+    CHROMA_SITING_V (id 589): range 0..=65536 = 0
+    COLOR_ENCODING (id 585): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 586): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 581
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 587): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 582): range 0..=65535 = 65535
+    pixel blend mode (id 583): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 584): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 590): range 1..=17 = 28
+plane 591: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 599): range 0..=65536 = 0
+    CHROMA_SITING_V (id 600): range 0..=65536 = 0
+    COLOR_ENCODING (id 596): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 597): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 592
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 598): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 593): range 0..=65535 = 65535
+    pixel blend mode (id 594): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 595): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 601): range 1..=17 = 29
+plane 602: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 610): range 0..=65536 = 0
+    CHROMA_SITING_V (id 611): range 0..=65536 = 0
+    COLOR_ENCODING (id 607): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 608): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 603
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 609): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 604): range 0..=65535 = 65535
+    pixel blend mode (id 605): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 606): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 612): range 1..=17 = 30
+plane 613: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 621): range 0..=65536 = 0
+    CHROMA_SITING_V (id 622): range 0..=65536 = 0
+    COLOR_ENCODING (id 618): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 619): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 614
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 620): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 615): range 0..=65535 = 65535
+    pixel blend mode (id 616): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 617): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 623): range 1..=17 = 31
+plane 624: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 632): range 0..=65536 = 0
+    CHROMA_SITING_V (id 633): range 0..=65536 = 0
+    COLOR_ENCODING (id 629): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 630): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 625
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 631): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 626): range 0..=65535 = 65535
+    pixel blend mode (id 627): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 628): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 634): range 1..=17 = 32
+plane 635: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CHROMA_SITING_H (id 643): range 0..=65536 = 0
+    CHROMA_SITING_V (id 644): range 0..=65536 = 0
+    COLOR_ENCODING (id 640): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 641): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 636
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 642): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 637): range 0..=65535 = 65535
+    pixel blend mode (id 638): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 639): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 2 (Cursor)
+    zpos (id 645): range 1..=17 = 17
+plane 646: possible_crtcs 0b10 (crtc indices [1]), current crtc None, fb None
+    CHROMA_SITING_H (id 654): range 0..=65536 = 0
+    CHROMA_SITING_V (id 655): range 0..=65536 = 0
+    COLOR_ENCODING (id 651): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 652): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 647
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 653): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 648): range 0..=65535 = 65535
+    pixel blend mode (id 649): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 650): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 2 (Cursor)
+    zpos (id 656): range 1..=17 = 17
+plane 657: possible_crtcs 0b100 (crtc indices [2]), current crtc None, fb None
+    CHROMA_SITING_H (id 665): range 0..=65536 = 0
+    CHROMA_SITING_V (id 666): range 0..=65536 = 0
+    COLOR_ENCODING (id 662): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 663): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 658
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 664): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 659): range 0..=65535 = 65535
+    pixel blend mode (id 660): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 661): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 2 (Cursor)
+    zpos (id 667): range 1..=17 = 17
+plane 668: possible_crtcs 0b1000 (crtc indices [3]), current crtc None, fb None
+    CHROMA_SITING_H (id 676): range 0..=65536 = 0
+    CHROMA_SITING_V (id 677): range 0..=65536 = 0
+    COLOR_ENCODING (id 673): enum {ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1, ITU-R BT.2020 YCbCr=2} = 1 (ITU-R BT.709 YCbCr)
+    COLOR_RANGE (id 674): enum {YCbCr limited range=0, YCbCr full range=1} = 0 (YCbCr limited range)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    IN_FORMATS (id 31): blob [immutable] = 669
+      IN_FORMATS: 45 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016
+    SCALING_FILTER (id 675): enum {Default=0, Nearest Neighbor=1} = 0 (Default)
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    alpha (id 670): range 0..=65535 = 65535
+    pixel blend mode (id 671): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 672): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 2 (Cursor)
+    zpos (id 678): range 1..=17 = 17
