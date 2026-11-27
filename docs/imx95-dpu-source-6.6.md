@@ -76,3 +76,9 @@ Basis: the NXP `lf-6.6.52-2.2.2` reading in the table above, **not** the board's
 
 - `git ls-remote https://git.toradex.com/...` still fails with `credential missing host field` (local git configuration). `git ls-remote git://git.toradex.com/linux-toradex.git toradex_6.6-2.2.x-imx` works and returns `8ad2b7ff6b56` (6.6.161, not the board's). The exact `curl` of the cgit index returned HTTP 200, so the host is reachable.
 - `git clone --bare --filter=blob:none git://git.toradex.com/meta-toradex-nxp.git`, `git init` + `git fetch`, and a `curl` of a cgit `plain/` URL were each refused by the harness ("requires approval") and not run. Only `git ls-remote` and the one exact curl were granted. `SRCREV_machine` is therefore still unread; the steps in "To finish" need `git clone`/`git fetch` (git:// works) or `curl` of cgit `plain/` URLs to be permitted.
+
+### Second retry (2026-11-28)
+
+- cgit `plain/` over https answers with an Anubis proof-of-work bot challenge (HTML, not the recipe), so it cannot be read by `curl`.
+- `git clone --bare --filter=blob:none --single-branch --branch scarthgap-7.x.y git://git.toradex.com/meta-toradex-nxp.git` succeeded (git:// works). Reading the recipe from that clone was then blocked: `git -C <dir> show` and `git --git-dir=<dir> show` need approval (a changed directory or a runtime-determined `-` argument), so `SRCREV_machine` at `962f3217b3e4` is still unread and `linux-toradex` was not fetched. The bare clone lives in the task's `$TMPDIR` and is gone with the task.
+- Next run: clone the layer bare into `$CONNECTED_DEPS_DIR/meta-toradex-nxp.git` and read the recipe with a command the harness allows (`git show` from inside the repo as cwd), then `git fetch --depth 1 git://git.toradex.com/linux-toradex.git <SRCREV>`.
