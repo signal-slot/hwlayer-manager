@@ -1,8 +1,16 @@
 # BCM2711 (Raspberry Pi CM4, reTerminal) DRM topology
 
-All rows tagged **observed 2026-11-28** unless marked otherwise. Topology only: no two-plane harness
-was run, and `crates/composition-drm/examples/props.rs` did not exist in this snapshot, so there is
-no raw KMS property dump (see "Discrepancies").
+All rows tagged **observed 2026-11-28** unless marked otherwise. Topology only: the two-plane
+harness run (`twoplane`, unsupported combinations, swap-z and alpha variants) is in
+[`bcm2711-cm4.md`](bcm2711-cm4.md), which also corrects the plane counts and the scaling row below.
+`crates/composition-drm/examples/props.rs` did not exist when this page was written, so there is no
+raw KMS property dump (see "Discrepancies").
+
+> **Plane counts here are probe's cut view, not the kernel's.** composition-drm keeps only
+> `MAX_PLANES` = 16 planes, primaries first. The kernel's atomic state has 60 planes, and the DSI
+> CRTC can use 16 shared overlays plus its primary (and a cursor, inferred). See "Topology" in
+> [`bcm2711-cm4.md`](bcm2711-cm4.md). Do not fold the 16 / 10 / 11 counts below into
+> `docs/platform-capabilities.md` as the hardware's plane count.
 
 ## Setup
 
@@ -27,14 +35,14 @@ no raw KMS property dump (see "Discrepancies").
 |---|---|---|
 | CRTCs | 6: `txp` (59, writeback), `pixelvalve-0` (78), `pixelvalve-1` (90), `pixelvalve-2` (102), `pixelvalve-4` (114), `pixelvalve-3` (126) | observed 2026-11-28 |
 | Active CRTC | only `pixelvalve-1` (enable=1, plane_mask=0x4, connector DSI-1) | observed 2026-11-28 |
-| Planes | 16: 6 `Primary` (ids 48, 67, 79, 91, 103, 115 = debugfs plane-0..5), 10 `Overlay` (ids 127 … 226) | observed 2026-11-28 |
-| Planes usable on the DSI CRTC | probe mask `0b1` for output 0: primary 79 plus all ten overlays (127, 138, 149, 160, 171, 182, 193, 204, 215, 226) = 11 planes. Primaries 48, 67, 91, 103, 115 belong to other CRTCs (mask `0b0`). | observed 2026-11-28 |
+| Planes probe reports | 16: 6 `Primary` (ids 48, 67, 79, 91, 103, 115 = debugfs plane-0..5), 10 `Overlay` (ids 127 … 226). This is probe's view cut to `MAX_PLANES`; the kernel exposes 60 planes (`bcm2711-cm4.md`, "Topology") | observed 2026-11-28 (probe's cut view) |
+| Planes usable on the DSI CRTC, as probe sees them | probe mask `0b1` for output 0: primary 79 plus the ten overlays probe kept (127, 138, 149, 160, 171, 182, 193, 204, 215, 226) = 11 planes. Primaries 48, 67, 91, 103, 115 belong to other CRTCs (mask `0b0`). The kernel gives this CRTC 16 shared overlays plus the primary (and a cursor, inferred); 11 is the engine's cut view (`bcm2711-cm4.md`, "Topology") | observed 2026-11-28 (probe's cut view) |
 | zpos | primaries: fixed 0; overlays: range 1..=17 (as probe derives it) | observed 2026-11-28 |
-| Plane alpha | true on all 16 planes | observed 2026-11-28 |
-| Pixel blend modes | `none`, `premultiplied`, `coverage` on all 16 planes | observed 2026-11-28 |
+| Plane alpha | true on all 16 planes probe reports | observed 2026-11-28 |
+| Pixel blend modes | `none`, `premultiplied`, `coverage` on all 16 planes probe reports | observed 2026-11-28 |
 | Formats | identical 32-entry list on every plane (below), includes AR24/AB24 (alpha), NV12/YUV planar, XR30/AR30 | observed 2026-11-28 |
 | Modifiers | not reported by probe (it prints no modifier column) | observed 2026-11-28 |
-| Scaling | probe prints "scaling not claimed" for every plane. That is the engine's conservative assumption, not a read property. | inferred |
+| Scaling | probe prints "scaling not claimed" for every plane. That is the engine's conservative assumption, not a read property. The kernel accepted scale-up and scale-down in a later `TEST_ONLY` run (`bcm2711-cm4.md`, "Unsupported combinations") | inferred (probe); observed 2026-11-28 (`TEST_ONLY`, in `bcm2711-cm4.md`) |
 | Rotation | debugfs state shows `rotation=1` (bit 0 = rotate-0) on all planes, i.e. a rotation property exists; its supported mask was not read (no props dump) | observed 2026-11-28 (current value only) |
 | HVS state | core clock 71428000 Hz, channel 0 in use (load 71428000), channel 1 idle | observed 2026-11-28 |
 | Underruns | `hvs_underrun` debugfs counter read 0 | observed 2026-11-28 |
@@ -68,7 +76,7 @@ plane 226 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, prem
 ```
 
 Each plane is followed by `  formats (32): …` with the list above (all 16 identical; omitted here
-for brevity).
+for brevity). The 16 planes are probe's cut view (see the note at the top).
 
 ## Debugfs state (read-only, `/sys/kernel/debug/dri/0/state`)
 
@@ -90,12 +98,14 @@ all other crtcs/planes/connectors: crtc=(null), fb=0
   The primary planes of those CRTCs show mask `0b0`, which means "not on a connected output", not
   "no CRTC": do not read it as a possible_crtcs of zero.
 - All six primaries are typed `Primary` although only plane 79 can reach the DSI CRTC. On this
-  vc4 each CRTC has its own primary plane; the ten overlays are shared and all reach the DSI CRTC.
+  vc4 each CRTC has its own primary plane; the overlays are shared and all reach the DSI CRTC.
+  probe shows ten of them; the kernel has 16 shared overlays (plus 32 TXP overlays and six
+  cursors), see `bcm2711-cm4.md`, "Topology".
 - Overlay zpos range 1..=17 is probe's derived reading of the zpos property range; the raw
   min/max/immutable flags were not dumped (no props example in this snapshot), so this is not
   cross-checked against the raw property.
-- Scaling: probe's "not claimed" is an assumption; vc4 HVS is known to scale in hardware but that
-  is not observed here and must come from source or a later TEST_ONLY run.
+- Scaling: probe's "not claimed" is an assumption. The later `TEST_ONLY` run accepted both
+  scale-up and scale-down (`bcm2711-cm4.md`, "Unsupported combinations"); limits were not probed.
 - Rotation: only the current value (`rotation=1`) was seen; supported rotate/reflect bits unread.
 - `hvs_underrun` read 0 only on an idle fbcon-only scanout; it says nothing about two-plane load.
 - Panel is portrait 720x1280; any harness frame sizes must be chosen for that orientation.
