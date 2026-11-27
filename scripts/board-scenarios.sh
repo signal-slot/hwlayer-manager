@@ -1,0 +1,329 @@
+#!/bin/sh
+# Run rows A1-A5 of docs/board-scenarios.md on a Linux board with no
+# compositor, by driving the drm-harness binary and judging its records.
+#
+# usage: board-scenarios.sh [options] HARNESS
+#   HARNESS         path of the drm-harness binary (built for the board)
+#   --out DIR       result directory (default /tmp/board-scenarios); the only
+#                   place the script writes to
+#   --rows LIST     comma-separated rows to run, default A1,A2,A3,A4,A5;
+#                   the others get NOT-RUN
+#   --hold SECS     A2 steady-state hold (default 10 seconds); with --fps
+#                   (default 60, assumed, not read from the sink) it gives
+#                   `rotate --frames HOLD*FPS --buffers 3`
+#   --frames N      A2 frame count, overrides --hold/--fps
+#   --seconds N     how long each picture is held in A1, A3, A5 (default 3)
+#   --allow-drops N dropped frames A2 may report (default 0)
+#   --stop-wait N   seconds to wait for a signalled run to exit (default 10)
+#   --device PATH, --connector NAME, --profile NAME
+#                   passed to the harness unchanged when given
+#   --hook CMD      command called as `CMD ROW PHASE` (PHASE is hold-start
+#                   or hold-end) around each hold, so the caller can take a
+#                   camera or KVM picture; its failure is only noted
+#
+# Rows (each writes OUT/ROW/result.txt: first line
+# `SCENARIO <name> PASS|FAIL|BLOCKED|NOT-RUN`, then the evidence lines, and
+# OUT/ROW/*.log with the raw harness records):
+#   A1 startup       two-planes --source master, then --source kernel-lease:
+#                    exit 0, VERDICT PASS, every `commit` record has a
+#                    latency_us (latched), at least one commit.
+#   A2 steady state  rotate: VERDICT PASS, presented == frames, dropped <=
+#                    --allow-drops, releases == 2*(presented-1)+2*dropped
+#                    (the harness's own count, > 0), no order violations.
+#   A3 stop/restart  two-planes held long, SIGTERM once the first commit is
+#                    seen; separately SIGKILL; each must exit within
+#                    --stop-wait, then A1's master check must pass again.
+#   A4 lease loss    revoke --source kernel-lease: VERDICT PASS,
+#                    revoke_result with DeviceLost on the first attempt,
+#                    device_lost_events=1, nothing busy, no outputs/planes
+#                    after, and no commit/frame/step_result record after
+#                    before_revoke.
+#   A5 modeset       modes of the selected connector are read from
+#                    ${DRM_SYSFS:-/sys/class/drm}/card*-CONNECTOR/modes
+#                    (the harness prints only the selected mode). One mode:
+#                    BLOCKED. More: BLOCKED "harness has no modeset
+#                    scenario" (the harness has no mode option); never PASS.
+#
+# Never starts or stops a display manager, never touches DRM, udev or seat
+# configuration: stop the compositor yourself before, restore it after. Only
+# --source master and kernel-lease are used. A6 (display recovery) is not
+# covered.
+#
+# Prints one `ROW name RESULT` summary line per row. Exit: 0 every selected
+# row PASS, 1 a row FAILed, 2 usage, 3 no FAIL but a row is BLOCKED or
+# NOT-RUN among the selected ones.
+
+out=/tmp/board-scenarios
+rows=A1,A2,A3,A4,A5
+hold=10
+fps=60
+frames=
+seconds=3
+allow_drops=0
+stop_wait=10
+hook=
+common=
+while [ $# -gt 0 ]; do
+	case $1 in
+	--out) shift; out=${1:-} ;;
+	--rows) shift; rows=${1:-} ;;
+	--hold) shift; hold=${1:-} ;;
+	--fps) shift; fps=${1:-} ;;
+	--frames) shift; frames=${1:-} ;;
+	--seconds) shift; seconds=${1:-} ;;
+	--allow-drops) shift; allow_drops=${1:-} ;;
+	--stop-wait) shift; stop_wait=${1:-} ;;
+	--hook) shift; hook=${1:-} ;;
+	--device) shift; common="$common --device ${1:-}" ;;
+	--connector) shift; common="$common --connector ${1:-}" ;;
+	--profile) shift; common="$common --profile ${1:-}" ;;
+	--) shift; break ;;
+	-*) echo "unknown option: $1" >&2; exit 2 ;;
+	*) break ;;
+	esac
+	shift
+done
+usage() { sed -n '2,/^$/s/^# \{0,1\}//p' "$0" >&2; exit 2; }
+[ $# -eq 1 ] || usage
+harness=$1
+[ -x "$harness" ] || { echo "harness not executable: $harness" >&2; exit 2; }
+for n in "$hold" "$fps" "$seconds" "$allow_drops" "$stop_wait" $frames; do
+	case $n in ''|*[!0-9]*) echo "not a number: $n" >&2; exit 2 ;; esac
+done
+for r in $(echo "$rows" | tr ',' ' '); do
+	case $r in A1|A2|A3|A4|A5) ;; *) echo "unknown row: $r" >&2; exit 2 ;; esac
+done
+[ -n "$frames" ] || frames=$((hold * fps))
+mkdir -p "$out" || exit 2
+
+# fld FILE KIND KEY: value of KEY on the last KIND record (quotes dropped).
+fld() {
+	awk -v k="$2" -v key="$3" '
+	$1 == k { for (i = 2; i <= NF; i++) if (index($i, key "=") == 1) {
+		v = substr($i, length(key) + 2); gsub(/"/, "", v); r = v } }
+	END { print r }' "$1"
+}
+count() { awk -v k="$2" '$1 == k { n++ } END { print n + 0 }' "$1"; }
+is_num() { case $1 in ''|*[!0-9]*) return 1 ;; esac; }
+
+# Evidence and failures of the row being judged.
+ev=
+bad=
+note() { ev="$ev$*
+"; }
+fail() { bad="$bad$*
+"; }
+
+runhook() { [ -z "$hook" ] || $hook "$1" "$2" || note "hook $1 $2 failed"; }
+
+# check_verdict LOG NAME RC: exit status and VERDICT line.
+check_verdict() {
+	note "exit=$3"
+	[ "$3" -eq 0 ] || fail "$2: exit status $3"
+	v=$(grep "^VERDICT $2 " "$1" | tail -n 1)
+	if [ -z "$v" ]; then fail "$2: no VERDICT line"; else
+		note "$v"
+		case $v in "VERDICT $2 PASS"*) ;; *) fail "$2: $v" ;; esac
+	fi
+}
+
+# check_commits LOG: at least one commit, each latched (latency_us set).
+check_commits() {
+	c=$(count "$1" commit)
+	l=$(awk '$1 == "commit" { for (i = 2; i <= NF; i++)
+		if ($i ~ /^latency_us=[0-9]+$/) n++ } END { print n + 0 }' "$1")
+	note "commits=$c latched=$l"
+	[ "$c" -ge 1 ] || fail "no commit record"
+	[ "$l" -eq "$c" ] || fail "latched=$l differs from commits=$c"
+}
+
+# run_two_planes LOG SOURCE: the A1 check on one source.
+run_two_planes() {
+	# shellcheck disable=SC2086
+	"$harness" $common --source "$2" --seconds "$seconds" two-planes > "$1" 2>&1
+	rc=$?
+	note "-- two-planes --source $2"
+	check_verdict "$1" two-planes "$rc"
+	check_commits "$1"
+}
+
+finish() { # ROW NAME: write result.txt from ev/bad
+	d=$out/$1
+	mkdir -p "$d"
+	if [ -n "$bad" ]; then st=FAIL; else st=${forced:-PASS}; fi
+	{ echo "SCENARIO $2 $st"; printf '%s' "$ev"
+	  printf '%s' "$bad" | sed 's/^/failed: /'; } > "$d/result.txt"
+	echo "$1 $2 $st"
+	eval "res_$1=$st"
+}
+
+row_a1() {
+	d=$out/A1; mkdir -p "$d"
+	run_two_planes "$d/master.log" master
+	run_two_planes "$d/kernel-lease.log" kernel-lease
+	if ! grep -q '^lease ' "$d/kernel-lease.log"; then
+		fail "kernel-lease: no lease record"
+	fi
+}
+
+row_a2() {
+	d=$out/A2; mkdir -p "$d"
+	note "hold=${hold}s fps=${fps} (assumed) frames=$frames buffers=3 allow_drops=$allow_drops"
+	runhook A2 hold-start
+	# shellcheck disable=SC2086
+	"$harness" $common --source master --frames "$frames" --buffers 3 \
+		rotate > "$d/rotate.log" 2>&1
+	rc=$?
+	runhook A2 hold-end
+	check_verdict "$d/rotate.log" rotate "$rc"
+	f=$d/rotate.log
+	p=$(fld "$f" rotate_result presented)
+	dr=$(fld "$f" rotate_result dropped)
+	rel=$(fld "$f" rotate_result releases)
+	ov=$(fld "$f" rotate_result order_violations)
+	note "frames=$frames presented=$p dropped=$dr releases=$rel order_violations=$ov"
+	if ! is_num "$p" || ! is_num "$dr" || ! is_num "$rel" || ! is_num "$ov"; then
+		fail "rotate_result missing or incomplete"
+		return
+	fi
+	[ "$p" -eq "$frames" ] || fail "presented=$p, expected $frames"
+	[ "$dr" -le "$allow_drops" ] || fail "dropped=$dr exceeds $allow_drops"
+	[ "$ov" -eq 0 ] || fail "order_violations=$ov"
+	pm=$p
+	[ "$pm" -eq 0 ] || pm=$((pm - 1))
+	want=$((2 * pm + 2 * dr))
+	[ "$rel" -gt 0 ] || fail "no releases"
+	[ "$rel" -eq "$want" ] || fail "releases=$rel, expected $want"
+	[ "$(count "$f" violation)" -eq 0 ] || fail "violation records present"
+}
+
+# stop_run LOG SIGNAL: start a long hold, signal it, check the exit.
+stop_run() {
+	log=$1 sig=$2
+	# shellcheck disable=SC2086
+	"$harness" $common --source master --seconds 600 two-planes > "$log" 2>&1 &
+	pid=$!
+	t=0
+	while [ "$(count "$log" commit)" -eq 0 ] && kill -0 "$pid" 2>/dev/null \
+		&& [ "$t" -lt $((stop_wait * 10)) ]; do
+		sleep 0.1; t=$((t + 1))
+	done
+	if [ "$(count "$log" commit)" -eq 0 ]; then
+		kill -KILL "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
+		fail "$sig: no commit before the signal"
+		return
+	fi
+	runhook A3 hold-start
+	kill -"$sig" "$pid"
+	t=0
+	while kill -0 "$pid" 2>/dev/null && [ "$t" -lt $((stop_wait * 10)) ]; do
+		sleep 0.1; t=$((t + 1))
+	done
+	runhook A3 hold-end
+	if kill -0 "$pid" 2>/dev/null; then
+		kill -KILL "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
+		fail "$sig: still running after ${stop_wait}s"
+		return
+	fi
+	wait "$pid"; rc=$?
+	note "$sig: exit=$rc after commits=$(count "$log" commit)"
+	case $sig:$rc in
+	TERM:0|TERM:143|KILL:137) ;;
+	*) fail "$sig: unexpected exit status $rc" ;;
+	esac
+}
+
+row_a3() {
+	d=$out/A3; mkdir -p "$d"
+	for sig in TERM KILL; do
+		stop_run "$d/$sig.log" "$sig"
+		# Restart and repeat A1's check.
+		run_two_planes "$d/restart-after-$sig.log" master
+	done
+}
+
+row_a4() {
+	d=$out/A4; mkdir -p "$d"; f=$d/revoke.log
+	# shellcheck disable=SC2086
+	"$harness" $common --source kernel-lease --frames 60 --buffers 3 \
+		--seconds "$seconds" revoke > "$f" 2>&1
+	rc=$?
+	check_verdict "$f" revoke "$rc"
+	fa=$(fld "$f" revoke_result first_attempt)
+	lost=$(fld "$f" revoke_result device_lost_events)
+	busy=$(fld "$f" revoke_result still_busy)
+	oa=$(fld "$f" revoke_result outputs_after)
+	pa=$(fld "$f" revoke_result planes_after)
+	note "lease_revoked=$(count "$f" lease_revoked) first_attempt=$fa device_lost_events=$lost still_busy=$busy outputs_after=$oa planes_after=$pa"
+	if [ -z "$fa" ]; then fail "no revoke_result record"; return; fi
+	case $fa in *DeviceLost*) ;; *) fail "first_attempt is not DeviceLost" ;; esac
+	[ "$lost" = 1 ] || fail "device_lost_events=$lost, expected 1"
+	[ "$busy" = - ] || fail "buffers still busy: $busy"
+	[ "$oa" = 0 ] && [ "$pa" = 0 ] || fail "outputs/planes reported after the loss"
+	# No commit may follow the revocation.
+	after=$(awk '/^before_revoke /{s=1; next}
+		s && ($1=="commit"||$1=="frame"||$1=="step_result") {n++}
+		END{print n+0}' "$f")
+	grep -q '^before_revoke ' "$f" || fail "no before_revoke record"
+	note "commit-like records after before_revoke=$after"
+	[ "$after" -eq 0 ] || fail "$after commit records after the revocation"
+}
+
+row_a5() {
+	d=$out/A5; mkdir -p "$d"; f=$d/probe.log
+	# shellcheck disable=SC2086
+	"$harness" $common --source master --seconds 1 two-planes > "$f" 2>&1
+	rc=$?
+	conn=$(awk '$1=="output" && /selected=yes/ { for (i=2;i<=NF;i++)
+		if (index($i,"connector=")==1) c=substr($i,11) } END{print c}' "$f")
+	if [ "$rc" -ne 0 ] || [ -z "$conn" ]; then
+		check_verdict "$f" two-planes "$rc"
+		fail "no selected output to read modes from"
+		return
+	fi
+	note "connector=$conn selected mode=$(fld "$f" output mode)"
+	mf=
+	for c in "${DRM_SYSFS:-/sys/class/drm}"/card*-"$conn"/modes; do
+		[ -r "$c" ] && { mf=$c; break; }
+	done
+	if [ -z "$mf" ]; then
+		forced=BLOCKED
+		note "BLOCKED: no readable modes file for connector $conn"
+		return
+	fi
+	sort -u "$mf" > "$d/modes.txt"
+	n=$(grep -c . "$d/modes.txt")
+	note "modes listed by the connector: $(wc -l < "$mf" | tr -d ' ') ($n distinct names)"
+	if [ "$n" -le 1 ]; then
+		forced=BLOCKED
+		note "BLOCKED: the sink offers only one mode"
+	else
+		forced=BLOCKED
+		note "BLOCKED: harness has no modeset scenario (and no mode option); $n modes offered"
+	fi
+}
+
+sel=",$rows,"
+overall=0
+for r in A1 A2 A3 A4 A5; do
+	case $r in
+	A1) name=startup ;; A2) name=steady-state ;; A3) name=stop-restart ;;
+	A4) name=lease-loss ;; A5) name=modeset ;;
+	esac
+	ev= bad= forced=
+	case $sel in
+	*",$r,"*) "row_$(echo "$r" | tr 'A' 'a')" ;;
+	*)
+		forced=NOT-RUN
+		note "row not selected"
+		;;
+	esac
+	finish "$r" "$name"
+	eval "st=\$res_$r"
+	case $st in
+	PASS) ;;
+	FAIL) overall=1 ;;
+	*) [ "$overall" -eq 1 ] || { case $sel in *",$r,"*) overall=3 ;; esac; } ;;
+	esac
+done
+exit "$overall"
