@@ -21,7 +21,7 @@ script=$root/scripts/check-arm-link.sh
 # toolchain on the host is never seen; stubs are added per case.
 sys=$tmp/sys
 mkdir -p "$sys"
-for t in bash sh dirname mkdir grep awk ls head cat touch; do
+for t in bash sh basename dirname mkdir grep awk ls head cat touch; do
     p=$(command -v "$t") && ln -s "$p" "$sys/$t"
 done
 
@@ -119,7 +119,7 @@ grep -q -- '-lgcc' "$FAKE_LOG"; check gcc-links-libgcc $?
 setnm "$memclr_obj" '08000010 T ce_plan
 '
 run "$gccbin" "$tmp/o2"
-[ "$rc" -eq 1 ]; check memclr-missing-rc "$rc"
+[ "$rc" -eq 1 ]; check memclr-missing-rc $?
 echo "$err" | grep -q 'fail: __aeabi_memclr4 is not defined in cortex-m7 image'; check memclr-missing-m7 $?
 echo "$err" | grep -q 'fail: __aeabi_memclr4 is not defined in cortex-r5 image'; check memclr-missing-r5 $?
 
@@ -138,7 +138,7 @@ echo "$out" | grep -q 'object does not call __aeabi_memclr4'; check memclr-not-n
 setnm '         U memset
 ' ''
 run "$gccbin" "$tmp/o4"
-[ "$rc" -eq 1 ]; check memset-missing-rc "$rc"
+[ "$rc" -eq 1 ]; check memset-missing-rc $?
 echo "$err" | grep -q 'fail: memset is not defined in cortex-m7 image'; check memset-missing-msg $?
 
 # undefined symbol left in the image: fail even if memclr4 is defined
@@ -146,7 +146,7 @@ setnm "$memclr_obj" '08000000 T __aeabi_memclr4
          U stray_symbol
 '
 run "$gccbin" "$tmp/o5"
-[ "$rc" -eq 1 ]; check undef-rc "$rc"
+[ "$rc" -eq 1 ]; check undef-rc $?
 echo "$err" | grep -q 'fail: undefined symbols in cortex-m7 image'; check undef-msg $?
 echo "$err" | grep -q 'stray_symbol'; check undef-lists-symbol $?
 
@@ -159,12 +159,12 @@ check weak-def-rc "$rc"
 # a compile failure aborts (set -e) with a non-zero status
 setnm "$memclr_obj" "$good_img"
 FAKE_CC_FAIL=1 run "$gccbin" "$tmp/o7"
-[ "$rc" -ne 0 ]; check compile-fail-rc "$rc"
+[ "$rc" -ne 0 ]; check compile-fail-rc $?
 echo "$out" | grep -q 'ok: no undefined'; [ $? -ne 0 ]; check compile-fail-stops $?
 
 # CC_KIND validation
 CC_KIND=bogus run "$gccbin" "$tmp/o8"
-[ "$rc" -eq 2 ]; check bad-kind-rc "$rc"
+[ "$rc" -eq 2 ]; check bad-kind-rc $?
 echo "$err" | grep -q 'fail: CC_KIND must be gcc or clang'; check bad-kind-msg $?
 
 # no gcc on PATH: falls back to clang + ld.lld
@@ -190,7 +190,7 @@ cp "$clbin"/* "$tmp/nolld/"
 rm "$tmp/nolld/ld.lld"
 setnm "$memclr_obj" "$good_img"
 run "$tmp/nolld" "$tmp/o11"
-[ "$rc" -eq 2 ]; check no-linker-rc "$rc"
+[ "$rc" -eq 2 ]; check no-linker-rc $?
 echo "$err" | grep -q 'fail: no ld.lld or rust-lld'; check no-linker-msg $?
 
 # the Rust sysroot's rust-lld is used when ld.lld is absent
