@@ -11,7 +11,7 @@ Nothing in this document is measured on hardware. No board was accessed.
 |---|---|---|
 | STMicroelectronics/linux, branch `v6.18-stm32mp` | commit hash not obtained | `git clone --depth 1 --branch v6.18-stm32mp https://github.com/STMicroelectronics/linux` was refused by the sandbox's command-approval layer ("This command requires approval"). It never ran, so there is no HTTP or git error code. |
 | torvalds/linux (mainline), named tag | not chosen, no hash obtained | Not attempted. Without the ST tree there was nothing to compare against, and network commands were being refused. |
-| Raw-file fallback (`curl` of `ltdc.c` from `raw.githubusercontent.com`) | n/a | Also refused for approval; not run. |
+| Raw-file fallback (`curl` of `ltdc.c` from `raw.githubusercontent.com`) | n/a | A status-only request (output discarded) returned HTTP 200, so the host is reachable. A request that saves the file was refused for approval, so no source text was read. The clone was denied again on retry. |
 
 The reusable dependency directory held no kernel checkout. `stlinux-raw` was
 present but empty, and there was no `stm32-linux`.
