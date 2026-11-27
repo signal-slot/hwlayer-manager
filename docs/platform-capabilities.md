@@ -44,17 +44,7 @@ Tree: `nxp-imx/linux-imx`, branch `lf-6.18.y`, commit `6e694eda40aa`. Driver: `d
 
 ## i.MX95, Zephyr
 
-Tree: `zephyrproject-rtos/zephyr`, `main`.
-
-| Item | Finding | Basis |
-| --- | --- | --- |
-| Driver | `drivers/display/display_socionext_dpu.c` (`socionext,dpu`), merged May 2026 | source |
-| Capability | Single framebuffer: a fixed ConstFrame0 + FetchYUV0 → LayerBlend1 → ExtDst0 pipeline. RGB565, RGB888, ARGB8888. No planes, scaling or alpha | source |
-| Core | DPU and DSI nodes exist only for the M7, both disabled by default | source |
-| Boards | Neither EVK lists `display` as supported. Only the 19x19 M7 board carries display labels | source |
-| A55 vs M7 ownership | Nothing in Linux or Zephyr arbitrates it; it would be System Manager configuration, which was not examined | not found |
-
-Consequence: M2 scanout looks reachable on the M7, most plausibly on the 19x19 EVK. Hardware overlay under Zephyr does not exist in the stock driver and would mean writing a multi-plane DPU driver. Who may own the DPU when Linux also runs is open and is the first thing to settle.
+See [imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md): ownership model, M7 loading, display path and blockers.
 
 ## AGL drm-lease-manager
 
