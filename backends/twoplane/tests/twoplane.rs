@@ -141,6 +141,9 @@ fn backend_compiles_freestanding() {
         command
             .args(FLAGS)
             .args(["-ffreestanding", "-nostdinc", "-O2"])
+            // Distribution compilers (Ubuntu) enable the stack protector by
+            // default, which calls __stack_chk_fail from a C library.
+            .arg("-fno-stack-protector")
             .arg("-isystem")
             .arg(&system)
             .arg("-I")
