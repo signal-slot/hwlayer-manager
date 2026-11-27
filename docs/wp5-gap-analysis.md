@@ -8,7 +8,7 @@ Both upstream trees were cloned shallow (`--depth 1`) on 2026-11-28 and read in 
 
 | Project | Commit read | Licence file |
 | --- | --- | --- |
-| libliftoff (`https://gitlab.freedesktop.org/emersion/libliftoff.git`, branch `master`) | `c4226a79b7a52f59bb51789b1eda112658609125` | `LICENSE`: MIT, "Copyright (c) 2019 Simon Ser"; README says "MIT" |
+| libliftoff (`https://gitlab.freedesktop.org/emersion/libliftoff.git`, branch `master`) | `c4226a79b7a52f59bb51789b1eda112658609125`, committed 2026-08-24, "Document why HOTSPOT_{X,Y} properties can't be discarded" | `LICENSE`: MIT, "Copyright (c) 2019 Simon Ser"; README says "MIT" |
 | Weston (`https://gitlab.freedesktop.org/wayland/weston.git`, branch `main`) | `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a` | `COPYING`: MIT-style, copyright of several authors and companies (only its opening lines were read) |
 
 Files read: libliftoff `alloc.c` (whole), `include/libliftoff.h` (whole), `README.md`, `doc/compositor.md` (first part), `LICENSE`; Weston `libweston/backend-drm/state-propose.c` (searched, and lines 1680-1750 read), `drm-internal.h` (the `drm_output_propose_state_mode` enum), `kms.c` (`drm_pending_state_test`), `include/libweston/backend-drm.h` (`weston_drm_output_api`), `LLM-USAGE.md`, `AGENTS.md`, and a text search of the whole tree. `state-propose.c` was **not** read line by line, and neither were `drm.c`, `modes.c` or the client-side code. Tags with commit refs below carry the abbreviations `lo@c4226a7` (libliftoff) and `we@c8d00e2` (Weston).
