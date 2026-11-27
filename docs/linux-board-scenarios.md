@@ -1,6 +1,6 @@
 # Linux board scenarios: A1-A5 on boards other than the i.MX95
 
-Skeleton written 2026-11-28. It holds the method and empty result tables. **No hardware result is recorded here yet**: every result cell says "not measured", and a later change fills them in.
+Written 2026-11-28. It holds the method and the results of the first runs. The NanoPC-T6 was run on 2026-11-27 and is filled in. The Raspberry Pi 5 rows are still "not measured" on this page: see the reason in that section.
 
 ## Purpose and scope
 
@@ -22,7 +22,7 @@ Tags used on this page, as in [`platform-capabilities.md`](platform-capabilities
 - **inferred**: a conclusion drawn from the above, not stated by it.
 - **not measured**: nothing was run; the cell is a placeholder.
 
-This page itself is a skeleton: the method below is read from source (`scripts/board-scenarios.sh`, `scripts/board-scenarios.test.sh`, `scripts/camera-check-README.md`) and the tables are empty.
+The method below is read from source (`scripts/board-scenarios.sh`, `scripts/board-scenarios.test.sh`, `scripts/camera-check-README.md`). The result tables are observed, with the date and kernel in each row.
 
 ## How the runs are done
 
@@ -87,7 +87,7 @@ Pictures are taken through the script's `--hook` at `hold-start`/`hold-end` of A
 
 ## Raspberry Pi 5 (BCM2712, vc4)
 
-Board facts (kernel, driver, connector, mode, compositor state): not measured.
+Board facts (kernel, driver, connector, mode): not measured on this page. Compositor state (observed 2026-11-27): no display manager was running before or after the run, so none was stopped or restored.
 
 | Row | Log result | Counts (commits / latched / released) | KVM picture verdict | Date and kernel |
 | --- | --- | --- | --- | --- |
@@ -97,25 +97,42 @@ Board facts (kernel, driver, connector, mode, compositor state): not measured.
 | A4 lease loss | not measured | not measured | not applicable (no hook call) | not measured |
 | A5 modeset | not measured | not measured | not applicable | not measured |
 
-Notes: none yet.
+Notes: an A1-A5 run on this board was made on 2026-11-27 with the harness built at commit 195b458, and its report names five bugs, H1-H3 (harness) and S1, S2 (script). The text of that report (SCENARIO lines, counts, camera-check verdicts) was not available when this page was written, so every cell stays "not measured" and those bugs are not described below. A later change fills this section from the report. The bug labels are the run report's own.
 
 ## NanoPC-T6 (RK3588)
 
-Board facts (kernel, driver, connector, mode, compositor state): not measured.
+Board facts (observed 2026-11-27, kernel 6.18.55-current-rockchip64): model FriendlyElec NanoPC-T6; DRM card0 is `rockchip-drm`; connector HDMI-A-1 connected at 1920x1080, 60 Hz; no display manager (display-manager, gdm, lightdm and sddm all inactive before and after), so nothing was stopped or restored; no process held the DRM device. Harness built at commit 195b458 (`scripts/cross-aarch64.sh -p composition-drm-harness --bin drm-harness`), the commit of the script run. Command: `board-scenarios.sh --hold 30 --seconds 15 --hook <timestamp logger>`; run 20:21-20:36 UTC. The two planes of the runs were 57 and 63.
 
-| Row | Log result | Counts (commits / latched / released) | KVM picture verdict | Date and kernel |
-| --- | --- | --- | --- | --- |
-| A1 startup | not measured | not measured | not measured (no hook; by hand) | not measured |
-| A2 steady state | not measured | not measured | not measured | not measured |
-| A3 stop/restart | not measured | not measured | not measured | not measured |
-| A4 lease loss | not measured | not measured | not applicable (no hook call) | not measured |
-| A5 modeset | not measured | not measured | not applicable | not measured |
+Plane facts (observed 2026-11-27, same kernel): 8 planes, each with zpos 0..7 and none able to scale; Cluster planes take AFBC, Esmart planes take linear and NV12-class formats; planes 39 and 69 cannot reach video_port0; the kernel lease holds primary 33 and overlays 45, 51, 57, 63, 69, 75.
 
-Notes: none yet.
+| Row | Log result | Hold | Counts (commits / latched / released) | KVM picture verdict (camera-check) | Date and kernel |
+| --- | --- | --- | --- | --- | --- |
+| A1 startup | PASS | 15 s per source (`--seconds 15`) | master and kernel-lease each: 1 / 1 / not counted; the kernel-lease run has its `lease` record; `VERDICT two-planes PASS 2 buffers on planes 57,63 (bottom,top)` | PASS (picture 20:23:03). Two earlier pictures (20:22:41, 20:22:48) FAIL: stale, still showing the console. No hook; taken by hand | observed 2026-11-27, 6.18.55-current-rockchip64 |
+| A2 steady state | PASS | 30 s (1800 frames at the assumed 60 fps, 3 buffers) | presented 1800, dropped 0, order_violations 0; released 3598 (= 2*(1800-1)); `VERDICT rotate PASS 1800 frames, 3 buffers per plane, 3598 releases in order, 0 dropped, 0 missed vblanks` | PASS (4 pictures, 20:23:23 to 20:23:37); moving bars compared 20:23:33 with 20:23:37: PASS, changed by 102.7 / 103.0 | observed 2026-11-27, 6.18.55-current-rockchip64 |
+| A3 stop/restart | PASS | until the signal, sent after the first commit (a 600 s run is requested) | SIGTERM run: exit 143 after 1 commit; SIGKILL run: exit 137 after 1 commit; each restart 1 / 1 / not counted | PASS for 4 pictures (20:23:40, 20:23:44 stale, 20:23:51 restart after SIGTERM, 20:24:09 restart after SIGKILL). None shows the screen just after a signal (bug 2) | observed 2026-11-27, 6.18.55-current-rockchip64 |
+| A4 lease loss | PASS | about 1 s (1063 ms, bug 5) | no commit-like record after `before_revoke`; `first_attempt` is `Err(Backend(DeviceLost))`; `device_lost_events=1`; `still_busy=-`; `outputs_after=0`; `planes_after=0`; buffers 3 and 6 released | not applicable (no hook call; too short to picture) | observed 2026-11-27, 6.18.55-current-rockchip64 |
+| A5 modeset | BLOCKED | not run | none | not applicable | observed 2026-11-27, 6.18.55-current-rockchip64 |
+
+Notes:
+
+- **The A5 reason is wrong.** The script printed "BLOCKED: no readable modes file for connector HDMIA-1", but the sink offers 7 mode names (observed 2026-11-27). This is harness bug 1. With it fixed, A5 would still be BLOCKED, because the harness has no modeset scenario.
+- **Picture timing.** The KVM picture runs about 10-20 s behind the HDMI output, so each picture was credited to a run by what it shows, not by when it was taken. Take a picture at least 20 s into a hold. Rows A3 and A4 are too short to picture until the script holds the screen longer or has more hooks.
+- **Before and after the run** the text console showed. Pictures at 20:21:52 and 20:34:33 FAIL camera-check, as expected.
+- **Camera-check input.** Expected colours come from the harness's colour constants, with the full frame as panel corners, because the KVM captures HDMI directly. The `--rotation` value used is not in the run report, so it is not confirmed here.
+- **Board state.** No kernel log lines appeared during the run (dmesg had 1279 lines before and after). No DRM, udev or seat change was made, and the board's temporary files were removed.
+- **Released counts.** "Not counted" means the script's A1 and A3 checks compare commits with latched only; it counts released in A2.
 
 ## Harness bugs (listed, not fixed)
 
-None listed yet. Defects found in `tools/drm-harness` or `scripts/board-scenarios.sh` during the runs are listed here with the date and kernel they were observed on, and are reported to the owner of the code. They are not fixed from this page.
+Observed on the NanoPC-T6 on 2026-11-27, kernel 6.18.55-current-rockchip64, harness and script at commit 195b458. They are bugs of `tools/drm-harness` or `scripts/board-scenarios.sh`, not board faults, and are for the owners of that code. This page does not fix them.
+
+1. **A5 cannot find the connector's modes.** The harness prints the connector as `HDMIA-1`, but sysfs names it `card0-HDMI-A-1`, so `row_a5` in `scripts/board-scenarios.sh` never finds the modes file and gives a wrong BLOCKED reason. Reproduce: run `drm-harness --source master --seconds 1 two-planes`, take the line with `selected=yes`, and compare with `ls /sys/class/drm/`.
+2. **The A3 hook does not cover the screen after the stop.** Its two calls are about 0.1 s apart and the restart begins at once, so no picture can show the screen after the signal.
+3. **No picture hook in A1, A4 or A5.** Pictures of A1 had to be taken by hand.
+4. **The harness has no SIGTERM handler.** It exits 143 without writing `resources` or `VERDICT`, so A3 does not test a clean shutdown.
+5. **`revoke` ignores the `--seconds` the script passes.** The run took 1063 ms with `--seconds 15`, so the screen after the revoke is never held.
+
+Raspberry Pi 5 run (2026-11-27): that run reported five bugs, H1-H3 and S1, S2, whose text was not available when this page was written. They are not listed here, and some may duplicate the items above.
 
 ## Differences from docs/board-scenarios.md
 
