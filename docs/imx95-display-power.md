@@ -38,9 +38,11 @@ Limits, stated plainly:
   checked line by line against it and are exact: `dev_sm_power.h`,
   `dev_sm_power.c`, `dev_sm.c`, `dev_sm_config.c`, `dev_sm_reset.h`,
   `rpc_scmi_power.c`, `rpc_scmi_reset.c`, `lmm_power.c`, `lmm_power.h`,
-  `config_user.h`, `config_scmi.h`, `dev_sm_api.h` and `fsl_src.c`. The SM
-  citations into `fsl_reset.c`, `rpc_scmi.c`, `lmm_sys.c`, `mx95evk.cfg`,
-  `configtool.pl` and `config.md` were not re-checked. The `displaymix.cfg`
+  `config_user.h`, `config_scmi.h`, `dev_sm_api.h` and `fsl_src.c`. The
+  citations into `fsl_reset.c`, `rpc_scmi.c`, `rpc_scmi_base.c`, `lmm.c`,
+  `lmm_sys.c`, `mx95evk.cfg`, `configtool.pl` and `config.md` were then
+  checked with `git grep -n` on the same commit and corrected where they were
+  off. Tree-wide searches below were also run with `git grep`. The `displaymix.cfg`
   lines below (39, 49, 50–51, 60, 64–65) match the tarball-exact numbers in
   [imx95-sm-display-lm.md](imx95-sm-display-lm.md).
 - **LX line numbers were counted by hand.** The Linux files were read as raw
@@ -88,7 +90,7 @@ and TRDC, not as a runtime dependency.
 | On power-down, `DEV_SM_DisplayPowerDownPre` only saves the LDB PLL context (`FRACTPLL_GetContext`). It saves no DPU or BLK_CTRL registers | SM `dev_sm_config.c:786-803` (:790); state at :63, :66; hook called from `dev_sm.c:352-353` | read from source |
 | At SM boot, `DEV_SM_Init` runs `DEV_SM_PowerUpPost` for each domain that is already on ("load state (BLK_CTRL, RDC, etc.)") | SM `dev_sm.c:148,162` | read from source |
 | The SM code has **no hard-coded write to `BLK_CTRL_DISPLAYMIX`**. Camera and GPU have hard-coded writes (`DEV_SM_CameraConfigLoad`, `dev_sm_config.c:92-97`; `BLK_CTRL_GPUMIX->GPURESET`, `:276`); display does not | SM `dev_sm_config.c`, `dev_sm_power.c` (the only BLK_CTRL in it is AONMIX, :67-69) | read from source |
-| Any SM write to display BLK_CTRL can only come from the board's `SM_DISPLAY_CONFIG` list or an `SM_DISPLAY_CONFIG_FUNC`. In `mx95evk` the list is **empty** (`{ SM_CFG_END }`). `SM_DISPLAY_CONFIG_FUNC` was not found in `config_user.h`, `config_scmi.h`, `config_board.h`, `brd_sm.h` or the start of `brd_sm.c`; the rest of the tree was not searched | SM `configs/mx95evk/config_user.h:92-95` | read from source |
+| Any SM write to display BLK_CTRL can only come from the board's `SM_DISPLAY_CONFIG` list or an `SM_DISPLAY_CONFIG_FUNC`. In `mx95evk` the list is **empty** (`{ SM_CFG_END }`). **No config or board in the tree defines `SM_DISPLAY_CONFIG_FUNC`**: a tree-wide search finds only the `#ifdef` and the call in `dev_sm_config.c` (MIMX95 :226, :230; MIMX94 :192, :196) | SM `configs/mx95evk/config_user.h:92-95`; `git grep -n SM_DISPLAY_CONFIG_FUNC` at the pin | read from source |
 
 Consequences (**inferred** from the rows above):
 
@@ -130,11 +132,11 @@ Consequences (**inferred** from the rows above):
 | `POWER_STATE_GET` returns the hardware state through `LMM_PowerStateGet` and then `DEV_SM_PowerStateGet`, not the caller's vote. **It checks no `pdPerms`**, only the length and the domain ID, so any agent may read any domain's state. `POWER_DOMAIN_ATTRIBUTES` reports sync set support only to an agent with `pdPerms >= SET` | SM `rpc_scmi_power.c:665-708` (:672, :678, :686), `:533-537`; `lmm_power.c:129-134` | read from source |
 | **There are no power-state notifications.** `COMMAND_SUPPORTED_MASK` is `0x1003F`, with the comment "Sync responses only, no notificaions", and `POWER_ATTR_CHANGE(0)` | SM `rpc_scmi_power.c:58,524-526` | read from source |
 | There are two levels of voting. Each agent's vote is kept in `s_powerState[domain][agent]` (SCMI layer, max over the agents of one SCMI instance), and each LM's vote in `s_powerState[domain][lm]` (LMM layer, max over all LMs). The domain goes off only when every LM votes off | SM `rpc_scmi_power.c:300,796-828` (:815, :818, :828); `sm/lmm/lmm_power.c:52,77-108` (:99, :101-104, :108) | read from source |
-| The docs say the same: `SM_SCMI_PERM_SET` is "aggregated across agents and LM"; `SM_SCMI_PERM_ALL` "is currently equivalent to" `EXCLUSIVE`, which does no aggregation and gives "handing a display over from one LM to another" as its use case; and the tool does "not prevent violating the isolation" | SM `sm/doc/config.md`, section SCMI (`{#SCMI_CONFIG}`); `sm/lmm/lmm.dox`, LMM group intro. Lines not counted | read from source |
+| The docs say the same: `SM_SCMI_PERM_SET` is "aggregated across agents and LM"; `SM_SCMI_PERM_ALL` "is currently equivalent to" `EXCLUSIVE`, which does no aggregation and gives "Handing a display over from one LM to another" as its use case; and the configtool and SM "do not prevent violating the isolation" | SM `sm/doc/config.md`, section SCMI (:229): :291-292, :298-299, :301-304, :306-310, :318-322 | read from source |
 | For power, `ALL` and `SET` both pass the same `>= SET` check, and the code always aggregates power votes. The "no aggregation" wording of `EXCLUSIVE` therefore does not change power-domain behaviour in this code | the `rpc_scmi_power.c` and `lmm_power.c` rows above, read against `config.md` | inferred |
 | In `mx95evk` `config_scmi.h`, `.pdPerms[DEV_SM_PD_DISPLAY]` and `.pdPerms[DEV_SM_PD_CAMERA]` are `SM_SCMI_PERM_ALL` **only for agent 2 "AP-NS"** (Linux). Agent 0 "M7" has only `.pdPerms[DEV_SM_PD_M7]`; agent 1 "AP-S" has only `PD_A55P` | SM `configs/mx95evk/config_scmi.h:452-453` (AP-NS), `:94` (M7), `:179` (AP-S) | read from source |
-| `mx95evk.cfg` itself has no `PD_DISPLAY` or `PD_CAMERA` line. The generator turns `OWNER`/`api=` on a resource into `pd=<perm>` for each `PD_*` token that resource lists. AP-NS's `pdPerms[PD_DISPLAY]` therefore comes from its `OWNER` resources (`BLK_CTRL_DISPLAYMIX` at `mx95evk.cfg:599`, `DC*`, `LVDS`) and their `PD_DISPLAY` tokens in `displaymix.cfg` | SM `configs/configtool.pl`, `sub get_perms` and the "Default resources to DEV_SM" step (lines not counted); `mx95evk.cfg:599` | read from source (the mapping); inferred (that it is the only source of this entry) |
-| The M7 LM stop and start lists (`PD_M7 start=1, stop=2`) and the AP LM lists (`PD_A55P`, `PD_A55C0..5`) do not name `PD_DISPLAY` | SM `mx95evk.cfg:341,348,353` (M7), `:441-451` (AP, mSel 0) | read from source |
+| `mx95evk.cfg` itself has no `PD_DISPLAY` or `PD_CAMERA` line. The generator turns `OWNER`/`api=` on a resource into `pd=<perm>` for each `PD_*` token that resource lists. AP-NS's `pdPerms[PD_DISPLAY]` therefore comes from its `OWNER` resources (`BLK_CTRL_DISPLAYMIX` at `mx95evk.cfg:599`, `DC*`, `LVDS`) and their `PD_DISPLAY` tokens in `displaymix.cfg` | SM `configs/configtool.pl`, `sub get_perms` (:2395) and the "Default resources to DEV_SM" step (:290); `mx95evk.cfg:599` | read from source (the mapping); inferred (that it is the only source of this entry) |
+| The M7 LM stop and start lists (`PD_M7 start=1, stop=2`) and the AP LM lists (`PD_A55P`, `PD_A55C0..5`) do not name `PD_DISPLAY` | SM `mx95evk.cfg:341,348,353` (M7), `:442-448` (AP, mSel 0; mSel 1 and 2 at :456-462, :470-476) | read from source |
 
 Consequences (**inferred**):
 
@@ -175,7 +177,8 @@ Consequences (**inferred**):
   it needs is the mix on and MMIO access through TRDC.
 - On `mx95evk`, giving the M7 `DISP0/1` or `LVDS` reset rights would take
   `RST_* rst=exclusive` lines (the generator handles `RST_` tokens the same
-  way as `PD_`, per `configtool.pl` `get_perms`). Nobody needs this for M2.
+  way as `PD_`, per `configtool.pl` `get_perms` at :2395). Nobody needs this
+  for M2.
 
 ## 6. What Linux (NXP 6.6) does to the display domain
 
@@ -223,9 +226,10 @@ and the observation):
   `LMM_RpcReset`, then `RPC_SCMI_Reset`, then
   `RPC_SCMI_BaseDispatchReset`, then `RPC_SCMI_PowerDispatchReset`, then
   `PowerResetAgentConfig`. That last function turns every ON vote of LM2's
-  agents into OFF and re-aggregates (SM `sm/rpc/scmi/rpc_scmi.c:448-472`;
-  `rpc_scmi_power.c` `PowerResetAgentConfig` :767-785; `sm/lmm/lmm_sys.c`
-  :1070-1125, :1088; read from source). The display domain therefore drops
+  agents into OFF and re-aggregates (SM `sm/lmm/lmm_sys.c:1070`, :1088;
+  `sm/lmm/lmm.c:267`, :277; `sm/rpc/scmi/rpc_scmi.c:448-472` (:459);
+  `rpc_scmi_base.c:359`, :1097; `rpc_scmi_power.c:288-292`;
+  `PowerResetAgentConfig` :767-785; read from source). The display domain therefore drops
   when Linux resets, unless another LM votes ON. `LMM_PowerStateReset`
   (`lmm_power.c:120-124`) clears a vote without applying it. It is documented
   as "used **only** to clean up the LM state after testing"
@@ -260,14 +264,13 @@ Summary for M2:
   - the `mx95evk` `SM_DISPLAY_CONFIG` list (empty);
   - a second ON vote on a powered slice (it does not reload the display);
   - the permission `POWER_STATE_GET` needs (none);
-  - the callers of `LMM_PowerStateReset` (test only).
-- A tree-wide search for `SM_DISPLAY_CONFIG_FUNC`, and the SDK `fsl_power.h`
-  values.
+  - the callers of `LMM_PowerStateReset` (test only);
+  - `SM_DISPLAY_CONFIG_FUNC` (defined nowhere in the tree).
+- The SDK `fsl_power.h` values.
 - The meaning of `FUNC_STAT_PSW_STAT` in the reference manual.
 - The Toradex Verdin SM configuration and the Toradex kernel deltas to the
   drivers in §6.
 - The second half of `drivers/base/power/domain.c` (`pm_genpd_init`, noirq
   suspend), which was read only as a summary.
-- Every hand-counted LX line number, and the SM citations listed as not
-  re-checked in §1, should be checked with `grep -n` on a checkout at the
-  pins.
+- Every hand-counted LX line number should be checked with `grep -n` on a
+  linux-imx checkout at `lf-6.6.52-2.2.2`.
