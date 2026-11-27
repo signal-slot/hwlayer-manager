@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels that pull request's run still in
+# progress. Pushes to main are grouped by commit and never cancelled.
+concurrency:
+  group: ci-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout v5 runs on Node 24. v4 targets Node 20, which the
+      # hosted runners have deprecated (they warn and force it onto Node 24).
+      - name: Check out
+        uses: actions/checkout@v5
+
+      # CI builds with the latest stable. The oldest Rust the code supports
+      # is the rust-version of Cargo.toml (1.82); CI does not test that floor.
+      # The versions are printed so a failure can be matched to a toolchain.
+      - name: Install Rust (stable, rustfmt, clippy, thumbv7em-none-eabihf)
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy --target thumbv7em-none-eabihf
+          rustup default stable
+          rustc --version
+          cargo --version
+          cargo clippy --version
+          cargo fmt --version
+          cc --version
+          nm --version
+
+      - name: cargo fmt
+        run: cargo fmt --all --check
+
+      - name: cargo clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+      # Also compiles and runs the C tests with the runner's cc and nm. The
+      # vkms tests are #[ignore] and stay so; scripts/vkms-vm-test.sh is not
+      # a CI check.
+      - name: cargo test
+        run: cargo test --locked --workspace
+
+      - name: cargo build composition-core (thumbv7em-none-eabihf)
+        run: cargo build --locked -p composition-core --target thumbv7em-none-eabihf
+
+      - name: cargo build composition-ffi-staticlib (thumbv7em-none-eabihf, no std, release)
+        run: cargo build --locked -p composition-ffi-staticlib --no-default-features --features panic-handler --target thumbv7em-none-eabihf --release

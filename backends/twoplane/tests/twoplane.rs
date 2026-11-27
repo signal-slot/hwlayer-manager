@@ -17,14 +17,82 @@ fn engine_include() -> PathBuf {
     backend_dir().join("../../crates/composition-ffi/include")
 }
 
-/// target/<profile>, from target/<profile>/deps/<this test>.
-fn profile_dir() -> PathBuf {
-    std::env::current_exe()
-        .unwrap()
-        .parent()
-        .and_then(|deps| deps.parent())
-        .unwrap()
-        .to_path_buf()
+/// Where this test writes the programs and objects it builds.
+fn scratch_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_TARGET_TMPDIR"))
+}
+
+/// The JSON strings of a list that starts right after its `[`.
+fn json_strings(list: &str) -> Vec<String> {
+    let mut strings = Vec::new();
+    let mut chars = list.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            ']' => break,
+            '"' => {
+                let mut string = String::new();
+                while let Some(c) = chars.next() {
+                    match c {
+                        '"' => break,
+                        '\\' => match chars.next() {
+                            Some('n') => string.push('\n'),
+                            Some('t') => string.push('\t'),
+                            Some('r') => string.push('\r'),
+                            Some('u') => {
+                                let hex: String = chars.by_ref().take(4).collect();
+                                let code = u32::from_str_radix(&hex, 16).unwrap();
+                                string.push(char::from_u32(code).unwrap());
+                            }
+                            Some(other) => string.push(other),
+                            None => break,
+                        },
+                        _ => string.push(c),
+                    }
+                }
+                strings.push(string);
+            }
+            _ => {}
+        }
+    }
+    strings
+}
+
+/// Builds the static library of the engine and returns its path, as Cargo
+/// reports it.
+///
+/// Cargo builds only the rlibs of the workspace for tests, so the static
+/// library is built by a nested cargo, in the same profile. Its path comes
+/// from Cargo's JSON messages: the layout of the target and build
+/// directories is not a stable interface (Cargo 1.100 changed it).
+fn build_static_library() -> PathBuf {
+    let mut build = Command::new(env!("CARGO"));
+    build
+        .args(["build", "--lib", "-p", "composition-ffi-staticlib"])
+        .arg("--message-format=json-render-diagnostics")
+        .current_dir(backend_dir());
+    if !cfg!(debug_assertions) {
+        build.arg("--release");
+    }
+    let output = run(&mut build, "cargo build of the static library");
+    let messages = String::from_utf8_lossy(&output.stdout);
+    let library = messages
+        .lines()
+        .filter(|line| line.contains("\"reason\":\"compiler-artifact\""))
+        .filter_map(|line| line.split_once("\"filenames\":[").map(|(_, rest)| rest))
+        .flat_map(json_strings)
+        .map(PathBuf::from)
+        .find(|path| {
+            path.file_name()
+                .is_some_and(|name| name == "libcomposition_engine.a")
+        });
+    let library =
+        library.unwrap_or_else(|| panic!("cargo reported no libcomposition_engine.a:\n{messages}"));
+    assert!(
+        library.exists(),
+        "static library not found at {}",
+        library.display()
+    );
+    library
 }
 
 fn compiler() -> String {
@@ -46,25 +114,9 @@ fn run(command: &mut Command, what: &str) -> Output {
 
 #[test]
 fn backend_behind_a_fake_driver() {
-    let profile = profile_dir();
-    // Cargo builds only the rlibs of the workspace for tests: build the
-    // static library itself, into the same target directory and profile.
-    let mut build = Command::new(env!("CARGO"));
-    build
-        .args(["build", "--lib", "-p", "composition-ffi-staticlib"])
-        .current_dir(backend_dir());
-    if profile.file_name().is_some_and(|name| name == "release") {
-        build.arg("--release");
-    }
-    run(&mut build, "cargo build of the static library");
-    let library = profile.join("libcomposition_engine.a");
-    assert!(
-        library.exists(),
-        "static library not found at {}",
-        library.display()
-    );
+    let library = build_static_library();
 
-    let program = profile.join("composition_twoplane_test");
+    let program = scratch_dir().join("composition_twoplane_test");
     run(
         Command::new(compiler())
             .args(FLAGS)
@@ -174,7 +226,7 @@ fn backend_compiles_freestanding() {
         assert!(system_headers.contains(header), "{header} not used");
     }
 
-    let object = profile_dir().join("ce_twoplane_freestanding.o");
+    let object = scratch_dir().join("ce_twoplane_freestanding.o");
     let mut compile = Command::new(compiler());
     freestanding(&mut compile);
     run(compile.arg("-o").arg(&object), "the freestanding C compile");
