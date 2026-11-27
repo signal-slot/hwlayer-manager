@@ -43,7 +43,7 @@ $T /nonexistent >/dev/null 2>&1
 out=$(python3 -I m2-compare-report.py "$tmp/linux.txt" "$tmp/zephyr.txt") || bad "report exit"
 rhas() { grep -qF -- "$1" <<<"$out" && ok "$2" || bad "$2"; }
 rhas "(measured on Linux 2026-01-02, Zephyr 2026-01-03)" "report dates"
-rhas "| M-1.median frame interval median | 16.667000 ms | 16.846000 ms | +0.179000 ms |" "report M-1 diff"
+rhas "| M-1.median frame interval median | 16.667000 ms | 16.846000 ms | +0.179 ms |" "report M-1 diff"
 rhas "| M-3.dropped dropped frames | 1 frames | 0 frames | -1 frames |" "report counts"
 rhas "| M-5.plane plane assignment (first validate ok) | layer 0 plane 31 zpos 0 | not measured | not measured |" "report not measured"
 exit $fail
