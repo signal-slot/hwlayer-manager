@@ -377,6 +377,28 @@ impl Look {
     }
 }
 
+/// Whether the z swap of `--swap-z` runs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SwapPlan {
+    /// Not asked for.
+    Off,
+    /// Asked for and possible.
+    Runs,
+    /// Asked for, but a plane of the plan has a fixed zpos.
+    Skipped,
+}
+
+/// The swap can run when every plane of the plan has a settable zpos.
+fn swap_plan(requested: bool, zpos: &[Zpos]) -> SwapPlan {
+    if !requested {
+        SwapPlan::Off
+    } else if zpos.iter().all(|z| matches!(z, Zpos::Range { .. })) {
+        SwapPlan::Runs
+    } else {
+        SwapPlan::Skipped
+    }
+}
+
 /// The picture, in output pixels unless said otherwise.
 struct Scene {
     output: Size,
@@ -497,7 +519,7 @@ impl Scene {
         ]
     }
 
-    fn print(&self, look: &Look, primary_format: PixelFormat, swap: bool) {
+    fn print_geometry(&self, look: &Look, primary_format: PixelFormat) {
         let o = self.output;
         println!("GEOMETRY output {}x{}", o.width, o.height);
         println!(
@@ -555,21 +577,32 @@ impl Scene {
             WHITE.hex(),
             BLACK.hex()
         );
-        let phases: &[(&str, bool)] = if swap {
+    }
+
+    /// The `EXPECT` lines: the normal phase always, the swapped phase only
+    /// when the swap runs, a marker line when it was asked for but cannot.
+    fn expect_lines(&self, look: &Look, swap: SwapPlan) -> Vec<String> {
+        let o = self.output;
+        let phases: &[(&str, bool)] = if swap == SwapPlan::Runs {
             &[("normal", true), ("swapped", false)]
         } else {
             &[("normal", true)]
         };
+        let mut lines = Vec::new();
         for (phase, on_top) in phases {
             for (name, (x, y)) in self.samples() {
-                println!(
+                lines.push(format!(
                     "EXPECT phase={phase} \"{name}\" x={x} y={y} fx={:.4} fy={:.4} rgb={}",
                     x as f64 / o.width as f64,
                     y as f64 / o.height as f64,
                     self.expected_at(look, x, y, *on_top).hex()
-                );
+                ));
             }
         }
+        if swap == SwapPlan::Skipped {
+            lines.push("EXPECT phase=swapped skipped reason=fixed-zpos".into());
+        }
+        lines
     }
 
     fn draw_background(&self, pixels: &mut [u8], pitch: usize, format: PixelFormat) {
@@ -1549,7 +1582,7 @@ fn main() -> ExitCode {
     let names = ["background", "overlay"];
     let mut z = [0, 1];
     let mut swap_pending = options.swap_z && options.frames > 1;
-    scene.print(&look, primary_format, swap_pending);
+    scene.print_geometry(&look, primary_format);
 
     let mut tracker = Tracker::default();
     let mut previous_plan: Option<Vec<(usize, u32, i32)>> = None;
@@ -1673,16 +1706,17 @@ fn main() -> ExitCode {
             if kind(1) == Some(PlaneKind::Primary) {
                 errors.push("the overlay is on a primary plane".into());
             }
-            if options.swap_z {
-                let mutable = assignments.iter().all(|a| {
-                    caps.planes
-                        .get(a.plane_index)
-                        .is_some_and(|p| matches!(p.zpos, Zpos::Range { .. }))
-                });
-                if !mutable && swap_pending {
-                    println!("SWAPZ skipped: a plane of the plan has a fixed zpos");
-                    swap_pending = false;
-                }
+            let zpos: Vec<Zpos> = assignments
+                .iter()
+                .filter_map(|a| caps.planes.get(a.plane_index).map(|p| p.zpos))
+                .collect();
+            let swap = swap_plan(swap_pending, &zpos);
+            if swap == SwapPlan::Skipped {
+                println!("SWAPZ skipped: a plane of the plan has a fixed zpos");
+                swap_pending = false;
+            }
+            for line in scene.expect_lines(&look, swap) {
+                println!("{line}");
             }
         }
         let submission = match engine.commit(&frame, &plan) {
@@ -1856,5 +1890,76 @@ fn cleanup(engine: &mut Engine<DrmBackend>, lookup: &Lookup) {
     }
     if kept > 0 {
         println!("CLEANUP {kept} buffer(s) still on screen, freed when the device is closed");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn scene_and_look() -> (Scene, Look) {
+        let look = Look {
+            format: PixelFormat::ARGB8888,
+            blend: BlendMode::Premultiplied,
+            plane_alpha: ALPHA_OPAQUE,
+        };
+        (Scene::new(Size::new(800, 600)), look)
+    }
+
+    const RANGE: Zpos = Zpos::Range { min: 0, max: 3 };
+
+    fn count(lines: &[String], prefix: &str) -> usize {
+        lines.iter().filter(|l| l.starts_with(prefix)).count()
+    }
+
+    #[test]
+    fn swap_plan_needs_settable_zpos_on_every_plane() {
+        assert_eq!(swap_plan(false, &[RANGE, RANGE]), SwapPlan::Off);
+        assert_eq!(swap_plan(false, &[Zpos::Fixed(0)]), SwapPlan::Off);
+        assert_eq!(swap_plan(true, &[RANGE, RANGE]), SwapPlan::Runs);
+        assert_eq!(swap_plan(true, &[Zpos::Fixed(0), RANGE]), SwapPlan::Skipped);
+    }
+
+    #[test]
+    fn expect_lines_swap_possible_gives_both_phases() {
+        let (scene, look) = scene_and_look();
+        let lines = scene.expect_lines(&look, swap_plan(true, &[RANGE, RANGE]));
+        let normal = count(&lines, "EXPECT phase=normal ");
+        assert!(normal > 0);
+        assert_eq!(count(&lines, "EXPECT phase=swapped "), normal);
+        assert_eq!(count(&lines, "EXPECT phase=swapped skipped"), 0);
+    }
+
+    #[test]
+    fn expect_lines_fixed_zpos_has_no_unmarked_swapped_block() {
+        let (scene, look) = scene_and_look();
+        let lines = scene.expect_lines(&look, swap_plan(true, &[Zpos::Fixed(0), RANGE]));
+        assert!(count(&lines, "EXPECT phase=normal ") > 0);
+        let swapped: Vec<_> = lines
+            .iter()
+            .filter(|l| l.starts_with("EXPECT phase=swapped"))
+            .collect();
+        assert_eq!(swapped, ["EXPECT phase=swapped skipped reason=fixed-zpos"]);
+    }
+
+    #[test]
+    fn expect_lines_normal_phase_is_the_same_in_every_case() {
+        let (scene, look) = scene_and_look();
+        let normal = |swap| {
+            scene
+                .expect_lines(&look, swap)
+                .into_iter()
+                .filter(|l| l.starts_with("EXPECT phase=normal "))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(normal(SwapPlan::Off), normal(SwapPlan::Runs));
+        assert_eq!(normal(SwapPlan::Off), normal(SwapPlan::Skipped));
+    }
+
+    #[test]
+    fn expect_lines_without_swap_have_only_the_normal_phase() {
+        let (scene, look) = scene_and_look();
+        let lines = scene.expect_lines(&look, SwapPlan::Off);
+        assert_eq!(count(&lines, "EXPECT phase=swapped"), 0);
     }
 }

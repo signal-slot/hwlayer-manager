@@ -13,5 +13,9 @@ composition-core = { path = "../composition-core" }
 drm = "0.15"
 rustix = { version = "1", features = ["event"] }
 
+[[example]]
+name = "twoplane"
+test = true
+
 [lints]
 workspace = true
