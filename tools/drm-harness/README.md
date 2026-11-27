@@ -9,7 +9,9 @@ what happened as one-line records.
 
 It is a board tool: `cargo test` only runs its unit tests (statistics,
 record formatting, command line, and the two socket protocols over socket
-pairs) and never opens a device.
+pairs) and never opens a device. `scripts/vkms-harness-test.sh` runs it on
+vkms in a throwaway QEMU VM (see [On vkms](#on-vkms)); that says nothing
+about any hardware.
 
 ## Build
 
@@ -93,6 +95,12 @@ Measurement notes:
 - The first frame of `rotate` includes the modeset and is left out of the
   latency and interval statistics (`warmup_frames=1`).
 
+Pictures that are opaque are drawn in `XRGB8888` with the default
+`BlendMode::Opaque`, so they need no blending and fit planes without a
+`pixel blend mode` property (KMS blends those as premultiplied). Only the
+layers that test pixel alpha or a blend mode (`pixel-alpha-premultiplied`,
+the `argb-opaque` and `blend-*` combos) use `ARGB8888`.
+
 ## Sources
 
 The descriptor comes from `src/source.rs` (`Source::open`); everything after
@@ -133,7 +141,10 @@ mkdir -p /tmp/dlm
 
 Each client that asks gets a fresh kernel lease, revoked when the client
 releases it or disconnects; one lease at a time. `--once` exits after the
-first client.
+first client. A client that closes its lease descriptor before it
+disconnects (as the harness does) has already ended the lease: the kernel
+destroys it with the lessee's last descriptor, and the lessor records
+`lease_ended` instead of `lease_revoked`.
 
 ## Producers
 
@@ -158,3 +169,22 @@ the module documentation of `src/producer.rs`.
 
 Every scenario runs with every source and both producer modes, except
 `revoke`, which needs `--source kernel-lease`.
+
+## On vkms
+
+`scripts/vkms-harness-test.sh` builds the harness statically for
+`x86_64-unknown-linux-musl` and runs it as root in the same throwaway VM as
+`scripts/vkms-vm-test.sh` (the host's kernel, an initramfs with
+`tools/vm-init`, vkms loaded with overlay and cursor planes). Nothing is
+loaded on the host. By default it runs every master-descriptor scenario,
+`kernel-lease` with `revoke` and `all`, `--producers external`, and
+`--source dlm` against `drm-harness lessor`, each with `--seconds 1`; a
+file of other command lines can be given instead (the format is in
+`tools/vm-init/src/main.rs`). It prints the records and exits with 0 only
+if every command did.
+
+vkms has no `zpos`, `alpha` or `pixel blend mode` properties (premultiplied
+only) and no scaling or rotation, so the planner refuses `plane-alpha-50`
+of `zorder-alpha`, and the alpha, coverage, scaling and rotation combos:
+`zorder-alpha` fails there, which is a property of vkms, not of the
+harness. A vkms run says nothing about any hardware.

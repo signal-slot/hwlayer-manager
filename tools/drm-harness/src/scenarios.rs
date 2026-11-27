@@ -45,6 +45,10 @@ pub const MOVE_FRAMES: u32 = 240;
 /// Default frame count of `rotate`.
 pub const ROTATE_FRAMES: u32 = 600;
 
+/// Opaque pictures are drawn in a format without alpha: with the default
+/// [`BlendMode::Opaque`] such a layer needs no blending, so it fits planes
+/// without a `pixel blend mode` property (KMS then blends premultiplied).
+/// [`ARGB`] is only for the layers that test pixel alpha or blend modes.
 const XRGB: PixelFormat = PixelFormat::XRGB8888;
 const ARGB: PixelFormat = PixelFormat::ARGB8888;
 
@@ -141,7 +145,7 @@ pub fn two_planes(o: &Options) -> Result<Outcome, String> {
     let (w, h) = (size.width, size.height);
     let top_size = Size::new(w / 2, h / 2);
     let bottom = framed(&mut s, 0, size, XRGB, colour::BLUE, colour::WHITE)?;
-    let top = framed(&mut s, 1, top_size, ARGB, colour::RED, colour::YELLOW)?;
+    let top = framed(&mut s, 1, top_size, XRGB, colour::RED, colour::YELLOW)?;
     let layers = [
         Layer::new(bottom, whole(size), whole(size), 0),
         Layer::new(top, whole(top_size), at(w / 4, h / 4, top_size), 1),
@@ -175,8 +179,8 @@ pub fn zorder_alpha(o: &Options) -> Result<Outcome, String> {
     let size = s.size;
     let (w, h) = (size.width, size.height);
     let half = Size::new(w / 2, h / 2);
-    let a = framed(&mut s, 0, half, ARGB, colour::RED, colour::WHITE)?;
-    let b = framed(&mut s, 1, half, ARGB, colour::GREEN, colour::WHITE)?;
+    let a = framed(&mut s, 0, half, XRGB, colour::RED, colour::WHITE)?;
+    let b = framed(&mut s, 1, half, XRGB, colour::GREEN, colour::WHITE)?;
     // Left half opaque red, right half red at half pixel alpha, premultiplied.
     let left = Rect::new(0, 0, half.width / 2, half.height);
     let right = Rect::new(
@@ -290,7 +294,7 @@ pub fn move_top(o: &Options) -> Result<Outcome, String> {
         ],
     )?;
     let top_size = Size::new((w / 4).max(16), (h / 4).max(16));
-    let top = framed(&mut s, 1, top_size, ARGB, colour::YELLOW, colour::RED)?;
+    let top = framed(&mut s, 1, top_size, XRGB, colour::YELLOW, colour::RED)?;
     let before = s.checksum(bottom)?;
     Record::new("step")
         .field("label", "move")
@@ -429,11 +433,13 @@ pub fn combos(o: &Options) -> Result<Outcome, String> {
             &mut s,
             layer,
             small,
-            ARGB,
+            XRGB,
             colour::RED,
             colour::WHITE,
         )?);
     }
+    // The same picture with an alpha channel, for the blend-mode combos.
+    let small_alpha = framed(&mut s, 1, small, ARGB, colour::RED, colour::WHITE)?;
     let bg_layer = Layer::new(bg, whole(size), whole(size), 0);
     let small_layer = |index: usize, count: usize| {
         let step_x = w / (count as u32 + 2);
@@ -480,12 +486,17 @@ pub fn combos(o: &Options) -> Result<Outcome, String> {
                 ..one
             }),
         ));
+        let with_alpha = Layer {
+            buffer: small_alpha,
+            ..one
+        };
+        combos.push(("argb-opaque".into(), Expect::Any, pair(with_alpha)));
         combos.push((
             "blend-premultiplied".into(),
             Expect::Any,
             pair(Layer {
                 blend: BlendMode::Premultiplied,
-                ..one
+                ..with_alpha
             }),
         ));
         combos.push((
@@ -493,7 +504,7 @@ pub fn combos(o: &Options) -> Result<Outcome, String> {
             Expect::Any,
             pair(Layer {
                 blend: BlendMode::Coverage,
-                ..one
+                ..with_alpha
             }),
         ));
         let double = Size::new(small.width * 2, small.height * 2);
@@ -849,7 +860,7 @@ pub fn rotate(o: &Options) -> Result<Outcome, String> {
     let top_at = at(w / 4, h / 4, top_size);
     let sizes = [size, top_size];
     let bases = [colour::BLUE, colour::RED];
-    let formats = [XRGB, ARGB];
+    let formats = [XRGB, XRGB];
     let period = period_us(s.refresh_mhz).unwrap_or(0);
 
     let mut state = RotateState::default();
@@ -1080,7 +1091,7 @@ pub fn revoke(o: &Options) -> Result<Outcome, String> {
     let top_size = Size::new(w / 2, h / 2);
     let sizes = [size, top_size];
     let bases = [colour::BLUE, colour::RED];
-    let formats = [XRGB, ARGB];
+    let formats = [XRGB, XRGB];
     let mut chains: [Vec<BufferId>; 2] = [Vec::new(), Vec::new()];
     for c in 0..2 {
         for _ in 0..k {
