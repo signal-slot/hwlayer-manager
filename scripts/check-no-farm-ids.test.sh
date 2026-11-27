@@ -72,9 +72,20 @@ frun uses-line 0 .github/workflows/w.yml "        uses: actions/checkout@v4"
 frun placeholder-cred 0 a.txt 'password=changeme token=null'
 frun env-cred 0 a.txt 'token=$TOKEN password=<secret>'
 frun rpmsg-tty 0 a.txt "cat /dev/ttyRPMSG0"
+frun rust-ref-param 0 a.rs 'fn parse(token: &str) -> u8 {'
+frun rust-ref-mut-param 0 a.rs 'fn parse(token: &mut Tok) {'
 # ... but never hides another identifier on the same line.
 frun allow-not-hiding-ip 1 a.txt "bind 127.0.0.1 then $ip"
 frun allow-not-hiding-ssh 1 a.txt "dri-devel@lists.freedesktop.org $sshuh"
+
+# The 'secrets-ok' marker skips its own line only.
+frun marker-ip 0 a.txt "board at $ip # secrets-ok"
+frun marker-mac 0 a.txt "eth $mac # secrets-ok"
+frun marker-cred 0 a.txt "$pw # secrets-ok"
+frun marker-other-line 1 a.txt "ok # secrets-ok
+board at $ip" "a.txt:2:"
+# A reference-typed token parameter is allowed, an assignment is not.
+frun token-ref-not-hiding 1 a.rs "fn f(token: &str) { let token = abc123; }"
 
 # Fixtures are per file and per string.
 frun fixture-other-file 1 a.txt "echo 192.168.""1.5"
