@@ -35,7 +35,7 @@ use composition_core::planner::{PlanError, Verdict};
 use crate::core_side::{accept_all, CoreSide, Outcome};
 use crate::model::{Errno, Model, Setting};
 use crate::pipe::{self, Answer, Apply, FrameResult, Mode, Placement, Run, TestCommit};
-use crate::state::{PlaneState, Rect, URect};
+use crate::state::{rotation, PlaneState, Rect, URect};
 use crate::xcheck::{self, Origin, OriginKind, Profile, XCheck, ZposDef};
 
 /// Which side an `invalid-assignment` names.
@@ -490,7 +490,7 @@ pub fn liftoff_states(
                 zpos: plane_zpos(x, *id),
                 alpha: l.alpha,
                 blend: l.blend,
-                rotation: l.transform,
+                rotation: rotation::property_value(l.transform),
             }),
             _ => None,
         })

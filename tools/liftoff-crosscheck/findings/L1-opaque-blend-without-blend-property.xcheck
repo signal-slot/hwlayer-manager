@@ -1,0 +1,45 @@
+xcheck 1
+# Lead L-1 of docs/liftoff-crosscheck-report.md (2026-11-28). Synthetic, no hardware claim.
+# Topology and the first three frames are those of frames/section7/value-checks-before-test-commit.xcheck
+# (frames half-alpha-one-layer, rot180-on-overlay, opaque-on-primary); the xr24 frames are added here
+# as controls, the same frames with a buffer whose format has no alpha channel.
+# Plane 40 (primary) has no `pixel blend mode` property (blend=-); plane 41 lists opaque and premul.
+# Observed classes in the run of 2026-11-28, both model settings:
+#   half-alpha-one-layer   liftoff-only  core NoPlane layer=1 ALPHA|BLEND|IN_USE; libliftoff 40,41
+#   rot180-on-overlay      liftoff-only  core NoPlane layer=1 BLEND|TRANSFORM|IN_USE; libliftoff 40,41
+#   opaque-on-primary      both-accept   but core uses plane 41, libliftoff plane 40
+#   xr24-*                 both-accept   (controls)
+# Deciding rule: core lets a blend=opaque layer onto a plane without blend modes only when the format is
+# known to be opaque (planner.rs `blend_free`); AR24 has alpha, so plane 40 is refused for the bottom
+# layer. libliftoff skips the missing property for value 0 (None) and the model accepts opaque on a
+# plane without the property, as a kernel would (nothing to set).
+origin synthetic 2026-11-28 two-plane topology with differing alpha, blend and transform support for the value checks row
+profile generic
+output 31 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=fixed:0 alpha=0 blend=- transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+plane 41 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul transforms=normal,rot180 scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 XR24 0x0
+frame half-alpha-one-layer output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=32768 blend=premul transform=normal
+end
+frame rot180-on-overlay output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=rot180
+end
+frame opaque-on-primary output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+end
+frame xr24-half-alpha-one-layer output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=32768 blend=premul transform=normal
+end
+frame xr24-rot180-on-overlay output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=rot180
+end

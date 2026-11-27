@@ -1,11 +1,12 @@
-//! Every committed `xcheck` input file (topologies, frames, calibration)
-//! parses and meets the format's own rules (design section 5).
+//! Every committed `xcheck` input file (topologies, frames, calibration,
+//! the report's findings) parses and meets the format's own rules (design
+//! section 5).
 
 use liftoff_crosscheck::xcheck::{self, Profile, XCheck, ZposDef};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-const DIRS: [&str; 3] = ["topologies", "frames", "calibration"];
+const DIRS: [&str; 4] = ["topologies", "frames", "calibration", "findings"];
 
 fn collect(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(dir) else {

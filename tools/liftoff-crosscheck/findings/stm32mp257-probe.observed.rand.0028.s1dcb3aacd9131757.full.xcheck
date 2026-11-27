@@ -1,0 +1,81 @@
+# finding of liftoff-crosscheck sweep: core-only
+# GEN_VERSION=1 seed=0x5eed11f70ffc4226 case_seed=0x1dcb3aacd9131757
+# family=rand index=0028 topology=stm32mp257-probe model=full
+xcheck 1
+origin observed 2026-11-28 probe text of docs/observed/stm32mp257-topology.md at commit 20df182, recorded, no claim about any other board or kernel
+profile generic
+output 41 1920 1080 60000
+plane 34 kind=primary outputs=0x1 zpos=0..2 zpos_now=0 alpha=1 blend=premul transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format AR15 0x0
+  format XR15 0x0
+  format AR12 0x0
+  format XR12 0x0
+  format C8?? 0x0
+  format YUYV 0x0
+  format YVYU 0x0
+  format UYVY 0x0
+  format VYUY 0x0
+plane 42 kind=overlay outputs=0x1 zpos=0..2 zpos_now=1 alpha=1 blend=premul transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format AR15 0x0
+  format XR15 0x0
+  format AR12 0x0
+  format XR12 0x0
+  format C8?? 0x0
+  format YUYV 0x0
+  format YVYU 0x0
+  format UYVY 0x0
+  format VYUY 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format YU12 0x0
+  format YV12 0x0
+plane 49 kind=overlay outputs=0x1 zpos=0..2 zpos_now=2 alpha=1 blend=premul transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RA24 0x0
+  format RX24 0x0
+  format BA24 0x0
+  format BX24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format AR15 0x0
+  format XR15 0x0
+  format AR12 0x0
+  format XR12 0x0
+  format C8?? 0x0
+buffer 5 17 15 AR24 0x0
+buffer 37 640 360 YV12 0x0
+buffer 38 641 361 BX24 0x0
+frame rand.0028 output=41
+  layer buffer=5 src=0,0,17,15 dst=508,33,17,15 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=37 src=0,0,640,360 dst=974,591,640,360 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=38 src=0,0,641,361 dst=917,402,641,361 z=1 alpha=1 blend=premul transform=normal
+end

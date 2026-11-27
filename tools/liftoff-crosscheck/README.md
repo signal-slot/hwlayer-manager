@@ -57,6 +57,9 @@ finding under `findings/`
 The printed report has a summary table per model setting (classes, and classes
 per family) and the first 20 findings per class with their frame files.
 
+The dated results are in `docs/liftoff-crosscheck-report.md`. The frame files
+it cites are committed under `findings/` (index in `findings/README.md`).
+
 ### What is compared
 
 Per frame and per model setting (`compare.rs`, design section 6):
