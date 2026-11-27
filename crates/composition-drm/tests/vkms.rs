@@ -27,7 +27,7 @@ use composition_core::{
     DisplayEvent, Engine, Error, Frame, Layer, Modifier, OutputId, PixelFormat, PlanError,
     PlaneKind, PresentError, Rect, RejectReasons, Size, SubmissionId,
 };
-use composition_drm::{Card, DrmBackend, DrmOptions};
+use composition_drm::{Card, DrmBackend, DrmFailure, DrmOptions, Operation};
 use drm::control::Device as ControlDevice;
 
 /// The tests share one device and one DRM master role.
@@ -648,4 +648,287 @@ fn leased_output_exposes_only_leased_planes_and_reports_revocation() {
     let mut caps = Capabilities::default();
     engine.backend_mut().capabilities(&mut caps);
     assert_eq!(caps.planes.len(), 0, "a lost device claims nothing");
+}
+
+/// Opens the device as plain DRM master with the client capabilities set.
+fn lessor(vkms: &Vkms) -> Card {
+    use drm::Device as _;
+    let card = Card::from_fd(OwnedFd::from(
+        File::options()
+            .read(true)
+            .write(true)
+            .open(&vkms.path)
+            .unwrap(),
+    ));
+    card.set_client_capability(drm::ClientCapability::UniversalPlanes, true)
+        .unwrap();
+    card.set_client_capability(drm::ClientCapability::Atomic, true)
+        .unwrap();
+    card
+}
+
+/// Leases the first connected connector, the first CRTC, one overlay and,
+/// if asked, the primary plane.
+fn lease(lessor: &Card, with_primary: bool) -> (drm::control::LeaseId, OwnedFd) {
+    let resources = lessor.resource_handles().unwrap();
+    let crtc = resources.crtcs()[0];
+    let connector = *resources
+        .connectors()
+        .iter()
+        .find(|c| {
+            lessor
+                .get_connector(**c, false)
+                .is_ok_and(|i| i.state() == drm::control::connector::State::Connected)
+        })
+        .unwrap();
+    let plane_type = |plane| {
+        let props = lessor.get_properties(plane).unwrap();
+        let (handles, values) = props.as_props_and_values();
+        handles
+            .iter()
+            .zip(values)
+            .find(|(h, _)| lessor.get_property(**h).unwrap().name().to_bytes() == b"type")
+            .map(|(_, v)| *v as u32)
+            .unwrap()
+    };
+    let planes = lessor.plane_handles().unwrap();
+    let of_type = |kind: drm::control::PlaneType| {
+        *planes
+            .iter()
+            .find(|p| plane_type(**p) == kind as u32)
+            .unwrap()
+    };
+    let mut objects = vec![
+        connector.into(),
+        crtc.into(),
+        of_type(drm::control::PlaneType::Overlay).into(),
+    ];
+    if with_primary {
+        objects.push(of_type(drm::control::PlaneType::Primary).into());
+    }
+    lessor.create_lease(&objects, 0).expect("create lease")
+}
+
+#[test]
+#[ignore = "needs root and vkms"]
+fn a_descriptor_without_master_is_refused_but_not_lost() {
+    let vkms = vkms();
+    // The first opener becomes master, like Weston on a board image.
+    let master = lessor(&vkms);
+    let mut engine = vkms.engine();
+    let (out, size) = output(&engine);
+    let background = solid(&mut engine, 1, size, XRGB, RED);
+    let layers = [Layer::new(background, whole(size), whole(size), 0)];
+    let frame = Frame {
+        output: out,
+        layers: &layers,
+    };
+
+    let eacces = rustix::io::Errno::ACCESS.raw_os_error();
+    assert_eq!(
+        engine.present(&frame),
+        Err(Error::Backend(BackendError::Platform(eacces)))
+    );
+    assert_eq!(
+        engine.backend().last_failure(),
+        Some(DrmFailure::NotMaster {
+            operation: Operation::Check,
+            errno: eacces
+        })
+    );
+    assert!(!engine.backend().is_lost());
+    assert_eq!(engine.poll_event().unwrap(), None, "no DeviceLost");
+    assert_eq!(engine.capabilities().outputs.len(), 1);
+
+    // Once the master is gone and the role taken, the same engine works.
+    drop(master);
+    use drm::Device as _;
+    engine.backend().card().acquire_master_lock().unwrap();
+    show(&mut engine, out, &layers);
+}
+
+#[test]
+#[ignore = "needs root and vkms"]
+fn latches_keep_the_vblank_sequence_and_timestamp() {
+    let vkms = vkms();
+    let mut engine = vkms.engine();
+    let (out, size) = output(&engine);
+    let first = solid(&mut engine, 1, size, XRGB, RED);
+    let second = solid(&mut engine, 2, size, XRGB, BLUE);
+    let full = |buffer| [Layer::new(buffer, whole(size), whole(size), 0)];
+
+    let mut latches = Vec::new();
+    for buffer in [first, second, first, second] {
+        let submission = engine
+            .present(&Frame {
+                output: out,
+                layers: &full(buffer),
+            })
+            .unwrap();
+        wait_presented(&mut engine, submission);
+        let latch = engine.backend().last_latch(out).expect("latch info");
+        assert_eq!((latch.output, latch.submission), (out, submission));
+        latches.push(latch);
+    }
+    let taken: Vec<_> = engine.backend_mut().take_latches().collect();
+    assert_eq!(taken, latches);
+    for pair in latches.windows(2) {
+        assert!(pair[1].sequence > pair[0].sequence);
+        assert!(pair[1].timestamp > pair[0].timestamp);
+    }
+    assert!(latches[0].timestamp > Duration::ZERO);
+    assert_eq!(engine.backend_mut().take_latches().count(), 0);
+}
+
+#[test]
+#[ignore = "needs root and vkms"]
+fn a_late_latch_is_reported_and_still_counted() {
+    let vkms = vkms();
+    let mut engine = vkms.engine();
+    let (out, size) = output(&engine);
+    let first = solid(&mut engine, 1, size, XRGB, RED);
+    let second = solid(&mut engine, 2, size, XRGB, BLUE);
+    show(
+        &mut engine,
+        out,
+        &[Layer::new(first, whole(size), whole(size), 0)],
+    );
+    let _ = engine.backend_mut().take_failures().count();
+
+    // Every flip is "late" with no time allowed, so the timeout is logged
+    // once, unless the flip was read in the same pass; then try again.
+    engine.backend_mut().set_latch_timeout(Some(Duration::ZERO));
+    let mut reported = false;
+    for buffer in [second, first, second, first, second] {
+        let submission = engine
+            .present(&Frame {
+                output: out,
+                layers: &[Layer::new(buffer, whole(size), whole(size), 0)],
+            })
+            .unwrap();
+        wait_presented(&mut engine, submission);
+        let failures: Vec<_> = engine.backend_mut().take_failures().collect();
+        match failures.as_slice() {
+            [] => continue,
+            [DrmFailure::LatchTimeout {
+                output,
+                submission: s,
+                ..
+            }] if *output == out && *s == submission => {
+                reported = true;
+                break;
+            }
+            other => panic!("unexpected failures {other:?}"),
+        }
+    }
+    assert!(reported, "no latch timeout was reported");
+    // The submission stayed pending and latched normally.
+    assert!(engine.backend().pending_latch(out).is_none());
+
+    // With a real timeout, a wait is cut short at the latch deadline.
+    engine
+        .backend_mut()
+        .set_latch_timeout(Some(Duration::from_millis(1)));
+    let start = Instant::now();
+    let submission = engine
+        .present(&Frame {
+            output: out,
+            layers: &[Layer::new(first, whole(size), whole(size), 0)],
+        })
+        .unwrap();
+    assert!(engine
+        .backend()
+        .wait_for_events(Some(Duration::from_secs(5)))
+        .unwrap());
+    assert!(start.elapsed() < Duration::from_secs(1));
+    wait_presented(&mut engine, submission);
+    assert!(!engine.backend().is_lost());
+}
+
+#[test]
+#[ignore = "needs root and vkms"]
+fn passive_revocation_is_found_by_the_probe() {
+    let vkms = vkms();
+    let lessor = lessor(&vkms);
+    let (lessee, fd) = lease(&lessor, true);
+    let mut engine = Engine::new(DrmBackend::from_fd(fd, DrmOptions::default()).unwrap());
+    let (out, size) = output(&engine);
+    let background = solid(&mut engine, 1, size, XRGB, RED);
+    show(
+        &mut engine,
+        out,
+        &[Layer::new(background, whole(size), whole(size), 0)],
+    );
+    assert!(engine.backend_mut().probe_device());
+
+    // Nothing is committed when the lease goes; the lessee is not told.
+    lessor.revoke_lease(lessee).unwrap();
+    assert!(!engine.backend_mut().probe_device());
+    let mut events = Vec::new();
+    while let Some(event) = engine.poll_event().unwrap() {
+        events.push(event);
+    }
+    assert_eq!(
+        events,
+        [
+            DisplayEvent::Released { buffer: background },
+            DisplayEvent::DeviceLost
+        ]
+    );
+    let enoent = rustix::io::Errno::NOENT.raw_os_error();
+    assert_eq!(
+        engine.backend().last_failure(),
+        Some(DrmFailure::Lost {
+            operation: Operation::Events,
+            errno: enoent
+        })
+    );
+}
+
+#[test]
+#[ignore = "needs root and vkms"]
+fn requiring_the_primary_plane_refuses_overlay_only_plans() {
+    let vkms = vkms();
+    let lessor = lessor(&vkms);
+    // A lease without the primary plane: every plan is overlay-only.
+    let (_lessee, fd) = lease(&lessor, false);
+    let mut engine = Engine::new(DrmBackend::from_fd(fd, DrmOptions::default()).unwrap());
+    engine.backend_mut().set_require_primary(true);
+    let (out, size) = output(&engine);
+    let background = solid(&mut engine, 1, size, XRGB, RED);
+    let result = engine.present(&Frame {
+        output: out,
+        layers: &[Layer::new(background, whole(size), whole(size), 0)],
+    });
+    assert!(
+        matches!(result, Err(Error::Plan(PlanError::BackendRejected { .. }))),
+        "{result:?}"
+    );
+    assert_eq!(
+        engine.backend().last_failure(),
+        Some(DrmFailure::NoPrimaryPlane { output: out })
+    );
+
+    // Without the requirement the kernel decides; whatever it says, a
+    // refusal is logged as one that left the primary plane unused.
+    engine.backend_mut().set_require_primary(false);
+    let result = engine.present(&Frame {
+        output: out,
+        layers: &[Layer::new(background, whole(size), whole(size), 0)],
+    });
+    println!(
+        "vkms, overlay-only frame: {result:?}, {:?}",
+        engine.backend().last_failure()
+    );
+    if let Ok(submission) = result {
+        wait_presented(&mut engine, submission);
+    } else {
+        assert!(matches!(
+            engine.backend().last_failure(),
+            Some(DrmFailure::Refused {
+                primary_unused: true,
+                ..
+            })
+        ));
+    }
 }
