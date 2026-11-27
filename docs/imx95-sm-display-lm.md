@@ -27,9 +27,19 @@ Caveats, stated plainly:
   about what runs on the Verdin. Whether the Verdin's SM matches it is
   **inferred only** until the Toradex layer is read (item imx95-src owns
   that survey).
-- **Line numbers are approximate** (±~5). The files were read through a web
-  page fetcher that returns text without numbering, because a `git clone`
-  from this node was refused. Re-check with a real clone before citing them
+- **Line numbers are approximate (source not fetched, 2026-11-28)** (±~5).
+  The files were first read through a web page fetcher that returns text
+  without numbering, because a `git clone` from this node was refused. The
+  pinning retry (item sm-lm-pin, 2026-11-28) could not fetch the source
+  either: `curl -sSL https://codeload.github.com/nxp-imx/imx-sm/tar.gz/af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`
+  and `gh api -H "Accept: application/vnd.github.raw"
+  "repos/nxp-imx/imx-sm/contents/configs/mx95evk.cfg?ref=af1e37026c6ba19cdca98fd6e91494efd3e7b5ec"`
+  were both refused by the sandbox ("This command requires approval"; no
+  network reply was received, so this is a permission refusal, not a GitHub
+  error). Every line number below, including those in §2's table, §2's
+  `displaymix.cfg` rows and the §5 and §6 references, is therefore
+  **approximate (source not fetched, 2026-11-28)** against imx-sm@af1e3702
+  (the only pin; the commit is untagged, so no tag exists to cite). Re-check with a real clone before citing them
   elsewhere: `git clone https://github.com/nxp-imx/imx-sm && git checkout
   af1e3702…`.
 - imx-mkimage was **not** read (the tag URL `rel_imx_6.6.52_2.2.2` returned
@@ -39,7 +49,7 @@ Caveats, stated plainly:
 
 All in `configs/mx95evk.cfg` unless noted (read from source, imx-sm@af1e3702).
 
-| Item | Stock owner | Approx. line |
+| Item | Stock owner | Line, approximate (source not fetched, 2026-11-28) |
 |---|---|---|
 | LM0 `SM` (rpc=none, did=2), LM1 `M7` (rpc=scmi, boot=2, did=4), LM2 `AP` (boot=3, did=3, default) | — | 103, 327, 427 |
 | `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` | LM0 `SM`, `ALL` | 156–158 |
@@ -49,8 +59,8 @@ All in `configs/mx95evk.cfg` unless noted (read from source, imx-sm@af1e3702).
 | M7 LM resources: `M7P`, `CAN_FD1`, `IRQSTEER_M7`, `LPUART3`, `MSGINTR1/2`, `MU5_A`, `MU7_B`, `MU8_B`, `MU_ELE5`, `WDOG5`, pins `PIN_GPIO_IO14/15`; **no** display, pixel clock, LVDS or DSI entry | LM1 `M7` | 327–421 |
 | M7 memory: `M7MIX` TCM data `0x02038_0000–0x0204_7FFFF` and `0x04A06_0000–0x04A09_FFFF`; `DDR EXEC 0x8000_0000–0x89FF_FFFF` | LM1 | 411–413 |
 | A55 non-secure DDR: `0x8800_0000–0x89FF_FFFF` and `0x8E00_0000–0x87FFF_FFFF` | AP-NS | 1010–1015 |
-| Display power domain `PD_DISPLAY`, perf domain `PERF_DISP` | Not an LM resource: referenced by each DC/LVDS resource in `devices/MIMX95/configtool/displaymix.cfg` (lines ~36–69), so owning those resources is what pulls the power domain in; `PERF_DISP` is not in AP-NS's API list | — |
-| TRDC: `DC` has `MBC_D0=…`/`MDAC_D*` entries and `DFMT1`; `LVDS` has `MBC_D0=0.12,1.12,0.16,1.16`; `DC0` `MBC_D0=0.13,1.13`; `DC1` `0.14,1.14,0.48,1.48` | `displaymix.cfg` | ~36–69 |
+| Display power domain `PD_DISPLAY`, perf domain `PERF_DISP` | Not an LM resource: referenced by each DC/LVDS resource in `devices/MIMX95/configtool/displaymix.cfg` (lines ~36–69, approximate, source not fetched, 2026-11-28), so owning those resources is what pulls the power domain in; `PERF_DISP` is not in AP-NS's API list | — |
+| TRDC: `DC` has `MBC_D0=…`/`MDAC_D*` entries and `DFMT1`; `LVDS` has `MBC_D0=0.12,1.12,0.16,1.16`; `DC0` `MBC_D0=0.13,1.13`; `DC1` `0.14,1.14,0.48,1.48` | `displaymix.cfg` | ~36–69 (approximate, source not fetched, 2026-11-28) |
 
 Note an overlap in the stock file: the DDR range `0x8800_0000–0x89FF_FFFF` is
 listed for both the M7 (`0x8000_0000–0x89FF_FFFF`) and AP-NS. This is read
@@ -214,7 +224,8 @@ What a dedicated board would need (inferred, none of it exists on this farm):
 
 - Read the Toradex 7.8.0 layers (git.toradex.com) for the real imx-sm
   `SRCREV` and any Verdin cfg; this note's pin is the NXP reference.
-- Get true line numbers from a clone.
+- Get true line numbers from a clone or tarball of imx-sm@af1e3702 (the
+  2026-11-28 pinning attempt was blocked by sandbox approval).
 - Trace the LVDS clock chain and the DSI/PHY/`LDB_PLL`/`IRQSTEER_M7`
   definitions in the device cfg and headers.
 - The no-reconfiguration alternative, the DC owned by AP-NS and driven from
