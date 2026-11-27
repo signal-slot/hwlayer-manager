@@ -1,0 +1,13 @@
+# observed 2026-11-28, NanoPC-T6 (RK3588), kernel 6.18.55-current-rockchip64
+# read: name, clients, internal_clients of dri/display-subsystem; name, clients of the panthor node (read-only; no commit, no modeset, no DRM master; fbcon was the only DRM client)
+# scrubbed: no EDID, serials, host names, IPs or MACs present (checked by hand)
+--- name
+rockchip dev=display-subsystem unique=display-subsystem
+--- clients
+             command  tgid dev master a   uid      magic                                                             name                   id
+--- internal_clients
+fbdev
+--- dri/1 name
+panthor dev=fb000000.gpu unique=fb000000.gpu
+--- dri/1 clients
+             command  tgid dev master a   uid      magic                                                             name                   id
