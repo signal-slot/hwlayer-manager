@@ -1,118 +1,149 @@
 # WP5 gap analysis: leased output, Weston-owned output, libliftoff
 
-Desk analysis for SoW §4.2 and WP5. Written 2026-11-28. Nothing here is measured.
+Desk analysis for SoW §4.2 and WP5. Written 2026-11-28. Nothing here is measured, and nothing was run on a board.
 
-## Read this first: what was and was not read
+## What was read
 
-The task asked for citations of the Weston and libliftoff commits that were read. **None were read.** In this session `git clone`, `curl` and WebFetch against gitlab.freedesktop.org were all refused by the sandbox's permission layer, and no copy of either project is on the machine. Reading them is therefore the first open issue (W5-01), and every upstream statement below is tagged **recalled**, not **source**.
+Both upstream trees were cloned shallow (`--depth 1`) on 2026-11-28 and read in the working tree. The commit is the shallow clone's `origin` head at that time.
+
+| Project | Commit read | Licence file |
+| --- | --- | --- |
+| libliftoff (`https://gitlab.freedesktop.org/emersion/libliftoff.git`, branch `master`) | `c4226a79b7a52f59bb51789b1eda112658609125` | `LICENSE`: MIT, "Copyright (c) 2019 Simon Ser"; README says "MIT" |
+| Weston (`https://gitlab.freedesktop.org/wayland/weston.git`, branch `main`) | `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a` | `COPYING`: MIT-style, copyright of several authors and companies (only its opening lines were read) |
+
+Files read: libliftoff `alloc.c` (whole), `include/libliftoff.h` (whole), `README.md`, `doc/compositor.md` (first part), `LICENSE`; Weston `libweston/backend-drm/state-propose.c` (searched, and lines 1680-1750 read), `drm-internal.h` (the `drm_output_propose_state_mode` enum), `kms.c` (`drm_pending_state_test`), `include/libweston/backend-drm.h` (`weston_drm_output_api`), `LLM-USAGE.md`, `AGENTS.md`, and a text search of the whole tree. `state-propose.c` was **not** read line by line, and neither were `drm.c`, `modes.c` or the client-side code. Tags with commit refs below carry the abbreviations `lo@c4226a7` (libliftoff) and `we@c8d00e2` (Weston).
 
 Tags:
 
-- **source**: read in a file of this repository, or in a source already recorded in `docs/platform-capabilities.md` (cited by file and function). Checked in this session for this repository; for drm-lease-manager, as recorded there on 2026-11-19, not re-read.
-- **recalled**: from the author's prior knowledge of Weston or libliftoff. Not checked against any commit. It may be wrong in detail, outdated, or wrong about which release has a feature. Do not quote it in an upstreaming proposal before W5-01 is done.
-- **inferred**: a conclusion drawn from the other rows.
+- **source (this repo)**: read in a file of this repository.
+- **source (lo@c4226a7)** / **source (we@c8d00e2)**: read in that tree at that commit.
+- **source (recorded)**: from `docs/platform-capabilities.md`, read there on 2026-11-19; not re-read.
+- **recalled**: from prior knowledge, not checked against any source. May be wrong or outdated.
+- **inferred**: a conclusion from the other rows.
 
-No Weston or libliftoff commit hash is given, deliberately: a hash written down without having been read would look like a citation and be none.
+## Correction of a premise
+
+The brief for this plan says Weston can lease connectors to clients through the DRM lease Wayland protocol (`wp_drm_lease_device_v1`) and a `drm-lease` option. **At `we@c8d00e2` there is no such thing.** A case-insensitive whole-word search for `lease`, `leases`, `leasing`, `drm-lease` and `drm_lease` over the whole tree (excluding `.git` and `*.po`) returned nothing, and `libweston/backend-drm/` has no lease source file (source (we@c8d00e2): the file list is `colorops.c, drm-gbm.c, drm.c, fb.c, kms.c, modes.c, state-helpers.c, state-propose.c` and headers). What Weston does have is handling of `non-desktop` connectors (`modes.c: check_non_desktop`, `kms.c: WDRM_CONNECTOR_NON_DESKTOP`; source (we@c8d00e2)), which marks such a head as non-desktop in libweston's head model; that is not leasing.
+
+This holds for upstream `main` only. A vendor or AGL Weston fork, a downstream patch, or the Weston that is on the board image may carry lease support; none of those was read (W5-02).
 
 ## 1. This project, as it stands
 
 | Statement | Basis |
 | --- | --- |
-| The planner maps every layer of a frame to one hardware plane or rejects the frame. There is no fallback composition and no "composition layer" | source: `crates/composition-core/src/planner.rs` module doc |
-| Search: bounded depth-first backtracking, layers bottom to top, deterministic, finds *a* legal assignment, no cost ranking. Limits: 20 000 steps, 32 backend checks (`SearchLimits::default`) | source: `planner.rs` |
-| Each legal assignment is offered to a backend check, which can answer `Accept`, `TryNext` or `GiveUp`. On Linux the check is an atomic commit with `TEST_ONLY` (plus `ALLOW_MODESET` when a modeset is needed) | source: `planner.rs` `Verdict`, `plan_with`; `crates/composition-drm/src/lib.rs` `check` |
-| A refusal names the unmet constraint as a bit set (`OUTPUT`, `FORMAT`, `SCALING`, `SOURCE_SIZE`, `ALPHA`, `BLEND`, `TRANSFORM`, `FULL_OUTPUT`, `Z_ORDER`, `RESOURCE`, `IN_USE`) | source: `planner.rs` `RejectReasons` |
-| Layers reaching beyond the output are clipped exactly, or refused (`CannotClip`) | source: `planner.rs` `clip_to_output` |
-| Shared hardware (scalers, fetch units) is modelled as resource groups with capacity; consumers are layer traits (`SCALED_H/V`, `YUV`, `ANY`). The i.MX95 profile fills them from driver source only | source: `caps.rs` `ResourceGroup`; `profile.rs` `DriverProfile::Imx95Dpu` (marked "read from source, not measured") |
-| A frame is validated against *capabilities*, which the backend builds from what the fd exposes. A lease fd lists only leased objects, so capabilities cover only the lease | source: `composition-drm/src/lib.rs` module doc |
-| The backend takes an fd (device node or lease); how it was obtained is not its concern. Without `zpos` it assumes primary below overlays below cursor | source: `lib.rs` module doc, `DrmBackend::from_fd` |
-| Lease revocation and lost master show as `EACCES`/`ENOENT`/`ENODEV`, mapped to `BackendEvent::DeviceLost`; `EBUSY` to `Busy`; `EINVAL`/`ERANGE`/`ENOSPC` to `Rejected` | source: `lib.rs` `fail` |
-| Commit is `NONBLOCK | PAGE_FLIP_EVENT`; the output keeps one pending submission | source: `lib.rs` `commit` |
-| Beyond planning the engine tracks buffer state writable → submitted → latched → released, with dropped frames observable (SoW §3.1, §7) | source: `crates/composition-core/src/presentation.rs`, `engine.rs`; SoW §3.1 |
-| `composition-core` is `no_std`, bounded memory, with a C ABI | source: `crates/composition-core`, `crates/composition-ffi`; SoW §3.2 |
-| Lease sets and revocation behaviour of AGL `drm-lease-manager` (default lease, shared overlays left out on i.MX95, TOML plane list, `ENOENT` after revocation) | source: `docs/platform-capabilities.md`, section "AGL drm-lease-manager" (AGL gerrit `src/drm-lease-manager` `master` at `68c48758c46d`, read 2026-11-19, not re-read) |
-| SoW's own statement: DRM leasing is exclusive at object level and is not a way for independent processes to drive one CRTC; a Weston-owned CRTC cannot be modified through a lease | source: SoW §2 principles, §4.1, §4.2 |
+| The planner maps every layer of a frame to one hardware plane or rejects the frame. No fallback composition, no composition layer | source (this repo): `crates/composition-core/src/planner.rs` module doc |
+| Search: bounded depth-first backtracking, layers bottom to top, deterministic, finds *a* legal assignment, no cost ranking. Defaults: 20 000 steps, 32 backend checks (`SearchLimits::default`) | source (this repo): `planner.rs` |
+| Each legal assignment is offered to a backend check: `Accept`, `TryNext` or `GiveUp`. On Linux the check is an atomic `TEST_ONLY` commit (with `ALLOW_MODESET` when a modeset is needed) | source (this repo): `planner.rs` `Verdict`, `plan_with`; `crates/composition-drm/src/lib.rs` `check` |
+| A refusal names the unmet constraints as a bit set: `OUTPUT`, `FORMAT`, `SCALING`, `SOURCE_SIZE`, `ALPHA`, `BLEND`, `TRANSFORM`, `FULL_OUTPUT`, `Z_ORDER`, `RESOURCE`, `IN_USE` | source (this repo): `planner.rs` `RejectReasons` |
+| More layers than attachable planes is refused before any search | source (this repo): `plan_into` |
+| Layers reaching beyond the output are clipped exactly or refused (`CannotClip`) | source (this repo): `planner.rs` `clip_to_output` |
+| Shared hardware (scalers, fetch units) is a resource group with a capacity; layers consume it by trait (`SCALED_H/V`, `YUV`, `ANY`). The i.MX95 profile fills it from driver source only | source (this repo): `caps.rs` `ResourceGroup`; `profile.rs` `DriverProfile::Imx95Dpu` |
+| The backend builds capabilities from what the fd exposes. A lease fd lists only leased objects, so capabilities cover exactly the lease | source (this repo): `composition-drm/src/lib.rs` module doc |
+| The backend takes an fd (device node or lease) and does not care how it was obtained. Without `zpos` it assumes primary below overlays below cursor | source (this repo): `lib.rs` module doc |
+| Lease revocation, dropped master and device removal (`EACCES`, `ENOENT`, `ENODEV`) become `BackendEvent::DeviceLost`; `EBUSY` becomes `Busy`; `EINVAL`, `ERANGE`, `ENOSPC` become `Rejected` | source (this repo): `lib.rs` `fail` |
+| Commit is `NONBLOCK` + `PAGE_FLIP_EVENT`; the output keeps one pending submission | source (this repo): `lib.rs` `commit` |
+| The engine tracks buffer state writable → submitted → latched → released and makes dropped frames observable | source (this repo): `presentation.rs`, `engine.rs`; SoW §3.1, §7 |
+| `composition-core` is `no_std`, bounded-memory, with a C ABI | source (this repo): `crates/composition-core`, `crates/composition-ffi`; SoW §3.2 |
+| `drm-lease-manager` (AGL): default lease per connector with one CRTC and the planes usable only with it; i.MX95 overlays shared between two CRTCs are left out unless listed in the TOML file; `ENOENT` after revocation | source (recorded): `docs/platform-capabilities.md`, AGL gerrit `src/drm-lease-manager` `master` at `68c48758c46d` |
+| SoW: DRM leasing is exclusive at object level; a lease does not let the engine modify planes on a CRTC Weston still owns | source (this repo): SoW §2, §4.1, §4.2 |
+| The repository is Apache-2.0 and has no `NOTICE`, contribution guidelines or sign-off policy | source (this repo): `LICENSE`; repository contents at `69706c8` |
 
-## 2. What Weston already offers
+## 2. What Weston offers
 
 | Statement | Basis |
 | --- | --- |
-| Weston's DRM backend owns the CRTCs, connectors and planes of its outputs and is the only committer for them. It gets master through its launcher (logind/seatd/direct) | recalled (`libweston/backend-drm/`, `drm.c`, `launcher-*`) |
-| Plane assignment is done in `libweston/backend-drm/state-propose.c`. Per output it proposes a state in one of several modes (planes only, mixed renderer-and-planes, renderer only), tries to put each `weston_view` on a plane, lets the GL or Pixman renderer composite the rest into the primary plane's buffer, and validates with an atomic `TEST_ONLY` commit | recalled |
-| The assignment is Weston's own greedy walk over views in z-order, not a search over plane/layer permutations. It uses `zpos` ranges where the kernel gives them | recalled |
-| Weston has a build and a runtime path where a connector is offered to a Wayland client as a DRM lease through `wp_drm_lease_device_v1` (the staging protocol `drm-lease-v1`, wayland-protocols). The client receives a lease fd. The offered connector is withheld from Weston's own use while leased. Which connectors are offered is configured per output (a `drm-lease` setting) and typically targets non-desktop connectors | recalled; the exact option name, meson switch and minimum versions are not known and must be read (W5-02) |
-| What the lease contains (connector, one CRTC, which planes) is decided by Weston's code, not by the client | recalled; the AGL manager's rule, by contrast, is recorded in section 1 |
-| The protocol is about leasing a whole connector. Nothing in it lets a client place a layer on a plane of a CRTC Weston keeps | recalled; consistent with SoW §4.2 (source) |
-| Direct scanout of client buffers by Weston is driven by `linux-dmabuf` feedback (scanout tranches) and Weston's view-to-plane policy. The client does not choose planes | recalled |
-| Weston has plugin APIs for its DRM backend (output-level settings such as mode and format). None known that lets an outside party assign planes or submit a commit | recalled; verify (W5-03) |
-| Licence: MIT | recalled (`COPYING`) |
+| Weston's DRM backend plans plane use per output in `drm_output_propose_state` with two modes: `DRM_OUTPUT_PROPOSE_STATE_PLANES_ONLY` ("no renderer use, only planes") and `DRM_OUTPUT_PROPOSE_STATE_MIXED` ("mix renderer & planes"), plus a `REUSE` bit ("reuse prior state with new buffers") | source (we@c8d00e2): `drm-internal.h` `enum drm_output_propose_state_mode`; `state-propose.c` |
+| The repaint path tries, in order: reuse of the prior state, planes-only (only if `gbm` is present and client-buffer scanout is not disabled), then mixed. Mixed is the fallback, where the renderer draws what planes cannot take. After that `assert(state)` | source (we@c8d00e2): `state-propose.c` lines ~1690-1735 |
+| So Weston, like libliftoff, always has a composition fallback and cannot refuse a frame | source (we@c8d00e2) for the fallback chain; inferred for "cannot refuse" |
+| Plane assignment walks the paint nodes in z-order and tries each on a plane, counting zpos down from the plane's `zpos_max` and respecting `zpos_min`; it supports underlay planes in mixed mode. It checks for duplicate zpos at the end (`drm_output_check_zpos_plane_states`) | source (we@c8d00e2): `state-propose.c` (matches for `zpos`, `underlay`, `drm_output_check_zpos_plane_states`); the walk itself not read in full |
+| Validation is an atomic `TEST_ONLY` commit: `drm_pending_state_test` calls `drm_pending_state_apply_atomic(..., DRM_STATE_TEST_ONLY)` | source (we@c8d00e2): `kms.c` ~line 2242 |
+| In `drm_output_try_paint_node_on_plane` the test commit is skipped in planes-only mode (`mode != PLANES_ONLY && drm_pending_state_test(...) != 0`); the whole state is tested once at the end of `drm_output_propose_state` | source (we@c8d00e2): `state-propose.c` lines ~300 and ~1628 |
+| Weston does not use libliftoff: no occurrence of `liftoff` anywhere in the tree | source (we@c8d00e2): text search |
+| **No DRM lease support** (see "Correction of a premise") | source (we@c8d00e2): text search |
+| The one plugin API of the DRM backend, `weston_drm_output_api_v1`, offers output settings (`set_mode`, `set_gbm_format`, `set_seat`, max bpc and similar). The part read has nothing to assign planes, supply a plane state or commit | source (we@c8d00e2): `include/libweston/backend-drm.h` first ~110 lines; the remaining members were not read |
+| Weston's contribution policy: DCO sign-off by a human; AI agents must not create or edit issues or merge requests, nor post comments; AI prose is not forwarded upstream unless concise and reviewed by a human; AI-generated code is the human's responsibility | source (we@c8d00e2): `LLM-USAGE.md`, `AGENTS.md` |
+| Weston's DRM backend owns the CRTCs, connectors and planes of its outputs and takes DRM master through its launcher | recalled (not read this session) |
+| Client-side direct scanout in Weston is driven by `linux-dmabuf` feedback (scanout tranches); the client does not choose planes | recalled |
+| `wp_drm_lease_device_v1` (the `drm-lease-v1` staging protocol of wayland-protocols) exists, and some other compositors implement it | recalled; says nothing about Weston |
 
 ## 3. Standalone leased-output mode against Weston-owned output mode
 
 | Question | Standalone leased output (SoW §4.2 mode 1) | Weston-owned output (mode 2) | Basis |
 | --- | --- | --- | --- |
-| Who commits the CRTC | This engine, alone, through the lease fd | Weston, alone | source: SoW §4.2; inferred for the Weston side from the rows above |
-| Who sees the planes | Only what the lease exposes; the engine plans over those | All planes; Weston plans, and the engine would only influence | source: `lib.rs`; recalled for Weston |
-| Weston changes needed | None for the output, if a lease with primary and overlays exists. If Weston itself provides the lease, its policy for the plane set must include overlays | A protocol or plugin. See below | source: SoW §4.2; inferred |
-| Producer path | Producers send buffers to the engine process (a harness for M1) | Producers are Wayland clients; Weston turns their surfaces into views | source: SoW §4.1; recalled |
-| Plane choice | The engine's planner | Weston's `state-propose.c` | inferred |
-| Buffer lifecycle | The engine's state machine, with latch and release as separate events | Wayland `wl_buffer.release` and presentation-time feedback | inferred; `wl_buffer.release` and `wp_presentation` recalled |
-| Failure case | Engine or lease fd lost: output is dark or falls back to whatever the lease manager does on revocation | Weston crash takes the output with it | inferred |
-| Fits M1 | Yes; this is what M1 tests | No; SoW calls it later investigation | source: SoW §4.2, §9 |
+| Who commits the CRTC | This engine alone, through the lease fd | Weston alone | source (this repo): SoW §4.2; source (we@c8d00e2) for Weston's commit path |
+| Plane choice | This planner | `state-propose.c`, greedy z-order walk with renderer fallback | source (we@c8d00e2); source (this repo) |
+| Can the frame be refused | Yes, by design (SoW §6) | No: mixed mode falls back to the renderer | source (this repo); source (we@c8d00e2) |
+| Where the lease comes from | `drm-lease-manager` / `libdlmclient` (SoW §4.1), or the kernel ioctls from a leaser | Not Weston, at upstream `main`: it has no lease code | source (recorded); source (we@c8d00e2) |
+| Weston changes needed | None for a separate output, provided the lease holds the primary and overlays | A patch or a plugin; see below | source (this repo): SoW §4.2; inferred |
+| Producers | Send buffers to the engine process (a harness for M1) | Wayland clients; Weston turns surfaces into views | source (this repo): SoW §4.1; recalled for Weston |
+| Buffer lifecycle | Engine state machine, with separate latch and release events | `wl_buffer.release` and presentation feedback | inferred; the Wayland side recalled |
+| Failure of the owner | Engine or lease fd lost: output follows the lease manager's revocation behaviour | Weston crash takes the output | inferred |
+| In M1 | Yes | No (SoW: "later investigation") | source (this repo): SoW §4.2, §9 |
 
 ### What the Weston-owned mode would need
 
-The engine cannot commit Weston's CRTC (source: SoW §4.2). Three ways to put this engine's work into that mode, none of them built and none required by M1:
+The engine cannot commit Weston's CRTC (source (this repo): SoW §4.2). Three routes. None is built, none is required for M1.
 
-1. **Weston as lease provider.** Weston leases a connector with the planes the engine needs to this engine. This is the standalone mode with Weston as the lease source; the output leaves Weston while leased. Needs: Weston's lease policy to include overlays and to be configurable by plane (open question), and the engine to work with a lease from the Wayland protocol (it accepts any fd). (inferred)
-2. **A plane-placement hint into Weston's planner.** A protocol or compositor-internal API by which a client or integration marks a surface as "needs its own plane, with these constraints" and reads back the assignment. Weston still commits. Needs: a Weston patch to `state-propose.c`, or a Weston plugin if one can be hooked in there, and a decision whether this engine's `Plan` is advisory (Weston may refuse) or binding. This project's `Plan` is binding by design (SoW §6 item 7: reject rather than weaken), which does not map onto an advisory hint without change. (inferred)
-3. **Weston calls this engine.** The engine is linked into Weston as its plane allocator (see section 4) and Weston supplies buffer metadata and commits the result itself. Needs the engine to expose the planner without the committing backend. `plan_with` already takes a backend check as a closure, so the planner can run with Weston's own `TEST_ONLY`; the `Engine` type bundles the commit path, so a planner-only entry point would be new API. (inferred from `planner.rs`)
-
-All three need Weston code or Weston-side configuration. This is the gap SoW §4.2 expects.
+1. **Weston as lease source.** Needs lease code Weston upstream does not have (source (we@c8d00e2)): a feature to write, not to configure. It would have to decide which planes a lease holds, which for an i.MX95 DPU with overlays shared between CRTCs means a policy like the one `drm-lease-manager` needs a TOML file for (source (recorded)). The engine itself would need nothing, since it accepts any fd. (inferred)
+2. **A plane-placement hint into Weston's planner.** A protocol or internal hook that says "this surface needs its own plane, with these constraints" and reads the assignment back; Weston still commits. The read plugin API has no such hook (source (we@c8d00e2)), so this means a patch to `state-propose.c`. This project's `Plan` is binding by design (SoW §6 item 7), while Weston's mixed mode cannot refuse; the two semantics have to be reconciled (W5-04). (inferred)
+3. **Weston calls this engine.** The planner replaces or is consulted by Weston's assignment. `plan_with` already takes a backend check as a closure, so it could run with Weston's own `TEST_ONLY` (source (this repo): `planner.rs`), but `Engine` bundles the commit path, so a planner-only entry point would be new API, in Rust and in the C ABI. Weston is C and the planner has a C ABI, so linking is feasible in principle. (inferred)
 
 ## 4. Overlap with libliftoff
 
 | Statement | Basis |
 | --- | --- |
-| libliftoff is a small C library by Simon Ser (emersion) that allocates KMS planes to layers. The caller creates an output per CRTC, planes from the plane resources, and layers described as sets of KMS properties (`FB_ID`, `CRTC_X`, `CRTC_W`, `SRC_*`, `zpos`, `alpha`, ...). The library chooses a plane per layer, and writes the properties into a `drmModeAtomicReq` the caller commits | recalled |
-| It validates candidates with atomic `TEST_ONLY` commits and tries to keep their number small, with heuristics (priorities, reusing the previous allocation, checking a plane's format list before a test commit). A layer it cannot place is left to the caller as a "composition layer" (the caller renders the remainder into one buffer) | recalled |
-| Consequence of the last row: libliftoff's central feature is the fallback this project forbids. It assumes the caller has a renderer; this engine has none | inferred |
-| It works on KMS property sets and `drmModeAtomicReq`; it has no notion of buffer ownership, latch, release or events. The caller commits and handles page-flip events | recalled |
-| Written in C99 with libdrm and `malloc`. No bounded-memory mode | recalled |
-| Licence: MIT | recalled (`LICENSE`) |
-| Users include wlroots, gamescope and others | recalled; irrelevant to the decision, listed only because it bears on how a contribution would be received (inferred) |
+| libliftoff is "Lightweight KMS plane library": users create layers, set KMS properties on them, and it picks hardware planes for the layers if possible. Depends on libdrm; requires universal planes and atomic | source (lo@c4226a7): `README.md` |
+| API shape: `liftoff_device_create(drm_fd)`, `liftoff_output_create(device, crtc_id)`, `liftoff_plane_create` / `liftoff_device_register_all_planes`, `liftoff_layer_create`, `liftoff_layer_set_property(layer, name, value)` for any plane property except `CRTC_ID` (a zero `FB_ID` disables the layer). `liftoff_output_apply(output, req, flags, options)` appends the plane configuration to a caller-owned `drmModeAtomicReq`; "callers are expected to commit req afterwards" | source (lo@c4226a7): `include/libliftoff.h` |
+| It owns the DRM fd (`liftoff_device_create` "takes ownership of the file descriptor") and expects `DRM_CLIENT_CAP_ATOMIC` to be on | source (lo@c4226a7): `libliftoff.h` |
+| Algorithm: depth-first search over **planes**, not layers ("for each plane, try to find a layer"), because some drivers want the primary enabled first. The primary is allocated first, then the others from topmost to bottommost. At each node every candidate layer is applied to the plane, an atomic test commit is made, and on success the search recurses to the next plane; a failed test prunes the branch. A plane may also be skipped | source (lo@c4226a7): `alloc.c` header comment, `output_choose_layers` |
+| Objective: maximise the number of layers on planes (`score`). Pruning: stop when `best_score >= best_possible_score` (remaining planes and remaining scoring layers). Time bound: a deadline, default 1 ms (`DEFAULT_ALLOC_TIMEOUT_NSEC`), settable through `options->timeout_ns`; no step limit | source (lo@c4226a7): `alloc.c` `calculate_best_possible_score`, `check_deadline` |
+| zpos: handled "as a special case": relative zpos of two layers is only preserved when the layers intersect (`layer_intersects`), so non-overlapping layers can be placed on planes in any order | source (lo@c4226a7): `alloc.c` header comment, `check_layer_plane_compatible`, `has_allocated_layer_over`, `has_allocated_plane_under` |
+| Composition layer: one per output, only valid on the primary plane. If a composition layer is set, an allocation is refused unless it either composes (some layers lack a plane) or puts every layer on a plane without using composition. A layer under a composited layer that it intersects cannot go to a non-primary plane | source (lo@c4226a7): `alloc.c` `check_alloc_valid`, `check_layer_plane_compatible`, `has_composited_layer_over` |
+| Fewer test commits: reuses the previous allocation when nothing material changed (`reuse_previous_alloc`, `layer_needs_realloc`), checking only the framebuffer's size, format and modifier, the alpha extremes (0, 0xFFFF), and whether intersections changed; before each test commit it checks the layer's FB against the plane (`plane_check_layer_fb`); layer priority (`current_priority`, `layer_is_higher_priority`) orders the layers | source (lo@c4226a7): `alloc.c` |
+| Before searching, it disables every plane it manages in the request "to make sure not to hit bandwidth limits because too many planes are enabled" | source (lo@c4226a7): `alloc.c` `liftoff_output_apply` |
+| Failure of a test commit with `EINVAL`, `ERANGE` or `ENOSPC` means "does not work, try another"; any other error aborts | source (lo@c4226a7): `alloc.c` `output_choose_layers` |
+| Candidate planes are recorded per layer so a caller can re-allocate a buffer with a format that the plane accepts (feedback loop, `liftoff_layer_is_candidate_plane`) | source (lo@c4226a7): `libliftoff.h`, `alloc.c` |
+| The library mallocs per call (`malloc`, `calloc` in `liftoff_output_apply`), uses `clock_gettime` and linked lists, and logs through its own handler | source (lo@c4226a7): `alloc.c` |
+| It has no notion of buffers beyond `FB_ID`, and nothing about latch, release or page-flip events: the caller commits and handles them | source (lo@c4226a7): `libliftoff.h` (no such API) |
+| No reasons are returned for a layer that got no plane, only `liftoff_layer_needs_composition()` (bool) and the candidate-plane query; the debug log carries reasons as text | source (lo@c4226a7): `libliftoff.h`, `alloc.c` log calls |
+| libliftoff follows Weston's contributing guidelines; used "in production by gamescope on Steam Deck", wlroots integration "underway" (README wording) | source (lo@c4226a7): `README.md` |
+| Licence: MIT | source (lo@c4226a7): `LICENSE` |
 
 ### Where the two overlap, and where they do not
 
 | Topic | libliftoff | This project | Reuse, contribute, or leave |
 | --- | --- | --- | --- |
-| Layer-to-plane search with `TEST_ONLY` | yes | yes (backtracking, verdict per candidate) | Overlap. Two implementations of the same job (inferred). Reuse is blocked by language and by `no_std` (inferred); SoW §4.1 asks to avoid "unnecessary duplicate algorithms", so the justification has to be written down: the bounded `no_std` core must run on MCUs where there is no libdrm (source: SoW §3.2, §5) |
-| Fallback composition | yes, via caller | no, by design | Not shared |
-| Typed reasons for refusal | partial at best (recalled: it logs) | `RejectReasons` per layer | Could be contributed as an idea, not as code (inferred) |
-| Shared resources (scalers, fetch units) | the kernel's `TEST_ONLY` is the only authority (recalled) | resource groups, profile per driver | Possibly of interest to libliftoff users, but a per-driver profile is not generic KMS; speculative (inferred) |
-| Clipping to the output | not known | exact clipping or refusal | Unknown (needs W5-01) |
-| Buffer and presentation state machine | none | the core of the engine | Not shared; no counterpart |
-| Bounded memory, `no_std`, C ABI | no | yes | Not shared |
-| Property-level API for arbitrary KMS properties | yes | no: typed layer fields and a fixed capability model | libliftoff is more general for KMS; this project more general across non-KMS targets (inferred) |
+| Search | DFS over planes, maximise the number of placed layers, 1 ms deadline, test commit at every node | DFS over layers (bottom to top), first legal assignment, step and backend-check limits, test commit per complete assignment | Same job, different shape. This project issues `TEST_ONLY` only for assignments that passed the static checks, which may or may not mean fewer commits than libliftoff's per-node tests; unmeasured (inferred) |
+| What "success" is | Best partial allocation; the remainder is composited by the caller | All layers on planes, or an error | Different contract (inferred). This is the deciding difference |
+| zpos | Relative order preserved only between intersecting layers | `Z_ORDER` constraint over all layers placed so far (no intersection test in the planner's reject reasons) | Possible improvement for this planner: allowing non-overlapping layers to share or swap order would accept more frames. Not verified against `planner.rs` beyond its reject-reason names (inferred) |
+| Reasons for refusal | Not returned (log text) | Typed bit set per refused layer | Contribution candidate as an idea (inferred) |
+| Shared resources (scalers, fetch units) | Only the kernel's test commit knows | Resource groups plus a per-driver profile, and then the test commit | Not in libliftoff; a per-driver table is not generic KMS (inferred) |
+| Allocation reuse between frames | Yes (`reuse_previous_alloc`) | Not seen in the planner read | Idea to take over if benchmarks show planning cost matters; SoW says do not optimise before correctness (source (this repo): SoW §6) |
+| Clipping to the output | Not seen in `alloc.c` | Exact clipping or refusal | Unknown for the rest of the library |
+| Composition layer | Central | Excluded | Not shared |
+| Buffer and presentation state machine | None | Core of the engine | Not shared |
+| Memory model | `malloc` per apply | Bounded, `no_std`, MCU-capable | Not shared; blocks reuse on MCU targets (source (this repo): SoW §3.2, §5) |
+| API level | Arbitrary KMS properties by name | Typed layer fields and capability model, valid across KMS and non-KMS targets | libliftoff is more general for KMS; this project for targets without KMS (inferred) |
 
-### Options, in the order of cost
+### Options, in order of cost
 
-1. **Keep separate and document why** (cheapest; consistent with section 4.1 provided the reason is written down). No upstream work.
-2. **Use libliftoff's allocation as a cross-check in tests**: run both on the same capability dump and compare the sets of frames accepted, to find planner bugs (inferred). Only needs a dev dependency on a host with libdrm; best fed with the observed i.MX95 topology from `docs/platform-capabilities.md` once WP0 has it.
-3. **A libliftoff-compatible front** over `composition-drm`: expose a liftoff-like property-set API from the C ABI so a compositor that already uses libliftoff can swap this engine in (inferred; large, and a decision on `Plan` binding versus advisory is needed first).
-4. **Contribute ideas upstream**: refusal reasons, resource groups for shared units. Only worth it if the i.MX95 measurements show libliftoff's heuristics getting the DPU wrong, which nothing yet shows (inferred).
+1. **Keep separate and document why** (SoW §4.1 asks to avoid "unnecessary duplicate algorithms"; the answer is the contract difference, `no_std`/bounded memory and the buffer lifecycle, all source-backed above). No upstream work.
+2. **Cross-check in tests.** Run libliftoff and this planner on the same topology and layer sets, host-side only, and compare which frames each accepts with no composition layer; a difference is a lead for a planner bug or a missing constraint. Needs a dev-only dependency on libdrm and libliftoff, and a fake-KMS test harness for libliftoff's test commit (inferred). Best done with the i.MX95 topology once WP0 captured it.
+3. **Adopt ideas**: intersection-aware zpos, allocation reuse (inferred).
+4. **A libliftoff-compatible front** over the C ABI so a compositor that uses libliftoff can swap this engine in. Large, and blocked by the contract difference (inferred).
+5. **Contribute ideas upstream**: typed refusal reasons, resource groups. Weston's policy (section 2) means any such contribution is human-authored. Only worth it if board measurements show libliftoff's heuristics failing on the DPU, which nothing shows yet (inferred).
 
 ## 5. Licensing
 
 | Statement | Basis |
 | --- | --- |
-| This repository is Apache-2.0 | source: `LICENSE` |
-| Weston and libliftoff are MIT | recalled; confirm in W5-01 |
-| MIT code can be included in an Apache-2.0 work, with the MIT notice and copyright kept; that is the usual reading | inferred; not legal advice |
-| Contributing this project's code to an MIT project means offering it under MIT. The copyright holders can do that for their own code; Apache-2.0's patent grant then does not travel with it. Code from third parties in this repository would need their consent | inferred |
-| Linking: an Apache-2.0 library linked into an MIT program has no conflict as such; the combined binary carries both notices | inferred |
-| No contribution guidelines, `NOTICE` file or DCO/CLA decision exist in the repository yet | source: repository contents at `69706c8`; WP5 asks for them |
-| AGL components have their own licences (drm-lease-manager's was not recorded) | not recorded; W5-07 |
+| This repository is Apache-2.0 | source (this repo): `LICENSE` |
+| libliftoff is MIT (Simon Ser); Weston is MIT-style (`COPYING`) | source (lo@c4226a7), source (we@c8d00e2) |
+| Weston requires a DCO sign-off from a human; libliftoff follows Weston's contributing guidelines, so the same is expected there | source (we@c8d00e2): `LLM-USAGE.md`; source (lo@c4226a7): `README.md` |
+| MIT code can be included in an Apache-2.0 work with its notice kept; Apache-2.0 code cannot be copied into an MIT project without the copyright holders offering it under MIT | inferred; not legal advice |
+| Apache-2.0's patent grant does not travel with code offered under MIT | inferred |
+| An Apache-2.0 library linked into an MIT program has no conflict as such; the combined work carries both notices | inferred |
+| `drm-lease-manager` and `libdlmclient` licences were not recorded | not read; W5-07 |
 
 ## 6. Open issues for WP5
 
@@ -120,19 +151,20 @@ Numbered for the tracker; none are filed (filing is outside this item).
 
 | ID | Issue | Why it matters |
 | --- | --- | --- |
-| W5-01 | **Read Weston `state-propose.c` and libliftoff `alloc.c`, `include/libliftoff.h`, `LICENSE` at pinned commits; replace every "recalled" row above with "source" and the hash.** Not done in this item because upstream was unreachable | Everything in sections 2, 4 and 5 rests on memory until then |
-| W5-02 | Weston DRM lease: find the exact option, meson switch, minimum Weston/wayland-protocols/libdrm versions, and which objects it puts in a lease. Check whether planes beyond the primary can be included, and what the lease looks like on i.MX95 (overlays shared between two CRTCs, see `docs/platform-capabilities.md`) | Decides whether mode 1 of section 3 can use Weston as the lease source. Board-side Weston lease support is covered by the plan item `lease-feasibility` |
-| W5-03 | Weston plugin or protocol surface: is there any hook at plane assignment where an external party could constrain or read the result? | Decides feasibility of option 2 of section 3 |
-| W5-04 | Decide whether `Plan` stays binding or gets an advisory form, and whether a planner-only entry point (no committing backend) is exposed, in Rust and in the C ABI | Needed for section 3 options 2 and 3 and for the libliftoff-compatible front |
+| W5-01 | Finish the Weston read. Not read: `state-propose.c` in full (what it does with a layer that is YUV, scaled, or needs a resource group), `drm.c` (DRM master and launcher), how client buffers become paint nodes, remaining members of `weston_drm_output_api`. Pin tags of released Weston (shallow `main` was read, not a release) | The Weston rows are as good as the part read |
+| W5-02 | Establish which Weston is on the board and whether it, or the AGL/Toradex Weston, carries lease support. Upstream `main` has none (source (we@c8d00e2)). Check `lease-feasibility` results when they exist, and AGL's Weston recipes (not read) | Decides whether "Weston as lease source" is a configuration or a patch. The brief assumed a lease protocol; upstream disproves it |
+| W5-03 | Read the rest of `include/libweston/backend-drm.h` and `libweston.h` for any plane-assignment hook, and `linux-dmabuf` feedback | Decides route 2 of section 3 |
+| W5-04 | Decide whether `Plan` stays binding or gets an advisory form, and whether a planner-only entry point (no committing backend) is exposed, in Rust and in the C ABI | Needed for routes 2 and 3 and the libliftoff-compatible front; Weston's planner cannot refuse |
 | W5-05 | Cross-check the planner against libliftoff on shared capability dumps (dev-only), with the observed i.MX95 topology after WP0 | Cheapest evidence for or against duplication |
-| W5-06 | Write the SoW §4.1 justification for not reusing libliftoff (language, `no_std`, no composition fallback, buffer lifecycle) into the upstreaming proposal, once W5-01 confirms the facts | SoW §4.1 requires it |
-| W5-07 | Licensing and contribution set: decide Apache-2.0 versus MIT for any upstream offer, add `NOTICE`, contribution guidelines and a sign-off policy; record the licence of drm-lease-manager and libdlmclient | WP5 deliverable; SoW §8 |
-| W5-08 | Record how `DriverProfile::Imx95Dpu` (shared fetch units, scalers) would reach upstream, if at all: a per-driver table has no equivalent in generic KMS, so it may stay project-local | Avoids promising an upstream path that does not exist |
-| W5-09 | Coexistence evidence: run the leased-output mode on the board while Weston owns another connector, if the board can show two outputs, and record that the unleased output is unaffected | Needs a second output; the Verdin iMX95 setup in this plan has one panel. May be blocked by hardware (inferred); plan items `m1-lease-run` and `lease-feasibility` give the first evidence |
-| W5-10 | Reproducible demo and benchmark evidence for the proposal: depends on M1 results (`docs/m1-imx95-report.md`), none exist yet | WP5 deliverable |
+| W5-06 | Review the planner's `Z_ORDER` rule against libliftoff's intersection-aware zpos, and decide whether the stricter order refuses frames the hardware can show | A possible planner improvement; arises from section 4 |
+| W5-07 | Licensing and contribution set: decide Apache-2.0 versus MIT for any upstream offer, add `NOTICE`, contribution guidelines and a sign-off policy that fits Weston's DCO and AI rules; record the licences of `drm-lease-manager` and `libdlmclient` | WP5 deliverable (SoW §8) |
+| W5-08 | Write the SoW §4.1 justification for not reusing libliftoff into the upstreaming proposal, using the contract difference and memory model (section 4) | SoW §4.1 requires it |
+| W5-09 | Decide how `DriverProfile::Imx95Dpu` could reach upstream, if at all: a per-driver table has no counterpart in generic KMS, so it may stay project-local | Avoids promising an upstream path that does not exist |
+| W5-10 | Coexistence evidence: leased output while Weston owns another connector, if the board can show two outputs. The Verdin iMX95 setup in this plan has one panel; may be blocked by hardware (inferred) | WP5 and SoW §4.2 evidence |
+| W5-11 | Reproducible demo and benchmark evidence for the proposal; depends on `docs/m1-imx95-report.md`, which does not exist yet | WP5 deliverable |
 
 ## 7. What this analysis does not claim
 
-- No statement that Weston or libliftoff cannot do something is established here; section 2 and 4 rows say what the author recalls.
-- No claim of measured advantage of this planner over either. There is no measurement.
+- No claim of measured advantage of this planner over libliftoff or Weston. There is no measurement.
+- Rows tagged source cover only the files and lines named. The Weston read in particular is partial (W5-01).
 - No claim that an upstream proposal would be accepted (SoW WP5 gives none).
