@@ -91,11 +91,11 @@ Board facts (kernel, driver, connector, mode): not measured on this page. Compos
 
 | Row | Log result | Counts (commits / latched / released) | KVM picture verdict | Date and kernel |
 | --- | --- | --- | --- | --- |
-| A1 startup | not measured | not measured | not measured (no hook; by hand) | not measured |
-| A2 steady state | not measured | not measured | not measured | not measured |
-| A3 stop/restart | not measured | not measured | not measured | not measured |
-| A4 lease loss | not measured | not measured | not applicable (no hook call) | not measured |
-| A5 modeset | not measured | not measured | not applicable | not measured |
+| A1 startup | not measured (run report unavailable) | not measured (run report unavailable) | not measured (run report unavailable) | not measured |
+| A2 steady state | not measured (run report unavailable) | not measured (run report unavailable) | not measured (run report unavailable) | not measured |
+| A3 stop/restart | not measured (run report unavailable) | not measured (run report unavailable) | not measured (run report unavailable) | not measured |
+| A4 lease loss | not measured (run report unavailable) | not measured (run report unavailable) | not applicable (no hook call) | not measured |
+| A5 modeset | not measured (run report unavailable) | not measured (run report unavailable) | not applicable | not measured |
 
 Notes: an A1-A5 run on this board was made on 2026-11-27 with the harness built at commit 195b458, and its report names five bugs, H1-H3 (harness) and S1, S2 (script). The text of that report (SCENARIO lines, counts, camera-check verdicts) was not available when this page was written, so every cell stays "not measured" and those bugs are not described below. A later change fills this section from the report. The bug labels are the run report's own.
 
@@ -118,7 +118,7 @@ Notes:
 - **The A5 reason is wrong.** The script printed "BLOCKED: no readable modes file for connector HDMIA-1", but the sink offers 7 mode names (observed 2026-11-27). This is harness bug 1. With it fixed, A5 would still be BLOCKED, because the harness has no modeset scenario.
 - **Picture timing.** The KVM picture runs about 10-20 s behind the HDMI output, so each picture was credited to a run by what it shows, not by when it was taken. Take a picture at least 20 s into a hold. Rows A3 and A4 are too short to picture until the script holds the screen longer or has more hooks.
 - **Before and after the run** the text console showed. Pictures at 20:21:52 and 20:34:33 FAIL camera-check, as expected.
-- **Camera-check input.** Expected colours come from the harness's colour constants, with the full frame as panel corners, because the KVM captures HDMI directly. The `--rotation` value used is not in the run report, so it is not confirmed here.
+- **Camera-check input.** Expected colours come from the harness's colour constants, with the full frame as panel corners, because the KVM captures HDMI directly. The `--rotation` value used was not recorded in the run report; the camera-check README says a KVM capture is upright (rotation 0), and this page claims no more.
 - **Board state.** No kernel log lines appeared during the run (dmesg had 1279 lines before and after). No DRM, udev or seat change was made, and the board's temporary files were removed.
 - **Released counts.** "Not counted" means the script's A1 and A3 checks compare commits with latched only; it counts released in A2.
 
@@ -132,7 +132,7 @@ Observed on the NanoPC-T6 on 2026-11-27, kernel 6.18.55-current-rockchip64, harn
 4. **The harness has no SIGTERM handler.** It exits 143 without writing `resources` or `VERDICT`, so A3 does not test a clean shutdown.
 5. **`revoke` ignores the `--seconds` the script passes.** The run took 1063 ms with `--seconds 15`, so the screen after the revoke is never held.
 
-Raspberry Pi 5 run (2026-11-27): that run reported five bugs, H1-H3 and S1, S2, whose text was not available when this page was written. They are not listed here, and some may duplicate the items above.
+Raspberry Pi 5 run (2026-11-27): that run's report names five more bugs, H1-H3 (harness) and S1, S2 (script). The report text, and with it the description of each, was not available to this page, so they are not described here and some may duplicate items 1-5 above. They stay unlisted until the report is supplied.
 
 ## Differences from docs/board-scenarios.md
 
