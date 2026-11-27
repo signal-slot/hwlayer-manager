@@ -154,7 +154,7 @@ All of these come after M2 scanout (SoW §5.1) and after the ownership answer in
 | # | Item | Output | Depends on |
 | --- | --- | --- | --- |
 | O1 | Register probe on the M7: read back `STATICCONTROL`/`SHDEN` of FL0, FY0, LB1, LB2, ED0, the ExtDst PixEngCfg `STATIC` (sync mode), `PIXENGCFG_STATUS`, and the IPIDENTIFIER. Settles the HAL build (MDR7 or not), the LB6/FY2 presence and the sync-mode reset value | Dated observed values in a doc | M7 image loads (m7-run) |
-| O2 | Confirm `POSITION` vs `LAYEROFFSET` for overlay placement, with a small test pattern at a non-zero offset | Observed result, one of the §2.2 rows closed | O1, scanout |
+| O2 | Confirm `POSITION` vs `LAYEROFFSET` for overlay placement, with a small test pattern at a non-zero offset | Dated result from the board, one of the §2.2 rows closed | O1, scanout |
 | O3 | Extend the Zephyr application (in `tests/board/imx95_m7/`) to two planes: FL0 primary and FY0 overlay as in §2.2, with static buffers, opaque and then plane-alpha blending | Board test kept in the repository | scanout app, O1 |
 | O4 | Atomic update test: change both planes' buffers and the overlay position in one commit and check with the latch frame index that both changed at the same latch. Also check that a commit is refused while one is pending | Dated measurement or a blocker | O3 |
 | O5 | Latch path: ExtDst0 SHDLOAD ISR that clears only its own bit, plus `FGTIMESTAMP` stamping. Measure trigger-to-latch time and frame-index steps | Dated latch-latency numbers | O3 |

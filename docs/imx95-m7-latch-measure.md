@@ -288,7 +288,7 @@ run must then be marked so (M-4 in the comparison plan).
 - The M7's real clock, the counter behaviour in sleep, the availability of a
   GPIO, or a shared Linux/M7 time base.
 - Any parity with another SoC: the STM32MP257F-DK latch records
-  ([observed/](observed/)) are format references only; no number transfers.
+  (`docs/observed/`) are format references only; no number transfers.
 
 ## 8. Items this suggests (for the planner, not done here)
 
