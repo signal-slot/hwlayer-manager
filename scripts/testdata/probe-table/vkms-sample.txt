@@ -1,0 +1,78 @@
+# NOT A BOARD CAPTURE. Made up by hand from the output format of
+# crates/composition-drm/examples/probe.rs (--raw), shaped like a vkms device.
+# Values are invented; never cite this file as observed hardware.
+device /dev/dri/card0, driver vkms
+output 0: crtc 36 1024x768 @ 60.000 Hz
+plane 31 Primary: outputs 0b1, zpos fixed 0, plane alpha false, blend [none], scaling not claimed
+  formats (3): XR24 AR24 RG16
+plane 33 Overlay: outputs 0b1, zpos 1..=2, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (2): XR24 AR24
+plane 35 Cursor: outputs 0b1, zpos fixed 3, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (1): AR24
+
+raw
+driver: name vkms version 1.0.0 date 20180514 description Virtual Kernel Mode-Setting
+client caps: universal planes true, atomic true
+driver cap addfb2 modifiers: 1
+driver cap dumb buffers: 1
+driver cap dumb prefer shadow: 1
+driver cap cursor width: 512
+driver cap cursor height: 512
+driver cap async page flip: 0
+driver cap atomic async page flip: not reported (Invalid argument)
+resources: 1 connectors, 1 crtcs, 1 encoders
+connectors
+connector 34 interface Virtual (15) state Connected
+  current encoder 33
+  encoder 33 possible crtcs 0b1 (36)
+  modes (2):
+    1024x768 @ 60.000 Hz
+    800x600 @ 60.317 Hz
+  properties:
+    EDID: immutable blob blob, 0 bytes value 0
+    DPMS: mutable enum [On=0, Standby=1, Suspend=2, Off=3] value 0
+    link-status: mutable enum [Good=0, Bad=1] value 0
+    non-desktop: immutable range 0..=1 value 0
+    CRTC_ID: mutable atomic object value 36
+crtcs
+crtc 36 active 1024x768 @ 60.000 Hz
+  properties:
+    ACTIVE: mutable atomic range 0..=1 value 1
+    MODE_ID: mutable atomic blob, 68 bytes value 40
+    VRR_ENABLED: mutable atomic range 0..=1 value 0
+    GAMMA_LUT: mutable atomic blob, unreadable value 0
+    GAMMA_LUT_SIZE: immutable range 0..=4294967295 value 256
+planes
+plane 31 type primary possible crtcs 0b1 (36)
+  attached to crtc 36
+  IN_FORMATS (4): XR24:0x0 AR24:0x0 RG16:0x0 XR24:0x1
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic object value 45
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value -1
+    CRTC_ID: mutable atomic object value 36
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 67108864
+    rotation: mutable atomic value 1
+    zpos: immutable range 0..=0 value 0
+    alpha: mutable atomic range 0..=65535 value 65535
+    pixel blend mode: mutable atomic enum [None=0, Pre-multiplied=1, Coverage=2] value 1
+    SCALING_FILTER: mutable atomic enum [Default=0, Nearest Neighbor=1] value 0
+    COLOR_ENCODING: mutable atomic enum [ITU-R BT.601 YCbCr=0, ITU-R BT.709 YCbCr=1] value 1
+plane 33 type overlay possible crtcs 0b1 (36)
+  attached to none
+  IN_FORMATS (2): XR24:0x0 AR24:0x0
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 0
+    FB_ID: mutable atomic object value 0
+    rotation: mutable atomic value 1
+    zpos: mutable atomic range 1..=2 value 1
+    alpha: mutable atomic range 0..=65535 value 65535
+    pixel blend mode: mutable atomic enum [None=0, Pre-multiplied=1, Coverage=2] value 1
+plane 35 type cursor possible crtcs 0b1 (36)
+  attached to none
+  formats (1): linear AR24
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 2
+    FB_ID: mutable atomic object value 0
+    zpos: immutable range 3..=3 value 3
