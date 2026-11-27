@@ -1,0 +1,18 @@
+[package]
+name = "composition-trace"
+description = "no_std text line format (CETRACE v=1) for composition-core traces: formatter, strict parser and a Trace sink"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+composition-core = { path = "../composition-core" }
+
+[dev-dependencies]
+composition-fake = { path = "../composition-fake" }
+
+[lints]
+workspace = true

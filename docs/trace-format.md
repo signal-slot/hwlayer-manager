@@ -1,15 +1,23 @@
-# Trace line format for engine events (proposal, X-03)
+# Trace line format for engine events (X-03)
 
-**Status: proposal. Not implemented. Nothing in this file is measured.**
-No sink, formatter or parser for this format exists in the repository, and
-no board log in it uses the format. The example lines in section 6 are
-invented to show the grammar; their numbers are not results from any
-device. Date of writing: 2026-11-28.
+**Status: implemented, format version 1, in the crate
+`crates/composition-trace` (2026-11-28). Nothing in this file is
+measured.** The crate (`no_std`, no `unsafe`, depending only on
+`composition-core`) has the formatter, a strict parser and a `Trace` sink;
+section 10 lists the choices the implementation made where this document
+left one open, each one the owner may revisit. No producer emits the lines
+yet: no board log in the repository uses the format, and the Linux harness
+and the Zephyr applications do not attach the sink. The example lines in
+section 6 are invented to show the grammar; their numbers are not results
+from any device. The crate's tests parse every one of them and format it
+back to the same text. First written 2026-11-28 as a proposal; status
+changed the same day.
 
 Tags used below: **read from source** (code or docs read in this
 repository, cited as `file:line` at the commit this was written on),
-**proposed** (a decision this document asks for), **inferred**. There is
-no **observed** statement here.
+**proposed** (a decision this document asks for and the crate does not
+settle), **decided** (a choice the crate implements, section 10),
+**inferred**. There is no **observed** statement here.
 
 ## 1. Why
 
@@ -88,19 +96,25 @@ Nine variants. `DropReason` (`trace.rs:26`): `Replaced` (`:28`),
 
 The proposal therefore puts two time fields on every line (section 4).
 
-## 3. Line format (proposed)
+## 3. Line format (version 1, implemented)
 
 One event is one line of ASCII text, ending in `\n`, no embedded newline.
 Lines that do not start with the prefix are ignored by the parser, so the
-format can share a console with other output.
+format can share a console with other output (**decided**, D1: "start
+with the prefix" means the line's first byte; a console time stamp in
+front of `CETRACE` makes the line a foreign line, and `CETRACE` must be
+followed by a space; the parser also takes a line ending in `\r\n`).
 
 ### 3.1 Version and prefix
 
 Every line starts with the token `CETRACE` followed by `v=<n>`. This
-proposal is `v=1`. A parser must reject a line whose version it does not
-know, and must ignore unknown `key=value` fields in a known version, so
-fields can be added without a version bump; removing or re-meaning a field
-bumps the version.
+format is `v=1`. A parser must reject a line whose version it does not
+know. The proposal also said a parser must ignore unknown `key=value`
+fields in a known version; the implemented parser does not (**decided**,
+D2): it is strict and rejects every key that section 3.3-3.7 does not
+allow on that line, so a new field needs a parser change (or a version
+bump) before a producer may write it. Removing or re-meaning a field bumps
+the version.
 
 ### 3.2 Grammar (EBNF)
 
@@ -122,7 +136,8 @@ A `word` may contain `;` and `,` so the `assign=` list (3.6) is one value.
 Field order after `ev=` is as in 3.4 so a plain text tool can cut columns,
 but a parser must not depend on it. A value holds no space (so a split on
 SP, then on the first `=`, is a complete parser), except the `quoted` form,
-used only on `hdr`.
+used only on `hdr`. `v=` and `ev=` are always the first two fields, as the
+grammar says; the parser enforces it.
 
 ### 3.3 Common fields
 
@@ -183,8 +198,11 @@ assign=0:31:0:0:0,0,1920,1200:0,0,1920,1200;1:35:2:1:0,0,256,256:100,80,256,256
 `plane` is the `PlaneId` (backend-defined), `index` is `plane_index`.
 The plane's kind, format and modifier are not in `Assignment`; the Linux
 harness's `commit` lines (`m2-comparison-plan.md` §4.1 M-5) may add
-`kind=`, `fmt=`, `mod=` fields for them, but that is outside this proposal
-and the core cannot supply them.
+`kind=`, `fmt=`, `mod=` fields for them, but that is outside this format
+and the core cannot supply them; the strict parser (D2) rejects them today.
+
+An empty list (a `check` or `validate ok` with no assignment) is written
+`n=0 assign=-`, since a `word` cannot be empty (**decided**, D4).
 
 ### 3.7 Errors: `result=<code>`
 
@@ -196,12 +214,18 @@ lower-case snake form of the variant; a nested error is joined by `.`.
 | `Error::StalePlan` | `stale_plan` | |
 | `Error::PlanMismatch` | `plan_mismatch` | |
 | `Error::Backend(e)` | `backend.<e>` | for `unknown_buffer` `buf=`; for `platform` `errno=<int>` |
-| `Error::Plan(e)` | `plan.<e>` | `unknown_output` `out=`; `too_many_layers` `count=`; `unknown_buffer` `layer=` `buf=`; `invalid_source`, `invalid_destination`, `cannot_clip` `layer=`; `no_plane` `layer=` `reasons=0x<hex>`; `backend_rejected` `candidates=`; `limit_exceeded`; `aborted` |
-| `Error::Present(e)` | `present.<e>` | `unknown_buffer`, `duplicate_buffer`, `buffer_in_use`, `buffer_not_ready`, `buffer_not_writable` `buf=`; `busy` `out=`; `unexpected_latch` `out=` `sub=`; `buffer_table_full`, `too_many_outputs`, `too_many_buffers`, `event_queue_full` none |
+| `Error::Plan(e)` | `plan.<e>` | `unknown_output` `err_out=`; `too_many_layers` `count=`; `unknown_buffer` `layer=` `buf=`; `invalid_source`, `invalid_destination`, `cannot_clip` `layer=`; `no_plane` `layer=` `reasons=0x<hex>`; `backend_rejected` `candidates=`; `limit_exceeded`; `aborted` |
+| `Error::Present(e)` | `present.<e>` | `unknown_buffer`, `duplicate_buffer`, `buffer_in_use`, `buffer_not_ready`, `buffer_not_writable` `buf=`; `busy` `err_out=`; `unexpected_latch` `err_out=` `err_sub=`; `buffer_table_full`, `too_many_outputs`, `too_many_buffers`, `event_queue_full` none |
 | `BackendError` (in `check`) | `rejected`, `busy`, `unknown_buffer`, `device_lost`, `platform` | as above |
 
 `reasons=` is the raw `RejectReasons` bit set; its bit meaning is defined
 in `planner.rs:32-` and is not repeated here.
+
+The proposal wrote the output of `plan.unknown_output` and `present.busy`
+as `out=`, and the output and submission of `present.unexpected_latch` as
+`out=` `sub=`. On a `validate` or `commit` line that collides with the
+line's own `out=`, so the implementation writes them `err_out=` and
+`err_sub=` (**decided**, D5).
 
 ## 4. Two time fields, and why
 
@@ -337,12 +361,66 @@ in exactly one of `latched`/`dropped` before the end; `seq` has no gap
 ## 9. Open questions and non-goals
 
 - Where `tev` comes from for `latched` (section 4): needs a decision by
-  the owner of `crates/composition-core/src/**`; this document changes no
-  code.
+  the owner of `crates/composition-core/src/**`. The crate's formatter
+  takes `tev` and `dur` in its `Stamp` argument, so a platform wrapper that
+  knows them can write them with `write_event`; the `LineTrace` sink cannot,
+  because `Trace::record` gives it neither, and leaves both out.
+- `RejectReasons` (`planner.rs:34`) has `bits()` but no constructor from
+  raw bits, so the parser rebuilds a parsed `reasons=` from the eleven
+  constants the core defines (`planner.rs:40-60`) and rejects any other bit
+  (D6). If the core adds a reason, the crate's table has to follow; a
+  `RejectReasons::from_bits` in the core would remove that coupling. Not
+  changed here: `crates/composition-core/src/**` is held by another plan.
+- Strictness (D2) against extensibility: the `kind=`, `fmt=`, `mod=`
+  fields of 3.6 or any other harness-specific field need either a format
+  change recorded here and in the parser, or a lenient parser mode. The
+  owner may prefer the proposal's "ignore unknown keys" rule.
 - Whether the C ABI exposes trace to C/Zephyr callers; not examined here.
 - The harness's existing lines (`RESULT`, `VERDICT`, `EXPECT`, `GEOMETRY`
   in `crates/composition-drm/examples/twoplane.rs`, seen at lines 53, 74,
   566, 1735, 1815) are proposed to stay as they are next to `CETRACE`;
   they are not part of this format.
-- Not in scope: a formatter, a parser, a checker, a ring buffer, any
-  change to the DRM backend or harness, or any hardware run.
+- Not in scope of the crate: a log checker (counts, `seq` gaps, the
+  section 8 rules), a ring buffer, emission from the DRM harness or a
+  Zephyr application, and any hardware run.
+
+## 10. Implementation and decisions
+
+Crate `crates/composition-trace` (**read from source**, at the commit that
+adds it):
+
+- `write_header(w, seq, &Header)` and `write_event(w, &Stamp, &TraceEvent)`
+  write one line, ending in `\n`, into any `core::fmt::Write`, in the field
+  order of section 6.
+- `parse_line(&str) -> Result<Option<Record>, ParseError>`: `Ok(None)` for
+  a foreign line, `Record::Header` or `Record::Event` (an owned copy of the
+  `TraceEvent`, convertible back with `Event::as_trace_event`) for a trace
+  line, and a `ParseError { kind, offset }` otherwise. The kinds are
+  `Syntax`, `TrailingGarbage`, `UnknownVersion`, `UnknownEvent`,
+  `UnknownKey`, `UnexpectedKey`, `DuplicateKey`, `MissingField`,
+  `BadNumber`, `BadValue`, `CountMismatch` and `TooManyAssignments`.
+- `LineTrace::new(writer, clock)` implements `Trace`: each `record` writes
+  one line with the next `seq` and `t = clock()`. `LineTrace::header`
+  writes the `hdr` line. Attach it, or `&mut` it, with
+  `Engine::with_trace`.
+- Tests: every `TraceEvent` variant, every `DropReason` and every error
+  code round-trip through format and parse and format back to the same
+  text; every line of section 6 parses and formats back unchanged; each
+  error kind has malformed-line cases; an engine on the fake backend
+  writes through `LineTrace` and every line parses with no `seq` gap.
+
+Decisions where this document left a choice open. Each one is the
+implementer's (2026-11-28), recorded so the owner may revisit it:
+
+| | Decision |
+| --- | --- |
+| D1 | A trace line is one whose first bytes are `CETRACE` followed by a space or the end of the line; anything else (a console time stamp in front, `CETRACEX`, lower case) is a foreign line. One trailing `\n` or `\r\n` is accepted; any other `\r` or `\n` in a trace line is a syntax error. |
+| D2 | The parser is strict: a key not allowed on that line (unknown to the format, or known but not for that event or `result=`) is an error, as is a duplicate key, a missing field, or a trailing space. This replaces the proposal's rule of ignoring unknown keys. |
+| D3 | Numbers have one spelling: decimal, no `+`, no leading zero; `-` only on signed fields (`zpos`, rectangle `x` and `y`, `errno`) and never on 0. Each field is range-checked against its core type (`u32` for `out`, `buf`, plane ids, widths and `candidates`; `u64` for `seq`, `t`, `at`, `tev`, `dur`, `sub`, `freq_hz`, `t0`; `usize` for `layers`, `n`, `layer`, `count`, plane index; `i32` for the signed ones). `reasons=` is `0x` and lower-case hex without leading zero, `0x0` for none. |
+| D4 | An empty assignment list is `n=0 assign=-`. `n=` must equal the number of items. More than `MAX_LAYERS` (16) items is an error, since the parser keeps them in a fixed-size table. |
+| D5 | Error extras that name an output or submission are `err_out=` and `err_sub=` (section 3.7), so they do not collide with the line's own `out=`. |
+| D6 | `reasons=` bits the core does not define are rejected (section 9). |
+| D7 | `src=` and `clock=` take only the values of section 3.5. `freq_hz=0` is rejected. `at_unit=` is one `word`. `build=` and `board=` must be quoted and other fields must not; quoted text is printable ASCII (0x20-0x7e) without `"`, with no escape. The formatter refuses to write a header that breaks these rules. |
+| D8 | `tev=` is allowed only on `latched` and `dur=` only on `validate` and `commit`; the formatter refuses to write them elsewhere. A `check` line carries `n=` and `assign=` whatever its result; a refused `validate` carries neither. |
+| D9 | `v=` and `ev=` must be the first two fields, and the version is checked before anything else on the line, so a line of a later version is refused only for its version. |
+| D10 | `LineTrace` advances `seq` for every line it is handed, also when the writer fails, so a lost line shows as a `seq` gap; it counts failures (`failed()`). A writer failing mid-line may leave a partial line, which the parser refuses. The sink does not check that the header comes first. |
