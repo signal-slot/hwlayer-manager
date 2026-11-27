@@ -18,15 +18,25 @@ Every statement below was written on 2026-11-28.
   `drm_lease.c`, `drm_mode_object.c`, `drm_plane.c`, `drm_atomic_uapi.c`, each at
   https://raw.githubusercontent.com/torvalds/linux/v6.18/drivers/gpu/drm/ plus
   the file name.
-- **Fetch caveat (inferred reliability).** `curl` from the work shell was
-  refused by the sandbox, so the files could not be saved or line-numbered under
-  `$CONNECTED_DEPS_DIR`. They were read through a web-fetch helper that returns
-  text without line numbers. References are therefore `file:function`, no line
-  numbers. For `drm_plane.c` only the first 39,375 of 56,582 characters came back
-  verbatim; the part past that (`drm_mode_cursor_common`, `drm_mode_page_flip_ioctl`)
-  is not verified here. Quotes were relayed by the helper, not diffed against a
-  local copy. Re-check the quoted lines on a local copy before relying on them
-  for code (inferred, 2026-11-28).
+- **Local copies.** The four files were downloaded on 2026-11-28 into
+  `$CONNECTED_DEPS_DIR/linux-6.18-drm/`; an earlier web-fetch read was
+  re-checked against them and matched. Lines / SHA-256: `drm_atomic_uapi.c` 1561
+  `9675b492...3747`; `drm_lease.c` 733 `74e3674d...8685`; `drm_mode_object.c` 593
+  `2eafe9f9...6ca8`; `drm_plane.c` 1822 `7fe831fa...9f`. Line numbers (read from
+  source, 2026-11-28): `drm_lease.c`: `_drm_lease_held_master` 88, `drm_lease_held`
+  126, `drm_lease_filter_crtcs` 154 (loop 174-187), `drm_lease_create` 207,
+  `validate_lease` 346, `fill_object_idr` 378 (primary auto-add 440-443),
+  `drm_mode_get_lease_ioctl` 637. `drm_mode_object.c`: `drm_mode_object_lease_required`
+  125, `__drm_mode_object_find` 137 (lease check 150-152),
+  `drm_mode_object_get_properties` 388, `drm_mode_obj_get_properties_ioctl` 436.
+  `drm_plane.c`: `create_in_format_blob` 197, `__drm_universal_plane_init` 360
+  (blob calls 484, 493), `drm_mode_getplane_res` 802 (lease check 841),
+  `drm_mode_getplane` 853 (`crtc_id` 868-872, `possible_crtcs` 884), further
+  `drm_lease_held` at 1310 (cursor) and 1417 (page flip). `drm_atomic_uapi.c`:
+  `drm_atomic_set_crtc_for_plane` 189, `drm_atomic_plane_set_property` 472
+  (`CRTC_ID` `-EACCES` 500-506), `drm_atomic_connector_set_property` 670
+  (680-686), `drm_atomic_set_property` 1010, `drm_mode_atomic_ioctl` 1384 (object
+  lookup 1465 `-ENOENT`; TEST_ONLY dispatch 1537).
 - Not read (outside the four files): `drm_crtc.c` (`drm_mode_getcrtc`,
   `drm_mode_getresources`), `drm_connector.c` (`drm_mode_getconnector`),
   `drm_encoder.c`. See section 6.
@@ -121,6 +131,4 @@ All items inferred, 2026-11-28, from sections 2 to 5:
 
 - Read `drm_crtc.c`, `drm_connector.c`, `drm_encoder.c` for E6, P5 and the
   connector/encoder masking the `drm_lease.c` DOC comment describes.
-- Re-fetch the four files into `$CONNECTED_DEPS_DIR` once `curl` is permitted
-  and add line numbers (section 1 caveat).
 - Confirm the T6 lease's CRTC set on the board (E7); only planes are recorded.
