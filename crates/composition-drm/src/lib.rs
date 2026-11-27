@@ -18,6 +18,11 @@
 //! - A plane listing more than [`composition_core::limits::MAX_FORMATS`]
 //!   format/modifier pairs is reported with the first ones only, linear
 //!   layouts first.
+//!
+//! What [`BackendError`] cannot carry is kept by the backend: the raw
+//! `errno` and the reason of each failure ([`DrmBackend::take_failures`]),
+//! and the vertical blank sequence and timestamp of each latch
+//! ([`DrmBackend::take_latches`]).
 
 #![forbid(unsafe_code)]
 
@@ -29,13 +34,13 @@ use std::collections::VecDeque;
 use std::io;
 use std::os::fd::{AsFd, BorrowedFd, OwnedFd};
 use std::path::Path;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use composition_core::limits::{MAX_FORMATS, MAX_OUTPUTS, MAX_PLANES};
 use composition_core::{
-    BackendError, BackendEvent, BlendMode, BufferId, BufferInfo, Capabilities, DisplayBackend,
-    FormatModifier, Frame, Modifier, OutputCaps, OutputId, PixelFormat, Plan, PlaneCaps, PlaneId,
-    PlaneKind, ScaleLimits, Size, SubmissionId, Zpos, ALPHA_OPAQUE,
+    Assignment, BackendError, BackendEvent, BlendMode, BufferId, BufferInfo, Capabilities,
+    DisplayBackend, FormatModifier, Frame, Modifier, OutputCaps, OutputId, PixelFormat, Plan,
+    PlaneCaps, PlaneId, PlaneKind, ScaleLimits, Size, SubmissionId, Zpos, ALPHA_OPAQUE,
 };
 use drm::buffer::{DrmFourcc, DrmModifier, PlanarBuffer};
 use drm::control::atomic::AtomicModeReq;
@@ -75,6 +80,112 @@ pub struct DrmOptions {
     /// Driver-specific constraints to add to what KMS reports.
     pub profile: DriverProfile,
 }
+
+/// The request a failure happened in.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Operation {
+    /// An atomic `TEST_ONLY` commit, from [`DisplayBackend::check`].
+    Check,
+    /// An atomic commit, from [`DisplayBackend::commit`].
+    Commit,
+    /// Waiting for or reading page-flip events.
+    Events,
+}
+
+/// Why the backend failed, with what [`BackendError`] cannot carry.
+///
+/// Kept in a short log, see [`DrmBackend::take_failures`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub enum DrmFailure {
+    /// The kernel refused the request with `errno` (`EINVAL`, `ERANGE`,
+    /// `EBUSY`, `ENOENT`, ...), raw.
+    Refused {
+        /// The request.
+        operation: Operation,
+        /// The kernel's error number.
+        errno: i32,
+        /// The request left the output's primary plane unused. Some drivers
+        /// refuse such frames, see [`DrmBackend::set_require_primary`].
+        primary_unused: bool,
+    },
+    /// The descriptor is not DRM master right now (`EACCES`, `EPERM`):
+    /// another process, such as the compositor, holds it, or the lessor
+    /// dropped it. The device is not lost; the error is
+    /// [`BackendError::Platform`] with `errno`.
+    NotMaster {
+        /// The request.
+        operation: Operation,
+        /// The kernel's error number.
+        errno: i32,
+    },
+    /// The `TEST_ONLY` check failed with `errno`, but passes when a modeset
+    /// is allowed: the frame needs a full modeset, which this backend only
+    /// does on the first commit of an output. Reported to the engine as
+    /// [`BackendError::Rejected`], so that other assignments are tried.
+    NeedsModeset {
+        /// The kernel's error number without `ALLOW_MODESET`.
+        errno: i32,
+    },
+    /// [`DrmBackend::set_require_primary`] is on and the bottom layer of
+    /// the plan is not on the output's primary plane. Refused without asking
+    /// the kernel, as [`BackendError::Rejected`].
+    NoPrimaryPlane {
+        /// The output.
+        output: OutputId,
+    },
+    /// The objects are gone: a revoked lease or a removed device. `errno`
+    /// is that of the request that showed it, 0 if none did.
+    Lost {
+        /// The request that showed the loss.
+        operation: Operation,
+        /// The kernel's error number.
+        errno: i32,
+    },
+    /// Polling the descriptor reported a hangup or an error (`POLLHUP`,
+    /// `POLLERR`, `POLLNVAL` bits as `revents`). The device is marked lost.
+    Hangup {
+        /// The `poll` result bits.
+        revents: u32,
+    },
+    /// Polling or reading events failed with `errno`; the device is not
+    /// marked lost unless the error says so.
+    ReadEvents {
+        /// The error number.
+        errno: i32,
+    },
+    /// A committed frame has not latched within
+    /// [`DrmBackend::set_latch_timeout`]. The submission stays pending, since
+    /// the event may still come; the device was found still present.
+    LatchTimeout {
+        /// The output.
+        output: OutputId,
+        /// The submission still waiting.
+        submission: SubmissionId,
+        /// How long it had waited when this was noticed.
+        waited: Duration,
+    },
+}
+
+/// A latch, as the page-flip event reported it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LatchInfo {
+    /// The output.
+    pub output: OutputId,
+    /// The submission that latched.
+    pub submission: SubmissionId,
+    /// The CRTC's vertical blank counter.
+    pub sequence: u32,
+    /// Time of the vertical blank (`tv_sec`, `tv_usec`), on the kernel's DRM
+    /// clock, which is `CLOCK_MONOTONIC` on all current kernels.
+    pub timestamp: Duration,
+}
+
+/// Number of failures and latches kept for the accessors.
+const LOG_LENGTH: usize = 64;
+
+/// Latch timeout until [`DrmBackend::set_latch_timeout`] says otherwise.
+pub const DEFAULT_LATCH_TIMEOUT: Duration = Duration::from_secs(1);
 
 /// One plane of a DMA-BUF to import.
 #[derive(Clone, Copy, Debug)]
@@ -122,6 +233,11 @@ struct OutputEntry {
     /// Whether this backend has programmed the mode yet.
     modeset_done: bool,
     pending: Option<SubmissionId>,
+    /// When the pending submission was committed.
+    pending_since: Option<Instant>,
+    /// Whether the pending submission was reported as overdue.
+    overdue: bool,
+    last_latch: Option<LatchInfo>,
 }
 
 #[derive(Debug)]
@@ -172,6 +288,10 @@ pub struct DrmBackend {
     buffers: Vec<BufferEntry>,
     events: VecDeque<BackendEvent>,
     lost: bool,
+    failures: VecDeque<DrmFailure>,
+    latches: VecDeque<LatchInfo>,
+    require_primary: bool,
+    latch_timeout: Option<Duration>,
 }
 
 fn invalid(message: &'static str) -> io::Error {
@@ -291,6 +411,10 @@ impl DrmBackend {
             buffers: Vec::new(),
             events: VecDeque::new(),
             lost: false,
+            failures: VecDeque::new(),
+            latches: VecDeque::new(),
+            require_primary: false,
+            latch_timeout: Some(DEFAULT_LATCH_TIMEOUT),
         };
         backend.discover()?;
         Ok(backend)
@@ -364,6 +488,9 @@ impl DrmBackend {
                 mode_blob,
                 modeset_done: false,
                 pending: None,
+                pending_since: None,
+                overdue: false,
+                last_latch: None,
             });
         }
 
@@ -689,15 +816,169 @@ impl DrmBackend {
 
     /// Waits until the device has events to read, or the timeout passes.
     ///
-    /// Returns `true` if [`DisplayBackend::poll_event`] has something to do.
+    /// Returns `true` if [`DisplayBackend::poll_event`] has something to do:
+    /// events to read, a hangup or error on the descriptor to report, or a
+    /// pending latch that has just exceeded the latch timeout
+    /// ([`DrmBackend::set_latch_timeout`]). The wait ends at that deadline
+    /// even if `timeout` is longer, so that a missing page-flip event is
+    /// reported instead of waited for.
     pub fn wait_for_events(&self, timeout: Option<Duration>) -> io::Result<bool> {
         if !self.events.is_empty() {
             return Ok(true);
         }
-        self.readable(timeout)
+        let deadline = self
+            .next_latch_deadline()
+            .map(|at| at.saturating_duration_since(Instant::now()));
+        let wait = match (timeout, deadline) {
+            (Some(timeout), Some(deadline)) => Some(timeout.min(deadline)),
+            (timeout, deadline) => timeout.or(deadline),
+        };
+        if !self.poll_device(wait)?.is_empty() {
+            return Ok(true);
+        }
+        // Woken by the latch deadline rather than by the caller's timeout.
+        Ok(deadline.is_some_and(|d| timeout.is_none_or(|t| d < t)))
     }
 
-    fn readable(&self, timeout: Option<Duration>) -> io::Result<bool> {
+    /// Requires the bottom layer of every frame to be on the output's
+    /// primary plane.
+    ///
+    /// Off by default. Some drivers refuse a frame that leaves the primary
+    /// plane off; with this set such plans are refused before the kernel is
+    /// asked, as [`BackendError::Rejected`] with
+    /// [`DrmFailure::NoPrimaryPlane`] logged, and the engine moves on to an
+    /// assignment that uses the primary plane. Without it, a kernel refusal
+    /// of a plan without a primary plane is logged as
+    /// [`DrmFailure::Refused`] with `primary_unused` set.
+    ///
+    /// The i.MX95 `dpu95` source read so far refuses an active CRTC with no
+    /// plane at all, not one without its primary plane (see
+    /// `docs/imx95-dpu-source-6.6.md`), so [`DriverProfile::Imx95Dpu`] does
+    /// not turn this on. Not measured on hardware.
+    pub fn set_require_primary(&mut self, require: bool) {
+        self.require_primary = require;
+    }
+
+    /// Whether [`DrmBackend::set_require_primary`] is on.
+    pub fn require_primary(&self) -> bool {
+        self.require_primary
+    }
+
+    /// Sets how long a committed frame may wait for its page-flip event
+    /// before [`DrmFailure::LatchTimeout`] is logged, or `None` for no limit.
+    /// [`DEFAULT_LATCH_TIMEOUT`] until set.
+    ///
+    /// When the time is up the backend first checks that its objects still
+    /// exist ([`DrmBackend::probe_device`]): if they do not, the device is
+    /// marked lost and [`BackendEvent::DeviceLost`] queued. Otherwise the
+    /// submission stays pending, because the event may still come, and the
+    /// timeout is logged once.
+    pub fn set_latch_timeout(&mut self, timeout: Option<Duration>) {
+        self.latch_timeout = timeout;
+    }
+
+    /// The latch timeout, see [`DrmBackend::set_latch_timeout`].
+    pub fn latch_timeout(&self) -> Option<Duration> {
+        self.latch_timeout
+    }
+
+    /// Takes the logged failures, oldest first. Only the last 64 are kept.
+    pub fn take_failures(&mut self) -> std::collections::vec_deque::Drain<'_, DrmFailure> {
+        self.failures.drain(..)
+    }
+
+    /// The most recent failure still in the log.
+    pub fn last_failure(&self) -> Option<DrmFailure> {
+        self.failures.back().copied()
+    }
+
+    /// Takes the logged latches with their vertical blank sequence and
+    /// timestamp, oldest first. Only the last 64 are kept. Each was also
+    /// reported as [`BackendEvent::Latched`].
+    pub fn take_latches(&mut self) -> std::collections::vec_deque::Drain<'_, LatchInfo> {
+        self.latches.drain(..)
+    }
+
+    /// The most recent latch of `output`, kept even after
+    /// [`DrmBackend::take_latches`].
+    pub fn last_latch(&self, output: OutputId) -> Option<LatchInfo> {
+        self.output(output).and_then(|o| o.last_latch)
+    }
+
+    /// The submission of `output` waiting for its latch, and since when.
+    pub fn pending_latch(&self, output: OutputId) -> Option<(SubmissionId, Instant)> {
+        self.output(output)
+            .and_then(|o| Some((o.pending?, o.pending_since?)))
+    }
+
+    /// Whether the device has been found lost.
+    pub fn is_lost(&self) -> bool {
+        self.lost
+    }
+
+    /// Checks that the CRTCs this backend drives still exist for this
+    /// descriptor. If they do not, as after a lease revocation, which the
+    /// lessee is not told about, the device is marked lost and
+    /// [`BackendEvent::DeviceLost`] is queued. Returns whether the device is
+    /// usable.
+    pub fn probe_device(&mut self) -> bool {
+        if !self.lost {
+            if let Some(errno) = self.objects_gone() {
+                self.mark_lost(DrmFailure::Lost {
+                    operation: Operation::Events,
+                    errno,
+                });
+            }
+        }
+        !self.lost
+    }
+
+    fn output(&self, output: OutputId) -> Option<&OutputEntry> {
+        self.outputs
+            .iter()
+            .find(|o| OutputId(u32::from(o.crtc)) == output)
+    }
+
+    /// The error number with which a CRTC lookup failed because the object
+    /// is gone, if one did.
+    fn objects_gone(&self) -> Option<i32> {
+        self.outputs.iter().find_map(|output| {
+            let error = self.card.get_crtc(output.crtc).err()?;
+            let errno = error.raw_os_error().unwrap_or(0);
+            matches!(class_of(errno), ErrnoClass::Missing | ErrnoClass::Gone).then_some(errno)
+        })
+    }
+
+    fn log_failure(&mut self, failure: DrmFailure) {
+        if self.failures.len() == LOG_LENGTH {
+            self.failures.pop_front();
+        }
+        self.failures.push_back(failure);
+    }
+
+    fn mark_lost(&mut self, failure: DrmFailure) {
+        self.log_failure(failure);
+        if !self.lost {
+            self.lost = true;
+            for output in &mut self.outputs {
+                output.pending = None;
+                output.pending_since = None;
+            }
+            self.events.push_back(BackendEvent::DeviceLost);
+        }
+    }
+
+    fn next_latch_deadline(&self) -> Option<Instant> {
+        let timeout = self.latch_timeout?;
+        self.outputs
+            .iter()
+            .filter(|o| o.pending.is_some() && !o.overdue)
+            .filter_map(|o| o.pending_since)
+            .map(|since| since + timeout)
+            .min()
+    }
+
+    fn poll_device(&self, timeout: Option<Duration>) -> io::Result<rustix::event::PollFlags> {
         use rustix::event::{poll, PollFd, PollFlags, Timespec};
         let timeout = timeout.map(|t| Timespec {
             tv_sec: t.as_secs() as _,
@@ -706,7 +987,7 @@ impl DrmBackend {
         let mut fds = [PollFd::new(&self.card, PollFlags::IN)];
         loop {
             match poll(&mut fds, timeout.as_ref()) {
-                Ok(count) => return Ok(count > 0),
+                Ok(_) => return Ok(fds[0].revents()),
                 Err(rustix::io::Errno::INTR) => continue,
                 Err(error) => return Err(error.into()),
             }
@@ -714,48 +995,163 @@ impl DrmBackend {
     }
 
     fn read_events(&mut self) {
-        while let Ok(true) = self.readable(Some(Duration::ZERO)) {
-            let Ok(events) = self.card.receive_events() else {
+        use rustix::event::PollFlags;
+        loop {
+            let revents = match self.poll_device(Some(Duration::ZERO)) {
+                Ok(revents) => revents,
+                Err(error) => {
+                    let errno = error.raw_os_error().unwrap_or(0);
+                    self.log_failure(DrmFailure::ReadEvents { errno });
+                    break;
+                }
+            };
+            if revents.intersects(PollFlags::HUP | PollFlags::ERR | PollFlags::NVAL) {
+                self.mark_lost(DrmFailure::Hangup {
+                    revents: u32::from(revents.bits()),
+                });
+                return;
+            }
+            if !revents.contains(PollFlags::IN) {
                 break;
+            }
+            let events = match self.card.receive_events() {
+                Ok(events) => events,
+                Err(error) => {
+                    let errno = error.raw_os_error().unwrap_or(0);
+                    if class_of(errno) == ErrnoClass::Gone {
+                        self.mark_lost(DrmFailure::Lost {
+                            operation: Operation::Events,
+                            errno,
+                        });
+                        return;
+                    }
+                    self.log_failure(DrmFailure::ReadEvents { errno });
+                    break;
+                }
             };
             for event in events {
-                if let Event::PageFlip(flip) = event {
-                    let output = self.outputs.iter_mut().find(|o| o.crtc == flip.crtc);
-                    if let Some(output) = output {
-                        if let Some(submission) = output.pending.take() {
-                            self.events.push_back(BackendEvent::Latched {
-                                output: OutputId(u32::from(output.crtc)),
-                                submission,
-                            });
-                        }
-                    }
+                let Event::PageFlip(flip) = event else {
+                    continue;
+                };
+                let Some(output) = self.outputs.iter_mut().find(|o| o.crtc == flip.crtc) else {
+                    continue;
+                };
+                let Some(submission) = output.pending.take() else {
+                    continue;
+                };
+                output.pending_since = None;
+                output.overdue = false;
+                let info = LatchInfo {
+                    output: OutputId(u32::from(output.crtc)),
+                    submission,
+                    sequence: flip.frame,
+                    timestamp: flip.duration,
+                };
+                output.last_latch = Some(info);
+                if self.latches.len() == LOG_LENGTH {
+                    self.latches.pop_front();
                 }
+                self.latches.push_back(info);
+                self.events.push_back(BackendEvent::Latched {
+                    output: info.output,
+                    submission,
+                });
+            }
+        }
+        self.check_overdue();
+    }
+
+    /// Logs pending latches older than the latch timeout, once each, after
+    /// making sure the device is still there.
+    fn check_overdue(&mut self) {
+        let Some(timeout) = self.latch_timeout else {
+            return;
+        };
+        let now = Instant::now();
+        let overdue: Vec<(usize, SubmissionId, Duration)> = self
+            .outputs
+            .iter()
+            .enumerate()
+            .filter(|(_, o)| !o.overdue)
+            .filter_map(|(index, o)| {
+                let waited = now.saturating_duration_since(o.pending_since?);
+                (waited >= timeout).then_some((index, o.pending?, waited))
+            })
+            .collect();
+        if overdue.is_empty() || !self.probe_device() {
+            return;
+        }
+        for (index, submission, waited) in overdue {
+            let output = &mut self.outputs[index];
+            output.overdue = true;
+            let output = OutputId(u32::from(output.crtc));
+            self.log_failure(DrmFailure::LatchTimeout {
+                output,
+                submission,
+                waited,
+            });
+        }
+    }
+
+    /// Turns a failed request into the engine's error and logs the reason
+    /// with the raw `errno`.
+    fn fail(&mut self, operation: Operation, error: io::Error, primary_used: bool) -> BackendError {
+        let errno = error.raw_os_error().unwrap_or(0);
+        let refused = DrmFailure::Refused {
+            operation,
+            errno,
+            primary_unused: !primary_used,
+        };
+        match class_of(errno) {
+            ErrnoClass::Busy => {
+                self.log_failure(refused);
+                BackendError::Busy
+            }
+            ErrnoClass::Refused => {
+                self.log_failure(refused);
+                BackendError::Rejected
+            }
+            // Not master now: a compositor holds it, or the lessor dropped
+            // it. That can change again, so the device is not lost, unless
+            // its objects are gone as well.
+            ErrnoClass::Permission if self.objects_gone().is_none() => {
+                self.log_failure(DrmFailure::NotMaster { operation, errno });
+                BackendError::Platform(errno)
+            }
+            // Also what an unknown framebuffer or property gives: lost only
+            // if the CRTCs are gone, as after a lease revocation.
+            ErrnoClass::Missing if self.objects_gone().is_none() => {
+                self.log_failure(refused);
+                BackendError::Platform(errno)
+            }
+            ErrnoClass::Permission | ErrnoClass::Missing | ErrnoClass::Gone => {
+                self.mark_lost(DrmFailure::Lost { operation, errno });
+                BackendError::DeviceLost
+            }
+            ErrnoClass::Other => {
+                self.log_failure(refused);
+                BackendError::Platform(errno)
             }
         }
     }
 
-    fn fail(&mut self, error: io::Error) -> BackendError {
-        use rustix::io::Errno;
-        let errno = error.raw_os_error().unwrap_or(0);
-        let code = Errno::from_raw_os_error(errno);
-        if code == Errno::BUSY {
-            BackendError::Busy
-        } else if code == Errno::INVAL || code == Errno::RANGE || code == Errno::NOSPC {
-            BackendError::Rejected
-        } else if code == Errno::ACCESS || code == Errno::NOENT || code == Errno::NODEV {
-            // The objects are gone or no longer ours: a revoked lease, a
-            // dropped master, or a removed device.
-            if !self.lost {
-                self.lost = true;
-                for output in &mut self.outputs {
-                    output.pending = None;
-                }
-                self.events.push_back(BackendEvent::DeviceLost);
-            }
-            BackendError::DeviceLost
-        } else {
-            BackendError::Platform(errno)
+    /// Whether the plan uses a primary plane. With
+    /// [`DrmBackend::set_require_primary`], refuses a plan whose bottom layer
+    /// is not on one.
+    fn primary_check(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<bool, BackendError> {
+        let planes = &self.planes;
+        let kind_of = |index: usize| planes.get(index).map(|p| p.caps.kind);
+        let used = plan
+            .assignments()
+            .iter()
+            .any(|a| kind_of(a.plane_index) == Some(PlaneKind::Primary));
+        if self.require_primary && !bottom_on_primary(plan.assignments(), kind_of) {
+            self.log_failure(DrmFailure::NoPrimaryPlane {
+                output: frame.output,
+            });
+            return Err(BackendError::Rejected);
         }
+        Ok(used)
     }
 
     /// Builds the atomic request for a planned frame. Returns the request
@@ -912,14 +1308,28 @@ impl DisplayBackend for DrmBackend {
         if self.lost {
             return Err(BackendError::DeviceLost);
         }
+        let primary_used = self.primary_check(frame, plan)?;
         let (request, modeset) = self.request(frame, plan)?;
         let mut flags = AtomicCommitFlags::TEST_ONLY;
         if modeset {
             flags |= AtomicCommitFlags::ALLOW_MODESET;
         }
-        self.card
-            .atomic_commit(flags, request)
-            .map_err(|e| self.fail(e))
+        let Err(error) = self.card.atomic_commit(flags, request) else {
+            return Ok(());
+        };
+        // A frame that works only with a modeset is not unsupported, and is
+        // logged as such. It is still refused: commit() does not allow a
+        // modeset after the first one.
+        let errno = error.raw_os_error().unwrap_or(0);
+        if !modeset && class_of(errno) == ErrnoClass::Refused {
+            let (request, _) = self.request(frame, plan)?;
+            let flags = AtomicCommitFlags::TEST_ONLY | AtomicCommitFlags::ALLOW_MODESET;
+            if self.card.atomic_commit(flags, request).is_ok() {
+                self.log_failure(DrmFailure::NeedsModeset { errno });
+                return Err(BackendError::Rejected);
+            }
+        }
+        Err(self.fail(Operation::Check, error, primary_used))
     }
 
     fn commit(
@@ -931,14 +1341,24 @@ impl DisplayBackend for DrmBackend {
         if self.lost {
             return Err(BackendError::DeviceLost);
         }
+        let primary_used = self.primary_check(frame, plan)?;
         let (request, modeset) = self.request(frame, plan)?;
-        let mut flags = AtomicCommitFlags::NONBLOCK | AtomicCommitFlags::PAGE_FLIP_EVENT;
-        if modeset {
-            flags |= AtomicCommitFlags::ALLOW_MODESET;
+        // The first commit of an output sets the mode and blocks. A modeset
+        // can take several frame times (PLL lock, LVDS PHY power-up), and a
+        // nonblocking one fails with EBUSY while the kernel is still
+        // finishing a commit of whoever drove the output before, or of a
+        // CRTC sharing hardware with this one (dpu95 pulls the other
+        // stream's state in). Blocking, the kernel waits for those instead,
+        // and the latch timeout starts once the mode is set. Later commits
+        // are page flips and do not block.
+        let flags = if modeset {
+            AtomicCommitFlags::ALLOW_MODESET | AtomicCommitFlags::PAGE_FLIP_EVENT
+        } else {
+            AtomicCommitFlags::NONBLOCK | AtomicCommitFlags::PAGE_FLIP_EVENT
+        };
+        if let Err(error) = self.card.atomic_commit(flags, request) {
+            return Err(self.fail(Operation::Commit, error, primary_used));
         }
-        self.card
-            .atomic_commit(flags, request)
-            .map_err(|e| self.fail(e))?;
 
         let crtc = self
             .outputs
@@ -956,6 +1376,8 @@ impl DisplayBackend for DrmBackend {
         if let Some(output) = self.outputs.iter_mut().find(|o| Some(o.crtc) == crtc) {
             output.modeset_done = true;
             output.pending = Some(submission);
+            output.pending_since = Some(Instant::now());
+            output.overdue = false;
         }
         Ok(())
     }
@@ -965,5 +1387,109 @@ impl DisplayBackend for DrmBackend {
             self.read_events();
         }
         self.events.pop_front()
+    }
+}
+
+/// How an `errno` from the kernel is treated.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ErrnoClass {
+    /// `EBUSY`: a previous commit is not done.
+    Busy,
+    /// `EINVAL`, `ERANGE`, `ENOSPC`: this configuration is refused.
+    Refused,
+    /// `EACCES`, `EPERM`: not DRM master.
+    Permission,
+    /// `ENOENT`: an object is unknown, or gone with a revoked lease.
+    Missing,
+    /// `ENODEV`: the device was removed.
+    Gone,
+    /// Anything else.
+    Other,
+}
+
+fn class_of(errno: i32) -> ErrnoClass {
+    use rustix::io::Errno;
+    // 0 is what an error without an errno gives; rustix refuses it.
+    if !(1..4096).contains(&errno) {
+        return ErrnoClass::Other;
+    }
+    let code = Errno::from_raw_os_error(errno);
+    if code == Errno::BUSY {
+        ErrnoClass::Busy
+    } else if code == Errno::INVAL || code == Errno::RANGE || code == Errno::NOSPC {
+        ErrnoClass::Refused
+    } else if code == Errno::ACCESS || code == Errno::PERM {
+        ErrnoClass::Permission
+    } else if code == Errno::NOENT {
+        ErrnoClass::Missing
+    } else if code == Errno::NODEV {
+        ErrnoClass::Gone
+    } else {
+        ErrnoClass::Other
+    }
+}
+
+/// Whether the lowest assignment of a plan is on a primary plane. An empty
+/// plan has none.
+fn bottom_on_primary(
+    assignments: &[Assignment],
+    kind_of: impl Fn(usize) -> Option<PlaneKind>,
+) -> bool {
+    assignments
+        .iter()
+        .min_by_key(|a| a.zpos)
+        .is_some_and(|a| kind_of(a.plane_index) == Some(PlaneKind::Primary))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use composition_core::Rect;
+
+    #[test]
+    fn errno_classes_keep_permission_apart_from_loss() {
+        use rustix::io::Errno;
+        let class = |e: Errno| class_of(e.raw_os_error());
+        assert_eq!(class(Errno::ACCESS), ErrnoClass::Permission);
+        assert_eq!(class(Errno::PERM), ErrnoClass::Permission);
+        assert_eq!(class(Errno::NOENT), ErrnoClass::Missing);
+        assert_eq!(class(Errno::NODEV), ErrnoClass::Gone);
+        assert_eq!(class(Errno::BUSY), ErrnoClass::Busy);
+        assert_eq!(class(Errno::INVAL), ErrnoClass::Refused);
+        assert_eq!(class(Errno::RANGE), ErrnoClass::Refused);
+        assert_eq!(class(Errno::NOSPC), ErrnoClass::Refused);
+        assert_eq!(class(Errno::NOMEM), ErrnoClass::Other);
+        assert_eq!(class_of(0), ErrnoClass::Other);
+    }
+
+    fn assignment(plane_index: usize, zpos: i32) -> Assignment {
+        Assignment {
+            layer: plane_index,
+            plane: PlaneId(plane_index as u32 + 30),
+            plane_index,
+            zpos,
+            source: Rect::new(0, 0, 8, 8),
+            destination: Rect::new(0, 0, 8, 8),
+        }
+    }
+
+    #[test]
+    fn bottom_layer_must_be_on_the_primary_plane() {
+        let kinds = [PlaneKind::Overlay, PlaneKind::Primary, PlaneKind::Overlay];
+        let kind_of = |i: usize| kinds.get(i).copied();
+        assert!(bottom_on_primary(
+            &[assignment(0, 2), assignment(1, 0)],
+            kind_of
+        ));
+        assert!(!bottom_on_primary(
+            &[assignment(0, 0), assignment(1, 1)],
+            kind_of
+        ));
+        assert!(!bottom_on_primary(
+            &[assignment(0, 0), assignment(2, 1)],
+            kind_of
+        ));
+        assert!(!bottom_on_primary(&[], kind_of));
+        assert!(!bottom_on_primary(&[assignment(7, 0)], kind_of));
     }
 }
