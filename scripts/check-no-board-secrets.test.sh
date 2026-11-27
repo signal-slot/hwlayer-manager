@@ -18,6 +18,9 @@ mac="aa:bb:cc:dd:ee:""ff"
 tty="/dev/tty""USB0"
 byid="/dev/serial/by-""id/usb-x"
 uh="root@""board7"
+phuh="user@""host"
+hexuh="root@""dead"
+macdash="aa-bb-cc-dd-ee-""ff"
 key="-----BEGIN OPENSSH ""PRIVATE KEY-----"
 pw="pass""word=hunter2"
 tk="to""ken=abc123"
@@ -71,6 +74,27 @@ run msg-trailer 0 a.txt ok "subject
 
 Co-Authored-By: Name <noreply@anthropic.com>"
 
+# False-positive rules: each allowed shape passes, and the nearest real
+# pattern is still flagged. Hosts are placeholders (example.invalid).
+run uses-line 0 w.yml "        uses: actions/checkout@v4"
+run uses-list-item 0 w.yml "      - uses: owner/repo/sub@0123abcd  # pin"
+run uses-prose-ref 0 a.txt "the job uses actions/checkout@v4 only"
+run run-line-flagged 1 w.yml "        run: ssh $uh true"
+run uses-text-in-run-flagged 1 w.yml "        run: echo uses: x/y@v1 && ssh $uh"
+run placeholder-user-host 0 a.txt "use ssh $phuh for the board"
+run placeholder-example 0 a.txt "mail t@example.invalid"
+run commit-pin 0 a.txt "read from source (imx-sm@af1e3702)."
+run dt-unit-address 0 a.txt "node port@0/1 and phy@c and channel@N"
+run systemd-instance 0 a.txt "getty@tty1 serial-getty@ttyAMA10 modprobe@drm"
+run lore-message-id 0 a.txt "see https://lore.kernel.org/list/AbCd1234@some-host/t/"
+run hex-host-after-ssh-flagged 1 a.txt "ssh $hexuh true"
+run hex-host-with-domain-flagged 1 a.txt "login $hexuh.corp"
+run mac-time-range 0 a.txt "19:44:22-19:45:12 UTC"
+run mac-dash 1 a.txt "eth $macdash"
+run tty-rpmsg 0 a.txt "cat /dev/ttyRPMSG0"
+run tty-fixture-elsewhere-flagged 1 scripts/other.test.sh "echo $tty"
+run fixture-zephyr-allowed 0 scripts/check-zephyr-apps.test.sh "echo $tty"
+
 # Hits are reported as file:line.
 run line 1 d/a.txt "x
 $ip"
@@ -79,5 +103,42 @@ if grep -q 'd/a.txt:2' "$root/out"; then echo "ok   file:line"; else echo "FAIL 
 # Unknown base is a usage error.
 (cd "$repo" && sh "$script" nosuchref >/dev/null 2>&1)
 if [ $? -eq 2 ]; then echo "ok   bad-base"; else echo "FAIL bad-base"; fail=1; fi
+
+# check-no-farm-ids.sh: it scans tracked files, so each case builds a
+# throwaway repository holding a copy of the script plus one file.
+farm=$here/check-no-farm-ids.sh
+frun() {
+    name=$1 want=$2 file=$3 content=$4
+    rm -rf "$repo"
+    mkdir -p "$repo/scripts" "$repo/$(dirname "$file")"
+    cp "$farm" "$repo/scripts/"
+    printf '%s\n' "$content" >>"$repo/$file"
+    (
+        cd "$repo" || exit 2
+        git init -q . && git add . && bash scripts/check-no-farm-ids.sh >"$root/out" 2>&1
+    )
+    got=$?
+    if [ "$got" -eq "$want" ]; then
+        echo "ok   farm-$name"
+    else
+        echo "FAIL farm-$name: want $want got $got"
+        cat "$root/out" 2>/dev/null
+        fail=1
+    fi
+}
+uh2="root@""board7.example.invalid"
+frun clean 0 a.txt "nothing to see; version 1.2.3"
+frun uses-line 0 .github/workflows/w.yml "        uses: actions/checkout@v4"
+frun ssh-target 1 a.txt "ssh $uh2"
+frun ipv4 1 a.txt "board at $ip"
+frun serial 1 a.txt "console $tty"
+frun mac 1 a.txt "eth $mac"
+frun credential 1 a.txt "$pw"
+frun loopback 0 a.txt "bind 127.0.0.1"
+frun noreply-trailer 0 a.txt "Co-Authored-By: N <noreply@anthropic.com>"
+frun unit-instance 0 a.txt "systemd[1]: modprobe@drm.service: Deactivated"
+# A fixture allowance is per file: the same text elsewhere is still reported.
+frun fixture-other-file 1 a.txt "echo 192.168.""1.5"
+frun fixture-own-file 0 scripts/check-zephyr-apps.test.sh "echo 192.168.""1.5"
 
 exit $fail
