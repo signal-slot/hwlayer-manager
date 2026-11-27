@@ -30,7 +30,30 @@
 #   - secret: values starting with $, < or { (placeholders).
 #   - Any line containing the marker "secrets-ok" is ignored (use sparingly,
 #     only for documented non-board examples such as RFC 5737 addresses).
-#   - This script and its test are not scanned (they spell out the patterns).
+#   - This script, its test (which also tests check-no-farm-ids.sh) and the
+#     sibling scripts/check-no-farm-ids.sh are not scanned (they spell out
+#     the patterns). Exact paths, no globs.
+#
+# False-positive rules added for the user@host pattern (each is narrow; see
+# benign_sed and uh_line_ok below):
+#   - A YAML step line "uses: owner/repo[/path]@ref" (GitHub Actions) is
+#     skipped as a whole. A line that runs ssh to a host is not.
+#   - "actions/NAME@vN" anywhere (prose in commit messages, for example).
+#   - Literal placeholders: "user@host", "repo@commit", "a@b.c", and any @example.com,
+#     @example.org, @example.net, @example.invalid address.
+#   - "name@commit" pins: @ followed only by hex digits ("imx-sm@af1e3702"),
+#     device-tree unit addresses ("port@0/1", "phy@c"), the "@N" placeholder and
+#     systemd instance names (getty, serial-getty, modprobe). These rules are
+#     NOT applied to a line that mentions ssh, scp, sftp or rsync, so
+#     an ssh target with a hex-only host name stays flagged.
+#   - A kernel mailing-list archive URL (lore.kernel.*) whose message id
+#     contains "@".
+# Other false-positive rules:
+#   - mac: all six groups must use the same separator, so a time range such as
+#     "19:44:22-19:45:12" is not a MAC address.
+#   - tty: /dev/ttyRPMSG* is the Linux rpmsg_tty driver node, not a UART.
+#   - FIXTURES below: sample values that another script's self-test writes on
+#     purpose, allowed per file and per text only.
 
 if [ "$#" -gt 1 ]; then
     echo "usage: $0 [BASE_REF]" >&2
@@ -64,7 +87,8 @@ while IFS= read -r l; do
         ;;
     "+"*)
         case $file in
-        scripts/check-no-board-secrets.sh | scripts/check-no-board-secrets.test.sh) ;;
+        scripts/check-no-board-secrets.sh | scripts/check-no-board-secrets.test.sh | \
+            scripts/check-no-farm-ids.sh) ;;
         *) printf '%s:%s\t%s\n' "$file" "$n" "${l#+}" ;;
         esac
         n=$((n + 1))
@@ -88,6 +112,59 @@ done >>"$raw"
 grep -v "secrets-ok" "$raw" >"$stream"
 : >"$hits"
 
+# Fixture allowlist: "path|extended regex|reason". A stream line of exactly
+# this file whose text matches the regex is dropped before every check. These
+# are sample secrets that the Zephyr-app check's self-test must contain to
+# prove that check rejects them. The same text in any other file is reported.
+FIXTURES='scripts/check-zephyr-apps.test.sh|192\.168\.1\.5|private-range sample the Zephyr-app check must reject
+scripts/check-zephyr-apps.test.sh|/dev/ttyUSB0|serial path the Zephyr-app check must reject
+scripts/check-zephyr-apps.test.sh|Password=x|credential sample the Zephyr-app check must reject'
+printf '%s\n' "$FIXTURES" | while IFS='|' read -r fpath fre freason; do
+    printf '%s\n' "$fpath" >>"$work/fx-paths"
+    printf '%s\n' "$fre" >>"$work/fx-res"
+done
+n_fx=$(wc -l <"$work/fx-paths")
+i=1
+while [ "$i" -le "$n_fx" ]; do
+    fpath=$(sed -n "${i}p" "$work/fx-paths")
+    fre=$(sed -n "${i}p" "$work/fx-res")
+    grep -vE "^${fpath}:[0-9]+${tab}.*(${fre})" "$stream" >"$work/fx-next" || true
+    mv "$work/fx-next" "$stream"
+    i=$((i + 1))
+done
+
+# --- user@host false-positive filtering (see header) ---
+# Always safe, even on a line that mentions ssh: placeholders and action refs.
+# B: what may follow a blanked name: not a further name character, and a '.'
+# only at the end of a sentence (so a hex-looking host with a domain is still a host).
+B='(\.?$|\.?[^A-Za-z0-9_.-])'
+safe_sed='s#actions/[A-Za-z0-9_.-]+@v[0-9][A-Za-z0-9.]*# #g;
+s#(^|[^A-Za-z0-9_])(user@host|repo@commit)'"$B"'# #g;
+s#[A-Za-z0-9_.-]+@example\.(com|org|net|invalid)# #g;
+s#[A-Za-z0-9_.-]+@b\.c# #g;
+s#https?://lore\.kernel\.[A-Za-z0-9./-]*/[^ ]*@[A-Za-z0-9.-]+# #g'
+# Only for lines without ssh/scp/sftp/rsync: pins, DT unit addresses, units.
+shape_sed='s#@[0-9a-f]{1,40}'"$B"'# #g;
+s#@N'"$B"'# #g;
+s#(serial-getty|getty|modprobe)@[A-Za-z0-9]+# #g'
+uh_re='[A-Za-z0-9_][A-Za-z0-9._-]*@[A-Za-z][A-Za-z0-9-]*'
+uh_yaml_uses='^[[:space:]]*(-[[:space:]]+)?uses:[[:space:]]*[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[A-Za-z0-9_./-]+[[:space:]]*(#.*)?$'
+remote_cmd='(^|[^A-Za-z])(ssh|scp|sftp|rsync)([^A-Za-z]|$)'
+
+# Reads stream lines that matched uh_re; prints those still matching after
+# the benign shapes are blanked out.
+uh_filter() {
+    while IFS= read -r l; do
+        t=${l#*"$tab"}
+        if printf '%s\n' "$t" | grep -Eq "$uh_yaml_uses"; then continue; fi
+        r=$(printf '%s\n' "$t" | sed -E "$safe_sed; $safe_sed")
+        if ! printf '%s\n' "$r" | grep -Eq "$remote_cmd"; then
+            r=$(printf '%s\n' "$r" | sed -E "$shape_sed; $shape_sed")
+        fi
+        if printf '%s\n' "$r" | grep -Eq "$uh_re"; then printf '%s\n' "$l"; fi
+    done
+}
+
 # report KIND: reads matching stream lines, appends "KIND: where: text".
 report() { sed "s/^/$1: /; s/$tab/: /" >>"$hits"; }
 
@@ -96,11 +173,14 @@ grep -E '(^|[^0-9.])([0-9]{1,3}\.){3}[0-9]{1,3}($|[^0-9])' "$stream" |
     grep -vE '^(.*/)?(Cargo\.lock|vendor/)' |
     grep -vE "${tab}(.*[^0-9.])?(0\.0\.0\.0|127\.0\.0\.1)([^0-9.].*)?\$" |
     report ipv4
-grep -E '/dev/(tty[A-Za-z0-9_]+|serial/by-id)' "$stream" | report tty
-grep -E '(^|[^0-9A-Fa-f:-])([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}($|[^0-9A-Fa-f:-])' "$stream" |
+grep -E '/dev/(tty[A-Za-z0-9_]+|serial/by-id)' "$stream" |
+    grep -vE '/dev/ttyRPMSG' |
+    report tty
+grep -E '(^|[^0-9A-Fa-f:-])(([0-9A-Fa-f]{2}:){5}|([0-9A-Fa-f]{2}-){5})[0-9A-Fa-f]{2}($|[^0-9A-Fa-f:-])' "$stream" |
     report mac
-grep -E '[A-Za-z0-9_][A-Za-z0-9._-]*@[A-Za-z][A-Za-z0-9-]*' "$stream" |
+grep -E "$uh_re" "$stream" |
     grep -viE 'co-authored-by:|signed-off-by:|git@github\.com|git@gitlab\.com|noreply' |
+    uh_filter |
     report user@host
 grep -E -e '-----BEGIN ([A-Z0-9]+ )*PRIVATE KEY' "$stream" | report ssh-key
 grep -iE '(password|passwd|token|secret|api_key) *= *["'\'']?[A-Za-z0-9+/_.-]' "$stream" |
