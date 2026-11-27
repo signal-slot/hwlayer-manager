@@ -1,0 +1,35 @@
+xcheck 1
+# Section 7 row: "format/modifier absent from dump" (expected: both reject on the same input).
+# Plane 80 (primary): AR24 linear only. Plane 81 (overlay): AR24 linear and AR24 with modifier
+# 0x0100000000000001. The harness sets the modifier flag and IN_FORMATS blob (see the row
+# "format check skipped"); if it did not, a liftoff-only outcome here would be that artefact.
+# Frames, model setting, predicted class (all INFERRED; nothing has been run), both models:
+#   modifier-not-listed-anywhere  both-reject (modifier 0x0100000000000002 on no plane).
+#   modifier-only-on-overlay      both-accept (the overlay lists it).
+#   two-layers-need-the-modifier  both-reject (one plane lists it).
+#   format-not-listed-anywhere    both-reject (P010 on no plane).
+origin synthetic 2026-11-28 two-plane topology with a modifier on the overlay only, for the format/modifier absent row
+profile generic
+output 31 1920 1080 60000
+plane 80 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 81 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format AR24 0x0100000000000001
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 AR24 0x0100000000000001
+buffer 3 1920 1080 AR24 0x0100000000000002
+buffer 4 1920 1080 P010 0x0
+frame modifier-not-listed-anywhere output=31
+  layer buffer=3 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame modifier-only-on-overlay output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame two-layers-need-the-modifier output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame format-not-listed-anywhere output=31
+  layer buffer=4 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end

@@ -1,0 +1,50 @@
+xcheck 1
+# Section 7 row: "value checks before the test commit" (libliftoff checks alpha, blend enum and
+# rotation values against the property definitions it is given; with a fake that omits flags
+# and enums those checks are silently off). Out-of-range alpha is not expressible in v1
+# (alpha 0..65535); the frames use what the plane lists instead.
+# Plane 40 (primary): no alpha, no blend list, transform normal. Plane 41: alpha, opaque and
+# premul blend, normal and rot180.
+# Frames, model setting, predicted class (all INFERRED; nothing has been run):
+#   half-alpha-one-layer     both-accept (plane 41 has alpha).
+#   half-alpha-two-layers    both-reject (only one plane has alpha; libliftoff fails a plane
+#                            that lacks the property when the value is not 0xFFFF).
+#   coverage-blend           both-reject if the fake defines the blend enum with its values;
+#                            liftoff-only if the enum is left undefined (check silently off)
+#                            and the model alone must refuse: an artefact of the fake.
+#   rot270-on-overlay        both-reject (rot270 not listed); same remark about the fake.
+#   rot180-on-overlay        both-accept (control).
+#   opaque-on-primary        expected both-accept (core: opaque needs no support); libliftoff
+#                            meets the "missing blend property, value 0" quirk of design
+#                            section 4: UNCERTAIN, may be rejected on the libliftoff side
+#                            depending on the fake.
+origin synthetic 2026-11-28 two-plane topology with differing alpha, blend and transform support for the value checks row
+profile generic
+output 31 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=fixed:0 alpha=0 blend=- transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 41 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul transforms=normal,rot180 scaling=none max_source=none full_output=0
+  format AR24 0x0
+buffer 1 1920 1080 AR24 0x0
+frame half-alpha-one-layer output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=32768 blend=premul transform=normal
+end
+frame half-alpha-two-layers output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=32768 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=32768 blend=premul transform=normal
+end
+frame coverage-blend output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=coverage transform=normal
+end
+frame rot270-on-overlay output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=rot270
+end
+frame rot180-on-overlay output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=rot180
+end
+frame opaque-on-primary output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=opaque transform=normal
+end

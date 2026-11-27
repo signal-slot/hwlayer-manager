@@ -1,0 +1,39 @@
+xcheck 1
+# Section 7 row: "format check skipped" (libliftoff's own format check runs only when the
+# framebuffer was read with modifiers and an IN_FORMATS blob exists; otherwise it defers to
+# the test commit).
+# Frames, model setting, predicted class (all INFERRED; nothing has been run). With the
+# harness setting both conditions the prediction is the same under both models:
+#   yuv-fits-overlay     both-accept (control: NV12 on the one plane that lists it).
+#   two-yuv-layers       both-reject (only plane 31 lists NV12). If the harness left the format
+#                        check to a model without a format rule, the outcome would be
+#                        liftoff-only: that is the artefact this row is about.
+#   yuv-and-two-argb     both-reject (three layers, two planes).
+#   yuv-and-argb         both-accept (control).
+origin synthetic 2026-11-28 two-plane topology, plane 30 ARGB only, plane 31 ARGB and NV12, for the format check row
+profile generic
+output 31 1920 1080 60000
+plane 30 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 31 kind=overlay outputs=0x1 zpos=fixed:1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+frame yuv-fits-overlay output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame two-yuv-layers output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame yuv-and-two-argb output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+end
+frame yuv-and-argb output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end

@@ -1,0 +1,52 @@
+xcheck 1
+# Section 7 row: "clipping" (core clips a layer reaching beyond the output and programs the visible
+# part; libliftoff is given the original coordinates). v1 of the harness restricts itself to
+# frames inside the output, so the frames marked below are expected to be refused by the reader
+# or skipped (reason named by the harness, not predicted here); they are written for the day the
+# restriction is lifted.
+# Frames, model setting, predicted class (all INFERRED; nothing has been run):
+#   inside-touching-edge   both-accept (control; reaches exactly to the output edge).
+#   overhang-right-bottom  skipped under the v1 restriction. Unrestricted: core accepts with the
+#                          visible quarter programmed; libliftoff sees unclipped coordinates and
+#                          the model clips: both-accept expected if the harness lets the model
+#                          clip, otherwise an artefact. (The 1:1 scale is kept, so no scaling
+#                          group is involved.)
+#   negative-origin        same as above (dst x and y negative, 1:1 scale).
+#   fully-outside          skipped. Unrestricted: core may drop the layer or refuse it
+#                          (UNKNOWN); not predicted further.
+origin synthetic 2026-11-28 imitates the profile.rs Imx95Dpu unit-test stream
+profile imx95dpu
+output 31 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 41 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 42 kind=overlay outputs=0x1 zpos=0..5 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 43 kind=overlay outputs=0x1 zpos=0..5 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 44 kind=overlay outputs=0x1 zpos=0..5 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 45 kind=overlay outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 3 960 540 AR24 0x0
+frame inside-touching-edge output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=3 src=0,0,960,540 dst=960,540,960,540 z=1 alpha=65535 blend=premul transform=normal
+end
+frame overhang-right-bottom output=31
+  layer buffer=1 src=0,0,1920,1080 dst=960,540,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame negative-origin output=31
+  layer buffer=1 src=0,0,1920,1080 dst=-960,-540,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame fully-outside output=31
+  layer buffer=1 src=0,0,1920,1080 dst=2000,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end

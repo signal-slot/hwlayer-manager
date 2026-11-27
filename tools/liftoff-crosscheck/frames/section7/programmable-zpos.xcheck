@@ -1,0 +1,36 @@
+xcheck 1
+# Section 7 row: "programmable zpos" (core may program any zpos in the plane's range;
+# libliftoff orders planes by their current zpos and never writes one).
+# Frames, model setting, predicted class (all INFERRED; nothing has been run):
+#   restack-overlapping     structural and full: core-only. Layer 0 is NV12 (only plane 21,
+#                           zpos_now 1), layer 1 is ARGB (only plane 20, zpos_now 0) and the
+#                           layers intersect. Core restacks (plane 21 gets zpos 0, plane 20
+#                           zpos 1, both inside 0..1). libliftoff needs the higher layer on
+#                           the plane with the higher current zpos, so it refuses.
+#   restack-disjoint        both-accept: same inversion without intersection, libliftoff does
+#                           not need the order (control; interacts with the row "zpos and
+#                           intersection").
+#   current-order-overlap   both-accept (control: the order already matches zpos_now).
+origin synthetic 2026-11-28 two-plane restackable topology (zpos 0..1, zpos_now 0 and 1) for the programmable zpos row
+profile generic
+output 31 1920 1080 60000
+plane 20 kind=primary outputs=0x1 zpos=0..1 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+plane 21 kind=overlay outputs=0x1 zpos=0..1 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+buffer 3 960 1080 AR24 0x0
+buffer 4 960 1080 NV12 0x0
+frame restack-overlapping output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame restack-disjoint output=31
+  layer buffer=4 src=0,0,960,1080 dst=0,0,960,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=3 src=0,0,960,1080 dst=960,0,960,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame current-order-overlap output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end

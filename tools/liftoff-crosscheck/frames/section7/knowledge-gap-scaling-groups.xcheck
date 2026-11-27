@@ -1,0 +1,75 @@
+xcheck 1
+# Section 7 row: "knowledge gap, scaling/groups" (core with a profile knows limits that libliftoff
+# cannot learn from properties). Profile imx95dpu: upscale up to 2048x, downscale 1.0, groups
+# any<=6, scaled+yuv<=4, scaled_h<=1, scaled_v<=1 (profile.rs). Reader note: the scaling and
+# max_source fields of the planes are neutral (none); the profile supplies the values. If the
+# reader treats those neutral fields as explicit lines it will refuse the file (design section
+# 5, one origin for constraints): then the fields must be dropped or defaulted.
+# Settings (design section 6): S = core generic vs model=structural; F = core imx95dpu vs
+# model=full; M = core imx95dpu vs model=structural (the setting the row itself describes).
+# Class names follow section 6 (core-only = core accepts, liftoff does not; liftoff-only the
+# reverse); the row's own wording "core-only rejects" is read as liftoff-only.
+# Note on S: the planes carry scaling=none, which in core means "source and destination sizes
+# must match" (caps.rs; planner.rs sets RejectReasons::SCALING for any scaled layer). Core
+# generic does not apply the profile, so under S it refuses every scaled frame (NoPlane, SCALING)
+# while the structural model ignores scaling and libliftoff accepts: S shows a difference, but only
+# because generic core has no scaler at all, not because of the profile's group or limit knowledge.
+# Frames, predicted class per setting (all INFERRED; nothing has been run):
+#   one-upscaled          S: liftoff-only (core SCALING). F, M: both-accept (control).
+#   two-upscaled-both     S: liftoff-only (core SCALING). F: both-reject. M: liftoff-only
+#                         (scaled_h and scaled_v groups hold one layer each; the second scaled
+#                         layer has no scaler).
+#   h-and-v-separately    S: liftoff-only (core SCALING). F, M: both-accept (one layer uses the h
+#                         scaler, the other the v one).
+#   five-yuv-layers       S: both-accept (unscaled). F: both-reject. M: liftoff-only (scaled+yuv
+#                         group holds 4 and the fifth NV12 layer has no fetch unit; planes: 5 of 6).
+#   downscale-half        S: liftoff-only (core SCALING). F: both-reject. M: liftoff-only
+#                         (max_downscale 1.0).
+# Under F any remaining difference is a lead (design section 7, row "other direction").
+origin synthetic 2026-11-28 imitates the profile.rs Imx95Dpu unit-test stream
+profile imx95dpu
+output 31 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 41 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 42 kind=overlay outputs=0x1 zpos=0..5 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 43 kind=overlay outputs=0x1 zpos=0..5 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 44 kind=overlay outputs=0x1 zpos=0..5 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 45 kind=overlay outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+buffer 3 960 540 AR24 0x0
+buffer 4 1920 540 AR24 0x0
+frame one-upscaled output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=3 src=0,0,960,540 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame two-upscaled-both output=31
+  layer buffer=3 src=0,0,960,540 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=3 src=0,0,960,540 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame h-and-v-separately output=31
+  layer buffer=3 src=0,0,960,540 dst=0,0,1920,540 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=4 src=0,0,1920,540 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+end
+frame five-yuv-layers output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+end
+frame downscale-half output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,960,540 z=0 alpha=65535 blend=premul transform=normal
+end

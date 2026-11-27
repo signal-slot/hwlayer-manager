@@ -1,0 +1,54 @@
+xcheck 1
+# Section 7 row: "invisible layers" (libliftoff drops alpha-0 layers from the search; how
+# core treats alpha 0 was not checked in the design).
+# Frames, model setting, predicted class (all INFERRED; nothing has been run). Per the design
+# these frames are compared with the invisible layers removed, as a separate class.
+#   six-visible-plus-hidden  structural and full: liftoff accepts (it places the six visible
+#                            layers). Core: UNKNOWN. If core counts the alpha-0 layer it has 7
+#                            layers for 6 planes and reports NoPlane (class liftoff-only); if
+#                            it drops it, both-accept. The frame decides the question.
+#   hidden-only              liftoff places nothing and needs no plane; core: unknown
+#                            (both-accept if dropped, else core-error or both-reject).
+#   hidden-in-middle         both-accept expected under either behaviour (control, 3 layers).
+origin synthetic 2026-11-28 imitates the profile.rs Imx95Dpu unit-test stream
+profile imx95dpu
+output 31 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 41 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 42 kind=overlay outputs=0x1 zpos=0..5 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 43 kind=overlay outputs=0x1 zpos=0..5 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 44 kind=overlay outputs=0x1 zpos=0..5 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 45 kind=overlay outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+buffer 3 960 540 AR24 0x0
+buffer 4 1920 540 AR24 0x0
+frame six-visible-plus-hidden output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=6 alpha=0 blend=premul transform=normal
+end
+frame hidden-only output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=0 blend=premul transform=normal
+end
+frame hidden-in-middle output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=0 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+end

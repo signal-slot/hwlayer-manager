@@ -1,0 +1,59 @@
+xcheck 1
+# Section 7 row: "truncated format list" (dumps are cut at 32 format/modifier pairs per plane).
+# Expressible only in part: a file cannot carry what a dump cut off. Plane 60 lists exactly 32
+# pairs, the most v1 allows (a 33rd line would be refused by the reader). The frames use a
+# format outside the list as the stand-in for "the pair the cut removed".
+# Frames, model setting, predicted class (all INFERRED; nothing has been run):
+#   first-listed-format   both-accept (control).
+#   last-listed-format    both-accept (the 32nd pair, YVYU).
+#   cut-off-format        both-reject (P010 is not listed). Both sides see the same list, so
+#                         the difference to the hardware is invisible to the comparison; the
+#                         row's core-only class cannot arise from one file.
+origin synthetic 2026-11-28 single plane with a full 32-pair format list standing in for a truncated dump, for the truncated list row
+profile generic
+output 31 1920 1080 60000
+plane 60 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=- scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format XR24 0x0
+  format AB24 0x0
+  format XB24 0x0
+  format RG24 0x0
+  format BG24 0x0
+  format RG16 0x0
+  format BG16 0x0
+  format AR30 0x0
+  format XR30 0x0
+  format AB30 0x0
+  format XB30 0x0
+  format NV12 0x0
+  format NV21 0x0
+  format NV16 0x0
+  format NV61 0x0
+  format YU12 0x0
+  format YV12 0x0
+  format YUYV 0x0
+  format UYVY 0x0
+  format VYUY 0x0
+  format XR15 0x0
+  format AR15 0x0
+  format XB15 0x0
+  format AB15 0x0
+  format RA24 0x0
+  format BA24 0x0
+  format AX24 0x0
+  format XA24 0x0
+  format RX24 0x0
+  format BX24 0x0
+  format YVYU 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 YVYU 0x0
+buffer 3 1920 1080 P010 0x0
+frame first-listed-format output=31
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame last-listed-format output=31
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
+frame cut-off-format output=31
+  layer buffer=3 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+end
