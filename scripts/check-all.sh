@@ -14,7 +14,11 @@
 #   --lint        after the CI steps, also run the repository's lint scripts
 #                 that exist: check-doc-links.sh, check-zephyr-apps.sh,
 #                 check-ffi-header.sh, check-doc-tags.sh,
-#                 check-no-board-secrets.sh and check-commit-subjects.sh.
+#                 check-no-board-secrets.sh, check-commit-subjects.sh and
+#                 check-feasibility-doc.sh (on docs/imx95-zephyr-feasibility.md),
+#                 then the self-tests check-arm-link.test.sh,
+#                 check-no-farm-ids.test.sh, check-feasibility-doc.test.sh and
+#                 m2-compare-report.test.sh.
 #                 The three that take a base ref get origin/main and are
 #                 skipped with a message when it does not resolve.
 #                 These are not CI steps; without --lint nothing changes.
@@ -31,7 +35,7 @@ for a in "$@"; do
         --keep-going) keep_going=1 ;;
         --cross) cross=1 ;;
         --lint) lint=1 ;;
-        -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,27p' "$0"; exit 0 ;;
         *) echo "unknown argument: $a" >&2; exit 2 ;;
     esac
 done
@@ -122,7 +126,7 @@ done
 
 if [ "$lint" -eq 1 ]; then
     for l in check-doc-links check-zephyr-apps check-ffi-header check-doc-tags \
-        check-no-board-secrets check-commit-subjects; do
+        check-no-board-secrets check-commit-subjects check-feasibility-doc; do
         f=scripts/$l.sh
         if [ ! -f "$f" ]; then
             echo "SKIP  lint $l: $f does not exist"
@@ -140,6 +144,15 @@ if [ "$lint" -eq 1 ]; then
             step "lint $l" "$f"
             ;;
         esac
+    done
+    for t in check-arm-link check-no-farm-ids check-feasibility-doc \
+        m2-compare-report; do
+        f=scripts/$t.test.sh
+        if [ ! -f "$f" ]; then
+            echo "SKIP  script test $t: $f does not exist"
+            continue
+        fi
+        step "script test $t" sh "$f"
     done
 fi
 
