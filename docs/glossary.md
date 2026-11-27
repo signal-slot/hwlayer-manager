@@ -39,6 +39,11 @@ display: Linux DRM/KMS, an MCU display controller, or a fake. First used:
 device lost, capabilities changed). First defined:
 `crates/composition-core/src/backend.rs`.
 
+**bootaux**: The U-Boot command that starts a Cortex-M core from a loaded
+image. The repository records it from a Toradex M7 note, not from running it.
+First used: [imx95-m7-verdin-bsp.md](imx95-m7-verdin-bsp.md); the MCUXpresso
+text read does not cover it ([imx95-mcux-display.md](imx95-mcux-display.md)).
+
 **buffer**: A registered image the producer draws into; it moves through the
 states listed under *submitted / writable / latched / released*. First
 defined: `crates/composition-core/src/presentation.rs`.
@@ -128,6 +133,11 @@ allowed `unsafe`. Its header is `crates/composition-ffi/include/composition_engi
 one blanks the output. It is not a displayed refresh. First defined:
 `crates/composition-core/src/types.rs` (`Frame`).
 
+**FrameGen**: The i.MX95 DPU block that generates the display timing; the
+vendor sequence sets it up and a "shadow load" is triggered through it. Read
+from source only. First used:
+[imx95-m7-dpu-driver.md](imx95-m7-dpu-driver.md).
+
 ## G
 
 **GO bit**: A register bit of the AM62P path; the twoplane note says
@@ -145,6 +155,10 @@ notes and topology records for it, each with its own status. First used:
 
 **i.MX95**: The NXP SoC of the main board target (A55 cores and an M7). First
 used: `SoW.md`.
+
+**imx_rproc**: The Linux remoteproc driver for NXP cores, including the i.MX95
+M7. The repository reads what it accepts as an ELF and its address map from
+source. First used: [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md).
 
 ## L
 
@@ -168,6 +182,16 @@ them per commit. First used: `docs/platform-capabilities.md`.
 repository studies it as a comparison target and a possible cross-check. First
 used: `SoW.md`; `docs/wp5-gap-analysis.md`.
 
+**LM (logical machine)**: A System Manager partition of the SoC with
+statically configured access rights to hardware and SCMI calls; the question
+is whether the M7's LM or Linux's holds the display. First used:
+[imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md); the design is in
+[imx95-sm-display-lm.md](imx95-sm-display-lm.md).
+
+**LMM**: The System Manager's logical machine manager code, which checks and
+forwards SCMI clock and power requests per LM. Read from source only. First
+used: [imx95-display-power.md](imx95-display-power.md).
+
 **LVDS**: The panel link of the Verdin iMX95 setup (Toradex 10.1" panel). First
 used: `SoW.md`; board facts in `docs/imx95-board.md`.
 
@@ -176,6 +200,10 @@ used: `SoW.md`; board facts in `docs/imx95-board.md`.
 **M7**: The Cortex-M7 core of the i.MX95, the planned Zephyr target of
 milestone M2. Whether it can own the display is an open question. First used:
 `SoW.md`; `docs/open-issues.md`.
+
+**Mallow**: The Toradex carrier board of the Verdin iMX95 setup. First used:
+[imx95-m7-console.md](imx95-m7-console.md); board rules in
+[imx95-board.md](imx95-board.md).
 
 **modifier**: A buffer layout descriptor (for example linear). First defined:
 `crates/composition-core/src/types.rs` (`Modifier`).
@@ -186,6 +214,10 @@ milestone M2. Whether it can own the display is an open question. First used:
 its connector. First defined: `crates/composition-core/src/types.rs`.
 
 ## P
+
+**PD_DISPLAY**: The i.MX95 power domain of the display subsystem, number 13 in
+the System Manager source. Who may switch it is read from source only. First
+used: [imx95-display-power.md](imx95-display-power.md).
 
 **plan**: The planner's result for a frame and capabilities: which layer goes to
 which plane (`Plan`), or a `PlanError` with reasons. It is valid only for the
@@ -219,6 +251,10 @@ read-only observation. First used: `docs/imx95-zephyr/README.md`; script
 DPU's scalers or fetch units) that layers consume by trait. First defined:
 `crates/composition-core/src/caps.rs` (`ResourceGroup`).
 
+**resource table**: The ELF section a remoteproc firmware carries to describe
+its resources; `imx_rproc` accepts an ELF without one. First used:
+[imx95-m7-rproc-load.md](imx95-m7-rproc-load.md).
+
 **rpmsg**: The message transport used with remoteproc cores. The repository
 mentions it in the M2 plan and the load script; no rpmsg link has been run
 here. First used: `docs/m2-comparison-plan.md`.
@@ -232,6 +268,12 @@ System Manager provides clocks and power domains over it. First used:
 
 **scanout**: Reading a buffer out to the display. The M2 goal is scanout from
 Zephyr with VSYNC and latch reporting. First used: `SoW.md`.
+
+**shadow load**: The DPU mechanism that applies staged register values at a
+frame boundary; the Zephyr driver's use of it is the candidate latch signal.
+Read from source, not measured. First used:
+[imx95-m7-dpu-driver.md](imx95-m7-dpu-driver.md); timing in
+[imx95-m7-latch-measure.md](imx95-m7-latch-measure.md).
 
 **staticlib**: The `composition-ffi-staticlib` crate, which packages the FFI as a
 static library for Zephyr and bare-metal builds. First used: `README.md`.
@@ -248,12 +290,22 @@ nobody had examined that configuration. First used:
 
 ## T
 
+**TCM**: The M7's tightly coupled memories (ITCM and DTCM), the windows an
+ELF segment may load into together with the reserved DDR. First used:
+[imx95-m7-rproc-load.md](imx95-m7-rproc-load.md).
+
 **TEST_ONLY**: The DRM atomic commit flag that checks a request without applying
 it; the DRM backend uses it to validate. First used: `SoW.md` §4.1;
 `crates/composition-drm/src/lib.rs`.
 
 **thumbv7em**: The Rust target family for Cortex-M4/M7 builds; the two CI
 cross-builds use it. First used: `docs/ci.md`.
+
+**TRDC**: The bus access-control block that the System Manager programs; the
+repository reads it as part of who may touch display registers, and did not
+read its programming. First used:
+[imx95-display-clocks.md](imx95-display-clocks.md); see also
+[imx95-display-handover.md](imx95-display-handover.md).
 
 **twoplane**: The C backend (`backends/twoplane`) for a two-plane display
 controller, written for the AM62P model with an i.MX95 note. First used:
@@ -282,8 +334,5 @@ display unless a test has it. The repository reads its plane assignment
 
 ## Not defined: terms the repository does not use
 
-`logical machine (LM)`, `TRDC` and `shadow load` do not occur in `SoW.md` or
-`docs/` as of 2026-11-28, so this file does not define them. The M2 source
-items are reading the System Manager sources and will introduce them. Also
-unclear in the repository: whether "output" always equals a CRTC, and what
+Unclear in the repository: whether "output" always equals a CRTC, and what
 enforces the AM62P's R5F/A53 split.
