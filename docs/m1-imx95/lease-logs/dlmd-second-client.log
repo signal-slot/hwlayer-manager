@@ -1,0 +1,6 @@
+# start_utc=2026-11-27T20:20:55Z uname_r=6.6.157-7.8.0
+# command=/tmp/drm-harness --source dlm --lease hwlayer --dlm-dir /tmp/lease-dlm --connector LVDS --profile imx95 --seconds 1 two-planes
+harness version=0.1.0 scenario=two-planes args="--source dlm --lease hwlayer --dlm-dir /tmp/lease-dlm --connector LVDS --profile imx95 --seconds 1 two-planes"
+error scenario=two-planes message="open /tmp/lease-dlm/hwlayer: lease refused: the lease manager closed the connection"
+VERDICT two-planes FAIL open /tmp/lease-dlm/hwlayer: lease refused: the lease manager closed the connection
+# end_utc=2026-11-27T20:20:55Z exit_status=1
