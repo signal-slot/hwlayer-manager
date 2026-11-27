@@ -5,12 +5,17 @@
 # docs/ci.md). When a step is added, changed or removed there, change it here
 # in the same commit.
 #
-# Usage: sh scripts/check-all.sh [--keep-going] [--cross]
+# Usage: sh scripts/check-all.sh [--keep-going] [--cross] [--lint]
 #   --keep-going  run every step even after a failure (default: stop at the
 #                 first failure)
 #   --cross       also run the aarch64 cross-build steps of ci.yml. They use
 #                 scripts/cross-aarch64.sh, which adds the
 #                 aarch64-unknown-linux-musl rustup target on first use.
+#   --lint        after the CI steps, also run the repository's lint scripts
+#                 that exist: check-doc-links.sh, check-zephyr-apps.sh,
+#                 check-ffi-header.sh (base ref origin/main; skipped with a
+#                 message when it does not resolve) and check-doc-tags.sh.
+#                 These are not CI steps; without --lint nothing changes.
 #
 # Nothing is installed by this script. A missing thumbv7em-none-eabihf target
 # is reported with the rustup command to run.
@@ -18,11 +23,13 @@ set -eu
 
 keep_going=0
 cross=0
+lint=0
 for a in "$@"; do
     case $a in
         --keep-going) keep_going=1 ;;
         --cross) cross=1 ;;
-        -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+        --lint) lint=1 ;;
+        -h|--help) sed -n '2,21p' "$0"; exit 0 ;;
         *) echo "unknown argument: $a" >&2; exit 2 ;;
     esac
 done
@@ -84,6 +91,25 @@ if [ "$cross" -eq 1 ]; then
         scripts/cross-aarch64.sh --locked -p composition-drm --example probe
     step "cross aarch64: drm-harness" \
         scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
+fi
+
+if [ "$lint" -eq 1 ]; then
+    for l in check-doc-links check-zephyr-apps check-ffi-header check-doc-tags; do
+        f=scripts/$l.sh
+        if [ ! -f "$f" ]; then
+            echo "SKIP  lint $l: $f does not exist"
+            continue
+        fi
+        if [ "$l" = check-ffi-header ]; then
+            if ! git rev-parse --verify -q origin/main >/dev/null 2>&1; then
+                echo "SKIP  lint $l: origin/main does not resolve"
+                continue
+            fi
+            step "lint $l" "$f" origin/main
+        else
+            step "lint $l" "$f"
+        fi
+    done
 fi
 
 summary
