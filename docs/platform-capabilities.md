@@ -119,6 +119,247 @@ vkms is a software model. It validates the backend's use of the KMS API and the 
 
 Not researched yet. The existing implementation in `signal-slot/slint-zephyr-yakogl-mixed-criticality-ui` is the reference.
 
+## Broadcom BCM2712 (HVS, Raspberry Pi 5)
+
+Raspberry Pi 5 Model B Rev 1.1, probed and driven with `probe` and `examples/twoplane.rs` over ssh. Records: `docs/observed/bcm2712-topology.md`, `docs/observed/bcm2712.md`; kernel source reading: `docs/observed/vc4-hvs-source.md`. Dates are the local date of the session (the harness `DATE` line printed 2026-11-27 UTC). Nobody held DRM master (no compositor running), so nothing was stopped. None of this is a claim toward M1 to M3.
+
+### BCM2712, observed
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Kernel, driver | `6.18.50+rpt-rpi-2712 #1 SMP PREEMPT Debian 1:6.18.50-1+rpt1 (2026-09-11) aarch64`, Debian 13. DRM `card0` = `v3d` (render only), `card1` = `vc4-drm` (compatible `brcm,bcm2712-vc6`). KMS device `/dev/dri/card1`, driver name `vc4`, version 0.0.0 | observed 2026-11-28 |
+| Output, mode | HDMI-A-1 connected (HDMI-A-2 disconnected, two writeback connectors), CRTC 94 (index 2 of 4). 1920x1080 @ 60.000 Hz, 148.5 MHz, pinned by `video=HDMI-A-1:1920x1080M@60` on the kernel command line | observed 2026-11-28 |
+| CRTCs, encoders | 4 CRTCs (59, 78, 94, 106); only 94 active. 2 TMDS and 2 virtual (writeback) encoders | observed 2026-11-28 |
+| Planes in the kernel | 56 | observed 2026-11-28 |
+| Plane-to-CRTC masks (CRTC indices 0..3) | Primaries 48, 67, 83, 95: own CRTC only. 16 shared overlays (107, 118, ... 272): CRTCs 1, 2, 3. 34 planes: CRTC 0 only (types not read). One extra plane per CRTC 1/2/3 (646, 657, 668): own CRTC only, type not read. So the active output reaches primary 83, the 16 shared overlays and plane 657 (18 planes) | observed 2026-11-28 (masks counted from `kmsprint -l`; types of five planes read) |
+| Extra planes 646, 657, 668 | Presumed cursor planes | inferred |
+| Formats | 45 linear: XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12 P010 P012 P016 S010 S012 S016. `IN_FORMATS` identical on the five planes read (48, 83, 107, 239, 382) | observed 2026-11-28 |
+| Modifiers | `0x0` linear; `0x0700000000000001` (XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15); `...03` (NV12 NV21); `...04` (NV12 NV21 P030); `...05` (NV12 NV21). Numeric codes read from the blob | observed 2026-11-28 |
+| Names of the Broadcom modifier codes | 1 = VC4 T-tiled, 3 / 4 / 5 = SAND-type, matched from memory of `drm_fourcc.h`, no header read on the board | inferred |
+| zpos | Primaries immutable 0. Overlays mutable 1..17 (values at read: plane 107 = 1, 239 = 13, 382 = 10) | observed 2026-11-28 |
+| Alpha, blend | `alpha` 0..65535, default 0xffff. `pixel blend mode` None=2, Pre-multiplied=0, Coverage=1, default Pre-multiplied | observed 2026-11-28 |
+| Rotation | `rotation`: rotate-0, rotate-180, reflect-x, reflect-y (no 90/270); idle value rotate-0. composition-drm reports `transforms 0x0` and does not program it | observed 2026-11-28 |
+| Other plane properties | `COLOR_ENCODING` BT.601 / 709 / 2020 (default 709), `COLOR_RANGE`, `SCALING_FILTER` (Default, Nearest Neighbor), `CHROMA_SITING_H/V` | observed 2026-11-28 |
+| Scaling | No KMS scaling property; probe prints "scaling not claimed". `TEST_ONLY` accepted a hand-built 2x upscale and a 1/2 downscale of the overlay. No larger factor was tried, so no limit is measured | observed 2026-11-28 |
+| What probe shows | 16 of the 56 planes (4 primaries, 12 overlays 107..228); 32 of 45 formats per plane and no modifiers. Cause: the limits `MAX_PLANES` (16) and `MAX_FORMATS` (32) in `composition-core`, read from the constants, not traced in code | observed 2026-11-28 (counts); cause inferred |
+| Plane assignment of the two-plane harness | Layer 0 (background, XR24 1920x1080) -> primary 83 zpos 0; layer 1 (overlay, AR24 384x540 at 960,270) -> overlay 107 zpos 1; 3 buffers per layer; `PROFILE Generic`. Debugfs `state` during the run: planes 83 and 107 on `crtc-2`, fbs allocated by `twoplane`; `hvs_dlists` channel 0 held a 1920x1080 entry and a 384x540 entry at x=960, y=270 | observed 2026-11-28 |
+| Verdict, default `--frames 600` | `VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 1920x1080@60.000Hz`. 0 dropped, latch interval mean 16.667 ms, max 16.690 ms; `RELEASE after the run: released 1200 of 1200 buffer uses, 0 still on screen` | observed 2026-11-28 |
+| Verdict, `--frames 5400` (KVM capture during the run) | `VERDICT twoplane: PASS 5400 frames on two planes, 5400 latched, 10798 released, 0 late, driver vc4 mode 1920x1080@60.000Hz`. 0 dropped, max interval 16.694 ms | observed 2026-11-28 |
+| Verdict, `--swap-z --frames 3600` | `VERDICT twoplane: PASS 3600 frames on two planes, 3600 latched, 7198 released, 0 late, driver vc4 mode 1920x1080@60.000Hz`, after `SWAPZ skipped: a plane of the plan has a fixed zpos`: no swap happened, because the planner puts the background on the primary, whose zpos is immutable. Max interval 16.724 ms | observed 2026-11-28 |
+| Verdict, `--frames 120 --unsupported` | `VERDICT twoplane: PASS 120 frames on two planes, 120 latched, 238 released, 0 late, driver vc4 mode 1920x1080@60.000Hz`. Max interval 16.680 ms | observed 2026-11-28 |
+| Verdict, `--blend coverage --plane-alpha 32768 --frames 2400` (KVM capture) | `VERDICT twoplane: PASS 2400 frames on two planes, 2400 latched, 4798 released, 0 late, driver vc4 mode 1920x1080@60.000Hz`. Max interval 16.716 ms | observed 2026-11-28 |
+| Re-run from commit 20df182 | `probe` output byte-identical; default, `--swap-z --frames 600` and `--frames 120 --unsupported` gave the same plans, verdicts, `SWAPZ` and `UNSUPPORTED` lines; 0 dropped, 0 late; latch interval maxima 16.717 / 16.690 / 16.675 ms. The KVM colour check was not repeated | observed 2026-11-28 |
+| Errors, dropped frames | No error line, no `TEST_ONLY` rejection of a planned frame, no device loss; 0 dropped and 0 late in every run. `hvs_underrun` debugfs 0 before and after; no DRM, vc4 or HVS kernel messages | observed 2026-11-28 |
+| KVM: picture | The HDMI capture unit on HDMI-A-1 returned a 1920x1080 JPEG. Baseline: the tty1 console (fbcon, plane 83 `RG16`); during the runs: the harness pattern. Screenshots are not committed (the console text shows the board's address) | observed 2026-11-28 |
+| KVM: captured colours, default run (premultiplied, plane alpha 0xffff) | Expected -> captured: background #202020 -> #2c2c2c; red #ff0000 -> #dd000f; blue #0000ff -> #1201e6; green uncovered #00ff00 -> #1dff15; overlay opaque over green #ffff00 -> #eafa15; opaque over background #ffff00 -> #eafa15; translucent over green #807f80 -> #7d7d7d; translucent over background #901090 -> #85098b | observed 2026-11-28 |
+| KVM: captured colours, coverage blend, plane alpha 0x8000 | Opaque over green #80ff00 -> #84fe15; opaque over background #909010 -> #8a9320; translucent over green #40bf40 -> #4dc947; translucent over background #581858 -> #581a5d; the unblended points as in the default run | observed 2026-11-28 |
+| KVM: reading | The yellow block hides the green block (z-order), the translucent half blends grey over green and purple over the background, and with plane alpha 0x8000 the blended colours move to the expected half-way values. Unblended points are off by up to 34 per channel in both captures and blended ones by up to 13, so the error is read as the capture chain (JPEG, HDMI range or matrix) rather than the blending: z-order and alpha correct on the output | inferred from the two captures |
+| KVM: staleness | The first one or two screenshots after the picture changes came back stale; the record advises taking three and using the last | observed 2026-11-28 |
+| State afterwards | Plane 83 back on fbcon, plane 107 off, the KVM showed the console, no process held `card1`, scratch files on the board removed | observed 2026-11-28 |
+
+### BCM2712, unsupported combinations
+
+From `twoplane /dev/dri/card1 --frames 120 --unsupported`, 2026-11-28; the re-run gave the same lines. The engine's view has 13 planes on the output (primary 83 and overlays 107..228).
+
+| Combination | Capability detection | Planner | Kernel `TEST_ONLY` | Tag |
+| --- | --- | --- | --- | --- |
+| Format `HWL0` | refuses (no plane lists it) | `NoPlane{layer:1, OUTPUT\|FORMAT}` | not reached (dumb buffers cannot hold it) | observed 2026-11-28 |
+| Modifier `AR24:I915_X_TILED` | refuses | `NoPlane{layer:1, OUTPUT\|FORMAT}` | not reached | observed 2026-11-28 |
+| 14 layers on 13 planes | refuses | `NoPlane{layer:13, OUTPUT\|IN_USE}` | not reached | observed 2026-11-28 |
+| 14 layers in hardware (18 planes reach the CRTC) | not tested | not tested | not tested | inferred that they might fit |
+| Scale-up 2x | refuses (no plane declares scaling) | `NoPlane{layer:1, OUTPUT\|SCALING}` | **ok**, the HVS accepts it (hand-built plan, scaling up to 16 claimed) | observed 2026-11-28 |
+| Scale-down 1/2 | refuses | `NoPlane{layer:1, OUTPUT\|SCALING}` | **ok** | observed 2026-11-28 |
+| Rotate-180 | refuses (`transforms 0x0`) | `NoPlane{layer:1, OUTPUT\|TRANSFORM}` | not reached (composition-drm does not program `rotation`; the kernel offers rotate-180) | observed 2026-11-28 |
+| Plane alpha, coverage blend, off-screen, odd size or offset | accepts | plan (off-screen clipped by the planner) | ok | observed 2026-11-28 |
+
+Capability detection and the planner agreed on every line; both were stricter than the kernel for scaling and rotation. No combination was refused by `TEST_ONLY` alone.
+
+### BCM2712, read from source
+
+`raspberrypi/linux` branch `rpi-6.18.y`, commit `16ae2649dcfa`, `drivers/gpu/drm/vc4/`, read 2026-11-28 (`docs/observed/vc4-hvs-source.md`). The board runs `6.18.50+rpt`; which branch it was built from is not known. Some rows there were not re-grepped. Not run.
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Generation | HVS6, `VC4_GEN_6_C` / `VC4_GEN_6_D` (D0 detected by `SCALER6_VERSION == 0x54`) | source |
+| CRTCs, channels | 2 pixelvalves on the display path (HDMI0 on channel 0, HDMI1 on channel 1), 3 HVS channels. Writeback blocks `mop` (channel 2) and `moplet` (channel 1); HDMI1 and `moplet` cannot be active together | source |
+| Planes | 1 primary and 1 cursor per CRTC, 16 overlays shared by the non-TXP CRTCs, 32 overlays for the writeback CRTC | source |
+| zpos | Primary immutable 0, overlays 1..17 mutable, cursor 17, TXP overlays 1..33; planes written into the display list in increasing normalized zpos | source |
+| Alpha, blend | Plane alpha written as `alpha >> 4`; blend None, Pre-multiplied, Coverage; stepping D0 changes the encoding, not the behaviour towards userspace | source; "same towards userspace" inferred |
+| Formats | The BCM2711 list plus P010, P012, P016, S010, S012, S016 (gen 6 only) | source |
+| Modifiers | Advertised: linear, T-tiled, SAND64 / 128 / 256. `vc4_format_mod_supported` rejects T-tiled and SAND64 on gen 6, so usable are linear, SAND128, SAND256 | source |
+| Scaling | Per axis NONE / PPF / TPZ; no helper limit (min 1, max `INT_MAX`); driver limit on the TPZ ratio via `SCALER_TPZ0_SCALE_MASK` (field 0x1FFFFF); no source-width check as on gen 5. LBM or UPM allocation can fail a plane's atomic check | source |
+| Rotation | 0, 180, reflect-X, reflect-Y; no 90/270 | source |
+| Memory | LBM 1024 units; UPM 262144 bytes, 32 handles, one per colour plane; the display-list allocator spans 4064 words on every generation, against the `SCALER6_CXM_SIZE` register (a quirk; intent undetermined) | source; "quirk" inferred |
+| Bandwidth | The load tracker is enabled for gen 4 only and gen 6 never applies the computed core clock: no software bandwidth check at commit | source |
+| Mode size, COB | `mode_config` max 8192 x 8192; COB line width 3840 | source |
+| HDMI pixel clock | 600 MHz for both HDMI blocks, from a summary of `vc4_hdmi.c`, not verified | inferred (unverified) |
+| Device tree | Enablement of TXP, DSI, DPI, VEC and HDMI1 on the Pi 5 was not read | not read |
+
+### BCM2712, inferred
+
+- Two hardware planes on one output work, as the harness showed. Whether more (up to 18 reach this CRTC) work together depends on display-list, LBM and UPM space, which only `TEST_ONLY` shows; from the source rows, a load the HVS cannot sustain fails at run time (underrun), not in `TEST_ONLY`. inferred
+- `--swap-z` could not swap because the primary's zpos is immutable; two overlays (mutable zpos) could, but the harness always puts the background on the primary. The record proposes a harness change; it is not applied. inferred
+- No `DriverProfile` is warranted yet: the observations show only that `TEST_ONLY` accepts 2x and 1/2 scaling, and no limit was measured. inferred
+
+## Broadcom BCM2711 (VC4 HVS, CM4 / reTerminal)
+
+Seeed reTerminal with a Raspberry Pi Compute Module 4 Rev 1.0 (BCM2711, HVS5 / `VC4_GEN_5`), driven over ssh. Records: `docs/observed/bcm2711-cm4-topology.md`, `docs/observed/bcm2711-cm4.md`; source: `docs/observed/vc4-hvs-source.md`. Nobody held DRM master (fbcon only), so nothing was stopped. None of this is a claim toward M1 to M3.
+
+**No KVM exists for this board and nothing captures its DSI panel, so z-order and alpha on the glass are not verified.** The evidence is the harness's event accounting, the kernel's `TEST_ONLY` answers, and the driver's atomic state and display list read from debugfs.
+
+### BCM2711, observed
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Kernel, driver | `6.12.47+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.12.47-1+rpt1 (2025-09-16) aarch64`, Raspberry Pi OS trixie, 64-bit userland. `/dev/dri/card0`, `vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics`; `card1` is `v3d` (render only) | observed 2026-11-28 |
+| Output, mode | `DSI-1` (built-in panel) is the only connected connector; HDMI-A-1 and HDMI-A-2 disconnected. CRTC 90 = `pixelvalve-1`, HVS channel 0. 720x1280 @ 60.000 Hz (clock 62712 kHz, htotal 780, vtotal 1340), portrait | observed 2026-11-28 |
+| CRTCs | 6: `txp` (59), `pixelvalve-0` (78), `pixelvalve-1` (90, active), `pixelvalve-2` (102), `pixelvalve-4` (114), `pixelvalve-3` (126) | observed 2026-11-28 |
+| Planes in the kernel's atomic state | 60 (`plane-0`..`plane-59`, ids 48 to 710). By position and `normalized-zpos`: plane-0..5 primaries (zpos 0), plane-6..21 the 16 shared overlays (zpos 1..16), plane-22..53 the 32 writeback overlays, plane-54..59 zpos 17 | observed 2026-11-28 (ids, order, zpos values) |
+| Types of plane-54..59 | One per CRTC, matching the source's cursor planes; types not read | inferred |
+| Plane-to-CRTC masks | As probe sees them for output 0: primary 79 `0b1`; primaries 48, 67, 91, 103, 115 `0b0` (own, unconnected CRTCs); every reported overlay `0b1`. `0b0` means "not on a connected output", not an empty `possible_crtcs`. The raw `possible_crtcs` was not dumped | observed 2026-11-28 (probe view) |
+| What probe shows | 16 of the 60 planes: the 6 primaries and the first 10 overlays (127, 138, ... 226). Usable on output 0 in the engine's view: 11 (primary 79 plus 10 overlays). In the kernel that CRTC has a primary and 16 overlays (and a cursor, inferred). Cause: `MAX_PLANES` = 16 applied after sorting primaries first. Do not read 16 or 11 as the hardware's plane count | observed 2026-11-28 (counts); cause read from this repository's code |
+| Formats | Same 32 on every reported plane: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12. 32 equals `MAX_FORMATS`, so a longer list would have been cut | observed 2026-11-28 (list); that it was cut is inferred |
+| Modifiers | Not printed by probe or the harness; every buffer used was linear (`modifier=0x0` in debugfs). The `IN_FORMATS` modifiers were not read | observed 2026-11-28 |
+| zpos | Primaries fixed 0; overlays mutable 1..=17 (probe's reading; the raw property range was not dumped) | observed 2026-11-28 |
+| Alpha, blend | Plane alpha true and blend none / premultiplied / coverage on every reported plane | observed 2026-11-28 |
+| Rotation | debugfs shows `rotation=1` (rotate-0) on all 60 planes; the supported mask was not read. composition-drm reports `transforms 0x0` | observed 2026-11-28 (current value only) |
+| Scaling | probe prints "scaling not claimed" (the engine's assumption, not a read property). `TEST_ONLY` accepted a scale-up and a scale-down (below); limits not measured | observed 2026-11-28 (`TEST_ONLY`) |
+| HVS state | Core clock 71428000 Hz, channel 0 in use, channels 1 and 2 idle | observed 2026-11-28 |
+| Plane assignment of the two-plane harness | Layer 0 (background, XR24 720x1280) -> primary 79 zpos 0; layer 1 (overlay, AR24 144x640 at 360,320) -> overlay 127 zpos 1; 3 buffers per layer; `PROFILE Generic`. Debugfs `state` during the run: planes 79 and 127 on `pixelvalve-1`, fbs allocated by `twoplane`, `normalized-zpos` 0 and 1, `plane_mask=44` (bits 2 and 6). `hvs_dlists` channel 0: two plane entries (720x1280 at 0,0, then 144x640 at 360,320) and the end word | observed 2026-11-28 |
+| Verdict, default run | `VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 720x1280@60.000Hz`. 0 dropped, latch interval mean 16.734 ms, max 16.820 ms; `RELEASE after the run: released 1200 of 1200 buffer uses, 0 still on screen` | observed 2026-11-28 |
+| Verdict, `--swap-z` | `VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 720x1280@60.000Hz`, after `SWAPZ skipped: a plane of the plan has a fixed zpos`; max interval 18.249 ms | observed 2026-11-28 |
+| Verdict, `--frames 300 --buffers 2 --blend coverage --plane-alpha 32768` | `VERDICT twoplane: PASS 300 frames on two planes, 300 latched, 598 released, 0 late, driver vc4 mode 720x1280@60.000Hz`. Max interval 16.791 ms | observed 2026-11-28 |
+| Verdict, `--frames 0 --unsupported` | `VERDICT twoplane: PASS no frames requested, nothing presented, driver vc4 mode 720x1280@60.000Hz` | observed 2026-11-28 |
+| Re-run from commit 112648f | probe output identical; default run 600/600/1198, 0 dropped, 0 late, max interval 16.806 ms; `--swap-z` max 20.420 ms; coverage run max 16.850 ms; the `UNSUPPORTED` block word for word the same | observed 2026-11-28 |
+| Errors, dropped frames | Every frame passed validation and the atomic `TEST_ONLY` and was committed; no error line; no new kernel messages; `hvs_underrun` 0 before, between and after all runs (that says nothing about load beyond two planes on an idle scanout) | observed 2026-11-28 |
+| KVM | None exists for this board; nothing captures the panel and nobody looked at it. The `EXPECT` lines were not checked | observed 2026-11-28 (the absence) |
+| Z-order as programmed | The overlay is above the background in the display list (planes are written in increasing zpos, per the source rows) | inferred from the observed display list and the source |
+| State afterwards | Plane 79 back on fbcon, plane 127 off, card0 held by nobody | observed 2026-11-28 |
+
+### BCM2711, unsupported combinations
+
+From `twoplane /dev/dri/card0 --frames 0 --unsupported`, 2026-11-28 (the re-run on 112648f was identical). The engine's view has 11 planes on the output.
+
+| Combination | Capability detection | Planner | Kernel `TEST_ONLY` | Tag |
+| --- | --- | --- | --- | --- |
+| Format `HWL0` | refuses | `NoPlane{layer:1, OUTPUT\|FORMAT}` | not reached | observed 2026-11-28 |
+| Modifier `AR24:I915_X_TILED` | refuses | `NoPlane{layer:1, OUTPUT\|FORMAT}` | not reached | observed 2026-11-28 |
+| 12 layers on 11 planes | refuses | `NoPlane{layer:11, OUTPUT\|IN_USE}` | not reached; 11 is the truncated view, the kernel gives this CRTC a primary and 16 overlays | observed 2026-11-28 |
+| Scale-up | refuses (no plane declares scaling) | `NoPlane{layer:1, OUTPUT\|SCALING}` | **ok** (hand-built plan, scaling up to 16 claimed) | observed 2026-11-28 |
+| Scale-down | refuses | `NoPlane{layer:1, OUTPUT\|SCALING}` | **ok** | observed 2026-11-28 |
+| Rotate-180 | refuses (`transforms 0x0`) | `NoPlane{layer:1, OUTPUT\|TRANSFORM}` | not reached (rotation not programmed; the source says vc4 has 0 / 180 / reflect) | observed 2026-11-28 |
+| Plane alpha, coverage blend, off-screen, odd geometry | accepts | plan | ok | observed 2026-11-28 |
+
+Capability detection and the planner agreed on every line; both are stricter than the kernel for scaling and rotation. No combination was refused by `TEST_ONLY` alone.
+
+### BCM2711, read from source
+
+Same tree and commit as the BCM2712 source table (`rpi-6.18.y`, `16ae2649dcfa`, read 2026-11-28). The board runs `6.12.47+rpt`, so details such as vertical decimation (new in 6.18) may differ. Not run.
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Generation | HVS5, `VC4_GEN_5`, compatible `brcm,bcm2711-vc5` | source |
+| CRTCs, channels | 5 pixelvalves but 3 HVS channels, so at most 3 active CRTCs. pv0: channel 0 only; pv3 (VEC): channel 1 only; pv1, pv2, pv4: any of 0..2; writeback (TXP): channel 2 only. Greedy assignment in `vc4_pv_muxing_atomic_check` | source |
+| Planes | 1 primary and 1 cursor per CRTC; 16 overlays shared by all non-TXP CRTCs (one allocation, so a pool, not 16 per CRTC); 32 overlays for the writeback CRTC. The code calls the counts arbitrary; the real limit is display-list space | source; "pool" reading inferred |
+| zpos | Primary immutable 0, overlays 1..17 mutable, cursor 17 (on top), TXP overlays 1..33 | source |
+| Alpha, blend | Plane alpha as `alpha >> 4`; blend None, Pre-multiplied, Coverage | source |
+| Formats | Common list plus P030 and the 10-bit RGB formats (gen 5 and later) | source |
+| Modifiers | Advertised: linear, T-tiled, SAND64 / 128 / 256. Per format: the 8 RGB formats XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 take linear or T-tiled; NV12 / NV21 linear or SAND; P030 SAND128 only; others linear only | source |
+| Scaling | Per axis NONE / PPF / TPZ; downscale up to 1.5 uses PPF, beyond that TPZ; no helper limit; driver limit on the TPZ ratio via `SCALER_TPZ0_SCALE_MASK` (0x1FFFFF); vertical decimation above 3x (6.18 only); source width up to 8191 on gen 5 | source |
+| Memory | LBM 60 x 1K words, 64 handles, needed only for planes with vertical scaling; display list 4064 words shared by all channels, freed lazily | source |
+| Rotation | 0, 180, reflect-X, reflect-Y; no 90/270 | source |
+| Bandwidth | The load tracker is enabled for gen 4 only: on BCM2711 the load feeds the core clock request and no commit is rejected for bandwidth | source |
+| Mode size | `mode_config` max 7680 x 7680; more than one connector per CRTC is `-EINVAL` | source |
+| Device tree | Which pixelvalves, TXP and outputs the CM4 / reTerminal tree enables was not read | not read |
+
+### BCM2711, inferred
+
+- Two real planes on one output exist (primary plus any shared overlay), as the harness showed. A shared-pool resource group like `Imx95Dpu`'s would matter only with two active outputs, which this board cannot show (HDMI unplugged); the limiting resource would be display-list words and LBM, visible only to `TEST_ONLY`. inferred
+- A z-swap check on this driver needs two overlays because the primary's zpos is immutable; the harness always skips it. inferred
+- No `DriverProfile` is warranted yet: only `TEST_ONLY` acceptance of one up and one down factor was observed. inferred
+
+## STM32MP257 (LTDC)
+
+STM32MP257F-DK (STMicroelectronics LTDC), driven over ssh. Records: `docs/observed/stm32mp257-topology.md` (2026-11-28), `docs/observed/stm32mp257.md` (first session 2026-11-27, re-run 2026-11-28); source: `docs/observed/stm32mp257-source.md`. The `Stm32Ltdc` notes in `crates/composition-drm/src/profile.rs` carry the later scaling measurement. The board's clock was not NTP-synchronised, so the `DATE` lines the harness printed on the board do not give the run date. None of this is a claim toward M1 to M3.
+
+**No picture was captured: the KVM could not be used (its MCP endpoint failed with HTTP 404), so z-order, alpha and the screen colours are not verified on the physical output.**
+
+### STM32MP257, observed
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Kernel, driver | `6.6.129 #1 SMP PREEMPT Thu Mar 5 15:03:43 UTC 2026 aarch64`, ST OpenSTLinux Weston image `5.0.17-openstlinux-6.6-yocto-scarthgap-mpu-v26.06.10`. `/dev/dri/card0`, the only card (`48010000.display-controller`); driver `stm` version 1.0.0 date 20170330, "STMicroelectronics SoC DRM" | observed 2026-11-27 |
+| Output, mode | `HDMI-A-1` connected, the capture unit as sink. 1920x1080 @ 60.000 Hz, 148.5 MHz, htotal 2200, vtotal 1125, +hsync +vsync. Other modes: 1920x1080 59.94 / 50, 1280x720 60 / 59.94 / 50, 800x600 75, 720x400 70.08 | observed 2026-11-27 (also 2026-11-28) |
+| Display client | Weston held the CRTC (XR24 1920x1080 linear on plane 34), planes 42 and 49 off. Weston was stopped for the `twoplane` runs and started again afterwards (`weston-graphical-session` and `seatd-weston` `active`, primary framebuffer allocated by weston) | observed 2026-11-27 |
+| CRTCs | 1 (id 41). Properties `VRR_ENABLED`, `GAMMA_LUT`, `GAMMA_LUT_SIZE` 256. No `CTM`, `DEGAMMA_LUT` or background colour | observed 2026-11-27 |
+| Planes, masks | 3: 34 Primary, 42 Overlay, 49 Overlay; `possible_crtcs` `0x1` on all. No cursor plane, no writeback connector | observed 2026-11-27 |
+| Formats | Plane 34: 21 (AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8 YUYV YVYU UYVY VYUY). Plane 42: those plus NV12 NV21 YU12 YV12 (25). Plane 49: RGB only, 17 (up to C8). Probe prints C8 as `C8??` (not mapped by the engine) | observed 2026-11-27 |
+| Modifiers | `IN_FORMATS` lists `LINEAR(0x0)` only, for every format on every plane | observed 2026-11-27 |
+| zpos | Mutable range 0..2 on all three planes; defaults 0, 1, 2 | observed 2026-11-27 |
+| Alpha, blend | `alpha` 0..65535 (default 65535) on all planes. **No `pixel blend mode` property**; composition-drm reports `blend [premultiplied]` as its default when the property is absent | observed 2026-11-27 |
+| Whether LTDC blends premultiplied | The report is the engine's default, not read from hardware; the two-plane run was meant to check it on the KVM, which gave no picture | inferred (unverified) |
+| Rotation | Plane 34: rotate-0 / 90 / 180 / 270, reflect-x, reflect-y. Planes 42, 49: rotate-0, reflect-x, reflect-y. composition-drm reports and programs no transform (`transforms 0x0`) | observed 2026-11-27 |
+| Colour properties | `COLOR_ENCODING` (BT.601, BT.709) and `COLOR_RANGE` on planes 34 and 42 only | observed 2026-11-27 |
+| Scaling, harness run | No KMS scaling property. At 2x, `TEST_ONLY` accepted upscale and rejected downscale (all 6 candidates). 2x was the only factor in the harness run, and `TEST_ONLY` the only check | observed 2026-11-27 |
+| Scaling, later measurement | Per the `Stm32Ltdc` notes in `profile.rs` (commits 3041769, 99d965d, 7966b89, `scale_probe`; the commit bodies are empty, so this follows `profile.rs`, not a raw record): downscale 0.5, 0.75 and 0.9 rejected (EINVAL) on all three planes; no upscale rejected on planes 34 and 42 up to the factor that shrinks the source to one pixel (1920 horizontally, 1080 vertically and on both axes), so 1080 is used as `max_upscale`; plane 49 accepts only 1.0. Quality, bandwidth and underrun at large factors, and factors needing a sub-pixel source, were not tried | observed 2026-11-27 (per `profile.rs`; `TEST_ONLY` only) |
+| Which layers scale | Planes 34 and 42 scale, plane 49 does not. That this holds for layers 0 and 1 of the SoC in general is concluded from the one board | observed 2026-11-27 (this board); general reading inferred |
+| Non-full-screen primary | The primary accepted a 384x540 window at 960,270 (second half of `--swap-z`) | observed 2026-11-27 |
+| What probe shows | All three planes and one output; formats as raw. Probe omits rotation, colour properties and the CRTC properties | observed 2026-11-28 |
+| Plane assignment of the two-plane harness | Layer 0 (background, XR24 1920x1080) -> primary 34 zpos 0; layer 1 (overlay, AR24 384x540 at 960,270) -> overlay 42 zpos 1; plane 49 off; `PROFILE Generic`; 3 buffers per layer. Debugfs state 4 s into the run: plane 34 `normalized-zpos` 0 and plane 42 `normalized-zpos` 1, fbs allocated by `twoplane`, 58 fps user updates each, `plane_mask=3` | observed 2026-11-27 |
+| Verdict, default run | `VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver stm mode 1920x1080@60.000Hz`. 0 dropped, latch interval mean 16.667 ms, max 17.446 ms; `RELEASE after the run: released 1200 of 1200 buffer uses, 0 still on screen` | observed 2026-11-27 |
+| Verdict, `--swap-z` | `VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver stm mode 1920x1080@60.000Hz`, with `SWAPZ at frame 300: overlay now below the background`; max interval 17.421 ms. The planner swapped by moving layers between planes (overlay onto plane 34, background onto plane 42); each plane's zpos stayed 0 and 1 | observed 2026-11-27 |
+| Whether the swap reprogrammed `zpos` | It did not: concluded from the plan lines and the `normalized-zpos` values | inferred |
+| Verdict, `--plane-alpha 32768 --frames 120` | `VERDICT twoplane: PASS 120 frames on two planes, 120 latched, 238 released, 0 late, driver stm mode 1920x1080@60.000Hz` (commit only, no picture) | observed 2026-11-27 |
+| Verdict, `--blend coverage --frames 60` and `--blend none --frames 60` | `ERROR frame 0: validate: Plan(NoPlane { layer: 1, reasons: BLEND })` and `VERDICT twoplane: FAIL frame 0: validate: Plan(NoPlane { layer: 1, reasons: BLEND }) (1 error(s)), driver stm mode 1920x1080@60.000Hz`. The planner refused a blend mode the caps do not offer; not a driver failure | observed 2026-11-27 |
+| Verdict, `--frames 0 --unsupported` | `VERDICT twoplane: PASS no frames requested, nothing presented, driver stm mode 1920x1080@60.000Hz` | observed 2026-11-27 |
+| Re-run from commit 112648f | `probe`, default, `--swap-z`, `--plane-alpha 32768 --frames 120`, `--blend coverage`, `--unsupported` and `--unsupported --scaling 8,2` gave the same plans, verdicts and `UNSUPPORTED` lines; 0 dropped, 0 late; latch interval maxima 17.970 ms (default) and 17.411 ms (swap); LTDC error and underrun counters stayed 0 | observed 2026-11-28 |
+| Errors, dropped frames | 0 dropped and 0 late in the committed runs; `transfer_error`, `fifo_underrun_error` and `fifo_underrun_warning` 0 during and after; no DRM or LTDC kernel message after the boot line `[drm] Initialized stm 1.0.0 20170330 for 48010000.display-controller on minor 0` | observed 2026-11-27 |
+| KVM | No screenshot in either session: the KVM server failed to connect (HTTP 404 from its relay). Z-order, alpha and colours on screen are unverified. The board saw the capture unit as a 1920x1080 sink (EDID name "NanoKVM"), and Weston scanned out an active 1920x1080 XR24 buffer; what was on screen is not known | observed 2026-11-27 and 2026-11-28 (the failure and the sink); picture content unverified |
+| Evidence held instead | The kernel's atomic state during the runs, the harness's event accounting, and the `EXPECT` lines for a later capture comparison | observed 2026-11-27 |
+
+### STM32MP257, unsupported combinations
+
+From `twoplane /dev/dri/card0 --frames 0 --unsupported`, 2026-11-27 (the re-run on 2026-11-28 matched). Three planes on the output.
+
+| Combination | Capability detection | Planner | Kernel `TEST_ONLY` | Tag |
+| --- | --- | --- | --- | --- |
+| Format `HWL0` | refuses | `NoPlane{layer:1, FORMAT}` | not reached | observed 2026-11-27 |
+| Modifier `AR24:I915_X_TILED` | refuses (linear only) | `NoPlane{layer:1, FORMAT}` | not reached | observed 2026-11-27 |
+| 4 layers on 3 planes | refuses | `NoPlane{layer:3, IN_USE}` | not reached | observed 2026-11-27 |
+| 2x upscale | refuses (no scaling declared); accepts with `--scaling 8,1` or `8,2` | `NoPlane{layer:1, SCALING}` by default; a plan when scaling is claimed | **ok** | observed 2026-11-27 (2x only) |
+| 2x downscale | refuses; with `--scaling 8,1` refuses ("declared limits are below a factor of 2"); with `--scaling 8,2` accepts | `NoPlane{layer:1, SCALING}` by default; a plan with `--scaling 8,2` | **rejected** (EINVAL / ERANGE / ENOSPC, 6 candidates) in every case; once the caps claim it, only `TEST_ONLY` catches it | observed 2026-11-27 |
+| Rotate-180 | refuses (`transforms 0x0`, though plane 34 lists rotate-180) | `NoPlane{layer:1, TRANSFORM}` | not reached | observed 2026-11-27 |
+| Plane alpha 0x8000 | accepts | plan | ok | observed 2026-11-27 |
+| Coverage blend | refuses (no blend property) | `NoPlane{layer:1, BLEND}` | not reached | observed 2026-11-27 |
+| Off-screen, odd size and offset | accepts | plan (clipped) | ok | observed 2026-11-27 |
+
+### STM32MP257, read from source
+
+`STMicroelectronics/linux` branch `v6.18-stm32mp`, commit `3056405e0479`, `drivers/gpu/drm/stm/ltdc.c` read in full on 2026-11-28 (`docs/observed/stm32mp257-source.md`, which has the line numbers). The board runs `6.6.129`. `ltdc.h`, `drv.c`, the device-tree files, the binding and mainline were not read. Not run.
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Capabilities | Chosen by the hardware version register; the 4.x case (`HWVER_40100` / `40101`) sets `dynamic_zorder`, `plane_rotation`, the scaler probe and the FIFO threshold. That the MP25 reports one of these was not confirmed | source; MP25 mapping inferred |
+| CRTC, encoder | 1 CRTC (`NB_CRTC`), one encoder of type `DRM_MODE_ENCODER_DPI` with a bridge | source |
+| Layers | Count read from `LTDC_LCR`, clamped to `1..LTDC_MAX_LAYER` (value in `ltdc.h`, not read); a layer behind a denied firewall is not created. Primary is layer 0, the rest are overlays, no cursor plane; `possible_crtcs` 0x1 for all | source |
+| Formats | RGB: ARGB8888, XRGB8888, ABGR8888, XBGR8888, RGBA8888, RGBX8888, BGRA8888, BGRX8888, RGB565, BGR565, RGB888, BGR888, ARGB1555, XRGB1555, ARGB4444, XRGB4444, C8. Interleaved YUV where the layer supports it. NV12, NV21, YUV420, YVU420 only on layers with nonzero index on MP251 / MP255 | source |
+| Modifiers | `DRM_FORMAT_MOD_LINEAR` only | source |
+| zpos | Mutable when `dynamic_zorder`, range `0 .. nb_layers-1`, initial value the layer index | source |
+| Alpha, blend | `alpha` on every plane; no call that creates a blend-mode property | source |
+| Scaling | Per layer (`LXCR_C1R_SCA`); upscale only ("Downscaling is not supported"); a layer without the scaler rejects any size mismatch; a YUV format with scaling is rejected; the factor has 12 fractional bits masked to 16 bits and no numeric cap in the code. Which layers have the scaler is a register fact, not in the source. The horizontal and vertical phase registers look cross-assigned in `ltdc_plane_update` (unverified, possibly a driver bug) | source; the register reading unverified |
+| Rotation | `ROTATE_0`, `REFLECT_X`, `REFLECT_Y` on every layer; 90 / 180 / 270 on the primary only, and only with `crtc_rotation` (needs `GC2R_ROTA` and a `rotation-memory` region in the device tree; rotator registers reachable on MP255 only) | source |
+| Rotation constraints | With 90 / 270 no other layer may be used; reserved buffer of at least `hdisplay*vdisplay*2*3` bytes; `vdisplay` above 1366 refused. These refusals sit in `ltdc_plane_update`, after `GCR_LTDCEN` was cleared, so the display stays stopped on that path | source |
+| Bandwidth, underrun | No bandwidth accounting at check time; FIFO underrun is found by interrupts and logged ("ltdc fifo underrun: please verify display mode"); `FUT_DFT` 128; burst length from the device tree (`st,burstlen`) | source |
+| Pixel clock | `pad_max_freq_hz` from match data (value not read); 5 permille clock tolerance for non-preferred modes | source (limit value open) |
+| Not read | Mainline `ltdc.c`, the device tree, the `LTDC_MAX_LAYER` value in `ltdc.h`, `drv.c` | not read |
+
+### STM32MP257, inferred
+
+- Two hardware planes on one output exist because all planes share the one CRTC; the harness confirmed it on this board (planes 34 and 42). 90 / 270 rotation would exclude a second plane. inferred
+- `TEST_ONLY` covers the scaling rules (in `atomic_check`). The rotation buffer-size and 1366 checks are in `ltdc_plane_update`, past `TEST_ONLY`, so `TEST_ONLY` can pass and the commit then leave the display stopped. Not run on the board. inferred
+- Underrun cannot be seen before commit: a combination that passes `TEST_ONLY` can still underrun. inferred
+- The profile in `profile.rs` (upscale to 1080, no downscale, primary and first overlay) is consistent with the observed rows above; YUV scaling is not modelled and is left to `TEST_ONLY`. inferred
+
 ## Sources
 
 - https://github.com/nxp-imx/linux-imx/tree/6e694eda40aabd6671fca82b5416dbd76beeebb9/drivers/gpu/drm/imx/dpu95
