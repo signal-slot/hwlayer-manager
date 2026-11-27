@@ -97,5 +97,8 @@ Partial check (observed): a `west build --cmake-only` run against the pinned
 commit accepted the board qualifier `imx95_evk/mimx9596/m7/ddr`, found
 `boards/imx95_evk_mimx9596_m7_ddr.overlay`, and stopped at the toolchain step
 because no Zephyr SDK was installable on that machine. The board DTS plus the
-overlay preprocessed without error with the host C preprocessor. Binding
-validation, Kconfig and compilation were not run.
+overlay preprocessed with the host C preprocessor and then loaded through
+Zephyr's `edtlib` against the in-tree bindings: the `dpu` node validates
+(`socionext,dpu`, the `zephyr,panel-timing` child, `width`/`height`/
+`pixel-format`) and is the `zephyr,display` chosen node. Kconfig and
+compilation were not run.
