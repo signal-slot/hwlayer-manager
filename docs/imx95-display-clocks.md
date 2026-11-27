@@ -23,7 +23,7 @@ What this note does not repeat:
 
 | Id | Source | Pin | Files read |
 |---|---|---|---|
-| C1 | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `lf-6.6.52-2.2.2` / `rel_imx_sm_2025q3` = commit `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`. This is the same pin as S1 in the feasibility note and as the other SM notes | `devices/MIMX95/sm/dev_sm_clock.h`, `dev_sm_clock.c` (verbatim up to about 70 % of the file, the rest summarised); `devices/MIMX95/drivers/fsl_clock.c`; `devices/MIMX95/configtool/ccmsrcgpcmix.cfg`; `configs/mx95evk.cfg`; `sm/rpc/scmi/rpc_scmi_clock.c`, `rpc_scmi_config.h`, `rpc_scmi.c`, `rpc_scmi_base.c`; `sm/lmm/lmm_clock.c`, `lmm.c`, `lmm_sys.c`; `sm/doc/config.md`; listings of `configs/` and `configs/other/` |
+| C1 | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `rel_imx_sm_2025q3` = commit `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`. The annotated tag `lf-6.6.52-2.2.2` (tag object `5c94700d6a54`) points to the same commit, as checked in a clone's `packed-refs` on 2026-11-28. This is the same pin as S1 in the feasibility note and as the other SM notes | `devices/MIMX95/sm/dev_sm_clock.h`, `dev_sm_clock.c` (verbatim up to about 70 % of the file, the rest summarised); `devices/MIMX95/drivers/fsl_clock.c`; `devices/MIMX9/drivers/fsl_fract_pll.c`, `fsl_ccm.c`; `sm/doc/examples/example.cfg`; `devices/MIMX95/configtool/ccmsrcgpcmix.cfg`; `configs/mx95evk.cfg`; `sm/rpc/scmi/rpc_scmi_clock.c`, `rpc_scmi_config.h`, `rpc_scmi.c`, `rpc_scmi_base.c`; `sm/lmm/lmm_clock.c`, `lmm.c`, `lmm_sys.c`; `sm/doc/config.md`; listings of `configs/` and `configs/other/` |
 | C2 | NXP linux-imx, <https://github.com/nxp-imx/linux-imx> | tag `lf-6.6.52-2.2.2` = commit `5a0a5e71d2bd` | `include/dt-bindings/clock/fsl,imx95-clock.h`; `arch/arm64/boot/dts/freescale/imx95.dtsi` (display nodes); `imx95-19x19-verdin-panel-cap-touch-10inch-lvds.dts`; `drivers/gpu/drm/imx/dpu95/dpu95-{core,drv,crtc,kms,framegen}.c`; `drivers/gpu/drm/bridge/imx/imx95-ldb.c`; `drivers/clk/imx/imx95-blk-ctrl.c`; `drivers/clk/clk-scmi.c`; `drivers/clk/clk-fixed-factor.c`; `drivers/phy/freescale/phy-fsl-imx8mp-lvds.c` |
 | C3 | Toradex linux-toradex, `git://git.toradex.com/linux-toradex.git` | commit `64f85d65c112c45ceb6c7e0566885afc62b1a551` (the board's 6.6.157 kernel) | **Not re-read here.** Its DPU clocks (`imx95.dtsi:2759-2767`) and the 10" LVDS overlay rates (`:43-45`) are cited from [imx95-dpu-source-6.6.md](imx95-dpu-source-6.6.md), and they agree with C2 |
 | — | Toradex SM configuration for the Verdin iMX95 | — | **Not read.** C1 has no Verdin or Toradex config: `configs/` holds `mx94alt`, `mx94evk`, `mx95alt`, `mx95evk`, `simu`, and `configs/other/` holds only NXP variants (`mx95evk-android`, `-jailhouse`, `-rpmsg`, `-sof`, `mx95netc`, `mx95rte`) (read from source, C1). Toradex's layers on git.toradex.com could not be fetched (see S8 in the feasibility note) |
@@ -32,10 +32,11 @@ How the files were read: `git clone` and direct downloads were refused on
 this node. The files were therefore read over HTTPS through a page fetcher
 (raw.githubusercontent.com at the commit above). The quoted identifiers and
 code are verbatim, but **line numbers are approximate** unless a row gives an
-exact number. Re-check against a clone before citing a line elsewhere. The
-following were **not found or not read**: the MIMX95 `fsl_ccm.c` (where
-`CCM_RootSetRate` lives) and `fsl_fract_pll.c` (where `FRACTPLL_SetRate`
-lives) in C1, and the `imx95-19x19-verdin.dts` base file in C2.
+exact number. The line numbers given for `fsl_fract_pll.c`, `fsl_ccm.c` and
+`example.cfg` were counted on the fetched raw text and should be within ±2.
+Re-check against a clone before citing a line elsewhere. **Not read**: the
+`imx95-19x19-verdin.dts` base file in C2, the `CCM_CLOCK_ROOT_DIV_MASK`
+register header, and `mx95evk.cfg`'s own definition of `OWNER`.
 
 Everything about the SM below describes **NXP's `mx95evk` configuration**.
 That the Verdin's SM grants the same permissions is **inferred** and
@@ -161,9 +162,11 @@ LM) make calls they will be overwriting each other". Also, "configtool and SM
 implementation do not prevent violating the isolation by giving multiple
 agents access where aggregation does not occur". In a `.cfg`, an API line
 `CLOCK_x ALL` grants `clk=all`, and a resource line `VIDEO_PLL1 OWNER` expands
-to TRDC rights plus `clk=all` on the clocks the resource maps to (read from
-source; the `OWNER` macro text itself is in `example.cfg`, which was not
-read).
+to TRDC rights plus full API rights on the clocks the resource maps to. The
+`OWNER` macro is defined per LM section. In `sm/doc/examples/example.cfg` it
+is `OWNER: perm=sec_rw, api=all` for LM0 (line 22) and `OWNER: perm=rw,
+api=all` for LM1 (line 46) (read from source). That `mx95evk.cfg` defines
+`OWNER` the same way for AP-NS is inferred.
 
 Resource-to-clock mapping (`ccmsrcgpcmix.cfg`, approx. lines 48-50 and
 63-64): `CLOCK_DISP1PIX: CLK_DISP1PIX` (likewise 2PIX and 3PIX), `LDB_PLL:
@@ -212,10 +215,30 @@ Every handler first returns `SM_ERR_NOT_FOUND` for `clockId >= SM_NUM_CLOCK`.
   if the read-back rate is below the request ("Overclocking of clock sources
   is not supported"). A root rate goes to `CCM_RootSetRate`, and the summary
   of `dev_sm_clock.c` names only a reserved-clock guard (read from source,
-  partly from the summarised part of `dev_sm_clock.c`). Whether
-  `FRACTPLL_SetRate` powers down and relocks the PLL, and whether
-  `CCM_RootSetRate` changes only the divider: **not read**, because
-  `fsl_fract_pll.c` and `fsl_ccm.c` were not found.
+  partly from the summarised part of `dev_sm_clock.c`).
+- **PLL write sequence** (`devices/MIMX9/drivers/fsl_fract_pll.c`,
+  `FRACTPLL_SetRate` from line 364; read from source):
+  - *Output (ODIV) rate*, e.g. `LDBPLL` or `VIDEOPLL1`: ODIV is computed
+    from the current VCO rate and clamped to 2-255. It is then written by a
+    plain read-modify-write of `DIV` (lines 414-460). There is no power-down,
+    no output gating and no wait, so the output changes **live**.
+  - *VCO rate*, e.g. `LDBPLL_VCO`: first `FRACTPLL_DynamicSetRate`
+    (lines 317-359). On a powered fractional PLL with the default
+    denominator, this rewrites only `NUMERATOR` (MFN) live, if the new rate
+    keeps the current integer part "to avoid relock". Otherwise
+    `FRACTPLL_UpdateRate` (lines 232-312) clears `CLKMUX_EN` (output gated),
+    clears `POWERUP`, writes `DIV` (MFI, RDIV 0, ODIV kept) and MFN, powers
+    up, and polls `PLL_LOCK`. It re-enables the output only after lock. On a
+    lock timeout it returns false and leaves the PLL powered down with its
+    output gated.
+  - No path refuses the change because the PLL is enabled or in use. A PLL
+    in bypass is reported as disabled (line 63).
+- **Root rate** (`devices/MIMX9/drivers/fsl_ccm.c`, `CCM_RootSetRate`,
+  lines 145-230; read from source): this changes only the root divider of
+  the currently selected mux input (lines 152, 223-225). It never changes the
+  mux; that is `CCM_RootSetParent`. The divider is clamped to at most 256.
+  There is no enable or in-use check; the only guard is
+  `rootIdx < CLOCK_NUM_ROOT && rate != 0` (line 149).
 - **LM reset.** `LMM_DoShutdown` → `LMM_RpcReset` → `RPC_SCMI_Reset` →
   `BaseResetAgentConfig` for every agent of that LM: it revokes device access
   (`SM_RDCACCESSSET(..., false)`), then `ClockResetAgentConfig` clears the
@@ -241,10 +264,13 @@ Every handler first returns `SM_ERR_NOT_FOUND` for `clockId >= SM_NUM_CLOCK`.
 
 - **Rate.** Suppose Linux has set `LDBPLL` to 497.7 MHz for the 71.1 MHz
   panel and the M7, given `EXCLUSIVE`, writes another rate. The SM applies it
-  with no check (read from source). The LDB serial clock and the DPU pixel
-  clock both derive from `LDBPLL`, so Linux's running LVDS stream changes
-  frequency, or glitches if the PLL relocks (the relock was not read). Linux
-  does not notice: `ldb_pll_div7` does not forward rate requests, the LDB
+  with no check (read from source). An `LDBPLL` (ODIV) write changes the
+  output live. An `LDBPLL_VCO` write either retunes MFN live or gates the
+  output and relocks it, and a failed lock leaves it off (read from source,
+  §4.3). The LDB serial clock and the DPU pixel clock both derive from
+  `LDBPLL`. Linux's running LVDS stream therefore jumps in frequency, or
+  stops for the relock time, or stays dark after a failed lock (inferred
+  from that sequence). Linux does not notice: `ldb_pll_div7` does not forward rate requests, the LDB
   driver ignores `clk_set_rate`'s return, and `CLK_GET_RATE_NOCACHE` only
   shows the new rate when someone reads it. Nothing restores 497.7 MHz until
   the next `ldb` probe.
@@ -276,9 +302,8 @@ display (the "instead of Linux" design).
 - Read the Toradex SM `.cfg` for the Verdin iMX95 and the Mallow LVDS overlay
   (git.toradex.com was not reachable). This note's permission statements are
   for `mx95evk`.
-- Read `fsl_fract_pll.c` (does `FRACTPLL_SetRate` power down and relock?) and
-  `fsl_ccm.c` (`CCM_RootSetRate` divider range, parent changes). Neither was
-  found in the listings fetched.
+- Get exact line numbers from a local checkout of `af1e3702`. A clone exists,
+  but reading the pinned commit from it was not permitted on this node.
 - Confirm on the board, read-only, that Linux's `clk_summary` shows `ldbpll`
   at 497.7 MHz and `disp1pix` unused for LVDS. This belongs to an observation
   item, not to this note.
