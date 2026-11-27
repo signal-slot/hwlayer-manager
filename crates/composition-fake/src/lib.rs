@@ -52,6 +52,7 @@ pub struct FakeBackend {
     commits: u32,
     vsync_in_next_commit: bool,
     vsync_after_next_commit: bool,
+    event_in_next_commit: Option<BackendEvent>,
 }
 
 impl FakeBackend {
@@ -68,6 +69,7 @@ impl FakeBackend {
             commits: 0,
             vsync_in_next_commit: false,
             vsync_after_next_commit: false,
+            event_in_next_commit: None,
         }
     }
 
@@ -93,6 +95,13 @@ impl FakeBackend {
     /// before it returns to the engine: it is latched and reported at once.
     pub fn vsync_after_next_commit(&mut self) {
         self.vsync_after_next_commit = true;
+    }
+
+    /// Queues `event` while the next commit runs, after the commit took
+    /// effect and before it returns to the engine, as a driver interrupt
+    /// would. It is queued only if that commit succeeds.
+    pub fn inject_event_in_next_commit(&mut self, event: BackendEvent) {
+        self.event_in_next_commit = Some(event);
     }
 
     /// Simulates a vertical blank: every pending commit is latched.
@@ -220,6 +229,9 @@ impl DisplayBackend for FakeBackend {
             .collect();
         state.pending = Some(Commit { submission, planes });
         self.commits += 1;
+        if let Some(event) = self.event_in_next_commit.take() {
+            self.events.push_back(event);
+        }
         if core::mem::take(&mut self.vsync_after_next_commit) {
             self.vsync();
         }
