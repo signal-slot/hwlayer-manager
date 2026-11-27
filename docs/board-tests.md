@@ -24,8 +24,8 @@ failure. Each app needs:
 - `src/` with at least one `.c`, `.cpp`, `.cc`, `.S` or `.rs` file
 - `README.md` that contains a `west build` command
 
-The script also fails an app whose files contain an IPv4 address, the string
-`/dev/tty` or the word `password`. Keep those out of sources, devicetree
+The script also fails an app whose files contain an IPv4 address, a serial
+device path or the word "password". Keep those out of sources, devicetree
 overlays and the README. Optional pieces such as `Kconfig`, `boards/` overlays
 and extra `.conf` files are not checked.
 
