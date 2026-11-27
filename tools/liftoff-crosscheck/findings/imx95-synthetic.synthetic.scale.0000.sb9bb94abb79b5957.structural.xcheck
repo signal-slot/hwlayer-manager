@@ -1,0 +1,29 @@
+# finding of liftoff-crosscheck sweep: liftoff-only
+# GEN_VERSION=1 seed=0x5eed11f70ffc4226 case_seed=0xb9bb94abb79b5957
+# family=scale index=0000 topology=imx95-synthetic model=structural
+xcheck 1
+origin synthetic 2026-11-28 imitates the plane stream of the DriverProfile::Imx95Dpu unit test in crates/composition-drm/src/profile.rs
+profile imx95dpu
+output 0 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 41 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 42 kind=overlay outputs=0x1 zpos=0..5 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 43 kind=overlay outputs=0x1 zpos=0..5 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 44 kind=overlay outputs=0x1 zpos=0..5 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 45 kind=overlay outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+buffer 1 240 135 AR24 0x0
+frame scale.0000 output=0
+  layer buffer=1 src=0,0,240,135 dst=0,0,480,270 z=0 alpha=65535 blend=premul transform=normal
+end

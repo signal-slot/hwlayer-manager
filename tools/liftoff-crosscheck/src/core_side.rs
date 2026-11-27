@@ -330,7 +330,7 @@ fn plan_states(plan: &Plan, frame: &xcheck::Frame) -> Vec<PlaneState> {
                 zpos: a.zpos,
                 alpha: layer.alpha,
                 blend: layer.blend,
-                rotation: layer.transform,
+                rotation: rotation::property_value(layer.transform),
             }
         })
         .collect()
@@ -428,6 +428,35 @@ end
             }
         );
         assert!(states[1].zpos > states[0].zpos);
+    }
+
+    #[test]
+    fn a_lone_reflection_is_sent_with_rotate_0() {
+        // A flip_h layer: core plans it, and its state carries ROTATE_0 |
+        // REFLECT_X (as the C driver sends it), which the model accepts.
+        let text = "\
+xcheck 1
+origin synthetic 2026-11-28 core_side unit test
+output 7 100 100 60000
+plane 10 kind=primary outputs=0x1 zpos=fixed:0 alpha=0 blend=opaque transforms=normal,flip_h scaling=none max_source=none full_output=0
+  format AR24 0x0
+buffer 1 100 100 AR24 0x0
+frame flip output=7
+  layer buffer=1 src=0,0,100,100 dst=0,0,100,100 z=0 alpha=65535 blend=opaque transform=flip_h
+end
+";
+        let x = xcheck::read(text).unwrap();
+        assert_eq!(x.frames[0].layers[0].transform, rotation::REFLECT_X);
+        let s = CoreSide::new(&x).unwrap();
+        let states = s.plan_frame(&x.frames[0], &mut accept_all).unwrap();
+        assert_eq!(states[0].rotation, rotation::ROTATE_0 | rotation::REFLECT_X);
+        for setting in [
+            crate::model::Setting::Structural,
+            crate::model::Setting::Full,
+        ] {
+            let m = crate::model::Model::new(&x, setting).unwrap();
+            assert_eq!(m.check(7, &states).map_err(|r| r.reason), Ok(()));
+        }
     }
 
     #[test]

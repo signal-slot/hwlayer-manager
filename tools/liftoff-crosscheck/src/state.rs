@@ -17,6 +17,17 @@ pub mod rotation {
     pub const REFLECT_X: u32 = 1 << 4;
     /// Reflect along the Y axis (vertical flip).
     pub const REFLECT_Y: u32 = 1 << 5;
+
+    /// The `rotation` property value for a layer transform: a reflection
+    /// alone gets [`ROTATE_0`], as DRM requires exactly one rotation bit (the
+    /// C driver's `parse_layer_transform` does the same).
+    pub const fn property_value(transform: u32) -> u32 {
+        if transform & (ROTATE_0 | ROTATE_90 | ROTATE_180 | ROTATE_270) == 0 {
+            transform | ROTATE_0
+        } else {
+            transform
+        }
+    }
 }
 
 /// Pixel blend mode of a plane or layer.
