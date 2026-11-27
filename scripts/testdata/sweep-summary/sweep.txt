@@ -1,0 +1,11 @@
+# SYNTHETIC fixture: invented values, not board data.
+COMBO k=2 planes=31,42 scale=none result=ok
+COMBO k=10 planes=31,42,43,44,45,46,47,48,49,50 scale=none result=EINVAL
+COMBO k=3 planes=31,42,43 scale=2x result=ok
+COMBO_MAX accepted_k=3
+MODIFIER plane=42 format=XR24 modifier=0x0 listed=yes addfb=ok test_only=ok
+MODIFIER plane=42 format=XR24 modifier=0x0100000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=43 format=NV12 modifier=0x0200000000000002 listed=no addfb=ok test_only=ok
+MODIFIER plane=43 format=NV12 modifier=0x0200000000000003 listed=no addfb=EINVAL test_only=not reached
+REPLACE second=EBUSY events=1
+VERDICT kms_sweep: OK synthetic
