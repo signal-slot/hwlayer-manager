@@ -83,7 +83,7 @@ python3 scripts/camera-check.py PICTURE EXPECT.json [--compare PICTURE2] [--rota
 
 Exit 0 is `VERDICT: PASS`, 1 `VERDICT: FAIL`, 2 a usage or input error. The picture is rotated by `rotation` (default 180 for the board camera; a KVM capture is normally upright, so pass `--rotation 0` or set it in the file), the panel is found (`auto`, or explicit corners, which are needed for a black panel background), and each region in `EXPECT.json` is measured against an expected colour within a tolerance. With `--compare` the same regions are measured in two pictures and asserted `changed` or `same`.
 
-Pictures are taken through the script's `--hook` at `hold-start`/`hold-end` of A1, A2 and A3 (A4 and A5 have no hold hook). The expected regions come from the plane layout and colours printed by the harness's `two-planes` run. A picture verdict is recorded next to the log verdict of its row; the two are never merged, and a row whose logs fail is FAIL whatever the picture shows. A picture that cannot be judged (no capture, panel not found) is recorded as such, not as PASS.
+Pictures are taken through the script's `--hook` at `hold-start`/`hold-end` of A2 and A3 only (A1, A4 and A5 have no hook call, so a picture of A1 has to be taken by hand during its `--seconds` hold). The expected regions come from the plane layout and colours printed by the harness's `two-planes` run. A picture verdict is recorded next to the log verdict of its row; the two are never merged, and a row whose logs fail is FAIL whatever the picture shows. A picture that cannot be judged (no capture, panel not found) is recorded as such, not as PASS.
 
 ## Raspberry Pi 5 (BCM2712, vc4)
 
@@ -91,10 +91,10 @@ Board facts (kernel, driver, connector, mode, compositor state): not measured.
 
 | Row | Log result | Counts (commits / latched / released) | KVM picture verdict | Date and kernel |
 | --- | --- | --- | --- | --- |
-| A1 startup | not measured | not measured | not measured | not measured |
+| A1 startup | not measured | not measured | not measured (no hook; by hand) | not measured |
 | A2 steady state | not measured | not measured | not measured | not measured |
 | A3 stop/restart | not measured | not measured | not measured | not measured |
-| A4 lease loss | not measured | not measured | not applicable (no hold hook) | not measured |
+| A4 lease loss | not measured | not measured | not applicable (no hook call) | not measured |
 | A5 modeset | not measured | not measured | not applicable | not measured |
 
 Notes: none yet.
@@ -105,10 +105,10 @@ Board facts (kernel, driver, connector, mode, compositor state): not measured.
 
 | Row | Log result | Counts (commits / latched / released) | KVM picture verdict | Date and kernel |
 | --- | --- | --- | --- | --- |
-| A1 startup | not measured | not measured | not measured | not measured |
+| A1 startup | not measured | not measured | not measured (no hook; by hand) | not measured |
 | A2 steady state | not measured | not measured | not measured | not measured |
 | A3 stop/restart | not measured | not measured | not measured | not measured |
-| A4 lease loss | not measured | not measured | not applicable (no hold hook) | not measured |
+| A4 lease loss | not measured | not measured | not applicable (no hook call) | not measured |
 | A5 modeset | not measured | not measured | not applicable | not measured |
 
 Notes: none yet.
