@@ -85,3 +85,85 @@ downscale 0.5, 0.75, 0.9 on each axis and on both. Resolution 256/65536.
   not measurable with this tool.
 * Display state: the connected CRTC was already active at 1920x1080@60 with
   the console framebuffer; TEST_ONLY never changes it.
+
+## Sweeps (observed 2026-11-27)
+
+Run 2026-11-27 (UTC, board clock) on the same board and kernel
+`6.18.50+rpt-rpi-2712` as above, vc4 card, 1920x1080@60 on CRTC 94, as root
+(DRM master), **no display manager or compositor running** (all of
+`display-manager`, `gdm`, `sddm`, `lightdm`, `weston` inactive before and after;
+only the tty1 getty and the serial getty). Binaries `kms_sweep` and
+`scale_probe` built from repository commit 0e4f9b8. Every request is
+`TEST_ONLY | ALLOW_MODESET` except `replace`, which makes real commits.
+Buffers are zero-filled dumb buffers: an accepted modifier means the kernel
+check passed, not that the hardware would scan such content correctly.
+
+| File | Command |
+| --- | --- |
+| `sweep-modifiers-2026-11-27.txt` | `kms_sweep modifiers --plane P --modifier vc4-t-tiled --modifier sand64 --modifier sand128 --modifier sand256` for P = 83 (primary), 107, 118 (overlays) |
+| `sweep-combos-2026-11-27.txt` | `kms_sweep combos --max 16` |
+| `sweep-combos-scaled-2026-11-27.txt` | `kms_sweep combos --max 16 --scale-v 0.5` and `--scale-v 2` (every layer, primary included) |
+| `sweep-replace-2026-11-27.txt` | `kms_sweep replace` |
+| `scale-probe-ladder-2026-11-27.txt` | `scale_probe --plane P --max-factor 64` for P = 83 and 107 |
+
+### Modifiers (observed 2026-11-27)
+
+Result per modifier, identical on the primary (83) and both overlays (107, 118).
+Modifier values: `0x0700000000000001` T-tiled, `...03` SAND64, `...04` SAND128,
+`...05` SAND256.
+
+| Modifier | IN_FORMATS lists it for | ADDFB2 | TEST_ONLY |
+| --- | --- | --- | --- |
+| linear (0) | 39 of 45 formats per plane (the other 5 per plane: `addfb=unsupported-format`, sweep does not know the layout) | ok | **accepted**, all 39 |
+| T-tiled | 8 packed-RGB formats per plane (24 pairs over 3 planes) | ok | **EINVAL, all 24** |
+| SAND64 | NV12, NV21 | ok | **EINVAL, all 6** |
+| SAND128 | NV12, NV21 (+1 format per plane the sweep cannot build) | ok | **accepted**, NV12 and NV21 on each plane (6 of 6) |
+| SAND256 | NV12, NV21 | ok | **accepted**, NV12 and NV21 on each plane (6 of 6) |
+
+Pairs the blob does not list (`listed=no`; every `--modifier` on every other
+format, 111 per modifier over 3 planes) fail at ADDFB2 with EINVAL, so TEST_ONLY
+is not reached for them. Conclusion: on BCM2712 / HVS6 the IN_FORMATS blob
+lists T-tiled and SAND64, but TEST_ONLY rejects both; only SAND128 and SAND256
+(NV12/NV21) pass beyond linear. This settles the conflict of
+`docs/hvs-backend-design.md` §5 in favour of the source (HVS6 rejects
+T-tiled and SAND64), and the blob over-reports.
+
+### Combinations (observed 2026-11-27)
+
+Candidates: primary 83 plus 16 shared overlays, 107..272 step 11 (17 planes,
+cursor excluded). 33 sets per k (the first plus 32 spread), full-screen linear
+XRGB/ARGB, distinct ascending zpos.
+
+| Run | `COMBO_MAX` | per k |
+| --- | --- | --- |
+| plain (1:1) | `accepted_k=16` | k = 1..16 every set `ok` (all 17 planes not tried: `--max 16`) |
+| `--scale-v 0.5` | `accepted_k=8` | k <= 8 `ok`; k = 9..16 every set `ENOSPC` |
+| `--scale-v 2` | `accepted_k=4` | k <= 4 `ok`; k = 5..16 every set `ENOSPC` |
+
+The ENOSPC rejections coincide with `vc4-drm ... Failed to allocate LBM entry:
+-28` lines in the kernel log (read after the run): vertically scaled layers
+each need line-buffer memory, so the budget is about 8 layers at 2:1 downscale
+and 4 at 2x upscale on a full-screen 1920x1080 destination (every set of the
+same k gave the same result, so this is a count budget at this size, not a
+per-plane property). The ENOSPC boundary depends on source and destination
+sizes; it is one data point, not the HVS6 limit.
+
+### Pending commit (observed 2026-11-27)
+
+`SETUP commit=ok events=1`, then `REPLACE first=ok second=EBUSY events=1`: a
+non-blocking page flip was accepted, and a second non-blocking flip committed
+at once, before the first flip's event, failed with EBUSY. A pending commit
+cannot be replaced on HVS6 / this kernel (design doc §7 Q6); one event
+arrived, for the accepted commit. After the run the sweep's framebuffers are
+removed and, per the tool's NOTE, the output stays dark until the next client
+commits; the screen was not looked at afterwards (no display manager exists
+to restart).
+
+### Scale ladder (observed 2026-11-27)
+
+`scale_probe --max-factor 64` at dst 960x540: primary 83 and overlay 107 both
+`max_upscale_h/v/both=64.0000+` (no rejection up to 64x; the source shrinks to
+15x8.4 pixels), `downscale=accepted min_downscale=0.5000`. Still lower
+bounds (ladder limit 64x, smallest downscale tried 0.5); the real HVS6 limits
+(Q1) were not reached. The 8/4 layer limits above show that the
+combination budget, not the per-plane ratio, is what TEST_ONLY rejects.

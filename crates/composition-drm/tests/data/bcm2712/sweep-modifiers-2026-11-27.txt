@@ -1,0 +1,870 @@
+# date: 2026-11-27 (UTC; board clock, see DATE line)
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B Rev 1.1 (BCM2712, vc4 driver, HVS6), HDMI 1920x1080@60, no display manager or compositor running (tty1 getty only)
+# command: kms_sweep modifiers <vc4 card> --plane P --modifier vc4-t-tiled --modifier sand64 --modifier sand128 --modifier sand256, for P = 83 (primary), 107 and 118 (shared overlays); three runs concatenated, each ending in an rc= line
+# binaries: built from repository commit 0e4f9b8 (scripts/cross-aarch64.sh, aarch64-unknown-linux-musl); run as root
+# EDID: no EDID bytes or serial-like values in this output; nothing was removed.
+DATE 2026-11-27T22:24:42Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+MODE 1920x1080@60Hz connector 35 crtc 94
+PLANE id 48 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 67 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 83 Primary possible_on_crtc true zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 95 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 107 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 118 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 129 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 140 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 151 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 162 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 173 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 184 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 195 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 206 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 217 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 228 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 239 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 250 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 261 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 272 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 283 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 294 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 305 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 316 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 327 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 338 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 349 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 360 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 371 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 382 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 393 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 404 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 415 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 426 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 437 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 448 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 459 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 470 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 481 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 492 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 503 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 514 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 525 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 536 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 547 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 558 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 569 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 580 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 591 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 602 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 613 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 624 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 635 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 646 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 657 Cursor possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 668 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+CANDIDATES 83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,261,272 primary 83
+MODIFIER plane=83 format=XR24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=AR24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=AB24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=XB24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=RG16 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=BG16 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=AR15 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=XR15 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=NV12 modifier=0x0700000000000004 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=NV21 modifier=0x0700000000000004 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=P030 modifier=0x0700000000000004 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=NV12 modifier=0x0700000000000003 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=NV21 modifier=0x0700000000000003 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=83 format=NV12 modifier=0x0700000000000005 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=NV21 modifier=0x0700000000000005 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RX24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RA24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=BX24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=BA24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AR15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=XR15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=YU16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=YV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=YU24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=YV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=YU12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=YV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=XR30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AR30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AB30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=XB30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RGB8 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=BGR8 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AR12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=XB12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=AB12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=BX12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=BA12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RX12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=RA12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=P010 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=P012 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=P016 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=83 format=S010 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S012 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S016 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=RX24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV21 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV61 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P030 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RGB8 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=BGR8 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P010 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P012 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P016 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=S010 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S012 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S016 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR15 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XR15 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV61 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P030 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RGB8 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=BGR8 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P010 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P012 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P016 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=S010 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S012 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S016 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XR15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RGB8 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=BGR8 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P010 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P012 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P016 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=S010 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S012 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S016 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR15 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XR15 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RG24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BG24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YU12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=YV12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=NV61 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P030 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RGB8 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=BGR8 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=XR12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AR12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=XB12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=AB12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BX12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=BA12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RX12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=RA12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P010 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P012 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=P016 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=83 format=S010 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S012 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=83 format=S016 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+VERDICT kms_sweep: DONE modifiers
+rc=0
+DATE 2026-11-27T22:24:42Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+MODE 1920x1080@60Hz connector 35 crtc 94
+PLANE id 48 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 67 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 83 Primary possible_on_crtc true zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 95 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 107 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 118 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 129 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 140 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 151 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 162 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 173 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 184 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 195 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 206 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 217 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 228 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 239 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 250 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 261 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 272 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 283 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 294 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 305 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 316 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 327 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 338 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 349 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 360 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 371 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 382 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 393 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 404 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 415 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 426 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 437 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 448 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 459 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 470 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 481 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 492 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 503 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 514 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 525 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 536 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 547 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 558 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 569 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 580 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 591 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 602 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 613 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 624 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 635 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 646 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 657 Cursor possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 668 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+CANDIDATES 83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,261,272 primary 83
+MODIFIER plane=107 format=XR24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=AR24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=AB24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=XB24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=RG16 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=BG16 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=AR15 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=XR15 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=NV12 modifier=0x0700000000000004 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=NV21 modifier=0x0700000000000004 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=P030 modifier=0x0700000000000004 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=NV12 modifier=0x0700000000000003 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=NV21 modifier=0x0700000000000003 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=107 format=NV12 modifier=0x0700000000000005 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=NV21 modifier=0x0700000000000005 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RX24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RA24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=BX24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=BA24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AR15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=XR15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=YU16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=YV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=YU24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=YV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=YU12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=YV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=XR30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AR30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AB30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=XB30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RGB8 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=BGR8 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AR12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=XB12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=AB12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=BX12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=BA12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RX12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=RA12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=P010 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=P012 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=P016 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=107 format=S010 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S012 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S016 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=RX24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV21 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV61 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P030 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RGB8 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=BGR8 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P010 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P012 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P016 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=S010 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S012 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S016 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR15 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XR15 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV61 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P030 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RGB8 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=BGR8 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P010 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P012 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P016 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=S010 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S012 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S016 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XR15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RGB8 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=BGR8 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P010 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P012 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P016 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=S010 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S012 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S016 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR15 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XR15 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RG24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BG24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YU12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=YV12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=NV61 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P030 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RGB8 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=BGR8 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=XR12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AR12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=XB12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=AB12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BX12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=BA12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RX12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=RA12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P010 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P012 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=P016 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=107 format=S010 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S012 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=107 format=S016 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+VERDICT kms_sweep: DONE modifiers
+rc=0
+DATE 2026-11-27T22:24:43Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+MODE 1920x1080@60Hz connector 35 crtc 94
+PLANE id 48 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 67 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 83 Primary possible_on_crtc true zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 95 Primary possible_on_crtc false zpos fixed 0 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 107 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 118 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 129 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 140 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 151 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 162 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 173 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 184 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 195 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 206 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 217 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 228 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 239 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 250 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 261 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 272 Overlay possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 283 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 294 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 305 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 316 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 327 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 338 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 349 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 360 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 371 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 382 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 393 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 404 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 415 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 426 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 437 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 448 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 459 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 470 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 481 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 492 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 503 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 514 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 525 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 536 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 547 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 558 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 569 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 580 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 591 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 602 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 613 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 624 Overlay possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 635 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 646 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 657 Cursor possible_on_crtc true zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+PLANE id 668 Cursor possible_on_crtc false zpos 1..17 in_formats 59 pairs formats XR24,AR24,AB24,XB24,RX24,RA24,BX24,BA24,RG16,BG16,AR15,XR15,RG24,BG24,YU16,YV16,YU24,YV24,YU12,YV12,NV12,NV21,NV16,NV61,P030,XR30,AR30,AB30,XB30,RGB8,BGR8,XR12,AR12,XB12,AB12,BX12,BA12,RX12,RA12,P010,P012,P016,S010,S012,S016
+CANDIDATES 83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,261,272 primary 83
+MODIFIER plane=118 format=XR24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=AR24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=AB24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=XB24 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=RG16 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=BG16 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=AR15 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=XR15 modifier=0x0700000000000001 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=NV12 modifier=0x0700000000000004 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=NV21 modifier=0x0700000000000004 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=P030 modifier=0x0700000000000004 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=NV12 modifier=0x0700000000000003 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=NV21 modifier=0x0700000000000003 listed=yes addfb=ok test_only=EINVAL
+MODIFIER plane=118 format=NV12 modifier=0x0700000000000005 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=NV21 modifier=0x0700000000000005 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RX24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RA24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=BX24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=BA24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AR15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=XR15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=YU16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=YV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=YU24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=YV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=YU12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=YV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=XR30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AR30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AB30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=XB30 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RGB8 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=BGR8 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AR12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=XB12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=AB12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=BX12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=BA12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RX12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=RA12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=P010 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=P012 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=P016 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=118 format=S010 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S012 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S016 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=RX24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV24 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV21 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV16 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV61 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P030 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB30 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RGB8 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=BGR8 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA12 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P010 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P012 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P016 modifier=0x0700000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=S010 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S012 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S016 modifier=0x0700000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR15 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XR15 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV24 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV16 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV61 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P030 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB30 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RGB8 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=BGR8 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA12 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P010 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P012 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P016 modifier=0x0700000000000003 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=S010 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S012 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S016 modifier=0x0700000000000003 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XR15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RGB8 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=BGR8 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P010 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P012 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P016 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=S010 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S012 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S016 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR15 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XR15 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RG24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BG24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV24 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YU12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=YV12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV16 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=NV61 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P030 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB30 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RGB8 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=BGR8 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=XR12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AR12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=XB12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=AB12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BX12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=BA12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RX12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=RA12 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P010 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P012 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=P016 modifier=0x0700000000000005 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=118 format=S010 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S012 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=118 format=S016 modifier=0x0700000000000005 listed=no addfb=unsupported-format test_only=not reached
+VERDICT kms_sweep: DONE modifiers
+rc=0
