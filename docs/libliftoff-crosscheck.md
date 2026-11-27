@@ -6,7 +6,7 @@
 
 | Source | Pin | How it was read |
 | --- | --- | --- |
-| libliftoff (`https://gitlab.freedesktop.org/emersion/libliftoff.git`, MIT) | `c4226a79b7a52f59bb51789b1eda112658609125` (`c4226a7`), committed 2026-08-24, as pinned in `docs/wp5-gap-analysis.md` section "What was read" | **Not re-read for this note.** The shallow clone into `$TMPDIR` was refused in this session (the shell asked for approval nobody could give), and `gitlab.freedesktop.org` answers automated page fetches with an anti-bot page. Every libliftoff statement below is therefore either quoted from the rows `docs/wp5-gap-analysis.md` section 4 tagged *source (lo@c4226a7)* (read 2026-11-28 there: `alloc.c` whole, `include/libliftoff.h` whole, `README.md`, `doc/compositor.md` first part, `LICENSE`), or marked **recalled** and listed in section 9 as to be checked first. |
+| libliftoff (`https://gitlab.freedesktop.org/emersion/libliftoff.git`, MIT, `meson.build` says version `0.6.0-dev`) | `c4226a79b7a52f59bb51789b1eda112658609125` (`c4226a7`), committed 2026-08-24, as pinned in `docs/wp5-gap-analysis.md` section "What was read" | **Read 2026-11-28** from the snapshot archive of that commit (`https://gitlab.freedesktop.org/emersion/libliftoff/-/archive/c4226a79b7a52f59bb51789b1eda112658609125/libliftoff-c4226a79b7a52f59bb51789b1eda112658609125.tar.gz`, unpacked in `$TMPDIR`; a `git clone` failed here with a credential-helper error, so the commit id is the one in the archive URL and was not checked against git objects). Files read in full in this session: `alloc.c`, `plane.c`, `layer.c`, `device.c`, `meson.build`, `test/meson.build`, `test/libdrm_mock.c`. Not read: `output.c`, `private.h`, `include/libliftoff.h` (read by the gap analysis, not again), `test/test_*.c`, `README.md`, `doc/`. Rows tagged **source (lo@c4226a7)** below name the file. Anything marked **recalled** was not in the files read. |
 | `crates/composition-core/src/{caps,planner,types}.rs` | this repository at `107c5c9` | read 2026-11-28 |
 | `crates/composition-drm/src/profile.rs` (`Imx95Dpu`) | same | read 2026-11-28 |
 | `docs/observed/*.md` | same | file list read 2026-11-28; the RK3588 topology (`rk3588-topology.md`) read in part. `docs/observed/` is owned by plan #454 and was not changed. |
@@ -29,9 +29,21 @@ From `docs/wp5-gap-analysis.md` section 4 (source (lo@c4226a7)):
 - Validation: an atomic `TEST_ONLY` commit made at every search node; `EINVAL`, `ERANGE`, `ENOSPC` mean "try another", any other error aborts.
 - Before the search it disables all managed planes in the request; it keeps a per-plane FB check (`plane_check_layer_fb`) before each test commit.
 
-Recalled, not re-read (check in section 9): at device and plane setup it calls libdrm to list planes (`drmModeGetPlaneResources`, `drmModeGetPlane`: id, `possible_crtcs`), reads each plane's properties (`drmModeObjectGetProperties`, `drmModeGetProperty`) and uses by name at least `type`, `zpos` (value, range, immutability) and `IN_FORMATS` (a blob of format/modifier pairs, for `plane_check_layer_fb`). It does not itself know scaling limits, rotation support, alpha support, blend modes or shared-unit limits: those reach the kernel through the test commit.
+Read in this session (source (lo@c4226a7), file in brackets):
 
-Consequence (inferred): to run libliftoff without a GPU, the harness must present a fake libdrm. The only KMS knowledge libliftoff has of a plane is what that fake exposes as properties, and the only hardware limits it can learn are the ones the fake's test commit enforces.
+- Device creation: `dup` of the fd, `drmModeGetResources` (copies the CRTC id list; a plane's `possible_crtcs` bit is tested against the CRTC's index in that list), `drmModeGetPlaneResources` (plane count) [`device.c`].
+- Plane creation: `drmModeGetPlane` (only `plane_id` and `possible_crtcs` are used), `drmModeObjectGetProperties`, and `drmModeGetProperty` for every property. By name it keeps `type` (value), `zpos` (**the current value**, as a number), and `IN_FORMATS` (`drmModeGetPropertyBlob`); the core properties `FB_ID`, `CRTC_ID`, `CRTC_X/Y/W/H`, `SRC_X/Y/W/H`, `zpos`, `alpha`, `rotation` are indexed. A plane without `type` is refused. A plane without `zpos` gets a guess: primary 0, cursor 2, overlay 1 (or -1 if its id is lower than the first listed plane's) [`plane.c`, `device.c`].
+- Plane order: primary planes first; the others sorted by plane zpos, higher zpos first (equal zpos: later registered goes first) [`plane.c`]. The search walks planes in this order.
+- Layer properties: any name, any value; the core ones are indexed [`layer.c`]. **libliftoff never programs a `zpos` into the request**: `plane_apply` skips a layer's `zpos` ("We don't yet support setting the zpos property. We only use it (read-only) during plane allocation") and uses it only to decide which layer may go on which plane in the order above [`plane.c`, `alloc.c`].
+- Checks libliftoff does itself before the test commit [`plane.c`, `alloc.c`]: an immutable property cannot be set (`-EINVAL`); range, enum, bitmask and signed-range values are checked against the property definition (`values[]`, `enums[]`), which is how `alpha`, `pixel blend mode` and `rotation` ranges are enforced if the property is exposed; a layer property the plane lacks fails the plane, except `alpha == 0xFFFF`, `rotation == ROTATE_0`, `SCALING_FILTER == 0`, `pixel blend mode == 0`, `FB_DAMAGE_CLIPS` (any), which are skipped; `plane_check_layer_fb` tests format and modifier against the `IN_FORMATS` blob, but **only** if the framebuffer was read with `DRM_MODE_FB_MODIFIERS` and the blob exists (otherwise "not enough information to reject"); `possible_crtcs`; `force_composition`.
+- Layer visibility: alpha 0 or `FB_ID` 0 makes a layer invisible: it is ignored by the search and `liftoff_layer_needs_composition` is false for it [`layer.c`].
+- Framebuffer information: `drmModeGetFB2` (width, height, pixel format, modifier, flags) for each layer's `FB_ID`, handles closed again [`layer.c`]. It is only used for the format check and for deciding whether a previous allocation can be reused.
+- Test commit: `drmModeAtomicCommit` with `DRM_MODE_ATOMIC_TEST_ONLY`, retried on `EINTR`/`EAGAIN`; `-EINVAL`, `-ERANGE`, `-ENOSPC` mean "this does not work" [`device.c`].
+- It knows **nothing** about scaling limits, source or destination size limits, rotation support beyond the property bitmask, or units shared between planes. All of that must come from the fake's test commit.
+
+libliftoff's own tests replace libdrm with a mock shared library, `test/libdrm_mock.c`, linked in place of libdrm [`test/meson.build`, `test/libdrm_mock.c`]. The mock is small and **not sufficient** for the cross-check as it stands: one CRTC only (`drmModeGetResources` returns a single CRTC) and `possible_crtcs` fixed to bit 0; property definitions registered without flags, values or enums (`/* TODO: fill flags */`), so range, immutability and enum checks cannot be exercised; its test commit checks only that every enabled plane's framebuffer belongs to a layer the test declared compatible with the plane (plus an optional "primary must be enabled" rule); global static state for one device per process (plane table `MAX_PLANES` 64, `MAX_LAYERS` 512). A harness mock needs the same function set (`drmModeGetResources`, `drmModeGetPlaneResources`, `drmModeGetPlane`, `drmModeObjectGetProperties`, `drmModeGetProperty`, `drmModeGetPropertyBlob`, `drmModeGetFB2`, `drmCloseBufferHandle`, the `drmModeAtomic*` calls, `drmModeAtomicCommit`) with those gaps filled. That function list is the interface the fake must provide.
+
+Consequence (inferred): to run libliftoff without a GPU, the harness must present a fake libdrm. The only KMS knowledge libliftoff has of a plane is what the fake exposes, and the only hardware limits it can learn are the ones the fake's test commit enforces.
 
 ## 3. What the capability dumps contain
 
@@ -50,12 +62,12 @@ Consequence (inferred): to run libliftoff without a GPU, the harness must presen
 | --- | --- | --- |
 | `PlaneCaps::id` | plane object id | direct |
 | `kind` Primary / Overlay | `type` property (primary 1, overlay 0) | direct |
-| `kind` Cursor | `type` = cursor (2). How libliftoff treats a cursor plane in allocation is not re-read | direct in the dump, behaviour **unknown**; keep cursor planes out of the first version |
+| `kind` Cursor | `type` = cursor (2); libliftoff gives it no special case in `alloc.c` beyond the zpos guess (2) when the property is absent and the plane order | direct in the dump; core's handling of cursor planes was not compared; keep cursor planes out of the first version |
 | `outputs` (mask over output indices) | `possible_crtcs` bit per CRTC | direct; core's bits index `Capabilities::outputs`, KMS bits index CRTCs in device order. The dump must carry both consistently |
 | `formats` (format + modifier) | `IN_FORMATS` blob | direct. Truncation caveat of section 3 |
-| `zpos` Range{min,max} | mutable `zpos` property with range | direct |
-| `zpos` Fixed(n) | immutable `zpos` property | direct in value; libliftoff's handling of an immutable zpos is recalled, not re-read |
-| `plane_alpha`, `blend_modes`, `transforms` | properties `alpha`, `pixel blend mode`, `rotation` on the plane | **indirect**: libliftoff never interprets them in the part read; the fake test commit must enforce them from the dump. If the property is absent, setting it fails the commit or the layer cannot use the plane (recalled) |
+| `zpos` Range{min,max} | `zpos` property; libliftoff reads only its **current value**, never its range, and never writes a zpos | **does not map**: core may assign any zpos in the range; libliftoff treats the plane's current value as fixed and orders planes by it. The dump needs the current value (`zpos_now`, section 5) and the difference is expected (section 7) |
+| `zpos` Fixed(n) | `zpos` property with value n (immutable flag ignored for ordering) | direct |
+| `plane_alpha`, `blend_modes`, `transforms` | properties `alpha`, `pixel blend mode`, `rotation` on the plane | **indirect**: libliftoff checks the layer's value against the property definition (range, enum, bitmask, immutable) if the fake exposes it with flags, values and enums, and fails the plane when the property is absent unless the value is the default listed in section 2 (alpha 0xFFFF, rotation 0, blend 0). The fake test commit enforces the rest |
 | `scaling` ScaleLimits (16.16) | no KMS property | **does not map**: only the fake test commit can refuse; libliftoff has no model |
 | `max_source` | no KMS property (kernel `-ERANGE`/`EINVAL` at commit) | **does not map**, same |
 | `full_output_only` | no property | **does not map**, same |
@@ -65,9 +77,9 @@ Consequence (inferred): to run libliftoff without a GPU, the harness must presen
 | `Layer::buffer` → `BufferInfo` size/format/modifier | `FB_ID` plus the framebuffer's format and modifier | direct; the fake needs a framebuffer table (id → size, format, modifier) |
 | `Layer::source` (whole pixels) | `SRC_X/Y/W/H` in 16.16 | direct (shift by 16) |
 | `Layer::destination` | `CRTC_X/Y/W/H` (signed x/y, unsigned w/h) | direct |
-| `Layer::z_order` (ties: later in frame on top) | layer `zpos` property | direct after a rule: harness sets the layer zpos to the rank of the stable sort, so ties resolve the way core resolves them. This is an assumption of the harness (**proposal**) |
-| `Layer::alpha` (0..=0xFFFF) | `alpha` | direct |
-| `Layer::blend` Opaque / Premultiplied / Coverage | `pixel blend mode` enum `None` / `Pre-multiplied` / `Coverage` | direct; enum values are defined by the fake's property |
+| `Layer::z_order` (ties: later in frame on top) | layer `zpos` property (read-only input to the search) | direct after a rule: harness sets the layer zpos to the rank of the stable sort, so ties resolve the way core resolves them (equal layer zpos would mean "no constraint" for libliftoff). Assumption of the harness (**proposal**) |
+| `Layer::alpha` (0..=0xFFFF) | `alpha` | direct; alpha 0 makes the layer invisible to libliftoff (ignored, not counted). How core treats alpha 0 was not checked |
+| `Layer::blend` Opaque / Premultiplied / Coverage | `pixel blend mode` enum `None` / `Pre-multiplied` / `Coverage` | direct for the three modes; the enum values are those of the fake's property. A note in `plane.c` says a *missing* property with value 0 is skipped as "pre-multiplied"; DRM's own `None` is value 0 (recalled), so the harness must always expose the property when blend modes are listed, to avoid that quirk |
 | `Layer::transform` (rot90..270, flips) | `rotation` bitmask | direct (DRM bits) |
 | Composition layer | `liftoff_layer_set_composition_layer` | not mapped; not set (section 6) |
 
@@ -87,6 +99,8 @@ plane <id> kind=<primary|overlay|cursor> outputs=<mask over output lines>
       transforms=<normal,rot90,rot180,rot270,flip_h,flip_v|->
       scaling=<none|up:<hex16.16>/down:<hex16.16>> max_source=<WxH|none> full_output=<0|1>
   format <fourcc> <modifier>               # one per accepted pair, in dump order
+                                           # zpos=N..M planes also carry zpos_now=<i32>, the plane's
+                                           # current zpos (libliftoff orders planes by it)
 group consumers=<any,scaled_h,scaled_v,yuv>[,...] planes=<plane id>[,...] capacity=<n>
 buffer <id> <w> <h> <fourcc> <modifier>
 frame <name> output=<id>
@@ -100,6 +114,7 @@ end
 Rules:
 
 - `origin` is mandatory. An `observed` file names the observed document it was derived from and that document's date; a `synthetic` file says what it imitates. The harness copies `origin` to every report line, so a result cannot lose its basis.
+- A plane with a `N..M` zpos must carry `zpos_now=`; the default for the converter is the reset order recorded in the dump (the plane index for RK3588, from `rk3588-topology.md`), or the file is refused. Without it libliftoff's plane order, and so its result, would be invented.
 - Groups name planes by id; the core side converts them to index masks. The Rust reader refuses a file the engine's limits cannot hold (more than `MAX_PLANES`, `MAX_FORMATS`, `MAX_LAYERS` ...) instead of truncating silently.
 - `profile imx95dpu` means: the core side calls `DriverProfile::Imx95Dpu.apply`. The file may also carry explicit `scaling`, `max_source` and `group` lines; the harness refuses a file that does both, so the constraints have one origin.
 - The test-commit model (section 6) is a function of this same file. No hidden state.
@@ -113,7 +128,7 @@ Not part of the file: file locations of any device node, hostnames, credentials,
 For every frame in a file:
 
 1. **Core side:** build `Capabilities` from the file; run `composition_core::planner::plan` with a backend check that accepts (so the result is the planner's own static verdict), and again with the test-commit model as the backend check (so `TEST_ONLY` is modelled the same way). Record `Ok(plan)` with assignments, or the `PlanError`, with `RejectReasons` for `NoPlane`.
-2. **libliftoff side:** one device on the fake libdrm built from the same file, one output, one layer per frame layer with the properties of section 4, no composition layer, `timeout_ns` raised so the 1 ms default deadline is not reached (and the harness records whether the deadline was reached). Run `liftoff_output_apply`; call `liftoff_layer_needs_composition` per layer and `liftoff_layer_get_plane`.
+2. **libliftoff side:** a **fresh** device, output and layer set per frame on the fake libdrm built from the same file (fresh, because `liftoff_output_apply` first tries `reuse_previous_alloc` and its layer priority depends on earlier calls), one output, one layer per frame layer with the properties of section 4, no composition layer, `timeout_ns` raised so the 1 ms default deadline is not reached (and the harness records whether the deadline was reached). Run `liftoff_output_apply`; call `liftoff_layer_needs_composition` per layer and `liftoff_layer_get_plane`.
 3. **Accepted** means: core returns `Ok`; libliftoff leaves **every** layer on a plane. A partial libliftoff allocation counts as "rejected" for this comparison, because the two contracts differ (gap analysis section 4: "best partial allocation" against "all layers on planes, or an error"). The number of layers libliftoff did place is kept as extra data.
 4. **Assignment validity, not equality.** Several assignments can be legal. Each side's assignment is replayed through the test-commit model and must pass. Equal assignments are not required and not reported as differences.
 
@@ -133,7 +148,11 @@ All **inferred**; each is a prediction from the gap analysis and the sources nam
 | Kind | Direction | Why |
 | --- | --- | --- |
 | Contract | libliftoff places some layers, core errors | Partial allocation against all-or-nothing (gap analysis section 4). Handled by the "every layer on a plane" rule; reported, not a bug |
-| zpos and intersection | `liftoff-only` | libliftoff preserves relative zpos only between layers that intersect (`layer_intersects`); core's `Z_ORDER` constraint covers all layers placed. Frames of non-overlapping layers that need out-of-order planes are accepted by libliftoff and refused by core. Possible improvement for core, not verified against `planner.rs` beyond its reject-reason names |
+| zpos and intersection | `liftoff-only` | libliftoff preserves relative zpos only between layers that intersect (`layer_intersects`, source (lo@c4226a7) `alloc.c`/`layer.c`); core's `Z_ORDER` constraint covers all layers placed. Frames of non-overlapping layers that need out-of-order planes are accepted by libliftoff and refused by core. Possible improvement for core, not verified against `planner.rs` beyond its reject-reason names |
+| Programmable zpos | `core-only` | Core may assign any zpos in a plane's range; libliftoff only orders planes by their current zpos and never writes a zpos (`plane_apply`). On a topology whose planes can be restacked (RK3588 range 0..=7) core accepts frames whose layer order does not match the planes' current order |
+| Invisible layers | either | libliftoff drops alpha-0 and `FB_ID`-0 layers from the search (`layer_is_visible`); core's handling of alpha 0 is not checked. Frames with alpha 0 layers are compared with those layers removed, as a separate class |
+| Format check skipped | `liftoff-only` | `plane_check_layer_fb` rejects only if the FB was read with `DRM_MODE_FB_MODIFIERS` and an `IN_FORMATS` blob exists; the harness must set both or libliftoff will defer the format check to the test commit |
+| Value checks before the test commit | either | libliftoff rejects out-of-range alpha, unknown blend enum, unsupported rotation bits itself when the fake defines them; if the fake omits flags/enums those checks are silently off |
 | Search effort | `liftoff-only` or `core-error(LimitExceeded / BackendRejected)` | Core is bounded by `SearchLimits` (20 000 steps, 32 backend checks); libliftoff by a deadline. Rare on 6 or 8 planes; shows up with many layers on many planes |
 | Search determinism | libliftoff flips between runs | 1 ms wall-clock deadline (`DEFAULT_ALLOC_TIMEOUT_NSEC`). Mitigated by a long timeout; any remaining flip is reported as `unstable` |
 | Truncated format list | `core-only` or `both-reject` | Dumps cut at 32 formats per plane (section 3); applies equally to both sides but makes the dump differ from the hardware |
@@ -154,20 +173,16 @@ Constraints: `composition-core` stays dependency free and `#![forbid(unsafe_code
 
 - **A new directory outside the workspace**, `tools/liftoff-crosscheck/`, with its own `Cargo.toml` that carries an empty `[workspace]` table (so Cargo does not look for the root manifest) and a path dependency on `composition-core`. The root `Cargo.toml` lists its members explicitly, so `cargo fmt --all`, `cargo clippy --workspace`, `cargo test --workspace`, and the cross-builds never see the new package, and `Cargo.lock` does not change. (When the project later wants it inside the workspace, that is one line in the root manifest and a decision for that day.)
 - **Rust part:** the `xcheck` reader, the core-side run, the test-commit model, the comparison and the report. Safe Rust only; it needs no FFI. It runs the C part as a child process and reads its output.
-- **C part:** a small program, one `.c` file plus a fake-libdrm file, that reads the same `xcheck` file, builds the libdrm functions from section 2 on top of the file's data (with `drmModeAtomicCommit` answering `TEST_ONLY` from the model), links libliftoff and prints one result line per frame. The model must be the same rules as the Rust model; the cleanest is for the Rust side to answer the test commits, over a pipe, from its own model, so the rules exist once. **Open design choice**; the alternative is writing the model twice and cross-testing the two copies, which costs more and gives a second, independent check.
+- **C part:** a small program, one `.c` file plus a fake-libdrm file, that reads the same `xcheck` file, builds the libdrm function set listed in section 2 on top of the file's data (the pattern of libliftoff's `test/libdrm_mock.c`, written new here, because that mock is too small and copying it would carry its MIT notice; section 2 lists its gaps) (with `drmModeAtomicCommit` answering `TEST_ONLY` from the model), links libliftoff and prints one result line per frame. The model must be the same rules as the Rust model; the cleanest is for the Rust side to answer the test commits, over a pipe, from its own model, so the rules exist once. **Open design choice**; the alternative is writing the model twice and cross-testing the two copies, which costs more and gives a second, independent check.
 - **libliftoff source:** not vendored and not a submodule. The harness's script takes the path of a checkout at the pinned commit (`c4226a7`) and builds it with `cc`/`meson` into the scratch directory; it refuses another commit unless told. This avoids shipping MIT source in this Apache-2.0 repository (if ever vendored, `NOTICE` and the MIT text would be needed; see WP5-05). libdrm is needed for headers only if the fake provides the symbols itself (**recalled**: libliftoff depends on libdrm's atomic API and property structs).
 - **Not in CI.** The harness runs by hand or by a script (`scripts/` entry later), needs a C compiler and a libliftoff checkout, and prints its report as text that may be committed under `docs/` with a date. Its rules about hardware claims are those of the repository: output is labelled with the `origin` of its input, and a synthetic topology produces no hardware statement.
 - **Repository rules honoured:** no board address, hostname or credential in input files or reports; the harness never touches a device.
 
-## 9. Work that follows, and what to check first
+## 9. Work that follows, and what remains unread
 
-Checks to make when a libliftoff checkout at `c4226a7` is available (the first step of any implementation):
+Not read for this note, to be read first by whoever implements the harness: `output.c` (how an output maps a CRTC id to the CRTC index used against `possible_crtcs`; the composition-layer setter), `private.h` (the struct layouts and the core property enum), `test/test_alloc.c` and `test/test_prop.c` (how the mock is used: they are a ready source of calibration frames, e.g. the `zpos-*` and `simple-*` scenarios of `test/meson.build`), `README.md` and `doc/` (the README text is already in the gap analysis).
 
-1. Which libdrm functions libliftoff calls at device and plane setup, and which property names it reads (section 2, "recalled").
-2. Whether libliftoff's own test suite already contains a libdrm mock that can be reused or copied as a pattern (recalled: it does, with a layer-and-plane builder for tests; not read). If so, the fake libdrm of section 8 is smaller than described here.
-3. How `zpos`, `alpha`, `rotation` and immutable properties are treated in `plane.c` and `alloc.c` (section 4, `unknown` and `recalled` rows).
-4. How a cursor plane and a plane without `zpos` are treated.
-5. The behaviour of `timeout_ns` and the return of `liftoff_output_apply` when no composition layer is set and a layer cannot be placed.
+Checks left: whether the "pixel blend mode" skip rule (`plane.c`, value 0 read as pre-multiplied) matches the DRM enum values; how `liftoff_output_apply` behaves when `timeout_ns` is huge and the search is exhaustive (the deadline test sits only inside the layer loop of `output_choose_layers`, so after it passes the remaining planes are still visited with "skip"; this is how the code reads, not a run).
 
 Order of work (proposal): (a) `xcheck` reader and converter from probe text, with unit tests against the committed observed documents; (b) the model and the core side alone, with its own tests; (c) the fake libdrm and the C part; (d) a sweep on the synthetic i.MX95 stream and on the RK3588 topology; (e) the report, with each difference triaged as in section 7; (f) when the M1 WP0 i.MX95 dump lands, a run with `origin observed`.
 
