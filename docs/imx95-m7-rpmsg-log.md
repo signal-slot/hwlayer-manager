@@ -25,7 +25,7 @@ Tags used for every finding:
 
 | Source | Pin | Used for |
 |---|---|---|
-| Zephyr, `https://github.com/zephyrproject-rtos/zephyr` | commit `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7` (tree `VERSION` 4.5.99, a main-branch snapshot; read from the local workspace checkout) | `samples/subsys/ipc/openamp_rsc_table/**`, `subsys/ipc/open-amp/{resource_table.c,resource_table.h,Kconfig}`, `drivers/console/Kconfig`, `subsys/shell/backends/Kconfig.backends`, `boards/nxp/imx95_evk/**` |
+| Zephyr, `https://github.com/zephyrproject-rtos/zephyr` | commit `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7` (tree `VERSION` 4.5.99; `git describe --tags` in the local workspace checkout gives `v4.5.0-5218-ge53873cbd0e`, i.e. 5218 commits after tag `v4.5.0`; read 2026-11-28) | `samples/subsys/ipc/openamp_rsc_table/**`, `subsys/ipc/open-amp/{resource_table.c,resource_table.h,Kconfig}`, `drivers/console/Kconfig`, `subsys/shell/backends/Kconfig.backends`, `boards/nxp/imx95_evk/**` |
 | Repository snapshot `docs/imx95-zephyr/observed-2026-11-27.txt` | this repository, commit `4e7b888` | device-tree and remoteproc state of the Verdin iMX95 |
 | Repository `scripts/imx95-m7-rproc.sh` | this repository, commit `4e7b888` | load, stop and restore procedure |
 
