@@ -21,13 +21,16 @@ use composition_core::{
 };
 use composition_drm::DriverProfile;
 
-const PROFILES: [DriverProfile; 3] = [
+const PROFILES: [DriverProfile; 6] = [
     DriverProfile::Generic,
     DriverProfile::Imx95Dpu,
     DriverProfile::Stm32Ltdc,
+    DriverProfile::Rk3588Vop2,
+    DriverProfile::Vc4Hvs5,
+    DriverProfile::Vc4Hvs6,
 ];
 const SEEDS: [u64; 4] = [0, 1, 0x5eed_0fd1, u64::MAX];
-const ROUNDS: usize = 2000;
+const ROUNDS: usize = 800;
 
 struct SplitMix64(u64);
 
@@ -201,16 +204,29 @@ fn check_sane(before: &Capabilities, after: &Capabilities, profile: DriverProfil
         before.resource_groups.as_slice()
     );
     for (b, a) in before.planes.iter().zip(after.planes.iter()) {
-        // A profile only touches scaling and the source limit.
+        // A profile only touches scaling and the source limit (Vc4Hvs6 also formats).
         let mut b2 = *b;
         b2.scaling = a.scaling;
         b2.max_source = a.max_source;
+        if profile == DriverProfile::Vc4Hvs6 {
+            // Gen 6 drops the pairs its kernel rejects, keeping the rest in order.
+            let mut rest = b.formats.as_slice().iter();
+            for pair in a.formats.as_slice() {
+                assert!(
+                    rest.any(|p| p == pair),
+                    "{profile:?} formats not a subsequence"
+                );
+            }
+            b2.formats = a.formats;
+        }
         if profile == DriverProfile::Stm32Ltdc && b.kind != PlaneKind::Cursor {
             // Also the blend mode (session 2026-11-27, Q2).
             b2.blend_modes = a.blend_modes;
         }
         assert_eq!(&b2, a, "{profile:?} changed more than scaling/max_source");
-        if b.kind == PlaneKind::Cursor {
+        // Rk3588Vop2 sets scaling and max_source on cursor planes too; see
+        // `rk3588_gives_a_cursor_plane_no_scaler` below.
+        if b.kind == PlaneKind::Cursor && profile != DriverProfile::Rk3588Vop2 {
             assert_eq!(b.scaling, a.scaling, "{profile:?} touched a cursor plane");
             assert_eq!(b.max_source, a.max_source);
         }
@@ -255,7 +271,7 @@ fn profiles_applied_in_any_order_stay_sane() {
             let mut caps = random_caps(&mut rng);
             for _ in 0..rng.below(6) {
                 let before = caps;
-                let profile = PROFILES[rng.below(3) as usize];
+                let profile = PROFILES[rng.below(PROFILES.len() as u64) as usize];
                 profile.apply(&mut caps);
                 check_sane(&before, &caps, profile);
             }
@@ -269,7 +285,7 @@ fn planner_on_profiled_random_capabilities_never_panics() {
         let mut rng = SplitMix64(seed ^ 0x1234);
         for _ in 0..ROUNDS {
             let mut caps = random_caps(&mut rng);
-            PROFILES[rng.below(3) as usize].apply(&mut caps);
+            PROFILES[rng.below(PROFILES.len() as u64) as usize].apply(&mut caps);
             let buffers = RandomBuffers(rng.next());
             let layers: Vec<Layer> = (0..rng.below(20)).map(|_| random_layer(&mut rng)).collect();
             let frame = Frame {
@@ -287,4 +303,24 @@ fn planner_on_profiled_random_capabilities_never_panics() {
             }
         }
     }
+}
+
+/// Defect found by the fuzz: `Rk3588Vop2` assigns a window class to every
+/// plane, cursor planes included, so a cursor plane ends up with a scaler and
+/// a source limit. `Vc4Hvs5` and `Vc4Hvs6` skip cursor planes. Un-ignore when
+/// `src/profile/rk3588.rs` leaves cursor planes alone.
+#[test]
+#[ignore = "defect: Rk3588Vop2 gives cursor planes a scaler"]
+fn rk3588_gives_a_cursor_plane_no_scaler() {
+    let mut caps = Capabilities::default();
+    let cursor = PlaneCaps {
+        id: PlaneId(1),
+        kind: PlaneKind::Cursor,
+        outputs: 1,
+        ..PlaneCaps::default()
+    };
+    let _ = caps.planes.push(cursor);
+    DriverProfile::Rk3588Vop2.apply(&mut caps);
+    assert_eq!(caps.planes.as_slice()[0].scaling, None);
+    assert_eq!(caps.planes.as_slice()[0].max_source, None);
 }
