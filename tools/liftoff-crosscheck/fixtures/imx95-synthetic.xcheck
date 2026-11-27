@@ -1,0 +1,62 @@
+# source: crates/composition-drm/src/profile.rs, test fn dpu95_stream() and the tests that use it
+# commit: 99d965d
+# synthetic: written by hand, not read from a board. It carries no hardware claim.
+# One output (1920x1080 @ 60 Hz) and six planes, ids 40..45: plane 40 primary, 41..45 overlays,
+# zpos range 0..=5 on each (zpos_now = plane index), alpha, blend opaque/premul/coverage,
+# formats ARGB8888 (AR24) and NV12, linear only. No scaling, max_source or group lines:
+# `profile imx95dpu` supplies them on the core side (DriverProfile::Imx95Dpu.apply).
+# Buffers 1..3 are the test's RGB, YUV and SMALL buffers. Frames: the two tests
+# six_rgb_layers_fit and a_fifth_yuv_layer_has_no_fetch_unit, plus a scaled and a mixed frame.
+xcheck 1
+origin synthetic 2026-11-28 imitates the plane stream of the DriverProfile::Imx95Dpu unit test in crates/composition-drm/src/profile.rs
+profile imx95dpu
+output 0 1920 1080 60000
+plane 40 kind=primary outputs=0x1 zpos=0..5 zpos_now=0 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 41 kind=overlay outputs=0x1 zpos=0..5 zpos_now=1 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 42 kind=overlay outputs=0x1 zpos=0..5 zpos_now=2 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 43 kind=overlay outputs=0x1 zpos=0..5 zpos_now=3 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 44 kind=overlay outputs=0x1 zpos=0..5 zpos_now=4 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+plane 45 kind=overlay outputs=0x1 zpos=0..5 zpos_now=5 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0
+  format AR24 0x0
+  format NV12 0x0
+buffer 1 1920 1080 AR24 0x0
+buffer 2 1920 1080 NV12 0x0
+buffer 3 960 540 AR24 0x0
+frame six_rgb output=0
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+end
+frame four_yuv_two_rgb output=0
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+end
+frame five_yuv output=0
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=1 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=2 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=3 alpha=65535 blend=premul transform=normal
+  layer buffer=2 src=0,0,1920,1080 dst=0,0,1920,1080 z=4 alpha=65535 blend=premul transform=normal
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=5 alpha=65535 blend=premul transform=normal
+end
+frame scaled_small output=0
+  layer buffer=1 src=0,0,1920,1080 dst=0,0,1920,1080 z=0 alpha=65535 blend=premul transform=normal
+  layer buffer=3 src=0,0,960,540 dst=100,100,1920,1080 z=1 alpha=32768 blend=premul transform=normal
+end

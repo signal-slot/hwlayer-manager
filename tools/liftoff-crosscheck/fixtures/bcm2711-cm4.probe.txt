@@ -1,0 +1,24 @@
+# source: docs/observed/bcm2711-cm4-topology.md
+# commit: 472cc75
+# observed: 2026-11-28
+# origin: observed
+# note: the document omits the per-plane "formats (32):" lines (all 16 planes identical, list given in the document); planes are probe's cut view at MAX_PLANES=16, the kernel has 60
+# the probe text below is copied verbatim from the fenced block (source lines 58-75)
+device /dev/dri/card0, driver vc4
+output 0: crtc 90 720x1280 @ 60.000 Hz
+plane 48 Primary: outputs 0b0, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 67 Primary: outputs 0b0, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 79 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 91 Primary: outputs 0b0, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 103 Primary: outputs 0b0, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 115 Primary: outputs 0b0, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 127 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 138 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 149 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 160 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 171 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 182 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 193 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 204 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 215 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+plane 226 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed

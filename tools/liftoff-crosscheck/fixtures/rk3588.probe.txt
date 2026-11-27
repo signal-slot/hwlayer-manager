@@ -1,0 +1,24 @@
+# source: docs/observed/rk3588-topology.md
+# commit: db71077
+# observed: 2026-11-28
+# origin: observed
+# note: truncation: probe prints at most 32 formats per plane, so the Cluster plane format list stops in the AFBC ...011 group; the document folds the "identical to plane N" lines
+# the probe text below is copied verbatim from the fenced block (source lines 55-72)
+device /dev/dri/card0, driver rockchip
+output 0: crtc 81 1920x1080 @ 60.000 Hz
+plane 33 Primary: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 39 Primary: outputs 0b0, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): (identical to plane 33)
+plane 45 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): (identical to plane 33)
+plane 51 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): (identical to plane 33)
+plane 57 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 63 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (21): (identical to plane 57)
+plane 69 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (21): (identical to plane 57)
+plane 75 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (21): (identical to plane 57)
