@@ -16,6 +16,7 @@ path = "src/main.rs"
 composition-core = { path = "../../crates/composition-core" }
 composition-drm = { path = "../../crates/composition-drm" }
 drm = "0.15"
+signal-hook = { version = "0.3", default-features = false }
 rustix = { version = "1", features = ["event", "fs", "net", "param"] }
 
 [lints]

@@ -2,7 +2,7 @@
 //! verdict; an `Err` is a failure that stopped the scenario.
 
 use std::collections::HashMap;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use composition_core::limits::MAX_LAYERS;
 use composition_core::planner;
@@ -22,19 +22,28 @@ pub struct Outcome {
     pub pass: bool,
     /// One-line explanation.
     pub reason: String,
+    /// Whether a stop (SIGTERM, SIGINT) ended the scenario at its hold, after
+    /// the checks that were made. `pass` still says what they found.
+    pub stopped: bool,
 }
 
 impl Outcome {
     fn new(failures: &[String], ok: String) -> Self {
+        Self::with_stop(failures, ok, crate::stop::requested())
+    }
+
+    fn with_stop(failures: &[String], ok: String, stopped: bool) -> Self {
         if failures.is_empty() {
             Self {
                 pass: true,
                 reason: ok,
+                stopped,
             }
         } else {
             Self {
                 pass: false,
                 reason: failures.join("; "),
+                stopped,
             }
         }
     }
@@ -99,7 +108,7 @@ fn print_commit(step: &str, shown: &Shown) {
         .emit();
 }
 
-fn print_resources(scenario: &str, usage: &Usage) {
+pub fn print_resources(scenario: &str, usage: &Usage) {
     usage
         .fields_since(Record::new("resources").field("scenario", scenario))
         .emit();
@@ -253,6 +262,9 @@ pub fn zorder_alpha(o: &Options) -> Result<Outcome, String> {
                 }
                 failures.extend(step_failures);
                 s.hold(label, o.seconds)?;
+                if crate::stop::requested() {
+                    break;
+                }
             }
             Err(error) => {
                 Record::new("step_result")
@@ -1071,6 +1083,20 @@ pub fn rotate(o: &Options) -> Result<Outcome, String> {
     ))
 }
 
+/// Waits `seconds` without touching the (lost) device, so that a camera can
+/// look at the screen. Returns early, still `Ok`, if a stop is asked for: the
+/// caller's checks were made and the stop is reported with them.
+fn hold_idle(step: &str, seconds: u64, stopped: &dyn Fn() -> bool) -> Result<bool, String> {
+    Record::new("hold")
+        .field("step", step)
+        .field("seconds", seconds)
+        .emit();
+    crate::stop::hold_for::<String>(seconds, Duration::from_millis(100), stopped, |slice| {
+        std::thread::sleep(slice);
+        Ok(())
+    })
+}
+
 /// Default number of frames `revoke` shows before the lessor revokes.
 pub const REVOKE_FRAMES: u32 = 60;
 
@@ -1289,6 +1315,8 @@ pub fn revoke(o: &Options) -> Result<Outcome, String> {
             "{outputs} outputs and {planes} planes still reported after the loss"
         ));
     }
+    // The screen stays as the revocation left it, for a camera.
+    hold_idle("revoke", o.seconds, &crate::stop::requested)?;
     print_resources("revoke", &usage);
     Ok(Outcome::new(
         &failures,
@@ -1298,4 +1326,36 @@ pub fn revoke(o: &Options) -> Result<Outcome, String> {
             list(on_screen.iter().map(|b| b.0))
         ),
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn revoke_holds_the_screen_for_seconds() {
+        let started = Instant::now();
+        assert!(hold_idle("revoke", 1, &|| false).unwrap());
+        assert!(started.elapsed() >= Duration::from_millis(990));
+        let started = Instant::now();
+        assert!(hold_idle("revoke", 0, &|| false).unwrap());
+        assert!(started.elapsed() < Duration::from_millis(500));
+    }
+
+    #[test]
+    fn a_stop_ends_the_revoke_hold_at_once() {
+        let started = Instant::now();
+        let ended = hold_idle("revoke", 3600, &|| true);
+        assert_eq!(ended, Ok(false));
+        assert!(started.elapsed() < Duration::from_secs(1));
+    }
+
+    #[test]
+    fn a_stop_keeps_what_the_checks_found() {
+        let failed = Outcome::with_stop(&["no event".to_string()], "ok".into(), true);
+        assert!(!failed.pass && failed.stopped);
+        assert_eq!(failed.reason, "no event");
+        let passed = Outcome::with_stop(&[], "ok".into(), true);
+        assert!(passed.pass && passed.stopped);
+    }
 }

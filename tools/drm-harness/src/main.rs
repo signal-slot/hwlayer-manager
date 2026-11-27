@@ -8,6 +8,7 @@
 
 #![forbid(unsafe_code)]
 
+mod conn_names;
 mod draw;
 mod lease;
 mod lessor;
@@ -17,6 +18,7 @@ mod scenarios;
 mod session;
 mod source;
 mod stats;
+mod stop;
 mod wire;
 
 use std::path::PathBuf;
@@ -30,6 +32,7 @@ use crate::record::{verdict_line, Record};
 use crate::scenarios::{Outcome, MOVE_FRAMES, REVOKE_FRAMES, ROTATE_FRAMES};
 use crate::session::{Options, ProducerMode};
 use crate::source::Source;
+use crate::stats::Usage;
 
 type Scenario = fn(&Options) -> Result<Outcome, String>;
 
@@ -114,7 +117,8 @@ fn usage() -> String {
          \x20                                   DMA-BUF descriptors; redraws only after the harness\n\
          \x20                                   has passed on the engine's release\n\
          \x20 --profile <PROFILE>   driver profile: generic or imx95 [default: generic]\n\
-         \x20 --seconds <N>         how long to hold each picture for a camera [default: 5]\n\
+         \x20 --seconds <N>         how long to hold each picture for a camera, and the screen after the\n\
+         \x20                       revocation in revoke [default: 5, at most 86400]\n\
          \x20 --frames <N>          frames for move [default: {MOVE_FRAMES}], rotate [default: {ROTATE_FRAMES}]\n\
          \x20                       and revoke, before the revocation [default: {REVOKE_FRAMES}]\n\
          \x20 --buffers <K>         buffers per plane in rotate and revoke, at least 3 [default: 3]\n\
@@ -186,10 +190,14 @@ fn parse(args: &[String]) -> Result<Command, String> {
             _ => (arg.as_str(), None),
         };
         let mut value = |name: &str| {
-            inline
-                .clone()
-                .or_else(|| iter.next().cloned())
-                .ok_or_else(|| format!("{name} needs a value"))
+            match inline.clone() {
+                Some(text) => Ok(text),
+                // The next word is the value, unless it is another option.
+                None => match iter.next() {
+                    Some(next) if !next.starts_with("--") => Ok(next.clone()),
+                    _ => Err(format!("{name} needs a value")),
+                },
+            }
         };
         let number = |name: &str, text: String| {
             text.parse::<u64>()
@@ -216,7 +224,12 @@ fn parse(args: &[String]) -> Result<Command, String> {
                     other => return Err(format!("--profile: unknown profile {other}")),
                 }
             }
-            "--seconds" => seconds = number(key, value(key)?)?,
+            "--seconds" => {
+                seconds = number(key, value(key)?)?;
+                if seconds > stop::MAX_SECONDS {
+                    return Err(format!("--seconds: at most {}", stop::MAX_SECONDS));
+                }
+            }
             "--frames" => {
                 let n = number(key, value(key)?)?;
                 frames = Some(u32::try_from(n).map_err(|_| "--frames: too large".to_string())?);
@@ -303,6 +316,35 @@ fn parse(args: &[String]) -> Result<Command, String> {
     ))
 }
 
+/// What a stop (SIGTERM, SIGINT) adds to the reason of a scenario that had
+/// made its checks and was ending its hold.
+const STOPPED_NOTE: &str = "stopped by SIGTERM or SIGINT during the hold, buffers released";
+
+/// The reason of a scenario that a stop cut off before its checks were made.
+const CUT_OFF_REASON: &str = "stopped by SIGTERM or SIGINT before the checks were made";
+
+/// How a scenario ended.
+#[derive(Debug, PartialEq)]
+enum End {
+    /// It ran to its checks: whether they passed, why, and whether a stop
+    /// ended its hold.
+    Done(bool, String, bool),
+    /// It stopped with an error.
+    Failed(String),
+    /// A stop ended it before its checks were made.
+    CutOff,
+}
+
+/// Classifies a scenario's result. Only the stop's own error is a cut-off;
+/// any other error stays what it was, even if a signal came meanwhile.
+fn end_of(result: Result<Outcome, String>) -> End {
+    match result {
+        Ok(outcome) => End::Done(outcome.pass, outcome.reason, outcome.stopped),
+        Err(error) if error == stop::STOPPED => End::CutOff,
+        Err(error) => End::Failed(error),
+    }
+}
+
 fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
     Record::new("harness")
         .field("version", env!("CARGO_PKG_VERSION"))
@@ -322,14 +364,30 @@ fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
             continue;
         }
         let problems_before = producer::PROBLEMS.load(Ordering::Relaxed);
-        let (mut pass, mut reason) = match run(options) {
-            Ok(outcome) => (outcome.pass, outcome.reason),
-            Err(error) => {
+        let usage = Usage::now();
+        let mut stopped = false;
+        let (mut pass, mut reason) = match end_of(run(options)) {
+            End::Done(pass, reason, was_stopped) => {
+                stopped = was_stopped;
+                if was_stopped {
+                    (pass, format!("{reason}; {STOPPED_NOTE}"))
+                } else {
+                    (pass, reason)
+                }
+            }
+            End::Failed(error) => {
                 Record::new("error")
                     .field("scenario", name)
                     .field("message", &error)
                     .emit();
                 (false, error)
+            }
+            End::CutOff => {
+                // The session ended with the scenario, so its buffers are
+                // released, but the checks were not made: that is no PASS.
+                stopped = true;
+                scenarios::print_resources(name, &usage);
+                (false, CUT_OFF_REASON.to_string())
             }
         };
         // The session, and with it the producers, ended with the scenario.
@@ -343,6 +401,10 @@ fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
             passed += 1;
         } else {
             failed += 1;
+        }
+        if stopped {
+            // No further scenario after a stop.
+            break;
         }
     }
     if scenario == "all" {
@@ -373,7 +435,12 @@ fn main() -> ExitCode {
             print!("{}", usage());
             ExitCode::SUCCESS
         }
-        Command::Run(options, scenario) => run(&options, &scenario, &args),
+        Command::Run(options, scenario) => {
+            if let Err(error) = stop::install() {
+                eprintln!("drm-harness: cannot handle SIGTERM: {error}");
+            }
+            run(&options, &scenario, &args)
+        }
         Command::Lessor(options) => match lessor::run_lessor(&options) {
             Ok(()) => ExitCode::SUCCESS,
             Err(error) => {
@@ -452,6 +519,26 @@ mod tests {
     }
 
     #[test]
+    fn an_option_does_not_swallow_the_next_option() {
+        for bad in [
+            "--connector --seconds 5 revoke",
+            "--seconds --frames 3 revoke",
+            "revoke --connector",
+        ] {
+            assert!(parse(&args(bad)).is_err(), "{bad}");
+        }
+        let (o, _) = options("--connector=HDMI-A-1 --seconds 7 two-planes");
+        assert_eq!(o.connector.as_deref(), Some("HDMI-A-1"));
+        assert_eq!(o.seconds, 7);
+    }
+
+    #[test]
+    fn absurd_seconds_are_refused_not_a_panic() {
+        assert!(parse(&args("--seconds 18446744073709551615 revoke")).is_err());
+        assert!(parse(&args("--seconds 86400 revoke")).is_ok());
+    }
+
+    #[test]
     fn subcommands_parse() {
         match parse(&args("producer --device /dev/dri/card0 --layer 2")).unwrap() {
             Command::Producer { layer, .. } => assert_eq!(layer, 2),
@@ -471,6 +558,29 @@ mod tests {
         }
         assert!(parse(&args("lessor --lease l")).is_err());
         assert!(parse(&args("lessor --dlm-dir /x --lease l rotate")).is_err());
+    }
+
+    #[test]
+    fn a_stop_never_turns_a_failure_into_a_pass() {
+        // A scenario that found a failure and was then stopped in its hold.
+        let failed = Outcome {
+            pass: false,
+            reason: "no event".into(),
+            stopped: true,
+        };
+        assert_eq!(
+            end_of(Ok(failed)),
+            End::Done(false, "no event".into(), true)
+        );
+        // A stop before the checks is its own end, never a pass.
+        assert_eq!(end_of(Err(stop::STOPPED.into())), End::CutOff);
+        // An error that raced with the signal keeps its text.
+        assert_eq!(
+            end_of(Err("poll: EINTR".into())),
+            End::Failed("poll: EINTR".into())
+        );
+        let line = verdict_line("revoke", false, CUT_OFF_REASON);
+        assert!(line.starts_with("VERDICT revoke FAIL stopped by SIGTERM"));
     }
 
     #[test]
