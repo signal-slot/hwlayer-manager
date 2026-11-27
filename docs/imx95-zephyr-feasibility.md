@@ -1,13 +1,14 @@
 # i.MX95 Zephyr feasibility (M2): who owns the display
 
-Draft from source reading, 2026-11-28. Board: Toradex Verdin iMX95 on a Mallow carrier, Toradex 10.1" LVDS panel, Reference Multimedia Image 7.8.0, kernel 6.6.157-7.8.0 (not Torizon). This is the first step of SoW §5.1 ("Zephyr second"), WP3 and M2.
+Source reading 2026-11-28, merged with a read-only board snapshot taken 2026-11-27. Board: Toradex Verdin iMX95 on a Mallow carrier, Toradex 10.1" LVDS panel, Reference Multimedia Image 7.8.0, kernel 6.6.157-7.8.0 (not Torizon). This is the first step of SoW §5.1 ("Zephyr second"), WP3 and M2.
 
-**This draft observes nothing on a board.** Each finding has one of two tags:
+Each finding has one of three tags:
 
+- **observed (date)**: seen on the board over ssh, read-only, in `docs/imx95-zephyr/observed-2026-11-27.txt` (S11).
 - **read from source**: stated by the file named, at the pinned revision.
-- **inferred**: concluded from what was read. The source does not say it.
+- **inferred**: concluded from what was read or observed. Neither says it.
 
-A separate item takes the board snapshots, and a later item merges them into this file. Findings about the NXP EVK, or about NXP's own `imx95-19x19-verdin` files, apply to those files only. They are not claims about the Toradex BSP the board runs.
+Where the source and the observation disagree, the row says so. No finding here is a claim about another SoC. Findings about the NXP EVK, or about NXP's own `imx95-19x19-verdin` files, apply to those files only. They are not claims about the Toradex BSP the board runs.
 
 How the sources were read: the files were fetched over HTTPS from `raw.githubusercontent.com` and GitHub tree pages. `git clone` was not available in this run, and `git ls-remote` was used only to pin revisions. Some long files came back truncated or partly summarised; the rows that depend on them say so. Line numbers are not given; references name the file and the function, node or cfg line. For S7 a full Zephyr checkout at the pinned commit was searched afterwards, to settle the rows that the listings had cut off.
 
@@ -26,9 +27,11 @@ How the sources were read: the files were fetched over HTTPS from `raw.githubuse
 | S9 | https://git.toradex.com/linux-toradex.git | branch `toradex_6.6-2.2.x-imx` = commit `8ad2b7ff6b56` (6.6.161, newer than the board) | **Not read** (same reason) |
 | S10 | https://git.toradex.com/device-tree-overlays.git | branch `toradex_6.6-2.2.x-imx` = commit `e9a3ca6fbd6b` | **Not read** (same reason) |
 
+| S11 | Board snapshot, `docs/imx95-zephyr/observed-2026-11-27.txt` | taken 2026-11-27 (board clock 18:49 UTC), Reference Multimedia Image 7.8.0 build 17, kernel 6.6.157-7.8.0 | remoteproc sysfs, `/proc/device-tree`, dmesg, debugfs `clk_summary` and `pm_genpd`, `/lib/firmware`. Not read: `/proc/interrupts`, SoC revision, the SM cfg, any M7 console |
+
 S8 to S10 are what the board actually runs. The SM configuration, the Verdin/Mallow device tree and the LVDS panel overlay that Toradex ships are therefore **unknown**. No Toradex `imx-sm` fork was found: `github.com/toradex/imx-sm` and `git.toradex.com/imx-sm.git` do not exist (checked with `git ls-remote`). That does not rule out a Toradex patch or cfg file inside S8.
 
-## Ownership model
+## 1. Ownership model
 
 ### How the System Manager partitions the SoC
 
@@ -79,9 +82,19 @@ Nowhere in the cfg does display interrupt routing appear (the display `irqsteer`
 | Display interrupts | Linux: DPU interrupts go through `displaymix_irqsteer` (interrupt-controller@4b0b0000, `PD_DISPLAY`, GIC SPIs 214-219 and 303). Zephyr: `disp_irqsteer` at the same address, master1 → NVIC 215 | read from source (S6, S7). Whether M7 NVIC 215 and A55 GIC SPIs are outputs of the same irqsteer whose channel masks both cores would program is inferred |
 | Scanout memory | Linux scans out of CMA (`alloc-ranges` 0x80000000 + 0x7F000000, S6 EVK/Verdin DT). The M7 LM has `DDR EXEC` over 0x80000000-0x89FFFFFF, which overlaps the start of that CMA range and the vring carveouts at 0x88000000 | read from source (S1, S6). Which DID the DPU uses as a bus master, and so which DDR it may read, is set by the TRDC setup and was not read (unknown) |
 
+### Observed on the board (2026-11-27)
+
+| Finding | Basis |
+| --- | --- |
+| Linux holds the DPU (`nxp,imx95-dpu`, `okay`, `imx95-dpu` DRM device on minor 0, fb0), the LDB (`fsl,imx95-ldb`, channel 0 `okay`), the pixel link and the DISPLAYMIX CSRs. Weston was active before and after the snapshot | observed (2026-11-27) |
+| Linux scans out and runs on the display power domain (`display` `on`, DPU `active`), and the DISP AXI (800 MHz), APB (133 MHz) and OCRAM (400 MHz) clocks are enabled | observed (2026-11-27) |
+| The AP agent sees SCMI protocols 0x11-0x15, 0x19, 0x81, 0x84 only. This agrees with NXP's DT. It says nothing about the M7 agent's rights | observed (2026-11-27) |
+| SM identity: SCMI v2.1, vendor `NXP:IMX`, firmware version 0x23e. The version does not name a cfg. That the board's cfg is `mx95evk` is **not** shown | observed (2026-11-27) |
+| **Agreement with the source:** Linux holds every display resource that `mx95evk` gives to LM2. **Not tested:** that the M7 LM lacks them, since no M7 agent was reachable | observed (2026-11-27) + read from source |
+
 Conclusion (inferred): under `mx95evk` and `mx95evkrpmsg`, the A55/Linux LM owns the DPU, the LVDS and DSI routes, their clocks and the display power domain. The M7 LM has no access. If the board's SM follows either config, the M7 cannot drive the display, and a DPU register read from the M7 should be refused by the TRDC (a bus fault). The fault is inferred from the ownership model; the TRDC programming itself was not read.
 
-## How the M7 is started
+## 2. How M7 firmware is loaded on this board
 
 | Path | Finding | Basis |
 | --- | --- | --- |
@@ -101,6 +114,18 @@ Conclusion (inferred): under `mx95evk` and `mx95evkrpmsg`, the A55/Linux LM owns
 | | ELF segments go through `imx_rproc_da_to_va()`. The i.MX95 table maps TCM code da `0x0` → `0x203C0000` (256 KiB), TCM sys da `0x20000000` → `0x20400000` (256 KiB) and DDR `0x80000000` 1:1 (`0x50000000`) | read from source (S6) |
 | Resource table | Optional ("No resource table in elf" is only logged). A `memory-region` named `rsc-table` is used as the loaded table (1 KiB) | read from source (S6) |
 
+### Observed on the board (2026-11-27)
+
+| Finding | Basis |
+| --- | --- |
+| `remoteproc1` is `imx-rproc`, state `offline`, firmware `rproc-imx-rproc-fw` (the default name, as read). `remoteproc0` is the NPU. A `remoteproc` debugfs directory exists for both | observed (2026-11-27) |
+| **Disagrees with the draft's inference** that the M7 would already run a container demo and Linux would attach: the state is `offline`, not detached/attached. So `IMX_SIP_RPROC_STARTED` did not report a running core. That the Toradex container holds no M7 image is inferred | observed (2026-11-27); inferred |
+| `/sys/module/firmware_class/parameters/path` exists and is empty. Writability was not tested | observed (2026-11-27) |
+| `/lib/firmware` has no M7, `cm7` or `imx*` file (only wifi, Mali, NXP, Marvell files) | observed (2026-11-27) |
+| The kernel logged `imx-rproc is available` at 2.5 s. No attach or start line followed | observed (2026-11-27) |
+| The SCMI node has no 0x80 (LMM) or 0x82 (CPU) protocol, as in S6. The start path therefore goes through TF-A, not through a Linux SCMI call | observed (2026-11-27) for the nodes; inferred for the path |
+| The `m7` power domain is `on` and the `remoteproc-cm7` device's runtime state reads `unsupported`. The `m7` clock reads 800 MHz with an enable count of 0 | observed (2026-11-27) |
+
 ### Can Linux start a different M7 image at runtime?
 
 The Linux side needs no persistent change (inferred):
@@ -114,7 +139,7 @@ None of this writes the rootfs, the U-Boot environment or the eMMC boot partitio
 - Under `mx95evkrpmsg`, AP-S has `CPU_M7P ALL`, so the same calls are allowed (inferred, same caveat).
 - `mx95evkrpmsg` sits under `configs/other`, and the S2 recipe has no variant for it. S2's NXP Verdin image builds `mx95evk` and boots the M7 from the container. Under that config, Linux can only attach to the running M7; it can neither stop it nor load a new image (inferred).
 
-## What Linux holds
+## 3. What Linux holds
 
 The Toradex Verdin/Mallow device tree and its LVDS overlay (S9, S10) were not read. The rows below are NXP's own `imx95-19x19-verdin*` files (S6). They show what NXP's Verdin build claims; they are not the board's tree.
 
@@ -130,9 +155,26 @@ The Toradex Verdin/Mallow device tree and its LVDS overlay (S9, S10) were not re
 | `vdevbuffer` name | The driver skips only a region named `vdev0buffer` when it builds carveouts, so `vdevbuffer` is also registered as an ordinary carveout | inferred from S6 code, not run |
 | SCMI | `arm,scmi` on `mu2`, protocols 0x11 power, 0x12 system, 0x13 perf, 0x14 clock, 0x15 sensor, 0x19 pinctrl, 0x81 BBM, 0x84 misc. No 0x80 LMM, no 0x82 CPU | read from source (S6 `imx95.dtsi`) |
 
-**Is the Toradex 10.1" panel the same `logictechno,lt170410-2whc` on LDB channel 0?** Unknown. It is only NXP's Verdin file, S10 was not read, and the board observation should read it from `/proc/device-tree`.
+### Observed on the board (2026-11-27)
 
-## Can the M7 own the DPU/LVDS route?
+| Node | Board | Compared with S6 |
+| --- | --- | --- |
+| DPU | `display-controller@4b400000`, `nxp,imx95-dpu`, `okay`; power domain index 13 (display); clocks `pix apb axi ocram ldb ldb_vco`; a long `interrupts` list (the line was cut) | agrees |
+| LDB | `syscon@4b0c0000` (`fsl,imx95-dispmix-lvds-csr`) with `ldb@4` (`fsl,imx95-ldb`) `okay`, `channel@0` `okay`, `channel@1` present | agrees: channel 0 |
+| Pixel link | `bridge@8` in `syscon@4b010000`, `nxp,imx95-dc-pixel-link`, `okay` | agrees |
+| MIPI DSI | `dsi@4acf0000` `disabled` | agrees |
+| Panel | `panel-lvds-native`, `compatible = panel-lvds`, with `panel-timing`, `data-mapping`, `width-mm`, `height-mm`; backlight `pwm-backlight` (`backlight-lvds-native`) | **Disagrees with S6**: NXP's Verdin file names `logictechno,lt170410-2whc`. The board uses the generic `panel-lvds` with its own timing. Whether the panel is a Toradex 10.1" part is not stated in these nodes |
+| Root nodes | `remoteproc-cm7` and `rpmsg-lifecycle` (`nxp,rpmsg-lifecycle`) are at the DT root, not under `/soc` | Where S6 puts `cm7` was not recorded in this document, so no comparison is made. `rpmsg-lifecycle` has no counterpart in the files read |
+| M7 rproc | `fsl,imx95-cm7`; `mboxes` three entries (`tx`, `rx`, `rxdb`) on one mailbox phandle; **`power-domains` present**; `memory-region` seven phandles; `fsl,startup-delay-ms` = 50 (0x32). No `firmware-name` | S6 as recorded above lists six regions and no power domain; the board has a power domain and seven regions, so the board differs from that record |
+| Reserved memory | `vdev0vring0` 0x88000000, `vdev0vring1` 0x88008000, `vdev1vring0` 0x88010000, `vdev1vring1` 0x88018000 (0x8000 each), `vdevbuffer` 0x88020000 (1 MiB, `shared-dma-pool`), `rsc-table` 0x88220000 (4 KiB), all `no-map`. Also `memory@80000000` (16 MiB, `no-map`), `memory@9c300000` (1 MiB, shared-dma-pool), `vpu_boot` 0xa0000000, `optee_core` 0x8c000000 (32 MiB), `optee_shm` 0x8e000000, `npu-dma`, and `linux,cma` 0x3c000000 bytes in 0x80000000 + 0x7F000000 | agrees with S6 for the vdev and CMA entries. The `memory@80000000` region resembles the `m7@80000000` of the `-rpmsg` variant; that it is the seventh `memory-region` entry is inferred (phandles were not mapped) |
+| SCMI | `arm,scmi`, protocols 0x11, 0x12, 0x13, 0x14, 0x15, 0x19, 0x81, 0x84; four mailbox entries; optee also present | agrees |
+| Clocks | `ldbpll_vco` 2986.2 MHz and `ldbpll` 497.7 MHz enabled; `ldb_pll_div7` 71.1 MHz enabled (the DPU's `ldb` clock); `lvds_ch0_gate` and `lvds_di0_gate` enabled, channel 1 gates off; `disp1pix` 24 MHz with enable count 0 | observed (2026-11-27); the 71.1 MHz LDB clock is read as the pixel clock actually driving channel 0 (inferred). The LDB rates equal those in S6's 10" file |
+| Power domains | `disp` on; `display` on (DPU `active`); `camera` on; `m7` on | observed (2026-11-27) |
+| DRM | `[drm] Initialized imx95-dpu 1.0.0 ... on minor 0`, then `fb0: imx95-dpudrmfb`. One dmesg line: `imx95-ldb ... Failed to create device link (0x180) with bridge@8` (the display still came up) | observed (2026-11-27) |
+
+The board's Toradex DT sources (S9, S10) were not read. These rows are the board's own tree and replace the earlier "unknown" for the items listed. The panel's part number and timing values remain open.
+
+## 4. Can the M7 own the DPU/LVDS route, alongside Linux or instead of it?
 
 ### Alongside Linux
 
@@ -141,6 +183,8 @@ Not without Linux giving it up (inferred).
 - The SM can split resources only by its cfg lines (`DC0`, `DC1` and the `DC_*` sub-blocks are separate entries). The DPU's fetch units, LayerBlends and scalers, however, are one pool shared by both streams, and Linux's `dpu95` driver manages that pool across both CRTCs (`docs/imx95-dpu-source-6.6.md`).
 - Giving one stream (`DC1` plus its FrameGen) to the M7 while Linux keeps `DC0` would need a cfg that no NXP release provides. It would also need a `dpu95` driver that leaves part of the pixel engine alone, which the 6.6 driver does not do.
 - The `SM_SCMI_PERM_EXCLUSIVE` "display hand-over" mention in `config.md` covers SCMI permissions. It is not known to cover register (TRDC) access.
+
+Observed (2026-11-27) in support: one DPU, one `ldb` with both channels in the same node, one pixel link and one display power domain are all held by one Linux driver instance (`imx95-dpu`, minor 0). The board's panel sits on channel 0 only, so a split between the two streams would leave channel 1 free, but nothing observed shows it could be given to another core.
 
 ### Instead of Linux
 
@@ -151,9 +195,11 @@ Possible in principle (inferred). It would take every one of these:
 3. **Linux DT overlay:** disable `&dpu`, `&displaymix_irqsteer`, `&pixel_interleaver`, `&display_pixel_link`, `&ldb`, `&ldb0_phy`, the panel and the backlight in Linux. Otherwise Linux probes hardware it no longer owns. Loading such an overlay at boot needs a U-Boot env or `/boot` change, which the board rules also forbid.
 4. **Zephyr driver work:** upstream Zephyr has no i.MX95 LDB/LVDS driver (next section). The Verdin's panel is LVDS.
 
+What the observation adds (2026-11-27): the M7's clock and power-domain entries exist on the board, and an `imx-rproc` device exists, so Linux is wired for an M7 that the Toradex image does not start. That is still no sign that the SM gives the M7 any display resource.
+
 Alternative: a single-LM config in the style of `mx95alt` (M7 and A55 in one LM) also lets the M7 reach the display, but with no isolation from Linux. It needs the same new SM firmware and boot container (inferred).
 
-## Scanout and vblank/latch path in upstream Zephyr
+## 5. Scanout and vblank/latch path the Zephyr driver would use
 
 | Item | Finding | Basis |
 | --- | --- | --- |
@@ -171,6 +217,8 @@ Alternative: a single-LM config in the style of `mx95alt` (M7 and A55 in one LM)
 | Remoteproc fit | TCM build: code at ITCM `0x0` and data at DTCM `0x20000000`, both inside `imx_rproc`'s i.MX95 table. A `.resource_table` section exists only with `CONFIG_OPENAMP_RSC_TABLE`. `openamp_rsc_table` has an `imx95_evk_mimx9596_m7` overlay (`mu7`, shmem `0x88000000`, `rsc_table` `0x88220000`) that matches the Linux carveouts | read from source (S6, S7) |
 | Boot address | Zephyr's vector table section is not named `.interrupts`, so what `imx_rproc_get_boot_addr()` returns for a Zephyr ELF is unknown. For a TCM build whose vectors sit at `0x0` the result may still be right | inferred |
 
+Observed (2026-11-27): on this board the DPU is not available to a Zephyr driver. It is held by Linux with the display powered, and its interrupts are routed through Linux's tree. Which irqsteer lines reach the M7 was not observed (`/proc/interrupts` was not read), and the DPU register map was not read at all.
+
 For the engine's needs (SoW §5.1: scanout and vblank/latch first):
 
 - The stock driver gives one plane and a blocking "latched" point with no timestamp or frame counter.
@@ -179,53 +227,68 @@ For the engine's needs (SoW §5.1: scanout and vblank/latch first):
 
 All four points are inferred.
 
-## Gate: can an M7 image be started from Linux remoteproc with files only under /tmp?
+## 6. What is blocked, with evidence
 
-**Answer: unknown. Under NXP's default SM config it is expected to be no.**
+| # | Blocker | Evidence | Basis |
+| --- | --- | --- | --- |
+| B1 | The board's SM configuration is unknown, so it is unknown whether the M7 may use the display or may be started and stopped from Linux | The only SM facts observed are `SCMI Protocol v2.1 'NXP:IMX' Firmware version 0x23e`, MISC 1.1, BBM 1.0. No cfg name or build banner is printed. The Toradex sources (S8) were not readable | observed (2026-11-27) for the version; read from source for S8 |
+| B2 | Linux owns and uses the display now | `dpu` and `ldb` channel 0 `okay`, `imx95-dpu` bound with fb0, display power domain on and `active` for the DPU, display AXI/APB/OCRAM clocks and the LDB PLL enabled, Weston active | observed (2026-11-27) |
+| B3 | Neither NXP's cfg nor any cfg read here gives the display to an M7 LM that runs beside Linux | `mx95evk`: LM2 (Linux) has every display resource; `mx95alt` is the only cfg where the M7 reaches it and it shares one LM with the A55 cores | read from source (S1) |
+| B4 | Moving the display needs an SM cfg rebuild, a new boot container and a Linux DT change. Each is a write to the eMMC boot area, the U-Boot environment or `/boot` | `docs/imx95-board.md` forbids these writes | read from source (S1-S3) for the artefacts; the rule is the board's |
+| B5 | Zephyr has no LVDS/LDB driver; its only DPU route is DSI | no `ldb`/`lvds` driver, binding or node in S7. The board's panel is `panel-lvds` on LDB channel 0; its DSI node is `disabled` | read from source (S7); observed (2026-11-27) for the board |
+| B6 | The stock Zephyr DPU driver is one plane with a blocking commit, no timestamp or frame counter, and a hard-coded DPU base in the ISR | see section 5 | read from source (S7) |
+| B7 | No Zephyr board or devicetree for the Verdin iMX95 exists upstream; the M7 console UART on Mallow is not known | `boards/toradex/` has no iMX95 board | read from source (S7); UART unknown |
+| B8 | Whether `imx_rproc` can start an M7 image at all is not shown | state is `offline`; no evidence of `CPU_M7P` for the AP agent (section 8) | observed (2026-11-27); evidence absent |
 
-Reasons:
+### Open questions: settled by the observation, and still open
 
-1. **The Linux side does not block it (inferred).** The firmware search path and the remoteproc `firmware`/`state` attributes are runtime sysfs settings. They write nothing to the rootfs, the U-Boot env or the eMMC boot partitions.
-2. **The SM decides (inferred from S1 + S4).** `imx_rproc` (6.6) → TF-A → SCMI CPU `set_reset_addr`/`start`/`stop` on M7P, as the AP-S agent:
-   - **No** under `mx95evk`, the config NXP builds for its Verdin machine: AP-S has no `CPU_M7P` right.
-   - **Yes** under `mx95evkrpmsg`: `CPU_M7P ALL`.
-   - **Unknown** for Toradex, whose SM config was not read (S8).
-3. **The M7 may already be running (inferred from S2, S3, S6).** NXP's Verdin build packs an M7 demo into `flash_all`, and the SM boots it. Linux then attaches (`RPROC_DETACHED` → attached). To load a new image it must first `stop`. Stop is the same SCMI CPU call, and `detach` is unsupported.
-4. **Stopping is the risky step (inferred).** If `stop` succeeds and `start` is then refused or the image is bad, the M7 stays down until the board is reset. The farm has no remote power control for this board, so the original state could not be restored remotely.
-5. **The rproc node may not exist (unknown).** Whether the Toradex DT has an enabled `fsl,imx95-cm7` node is unknown (S9 not read). Without it there is no remoteproc device at all.
+| Question from the draft | Answer | Basis |
+| --- | --- | --- |
+| Is there an imx rproc, and in which state? | Yes, `remoteproc1`, name `imx-rproc`, state `offline`, firmware `rproc-imx-rproc-fw`. `remoteproc0` is the NPU (`neutron-rproc`) | observed (2026-11-27) |
+| Is there an `imx95-cm7` node? | Yes, `remoteproc-cm7` at the DT root, `fsl,imx95-cm7`, with a power domain; see section 3 | observed (2026-11-27) |
+| `m7@80000000` carveout? | Not by that name; a `memory@80000000` 16 MiB `no-map` region exists | observed (2026-11-27) |
+| SCMI 0x80/0x82 protocols for Linux? | No. Protocols 0x11, 0x12, 0x13, 0x14, 0x15, 0x19, 0x81, 0x84 | observed (2026-11-27) |
+| Status of `dpu`, `ldb`, pixel link, `mipi_dsi`; panel | `dpu`, `ldb`, `channel@0`, pixel link `okay`; DSI `disabled`; panel `panel-lvds` | observed (2026-11-27) |
+| SM/SCMI version | SCMI v2.1, vendor `NXP:IMX`, firmware 0x23e | observed (2026-11-27) |
+| Display clocks and power domains | On under Linux (section 3) | observed (2026-11-27) |
+| Is the M7 already running a container demo? | Not reported: `offline`. That the container holds no M7 image is inferred | observed (2026-11-27); inferred |
+| Is `firmware_class` path writable? | Only its existence and empty value were read; writability was not tested | observed (2026-11-27) for the value; open for writability |
+| Which SM config does the board run, and does AP-S have `CPU_M7P`? | **Open** | |
+| Which DID the DPU masters under, and are TRDC rules in place? | **Open** | |
+| Do M7 NVIC 215 and the A55 GIC SPIs come from the same irqsteer? `/proc/interrupts` was not read | **Open** | |
+| SoC revision | **Open** (not read) | |
+| Panel part number and timing values; pixel clock needed | **Open** (the panel node has `panel-timing`, values not captured) | |
+| M7 UART on Mallow | **Open** | |
 
-What would turn the answer into yes, all from read-only observation:
+## 7. Proposed M2 items
 
-- (a) A `remoteproc` device whose `name` matches the imx rproc.
-- (b) `state` = `offline`, not `attached`/`running`. Then a failed `start` leaves the core as it was, which is harmless.
-- (c) Ideally, evidence of the SM config: the SM build banner on its debug UART or an SCMI misc config-info. Without that, case (b) is the only safe one to try.
+Related design notes in this repository: `docs/imx95-sm-display-lm.md`, `docs/imx95-m7-fb-memory.md`, `docs/imx95-m7-overlay-design.md`, `docs/imx95-m7-backend-contract.md`, `docs/imx95-m7-scmi.md`, `docs/imx95-m7-verdin-bsp.md`, `docs/m2-comparison-plan.md`. They are not re-checked here.
 
-If `state` is `attached` or `running`, the M7 run should **not** stop the core. It should record the blocker instead.
+1. **Settle ownership.** Read S8 to S10 where `git clone` from git.toradex.com works, to find `SYSTEM_MANAGER_CONFIG`, whether the container holds an M7 image and whether the cfg gives AP-S `CPU_M7P`. Optionally read the SM boot banner on the console of the board, with a power cycle only when no other item holds it. Decides B1 and B8.
+2. **Ownership probe from the M7**, only if the gate (section 8) turns to met: build a TCM image, read DPU and display blk-ctrl registers behind a fault handler, query SCMI `PD_DISPLAY` as the M7 agent. Expected under `mx95evk`: refused or fault (inferred).
+3. **Scanout.** Two routes, depending on 2 and on a board the project may reflash:
+   - If the M7 can reach the DPU: scanout from the M7 on a DSI panel through the stock driver (the `nxp_mx9_dsi_oled` shield route on the EVK). This is a different panel from the Verdin's LVDS one.
+   - On the Verdin's LVDS panel: write an LDB driver for Zephyr, a new SM cfg, a boot container and a Linux DT with the display disabled. All of it needs a reflashable board.
+4. **VSYNC/latch reporting.** Make the commit non-blocking with a timeout; report the ExtDst0 shadow-load latch with a FrameGen frame counter and a timestamp; read the DPU base from the devicetree. Check the result against the Linux flip-done on the same scene.
+5. **Overlay or blocker report.** Only after scanout and latch work. A second fetch unit and a LayerBlend need a multi-plane driver. If 2 shows Linux ownership and no reflashable board is granted, the deliverable is this document's section 6 as the blocker report plus the reduced-scope bring-up (an M7 that runs without the display).
+6. **Linux vs Zephyr comparison of the same scene** (latch time, frame count, missed latches) with dated measurements, as `docs/m2-comparison-plan.md` sets out. Measurements on a different SoC are not a substitute.
 
-## Open questions for the board observation
+## 8. Gate: can an M7 image be started from Linux remoteproc with files only under /tmp?
 
-1. `/sys/class/remoteproc/*/{name,state,firmware}`: is there an imx rproc, and is it `offline`, `attached` or `running`?
-2. `/proc/device-tree`:
-   - Is there an `imx95-cm7` node, and with what status, `mboxes` and `memory-region`?
-   - Which `reserved-memory` children exist, and is there an `m7@80000000`?
-   - The `scmi` protocol children: any 0x80/0x82?
-   - The status of `dpu`, `ldb` (and which channel), `pixel_interleaver`, `display_pixel_link`, `mipi_dsi` and `displaymix_irqsteer`.
-   - The panel `compatible`.
-3. dmesg: the SCMI version/vendor lines, the imx_rproc probe ("attach"/detached), and dpu95/ldb probe messages. Does the kernel print an SM firmware build or config name (`imx-sm-misc`)?
-4. `/sys/module/firmware_class/parameters/path`: does it exist and is it writable? Read it only; do not change it.
-5. Debugfs `clk_summary`: the parents and rates of `disp1pix`, `ldbpll`, `videopll1`, `dispaxi` and `dispapb`, if the clocks are visible through SCMI. Debugfs `pm_genpd_summary`: is the display domain on, and is there an M7 domain?
-6. `/proc/interrupts`: the display irqsteer and dpu95 lines. Are they owned by Linux and counting?
-7. The SoC revision (`/sys/devices/soc0/revision`). It also matters for the VScaler4 question in `docs/imx95-dpu-source-6.6.md`.
+Gate: not met. The core is `offline` (observed 2026-11-27), but nothing shows that the System Manager lets the Linux side start or stop `CPU_M7P`. The Toradex SM configuration was not read, and NXP's default `mx95evk` refuses it (read from source).
 
-## Proposed M2 items
+The decision rule from the draft: yes only if the M7 remoteproc reports `offline` and there is evidence that the SM config grants the M7 start/stop right. Check by check:
 
-1. **Read the Toradex sources** (needs `git clone` from git.toradex.com):
-   - S8: the `verdin-imx95` machine conf, the SM recipe, `SYSTEM_MANAGER_CONFIG`, the imx-boot targets and whether an M7 image is in the container.
-   - S9 and S10: the Verdin/Mallow DT and the 10.1" LVDS overlay.
-   - Pin `SRCREV`s at the commit that matches 7.8.0.
-2. **Board observation:** the open questions above. Read only.
-3. **Gate decision:** decide the gate from items 1 and 2 by the rules above. Only an `offline` rproc and a config that grants `CPU_M7P` makes it yes.
-4. **M7 hello via remoteproc:** only if the gate is yes. Build a TCM image, optionally with a resource table. Log over the M7 UART, if one is reachable on Mallow (the Zephyr EVK uses `lpuart3`; the Verdin pin-out is unknown), or over rpmsg. Restore the firmware path afterwards.
-5. **Ownership probe from the M7:** only after item 4. Read DPU or display blk-ctrl registers from the M7 behind a bus-fault handler, and query SCMI `PD_DISPLAY` state as the M7 agent. Expected under mx95evk: fault or denied (inferred). This turns the ownership model into an observed fact without touching Linux's display.
-6. **Blocker report:** if items 3-5 confirm Linux ownership, write the evidence-based blocker report SoW §5.1/M2 asks for. Scanout from the M7 then needs a new SM config, a new boot container and a Linux DT change, all outside the board rules. In its place, propose the reduced-scope bring-up the plan allows: the M7 hello/probe, plus scanout on a board the project may reflash.
-7. **If a reflashable board is granted:** a custom SM cfg giving the display to LM1, a Linux DT with the display disabled, an LDB driver for Zephyr, and a Zephyr adapter that reports latch (ExtDst shadow load plus a FrameGen counter). Overlay comes only after that.
+| Check | Result | Basis |
+| --- | --- | --- |
+| (a) a `remoteproc` named `imx-rproc` | Met: `remoteproc1` | observed (2026-11-27) |
+| (b) state `offline` rather than `attached`/`running` | Met | observed (2026-11-27) |
+| (c) evidence that the SM grants `CPU_M7P` to the agent TF-A uses | **Not met.** Only the SM version was observed; no cfg name or permission table. The Linux SCMI node has no 0x82 protocol, and does not need one, because `imx_rproc` reaches the CPU protocol through TF-A | observed (2026-11-27) for the version; read from source (S1, S4, S6) for the path |
+| Linux side writes nothing persistent | Plausible: the `firmware_class` path (read as empty) and the remoteproc `firmware`/`state` attributes are runtime settings. Writability of the path was not tested | observed (2026-11-27) for the path value; inferred for the rest |
+| No M7 image installed | `/lib/firmware` has no M7 or `imx*` file, so a file would have to come from a search path under `/tmp` | observed (2026-11-27) |
+
+What the offline state means for risk (inferred): a refused `start` leaves the core as it was. Nothing is running that would have to be stopped, so the draft's hazard of stopping an attached core does not apply. The remaining risk is a `start` that succeeds with a bad image, followed by a refused `stop`: the M7 would then run until the next reset, and the farm has no remote power control for this board.
+
+What turns the answer into met: evidence for (c) from item 1 of section 7, or a decision by the planner that a single `start` attempt of a harmless image on the offline core is itself the evidence. That decision is not taken here.
+
+Even if met, only an M7 hello and an ownership probe follow. It does not put a Zephyr image on the display. The power domain `m7` shows `on` and the `m7` clock 800 MHz with an enable count of 0 (observed 2026-11-27). Whether the core itself is held in reset was not observed.
