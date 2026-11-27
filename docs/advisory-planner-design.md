@@ -1,6 +1,6 @@
 # Advisory planner: design note (WP5-03)
 
-Status: **proposal, not implemented.** Nothing in this note exists in `crates/`, `include/` or `backends/`. Every signature below is a sketch to be argued about, not an API. No code or header was changed to write it. Written 2026-11-28 from the tree at commit `107c5c9`.
+Status (2026-11-28): **the stateless forms are implemented; the engine form is not.** **Read from source:** the Rust form is `composition_core::advise` (`crates/composition-core/src/advise.rs`, re-exported from `lib.rs`: `advise`, `explain_layer`, `Advice`, `Blocker`, `AdviceError`, `AdviseOptions`), tested in `crates/composition-core/tests/advise.rs`. The C form is `ce_advise` and `ce_explain_layer` in `crates/composition-ffi` with `include/composition_engine.h` and the check function `ce_abi_check_advise`, tested in `crates/composition-ffi/tests/advise.rs` and `tests/c/advise.c` of `composition-ffi-staticlib`. Sections 1 to 5 below are the original proposal text and differ from the code in places (for example `accept` takes `(&Plan, Option<usize>)`, steps are bounded per candidate, and `Advice` carries `candidates()` and `backend_checks()`; see §6); the code is authoritative. Of the tests of §5, numbers 1 to 8 and 12 exist in `tests/advise.rs`, and 10 exists for the C form. Numbers 9 (`Engine::advise` has no side effects; there is no engine form), 11 (fake-backend fuzz) and 13 (libliftoff cross-check) do not exist in this tree. Every choice of §6 is a **decision taken by the implementation, which the owner may revisit**. The note was first written 2026-11-28 from the tree at commit `107c5c9`, as a proposal.
 
 Tags: **read from source** (a file and line in this tree), **inferred** (reasoning from what was read), **proposal**. Nothing here is observed on hardware and no timing is claimed.
 
@@ -314,7 +314,7 @@ Weston's DRM backend plans plane use per output in `drm_output_propose_state` wi
 
 Inferred limits: Weston can also underlay or reorder planes, use several renderer passes, and applies policy (power, damage, overlay surfaces it will not promote). None of that is modelled; the advice is a legal assignment, not Weston's preferred one.
 
-### Tests the design needs (**proposal**; none exist)
+### Tests the design needs (**proposal**; see the status paragraph for which exist)
 
 Host tests, no board. The fake backend (`crates/composition-fake`) and `vkms` are the existing fixtures.
 
@@ -334,24 +334,29 @@ Host tests, no board. The fake backend (`crates/composition-fake`) and `vkms` ar
 
 Not testable here: that a real compositor accepts the advice, and any timing or power effect. Nothing is measured; none of this is a hardware result.
 
-## 6. Open decisions
+## 6. Decisions
 
-1. **One composition buffer or several.** The contiguity model (§2.1) is simple and bounded but cannot express "promoted layer between two composed ones". Weston and libliftoff may do better. Alternatives: allow `k` composition targets; or a subset search with a step cap; or a user-supplied hint of which layers must be composed.
-2. **Who owns composition.** Whether the engine should only advise, or also offer an optional software compositor (SoW non-goal territory; SoW sections to be re-read before any answer). This note assumes advise-only.
-3. **Greedy by count or by weight.** Minimal composed-layer count is the proposed objective. Compositors usually want to promote by size, update rate or video; an optional per-layer priority or "must be on a plane" / "never promote" flag in `Layer` would change `Layer` and `ce_layer` (an ABI change to existing structs, which this proposal otherwise avoids).
-4. **Per-layer input errors**: keep `UnknownBuffer`/`InvalidSource`/`InvalidDestination` as whole-call errors (proposed) or report them as `Compose` with a blocker.
-5. **New `RejectReasons` bits.** `Blocker::Clip` and `Combination` are a separate enum here so as not to touch the existing 11 bits (`planner.rs:38-60`, mirrored by `CE_REJECT_*`). One could instead add bits, simpler for C but a change to a published word.
-6. **Stateless C form only, or also the engine form.** The engine form (`ce_engine_advise`) reuses registration and backend check but needs the 28 KiB engine (`CE_ENGINE_SIZE`) and buffer lifecycle a compositor may not want. Proposed: ship both, stateless first.
-7. **Versioning the ABI.** New structs need `ce_abi_check` coverage: a second check function, extra parameters (breaks callers) or a version constant. Not decided.
-8. **Advice stability.** Whether the same frame and capabilities must always give the same advice (the planner is deterministic, `planner.rs:15`); proposed yes, which constrains future search changes.
-9. **Relation to `Plan`.** Whether an `Advice` with `is_direct()` may be convertible into a `Plan` for `commit` (proposed no, §3.2) or whether `Engine::validate` should simply gain the partial result.
-10. **Buffer state checks.** `Engine::validate` does not require buffers to be `Ready`; whether `advise` should is open (a compositor typically advises before its clients have finished drawing).
-11. **Capability source for a non-engine caller.** `ce_capabilities` is about 9 KiB (a comment in `lib.rs:254-258`, **read from source**); a caller that only wants advice may not want to build it. A smaller input form (a sequence of planes) would be a separate API.
-12. **Name and place.** `advise` vs `plan_advisory`; a module in `composition-core` (proposed) vs a separate crate. A separate crate would keep `composition-core` unchanged but would need its own `no_std` CI job.
+Each item keeps the question as proposed and then states what was taken (**read from source**: the commit bodies of `b514116` for the Rust form and `70523d5` for the C form). All are **decisions the owner may revisit**; the owner has not settled any of them.
+
+1. **One composition buffer or several.** The contiguity model (§2.1) is simple and bounded but cannot express "promoted layer between two composed ones". Alternatives: `k` composition targets; a subset search with a step cap; a caller hint of which layers must be composed. **Taken:** one contiguous composition buffer; no `k`-target or subset search.
+2. **Who owns composition.** Advise only, or also an optional software compositor (SoW non-goal territory). **Taken:** advise only; no software compositor.
+3. **Greedy by count or by weight.** **Taken:** minimal composed-layer count; ties go to the lowest stacking run; no per-layer priority, so `Layer` and `ce_layer` are unchanged.
+4. **Per-layer input errors.** **Taken:** `UnknownBuffer`, `InvalidSource`, `InvalidDestination` (and `UnknownOutput`, `TooManyLayers`) are whole-call errors; a layer that cannot be clipped becomes `Placement::Compose` with `Blocker::Clip`.
+5. **New `RejectReasons` bits.** **Taken:** a separate `Blocker` enum; no new `RejectReasons` or `CE_REJECT_*` bits.
+6. **Stateless C form only, or also the engine form.** **Taken:** the stateless forms only (`advise`, `ce_advise`); no `Engine::advise` and no `ce_engine_advise`. The proposal said "ship both, stateless first"; the engine form is **not decided** and remains open.
+7. **Versioning the ABI.** **Taken:** a second check function, `ce_abi_check_advise`, rather than extra `ce_abi_check` parameters or a version constant; `ce_abi_check` and `CE_ENGINE_SIZE` are unchanged.
+8. **Advice stability.** **Taken:** deterministic, the same input gives the same advice (tested, also under renamed buffer ids).
+9. **Relation to `Plan`.** **Taken:** no conversion of `Advice` into `Plan`; `commit` does not accept an `Advice`; `Engine::validate` is unchanged.
+10. **Buffer state checks.** **Taken:** buffers need not be `Ready`; only `BufferLookup` metadata is read.
+11. **Capability source for a non-engine caller.** **Taken:** the caller's `&Capabilities` (`ce_capabilities` in C) as for `plan()`; no smaller input form. A smaller form is **not decided** and would be a separate API.
+12. **Name and place.** **Taken:** function `advise` in module `composition_core::advise` (`crates/composition-core/src/advise.rs`; the sketch said `advisory.rs`), no separate crate.
+
+Further choices the proposal left open or that differ from its sketch, also for the owner to revisit (**read from source**, `b514116` and `70523d5`): `accept` is `FnMut(&Plan, Option<usize>) -> Verdict`; steps are bounded per candidate, not shared; a candidate cut by its step limit does not end the search (`Blocker::Budget` or `LimitExceeded`); `Blocker::Static` is the intersection over the planes that reach the output; `compose: None` plans only the frame as it is; `advise.rs` holds a copy of the planner's private `clip_to_output`, checked against the planner by a test on 5000 cases; `static_reasons` became `pub(crate)` and nothing else in `planner.rs` changed. In C: the new status `CE_ERR_NO_COMPOSE_PLANE` (-19), `0` in an option field means the library default, and `*advice` is not written at all on failure.
 
 ## 7. What this note does not claim
 
-* Nothing here is implemented, tested or measured.
+* The stateless forms are implemented and host-tested (tests in the status paragraph); the engine form is not. Tests 9, 11 and 13 of §5 do not exist.
+* Nothing is measured. No timing, power or memory figure is claimed beyond the host-side bounds the tests check; `size_of::<Advice>()` is pinned by a test, not measured on a board.
 * No claim about what Weston or libliftoff do beyond what `docs/wp5-gap-analysis.md` records (Weston `main` at `c8d00e2`, libliftoff `c4226a7`, partly read), and none about the Weston on a board image.
-* No upstream acceptance, and no claim that an advisory API reaches parity with either planner; that needs WP5-04 and hardware.
+* No upstream acceptance, and no claim that the advisory API reaches parity with either planner; that needs WP5-04 and hardware.
 * No hardware: not tied to M1, M2 or M3.

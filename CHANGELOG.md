@@ -32,6 +32,7 @@ release, rename **Unreleased** to the version and date and open a new empty one.
 - composition-core: a plan made stale by events queued before the commit is refused (2026-11-28).
 - composition-core: a commit the backend accepted is no longer failed by a spurious latch (2026-11-28).
 - composition-core: the latch a backend already reported before the replacing frame is recorded, and the latch of the submission being committed is held back until it is recorded (2026-11-21).
+- composition-core: `advise`, the stateless advisory planner (`docs/advisory-planner-design.md`), with tests; host only (2026-11-28).
 - composition-core: tests: planner soundness and completeness properties, fixed-point properties, capability description edge cases, model-based tests of the presentation state machine (2026-11-28).
 - composition-fake: fake backend, with SoW §10 lifecycle scenario tests, adversarial event-order tests, seeded fuzz tests for malformed frame descriptions, and planner table tests (2026-11-21 to 2026-11-28).
 - composition-fake: `plan_time` example that measures plane assignment time on the host (2026-11-28; host figures only, `docs/host-metrics.md`).
@@ -40,6 +41,7 @@ release, rename **Unreleased** to the version and date and open a new empty one.
 - composition-drm: `twoplane` producer harness example; it reports TEST_ONLY rejections that ran into the search limit (2026-11-28).
 - composition-drm-harness (`tools/drm-harness`): two-plane producer harness on a DRM master fd, with kernel lease, drm-lease-manager client and external producer modes (2026-11-28).
 - composition-ffi: C ABI over the engine, with malformed-input tests (seeded generator) and an adversarial event-ordering test (2026-11-21, 2026-11-28).
+- composition-ffi: `ce_advise`, `ce_explain_layer` and `ce_abi_check_advise`, the stateless C form of the advisory planner, with the header, tests and a C test (2026-11-28).
 - composition-ffi-staticlib: static library for C programs, split out of `composition-ffi`, which is now an rlib (2026-11-21).
 - backends/twoplane: the two-plane C backend taken from the AM62P demo firmware, free of Zephyr (port table instead), host-tested, with adversarial event-ordering host tests (2026-11-26, 2026-11-28).
 - scripts: `cross-aarch64.sh`, a static aarch64 Linux cross-build of the DRM backend, probe and harness (2026-11-28).
