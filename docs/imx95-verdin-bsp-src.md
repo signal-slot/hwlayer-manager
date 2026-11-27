@@ -20,7 +20,7 @@ the tree but is **inferred** to be near, not equal to, the running kernel.
 ## 2. SM logical-machine assignment (read from source)
 
 Source: `configs/mx95evk.cfg` at imx-sm `rel_imx_sm_2026q3`
-(`eec23287`), fetched over HTTPS from
+(`eec232878ab7dd460f5a8f3767d39dc7e9412efa`), fetched over HTTPS from
 `https://raw.githubusercontent.com/nxp-imx/imx-sm/rel_imx_sm_2026q3/configs/mx95evk.cfg`
 (HTTP 200). This is the NXP **EVK** config; no Verdin-specific `.cfg` was
 found, so applying it to the Verdin is **inferred**. Line numbers were counted

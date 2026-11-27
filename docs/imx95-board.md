@@ -5,6 +5,9 @@ userland, NXP kernel 6.6), not Torizon. Binaries are cross-built on the host
 and copied to `/tmp` on the board. Nothing is installed into the image, so the
 binaries must run there as they are.
 
+Evidence tag: **inferred** (the board description is as given to the author of
+this page; no board observation is dated here).
+
 This page uses placeholders only. `<board>` stands for the ssh destination
 (`user@host`) you were given for the board. Never write real addresses, host
 names, users or serial paths into the repository, commits or reports.
