@@ -41,7 +41,7 @@ The binary is `target/aarch64-unknown-linux-musl/release/examples/m2scene`.
 /tmp/m2scene --device /dev/dri/card0 --frames 300 --profile imx95 > /tmp/m2scene.log
 ```
 
-Options: `--device PATH` (default `/dev/dri/card0`), `--frames N` (default 300), `--output N` (default 0), `--profile generic|imx95` (default `generic`), `--dry-run`.
+Options: `--device PATH` (default `/dev/dri/card0`), `--frames N` (default 300), `--output N` (default 0), `--profile generic|imx95` (default `generic`), `--plane-alpha A` (default `0x8000`, the scene's), `--dry-run`. A `--plane-alpha` other than `0x8000` makes a variant, not the scene; the RUN line then carries `alpha=A`. It exists for drivers without plane alpha such as vkms, which refuse the scene as the engine should (`plan.no_plane layer=1 reasons=0x10`, `RejectReasons::ALPHA`; the engine never composes in software). `RESULT committed=` includes the final empty frame.
 
 The example needs DRM master. On an i.MX95 board the rules of [imx95-board.md](imx95-board.md) apply: copy the binary to `/tmp` and write the log there, install nothing, and if the compositor has to be stopped for the run, stop and restore it with `scripts/display-guard.sh` and confirm it is active afterwards. The comparison method (modes, frame counts, what counts) is in [m2-linux-zephyr-comparison.md](m2-linux-zephyr-comparison.md) and [m2-comparison-plan.md](m2-comparison-plan.md); the plan asks for at least 1000 frames for latency, so pass `--frames` accordingly.
 
@@ -51,5 +51,5 @@ The example needs DRM master. On an i.MX95 board the rules of [imx95-board.md](i
 | --- | --- |
 | Host dry run | runs and prints the RUN line, scene and plan (2026-11-28, host only) |
 | aarch64 cross build | builds (2026-11-28, host only; not run) |
-| Run on vkms | not run (`scripts/vkms-vm-test.sh` runs the backend's vkms tests, not this example) |
+| Run on vkms | 2026-11-28, in the QEMU VM of `scripts/vkms-harness-test.sh` (a local, uncommitted copy that ships this example instead of the harness), host kernel's vkms, not hardware: the scene itself is refused with `reasons=0x10` (vkms has no plane alpha); the variant `--plane-alpha 0xffff` ran 5 and 300 frames to `VERDICT m2scene: DONE`, every commit latched, none dropped. This checks the example's control flow and line format only; vkms times are not display timing and are not a result |
 | Run on a board | not run; no measurement |
