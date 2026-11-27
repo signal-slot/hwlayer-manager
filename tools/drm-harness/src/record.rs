@@ -80,15 +80,21 @@ pub fn quote(value: &str) -> Cow<'_, str> {
 ///
 /// The reason is free text to the end of the line, on one line.
 pub fn verdict_line(scenario: &str, pass: bool, reason: &str) -> String {
+    verdict_text(scenario, if pass { "PASS" } else { "FAIL" }, reason)
+}
+
+/// The final line of a scenario that could not run here:
+/// `VERDICT <scenario> BLOCKED <reason>`.
+pub fn blocked_line(scenario: &str, reason: &str) -> String {
+    verdict_text(scenario, "BLOCKED", reason)
+}
+
+fn verdict_text(scenario: &str, word: &str, reason: &str) -> String {
     let reason: String = reason
         .chars()
         .map(|c| if c == '\n' || c == '\r' { ' ' } else { c })
         .collect();
-    format!(
-        "VERDICT {scenario} {} {}",
-        if pass { "PASS" } else { "FAIL" },
-        reason.trim()
-    )
+    format!("VERDICT {scenario} {word} {}", reason.trim())
 }
 
 /// Joins values with commas, for list-valued fields such as plane ids.
@@ -149,6 +155,10 @@ mod tests {
         assert_eq!(
             verdict_line("rotate", false, "line one\nline two "),
             "VERDICT rotate FAIL line one line two"
+        );
+        assert_eq!(
+            blocked_line("modeset", "one mode\n"),
+            "VERDICT modeset BLOCKED one mode"
         );
     }
 

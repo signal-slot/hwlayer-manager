@@ -50,14 +50,15 @@ drm-harness [OPTIONS] <SCENARIO>
 | `move`         | Moves the top plane across the screen for `--frames` frames over a checkerboard bottom buffer that is never redrawn: per-frame plane ids, the bottom buffer's checksum before and after, and that it is never released. |
 | `rotate`       | `--buffers` buffers per plane on two planes for `--frames` frames. A buffer is redrawn only once the engine reported it `Released`; the harness checks Submitted → Latched → Released for every buffer and counts dropped frames, missed vblanks and violations. Measures submit → latch latency, frame interval, validate and commit time, CPU and memory. |
 | `revoke`       | `--source kernel-lease` only. Rotates `--buffers` buffers per plane on two planes for `--frames` frames (default 60), then the in-process lessor revokes the lease between two frames. Checks that the next frame fails with `DeviceLost`, that a second one fails with `UnknownOutput` for the lost output (the backend reports no outputs once the loss is applied), that `DeviceLost` is reported exactly once, that the two buffers on screen are released exactly once and nothing else, that no buffer stays submitted or scanning, and that no output or plane is reported afterwards (as `leased_output_exposes_only_leased_planes_and_reports_revocation` in `crates/composition-drm/tests/vkms.rs`). |
-| `all`          | All of the above, in that order; `revoke` only with `--source kernel-lease`. |
+| `modeset`      | Commits the `two-planes` picture on the connector's current mode for 1 s, then switches to the first other mode of the connector's list (differing in size or refresh, progressive, each size and refresh once) that atomic `TEST_ONLY` accepts. The switch is the harness's own blocking `ALLOW_MODESET` commit on the same descriptor: the new mode, a black buffer of the new size on the primary plane, the CRTC's other planes off. A new engine on that descriptor then finds the new size, plans for it and commits for `--seconds`. Then the same kind of commit puts the original mode back, and the CRTC's mode is read to check it. BLOCKED when the connector offers only one mode (no other progressive one). Not run by `all`. |
+| `all`          | All of the above but `modeset`, in that order; `revoke` only with `--source kernel-lease`. |
 
 | Option | Default | |
 |--------|---------|---|
 | `--device <PATH>` | `/dev/dri/card0` | device node to open |
 | `--connector <NAME>` | first connected | connector name or prefix, e.g. `LVDS` |
 | `--profile generic\|imx95` | `generic` | `DriverProfile` handed to the backend |
-| `--seconds <N>` | 5 | how long each picture is held for a camera (in `revoke`: the screen after the revocation); at most 86400 |
+| `--seconds <N>` | 5 | how long each picture is held for a camera (in `revoke`: the screen after the revocation; in `modeset`: the commits after the switch); at most 86400 |
 | `--frames <N>` | 240 (`move`), 600 (`rotate`) | frame count |
 | `--buffers <K>` | 3 | buffers per plane in `rotate` and `revoke` (3 to 16) |
 | `--source master\|kernel-lease\|dlm` | `master` | where the descriptor comes from, see [Sources](#sources) |
@@ -87,15 +88,25 @@ The main kinds:
 - `commit`: validate time, commit time and latency of one commit.
 - `frame` (`move`), `combo` (`combos`), `progress`, `violation`,
   `move_result`, `combos_result`, `rotate_result`.
+- `modeset`: `connector_modes` (the connector's list, `WxH@Hz`),
+  `mode_candidate` (a mode tried with `TEST_ONLY`), `modeset step=switch` and
+  `step=restore` (the harness's commit, its time, result and the CRTC's mode
+  afterwards), `replan` (the size the new engine reports), `commit` records
+  with `step=modeset-before` and `step=modeset-after`, and `modeset_result`
+  (`from`, `to`, commits and latches before and after, `restored`).
 - `resources`: wall time, user and system CPU time, CPU %, RSS and peak RSS
   (`VmHWM`) for the scenario.
-- `VERDICT <scenario> PASS|FAIL <reason>` ends every scenario; `all` adds
-  `SUMMARY passed=.. failed=..`. The exit status is 0 only if all passed.
+- `VERDICT <scenario> PASS|FAIL|BLOCKED <reason>` ends every scenario; `all`
+  adds `SUMMARY passed=.. failed=.. blocked=..`. BLOCKED means the scenario
+  could not run here (`modeset` on a connector with one mode); it is never a
+  pass. The exit status is 0 only if all passed, 1 if one failed, 3 if none
+  failed but one was BLOCKED.
 - SIGTERM and SIGINT stop the run instead of killing it, so that it still
   prints `resources` and `VERDICT` (the session ends, so the buffers are
   released). A stop never turns a failure into a pass:
+  - `modeset` puts the original mode back before it ends, also on a stop.
   - A stop during a hold (`two-planes`, `zorder-alpha`, `revoke`, after their
-    checks) ends the hold; the verdict is what the checks found, with
+    checks; `modeset` once a commit latched on the second mode) ends the hold; the verdict is what the checks found, with
     `stopped by SIGTERM or SIGINT during the hold, buffers released` added
     to the reason. A PASS exits 0, a FAIL exits 1.
   - A stop before the checks were made is `FAIL ... stopped by SIGTERM or
