@@ -1403,18 +1403,24 @@ enum ErrnoClass {
     Other,
 }
 
-/// Orders planes and drops those beyond `MAX_PLANES`.
+/// The backend's plane selection: order the planes, then drop those beyond
+/// [`MAX_PLANES`].
 ///
-/// `key` gives whether a plane can reach a probed output and its kind.
-/// Reachable planes come before all others, so a device with many CRTCs
-/// cannot crowd the planes of the connected ones out of the limit. When the
-/// limit bites, primaries are kept first, then cursors, then overlays: a
-/// cursor is worth more than the last overlay. The survivors are then put in
-/// the order the rest of the backend wants: reachable first, within each group
-/// primary, overlays, cursor (the bottom layer lands on a primary by
-/// preference). Both sorts are stable, so the device's own order is kept
-/// among equals.
-fn keep_planes<T>(mut planes: Vec<T>, key: impl Fn(&T) -> (bool, PlaneKind)) -> Vec<T> {
+/// `key` gives whether a plane can reach a probed output (its possible-CRTC
+/// mask covers a probed CRTC) and its kind. Reachable planes are ranked
+/// before all others, so a device with more planes than the limit cannot
+/// crowd the planes of the connected outputs out of it; the cap is applied
+/// only after this ranking, never to the raw plane list. When the limit
+/// bites, primaries are kept first, then cursors, then overlays: a cursor is
+/// worth more than the last overlay. The survivors are then put in the order
+/// the rest of the backend wants: reachable first, within each group primary,
+/// overlays, cursor (the bottom layer lands on a primary by preference). Both
+/// sorts are stable, so the device's own order is kept among equals and the
+/// selection is deterministic.
+///
+/// Exposed for testing the selection on synthetic plane lists without a DRM
+/// device; the backend applies it to the whole list the card exposes.
+pub fn keep_planes<T>(mut planes: Vec<T>, key: impl Fn(&T) -> (bool, PlaneKind)) -> Vec<T> {
     planes.sort_by_key(|p| {
         let (reachable, kind) = key(p);
         let priority = match kind {
