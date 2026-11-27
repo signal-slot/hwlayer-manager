@@ -1,0 +1,9 @@
+Usage: -u, --enable-universal-plane 	Enable universal plane support
+ [OPTIONS] [<DRM device>]
+
+Options:
+-h, --help 	Print this help
+-c, --config 	 path to configuration file (default /etc/drm-lease-manager.toml)
+-v, --verbose 	Enable verbose debug messages
+-t, --lease-transfer 	Allow lease transfter to new clients
+-k, --keep-on-crash 	Don't close lease on client crash
