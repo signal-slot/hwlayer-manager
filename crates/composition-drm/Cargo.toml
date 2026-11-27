@@ -21,5 +21,9 @@ test = true
 name = "kms_sweep"
 test = true
 
+[[example]]
+name = "plane_commit"
+test = true
+
 [lints]
 workspace = true
