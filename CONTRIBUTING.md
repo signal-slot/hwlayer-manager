@@ -25,6 +25,24 @@ cargo build --locked -p composition-ffi-staticlib --no-default-features \
 backend, probe and harness for aarch64 Linux with `scripts/cross-aarch64.sh`;
 see `docs/ci.md` for the exact steps.
 
+## Local checks
+
+Run the CI commands above yourself before opening a pull request, or run them
+all with `sh scripts/check-all.sh` (`--keep-going` continues after a failure,
+`--cross` adds the aarch64 cross-builds). `sh scripts/check-all.sh --lint`
+also runs the lint scripts that are not CI steps. The lints can be run one by
+one:
+
+- `scripts/check-ffi-header.sh [BASE_REF]`: `include/composition_engine.h`
+  moved with `crates/composition-ffi/src/lib.rs`.
+- `scripts/check-commit-subjects.sh [BASE_REF]`: commit subjects follow the
+  style below.
+- `scripts/check-no-board-secrets.sh [BASE_REF]`: no board addresses or
+  credentials in files or commit messages.
+- `scripts/check-doc-links.sh [--anchors]`: relative Markdown links resolve.
+- `scripts/check-doc-tags.sh [FILE...]`: evidence tags, dates and source pins
+  in hardware docs.
+
 ## Commit messages
 
 The subject is either a component prefix (`engine: ...`, `ffi: ...`,
