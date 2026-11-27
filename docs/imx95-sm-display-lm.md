@@ -27,21 +27,15 @@ Caveats, stated plainly:
   about what runs on the Verdin. Whether the Verdin's SM matches it is
   **inferred only** until the Toradex layer is read (item imx95-src owns
   that survey).
-- **Line numbers are approximate (source not fetched, 2026-11-28)** (±~5).
-  The files were first read through a web page fetcher that returns text
-  without numbering, because a `git clone` from this node was refused. The
-  pinning retry (item sm-lm-pin, 2026-11-28) could not fetch the source
-  either: `curl -sSL https://codeload.github.com/nxp-imx/imx-sm/tar.gz/af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`
-  and `gh api -H "Accept: application/vnd.github.raw"
-  "repos/nxp-imx/imx-sm/contents/configs/mx95evk.cfg?ref=af1e37026c6ba19cdca98fd6e91494efd3e7b5ec"`
-  were both refused by the sandbox ("This command requires approval"; no
-  network reply was received, so this is a permission refusal, not a GitHub
-  error). Every line number below, including those in §2's table, §2's
-  `displaymix.cfg` rows and the §5 and §6 references, is therefore
-  **approximate (source not fetched, 2026-11-28)** against imx-sm@af1e3702
-  (the only pin; the commit is untagged, so no tag exists to cite). Re-check with a real clone before citing them
-  elsewhere: `git clone https://github.com/nxp-imx/imx-sm && git checkout
-  af1e3702…`.
+- **Line numbers are exact as of 2026-11-28** and were taken from a
+  tarball of imx-sm@af1e3702 (`curl -sSL
+  https://codeload.github.com/nxp-imx/imx-sm/tar.gz/af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`,
+  extracted into an empty directory; read from source, imx-sm@af1e3702). The
+  commit is on `master` and untagged, so the commit is the pin; no tag was
+  found to cite. An earlier version of this note had only approximate line
+  numbers (the first attempt could not clone or fetch); they were corrected
+  in the pinning pass of 2026-11-28, which also fixed the points marked
+  "corrected" below.
 - imx-mkimage was **not** read (the tag URL `rel_imx_6.6.52_2.2.2` returned
   404 for `iMX95/soc.mak`); §6 relies only on imx-sm's README.
 
@@ -49,23 +43,24 @@ Caveats, stated plainly:
 
 All in `configs/mx95evk.cfg` unless noted (read from source, imx-sm@af1e3702).
 
-| Item | Stock owner | Line, approximate (source not fetched, 2026-11-28) |
+| Item | Stock owner | Line (imx-sm@af1e3702) |
 |---|---|---|
-| LM0 `SM` (rpc=none, did=2), LM1 `M7` (rpc=scmi, boot=2, did=4), LM2 `AP` (boot=3, did=3, default) | — | 103, 327, 427 |
-| `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` | LM0 `SM`, `ALL` | 156–158 |
-| `GPV_DISPLAY` | LM0 `SM`, `OWNER` | 224 |
-| `CLOCK_DISP1PIX`, `CLOCK_DISP2PIX`, `CLOCK_DISP3PIX`, `LDB_PLL` (SCMI clock API entries) | AP-NS agent (`SCMI_AGENT2 "AP-NS"`), `ALL` | 569–571, 583 |
-| `BLK_CTRL_DISPLAYMIX`, `DC`(`, test`), `DC0`, `DC1`, `DC_2DBLIT`, `DC_BLITINT`, `DC_CMDSEQ`, `DC_DISPENG`, `DC_DISPENG_INT`, `DC_FL0`, `DC_FL1`, `DC_INT_CTL`, `DC_PIXENGINE`, `DC_XPC`, `DC_YUV0..3`, `LVDS`, `MIPI_DSI`, `MIPI_PHY`, `VIDEO_PLL1` | AP-NS agent, `OWNER` | 595–629, 787–791, 875 |
-| M7 LM resources: `M7P`, `CAN_FD1`, `IRQSTEER_M7`, `LPUART3`, `MSGINTR1/2`, `MU5_A`, `MU7_B`, `MU8_B`, `MU_ELE5`, `WDOG5`, pins `PIN_GPIO_IO14/15`; **no** display, pixel clock, LVDS or DSI entry | LM1 `M7` | 327–421 |
-| M7 memory: `M7MIX` TCM data `0x02038_0000–0x0204_7FFFF` and `0x04A06_0000–0x04A09_FFFF`; `DDR EXEC 0x8000_0000–0x89FF_FFFF` | LM1 | 411–413 |
-| A55 non-secure DDR: `0x8800_0000–0x89FF_FFFF` and `0x8E00_0000–0x87FFF_FFFF` | AP-NS | 1010–1015 |
-| Display power domain `PD_DISPLAY`, perf domain `PERF_DISP` | Not an LM resource: referenced by each DC/LVDS resource in `devices/MIMX95/configtool/displaymix.cfg` (lines ~36–69, approximate, source not fetched, 2026-11-28), so owning those resources is what pulls the power domain in; `PERF_DISP` is not in AP-NS's API list | — |
-| TRDC: `DC` has `MBC_D0=…`/`MDAC_D*` entries and `DFMT1`; `LVDS` has `MBC_D0=0.12,1.12,0.16,1.16`; `DC0` `MBC_D0=0.13,1.13`; `DC1` `0.14,1.14,0.48,1.48` | `displaymix.cfg` | ~36–69 (approximate, source not fetched, 2026-11-28) |
+| LM0 `SM` (rpc=none, did=2), LM1 `M7` (rpc=scmi, boot=2, did=4), LM2 `AP` (boot=3, did=3, default); `SCMI_AGENT0 "M7"`, `SCMI_AGENT1 "AP-S"`, `SCMI_AGENT2 "AP-NS"` | 106, 330, 430; 358, 483, 552 |
+| `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` | LM0 `SM`, `ALL` | 159–161 |
+| `GPV_DISPLAY` | LM0 `SM`, `OWNER` | 227 |
+| `CLOCK_DISP1PIX`, `CLOCK_DISP2PIX`, `CLOCK_DISP3PIX`, `LDB_PLL` (SCMI clock API entries) | AP-NS agent (`SCMI_AGENT2 "AP-NS"`), `ALL` | 572–574, 586 |
+| `BLK_CTRL_DISPLAYMIX`, `DC`(`, test`), `DC0`, `DC1`, `DC_2DBLIT`, `DC_BLITINT`, `DC_CMDSEQ`, `DC_DISPENG`, `DC_DISPENG_INT`, `DC_FL0`, `DC_FL1`, `DC_INT_CTL`, `DC_PIXENGINE`, `DC_XPC`, `DC_YUV0..3`, `LVDS`, `MIPI_DSI`, `MIPI_PHY`, `VIDEO_PLL1` | AP-NS agent, `OWNER` | 599, 616–632 (`DC` at 616 is `OWNER, test`), 790, 793–794, 878 |
+| M7 LM resources: `M7P`, `CAN_FD1`, `IRQSTEER_M7`, `LPUART3`, `MSGINTR1/2`, `MU5_A`, `MU7_B`, `MU8_B`, `MU_ELE5`, `WDOG5`, pins `PIN_GPIO_IO14/15`; **no** display, pixel clock, LVDS or DSI entry | LM1 `M7` | 386–410 (`M7P` 386, `CAN_FD1` 387, `IRQSTEER_M7` 389, `LPUART3` 394, `MSGINTR1/2` 395–396, `MU5_A` 397, `MU7_B` 398, `MU8_B` 399, `MU_ELE5` 400, `WDOG5` 405, pins 409–410) |
+| M7 memory: `M7MIX` data `0x0203_80000–0x0204_7FFFF` and `0x04A0_60000–0x04A0_9FFFF`; `DDR EXEC 0x8000_0000–0x89FF_FFFF` (corrected: the earlier note mis-grouped the hex digits) | LM1 | 414–416 |
+| A55 non-secure DDR: `0x8800_0000–0x89FF_FFFF` and `0x8E00_0000–0x87FFF_FFFF` (as in the file, end address `0x87FFFFFFF`) | AP-NS | 1017–1018 |
+| Display power domain `PD_DISPLAY`, perf domain `PERF_DISP` | Not an LM resource: referenced by each DC/LVDS resource in `devices/MIMX95/configtool/displaymix.cfg` (lines 39–66), so owning those resources is what pulls the power domain in (corrected: `DC` also lists `PD_CAMERA`, line 39, and `MIPI_DSI`/`MIPI_PHY` are defined in `cameramix.cfg` lines 56–57 with `PD_CAMERA`, not `PD_DISPLAY`); `PERF_DISP` is not in AP-NS's API list | — |
+| TRDC: `DC` has `MBC_D0=…`/`MDAC_D*` entries and `DFMT1`; `LVDS` has `MBC_D0=0.12,1.12,0.16,1.16`; `DC0` `MBC_D0=0.13,1.13`; `DC1` `0.14,1.14,0.48,1.48` | `displaymix.cfg` | 39–41 (`DC`), 49 (`DC0`), 50–51 (`DC1`), 64–65 (`LVDS`) |
 
 Note an overlap in the stock file: the DDR range `0x8800_0000–0x89FF_FFFF` is
 listed for both the M7 (`0x8000_0000–0x89FF_FFFF`) and AP-NS. This is read
-from the file as quoted; whether the SM tolerates or the TRDC resolves the
-overlap was not checked (**not verified**).
+from the file as quoted; the overlap is confirmed from source (LM1 `DDR EXEC` at line 416, AP-NS
+`DDR EXEC` at line 1017, imx-sm@af1e3702); whether the SM tolerates it or
+the TRDC resolves it was not checked (**not verified**).
 
 Cfg syntax (read from `configs/configtool.pl`, same commit): `OWNER` = full
 TRDC permission plus full SCMI API permission; `ALL` on an API line = full
@@ -75,9 +70,12 @@ master domain id; `PD_*`, `PERF_*`, `CLK_*` tokens become `DEV_SM_PD_*`,
 `configs/mx95evk/config_*.h` (`config_lmm.h`, `config_scmi.h`, `config_trdc.h`,
 `config_dev.h`, …).
 
-Names **not located** in the files read: where `MIPI_DSI`, `MIPI_PHY`,
-`LDB_PLL`, `VIDEO_PLL1`, `IRQSTEER_M7` and `CLOCK_DISP*PIX` are defined
-(probably other `devices/MIMX95/configtool/*.cfg` and device headers), and no
+Definitions located in the 2026-11-28 pass (read from source, imx-sm@af1e3702):
+`MIPI_DSI` (`cameramix.cfg:56`) and `MIPI_PHY` (`cameramix.cfg:57`, with
+`CLK_MIPIPHYCFG`), `LDB_PLL` (`ccmsrcgpcmix.cfg:63`, `CLK_LDBPLL`,
+`CLK_LDBPLL_VCO`), `VIDEO_PLL1` (`ccmsrcgpcmix.cfg:64`), `CLOCK_DISP1PIX`
+(`ccmsrcgpcmix.cfg:48`, `CLK_DISP1PIX`) and `IRQSTEER_M7` (`aonmix.cfg:163`,
+`PD_AON`), all under `devices/MIMX95/configtool/`. Still no
 `CLK_LDB*` or `PIXEL_LINK` entry appears in `mx95evk.cfg`. The LVDS bridge
 clock chain is therefore **not fully traced**.
 
@@ -141,6 +139,12 @@ Reasoning, all **inferred** from the cfg semantics above:
   domain. If both LMs listed resources that depend on `PD_DISPLAY` the domain
   would be shared and a Linux power-off could remove it under the M7; hence
   the move must be complete (all DC and LVDS entries leave AP-NS).
+  **Read from source (imx-sm@af1e3702, 2026-11-28), qualifying this:** `DC`
+  also lists `PD_CAMERA` (`displaymix.cfg:39`), and `MIPI_DSI`/`MIPI_PHY`/
+  `MIPI_CSI*` stay with AP-NS with `PD_CAMERA` (`cameramix.cfg:56–59`), so
+  `PD_CAMERA` would be used by both LMs after the move. The design as drawn
+  therefore does not give the M7 sole use of every power domain; whether the
+  SM tolerates shared use of `PD_CAMERA` was not checked.
 - Keep `MIPI_DSI`/`MIPI_PHY` with AP-NS unless the panel path used by the M7
   is DSI. The target panel here is LVDS, so the diff leaves them in place.
 - `CLK_DISPAPB/AXI/OCRAM` stay with LM0 (`ALL`): the SM sets them for any LM.
@@ -181,9 +185,9 @@ and was not investigated further.
 ## 5. How the SM image is built (read from source, imx-sm@af1e3702)
 
 1. `make cfg` runs `configs/configtool.pl -i ./configs/$(CONFIG).cfg -o
-   ./configs/$(CONFIG)` (rule in `sm/makefiles/configtool.mak`) to generate
+   ./configs/$(CONFIG)` (rule in `sm/makefiles/configtool.mak:35`) to generate
    `configs/<CONFIG>/config_*.h` and `config.mak`.
-2. `make config=<CONFIG> all` (README "Compiling an SM Image") produces
+2. `make config=<CONFIG> all` (README "Compiling an SM Image", `README.md:74–84`) produces
    `build/<CONFIG>/m33_image.bin`. A new cfg needs its own `configs/<name>.cfg`
    and a board directory under `boards/`.
 3. The README says to copy `m33_image.bin` into the `iMX95` directory of
@@ -224,10 +228,7 @@ What a dedicated board would need (inferred, none of it exists on this farm):
 
 - Read the Toradex 7.8.0 layers (git.toradex.com) for the real imx-sm
   `SRCREV` and any Verdin cfg; this note's pin is the NXP reference.
-- Get true line numbers from a clone or tarball of imx-sm@af1e3702 (the
-  2026-11-28 pinning attempt was blocked by sandbox approval).
-- Trace the LVDS clock chain and the DSI/PHY/`LDB_PLL`/`IRQSTEER_M7`
-  definitions in the device cfg and headers.
+- Trace the LVDS clock chain (the `CLK_LDB*` names behind `LDB_PLL`).
 - The no-reconfiguration alternative, the DC owned by AP-NS and driven from
   the M7 over RPMsg/shared memory, needs no SM change and is the remaining
   path on the shared board; it is not evaluated here.
