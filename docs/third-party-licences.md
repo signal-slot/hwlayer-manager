@@ -75,7 +75,7 @@ Pinned in `docs/dlm-aarch64.md` and fetched and built by `scripts/build-dlm-aarc
 | NOTICE | none (`NOTICE` at that commit: HTTP 404) |
 | `meson.build` | `project('lease_manager', 'c', version: '0.1.0', ...)`, no `license:` field |
 | Test-only input | `subprojects/fff.wrap` points at `https://github.com/meekrosoft/fff/archive/v1.0.tar.gz`. Used only with `enable-tests`, which the build script turns off. fff's licence: not read |
-| Basis | read from source (2026-11-28) through the Gerrit REST API (`/gerrit/projects/src%2Fdrm-lease-manager/commits/<commit>` and `.../files/<path>/content`). Git fetch was not permitted in this session, and Gitiles URLs on that host return 404 (`docs/dlm-aarch64.md`) |
+| Basis | read from source (2026-11-28) through the Gerrit REST API (`/gerrit/projects/src%2Fdrm-lease-manager/commits/<commit>` and `.../files/<path>/content`). Git fetch was not yet permitted when this entry was read, and Gitiles URLs on that host return 404 (`docs/dlm-aarch64.md`) |
 | Fit (inferred, not legal advice) | **yes**: the same licence as this repository. Nothing of it is in the repository. A distributed binary built by the script must carry the Apache-2.0 text; there is no upstream `NOTICE` to pass on |
 
 ### 3.2 libdrm (build input of drm-lease-manager)
@@ -83,9 +83,10 @@ Pinned in `docs/dlm-aarch64.md` and fetched and built by `scripts/build-dlm-aarc
 | Field | Value |
 | --- | --- |
 | URL | `https://gitlab.freedesktop.org/mesa/libdrm.git` |
-| Commit | `25dec5b91fe4d2638787d033a0b22b6c1dc145e0` (tag `libdrm-2.4.123`, per `docs/dlm-aarch64.md`) |
-| Licence | **not read**. gitlab.freedesktop.org refused automated fetches on 2026-11-28 (an anti-bot page), git fetch was not permitted, and GitHub has no mirror at the path tried |
-| Fit | open. Statically linked into the drm-lease-manager binary by the script, so its licence matters if that binary is ever distributed. Not part of this repository |
+| Commit | `25dec5b91fe4d2638787d033a0b22b6c1dc145e0`, committed 2024-08-26, "build: bump version to 2.4.123" (tag `libdrm-2.4.123`, per `docs/dlm-aarch64.md`) |
+| Licence | `MIT`. `meson.build:26-33` declares `license : 'MIT'`. The tree has no top-level licence file; each source file carries its own MIT (X11-style) header, for example `xf86drm.c`: "Copyright 1999 Precision Insight, Inc., Cedar Park, Texas." and "Copyright 2000 VA Linux Systems, Inc., Sunnyvale, California." |
+| Basis | read from source (2026-11-28): shallow git fetch of the commit; `meson.build`, the top-level file list and the header of `xf86drm.c` were read. The headers of the other source files were not read one by one |
+| Fit (inferred, not legal advice) | yes. Statically linked into the drm-lease-manager binary by the script, so a distributed binary should carry the MIT notices of the libdrm files it contains. Not part of this repository |
 
 ### 3.3 tomlc99 (build input of drm-lease-manager)
 
@@ -102,9 +103,9 @@ Pinned in `docs/dlm-aarch64.md` and fetched and built by `scripts/build-dlm-aarc
 | Field | Value |
 | --- | --- |
 | URL | `https://gitlab.freedesktop.org/emersion/libliftoff.git` |
-| Commit | `c4226a79b7a52f59bb51789b1eda112658609125`, committed 2026-08-24 |
-| Licence | `MIT` (`LICENSE`: "Copyright (c) 2019 Simon Ser") |
-| Basis | recorded (`docs/wp5-gap-analysis.md`, read from source 2026-11-28). Not re-read here: gitlab.freedesktop.org refused automated fetches, and the GitHub path `emersion/libliftoff` does not have this commit |
+| Commit | `c4226a79b7a52f59bb51789b1eda112658609125`, committed 2026-08-24, "Document why HOTSPOT_{X,Y} properties can't be discarded" |
+| Licence | `MIT` (`LICENSE`: "MIT License", "Copyright (c) 2019 Simon Ser", the standard MIT text) |
+| Basis | read from source (2026-11-28): shallow git fetch of the commit, whole `LICENSE` read. Agrees with `docs/wp5-gap-analysis.md` |
 | Fit (inferred, not legal advice) | yes for reading and for a future host-only cross-check that links it; copying its code in would need its MIT notice kept |
 
 ### 3.5 Weston (read for WP5, not built)
@@ -112,21 +113,21 @@ Pinned in `docs/dlm-aarch64.md` and fetched and built by `scripts/build-dlm-aarc
 | Field | Value |
 | --- | --- |
 | URL | `https://gitlab.freedesktop.org/wayland/weston.git` |
-| Commit | `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a` |
-| Licence | MIT-style (`COPYING`), copyright of several authors and companies. No SPDX id is given here: only the opening lines of `COPYING` were read, and the whole text was not compared with SPDX `MIT` |
-| Basis | recorded (`docs/wp5-gap-analysis.md`, read from source 2026-11-28, opening lines only). Not re-read here, for the same reason as libliftoff |
+| Commit | `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a`, committed 2026-11-27, "backend-drm: Destroy the heads of a backend that fails to start" |
+| Licence | `MIT` (the X.org wording). `COPYING` calls itself "the version of the MIT "Expat" License used by X.org". It differs from the SPDX `MIT` text only in the phrase "(including the next paragraph)" in the notice clause; mapping it to the SPDX id `MIT` is inferred |
+| Copyright | `COPYING`: Kristian Høgsberg (2008-2012), Intel Corporation (2010-2012), Benjamin Franzke (2010-2011), Collabora, Ltd. (2011-2012), Red Hat (2010). `COPYING` says nothing about files under other licences; individual file headers were not read |
+| Basis | read from source (2026-11-28): shallow git fetch of the commit, whole `COPYING` read |
 | Fit (inferred, not legal advice) | yes for reading. Weston's contribution rules (human DCO sign-off, limits on AI-authored changes) are a separate matter, recorded in `docs/wp5-gap-analysis.md` §2 and §5 |
 
 ### 3.6 Zephyr (M2 build input, not yet pinned)
 
-No document in the repository at `5d30922` pins a Zephyr version or commit. The `zephyr-prepare` item of plan #455 is adding that pin (`scripts/prepare-zephyr.sh`, `docs/zephyr-workspace.md`). On 2026-11-28 the top-level `LICENSE` of a local Zephyr workspace checkout was read as the Apache License 2.0 text, but the commit of that checkout was not established, so it is **not** recorded as a pinned entry here. Zephyr's `LICENSES/` directory shows that some files and modules are under other licences; those were not read.
+No document in the repository at `5d30922` pins a Zephyr version or commit. The `zephyr-prepare` item of plan #455 is adding that pin (`scripts/prepare-zephyr.sh`, `docs/zephyr-workspace.md`). On 2026-11-28 the top-level `LICENSE` of a local Zephyr workspace checkout (`https://github.com/zephyrproject-rtos/zephyr`, commit `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7`, committed 2026-11-27, a `main` commit and not a release tag) was read as the Apache License 2.0 text (read from source, first lines only). That checkout is not the repository's pin, so it is **not** recorded as a pinned entry here. Zephyr's `LICENSES/` directory shows that some files and modules are under other licences; those were not read.
 
 Fit (inferred, not legal advice): Zephyr's main licence is the same as this repository's. A Zephyr application kept here (`tests/board/...`) is the project's own code; the Zephyr tree and its modules are fetched, not copied in. Add a pinned row here, with the modules the build actually uses (for example the NXP HAL), once the pin lands.
 
 ## 4. Gaps
 
-- libdrm's licence at the pin: not read (section 3.2).
-- libliftoff and Weston: not re-read here; Weston's full `COPYING` is still unread (sections 3.4, 3.5).
+- libdrm and Weston: only the files named above were read; per-file headers elsewhere in those trees were not (sections 3.2, 3.5).
 - fff (drm-lease-manager test-only subproject): not read.
 - Zephyr and its modules: waiting for the pin (section 3.6).
 - The copyright holder named in `NOTICE` is a placeholder (section 1).
