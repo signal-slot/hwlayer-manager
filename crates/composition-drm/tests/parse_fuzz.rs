@@ -201,10 +201,16 @@ fn check_sane(before: &Capabilities, after: &Capabilities, profile: DriverProfil
         before.resource_groups.as_slice()
     );
     for (b, a) in before.planes.iter().zip(after.planes.iter()) {
-        // A profile only touches scaling and the source limit.
+        // A profile only touches scaling and the source limit (the LTDC
+        // profile also the blend mode and transforms).
         let mut b2 = *b;
         b2.scaling = a.scaling;
         b2.max_source = a.max_source;
+        if profile == DriverProfile::Stm32Ltdc && b.kind != PlaneKind::Cursor {
+            // Also the blend mode and transforms (session 2026-11-27).
+            b2.blend_modes = a.blend_modes;
+            b2.transforms = a.transforms;
+        }
         assert_eq!(&b2, a, "{profile:?} changed more than scaling/max_source");
         if b.kind == PlaneKind::Cursor {
             assert_eq!(b.scaling, a.scaling, "{profile:?} touched a cursor plane");

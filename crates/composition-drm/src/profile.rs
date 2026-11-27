@@ -12,7 +12,9 @@
 mod rk3588;
 mod vc4;
 
-use composition_core::{Capabilities, LayerTraits, PlaneKind, ResourceGroup, ScaleLimits, Size};
+use composition_core::{
+    BlendMode, Capabilities, LayerTraits, PlaneKind, ResourceGroup, ScaleLimits, Size, Transform,
+};
 
 /// Which driver's constraints to add to the discovered capabilities.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -107,6 +109,24 @@ pub enum DriverProfile {
     ///   follow it). The second and later overlays are left unclaimed
     ///   (`scaling` stays as KMS reported it), so the planner treats them as
     ///   unscaled only through its own default.
+    /// - Straight alpha, not premultiplied: observed 2026-11-27 (session
+    ///   doc `docs/stm32mp257-ltdc-session-2026-11-28.md`, Q2): the output CRC
+    ///   on plane 42 (AR24) matches colour x pixel alpha x plane alpha over
+    ///   the plane below. The board offers no `pixel blend mode` property, so
+    ///   discovery would report premultiplied; the profile replaces that by
+    ///   [`BlendMode::Coverage`] only. Planes 34 and 49 are inferred to blend
+    ///   the same way (not measured). Plane alpha stays as KMS reports it
+    ///   (combined multiplicatively, observed 2026-11-27, Q2).
+    /// - Transforms: only reflect-x (`FlipH`) on the first overlay (observed
+    ///   2026-11-27, Q6 of the session doc: reflect-x accepted and stable
+    ///   there). Not claimed: `rotate-180` on the overlay (EINVAL, observed
+    ///   2026-11-27); reflect-y on the overlay (accepted, effect not seen);
+    ///   reflect-x + reflect-y on the overlay (unstable CRC); anything on the
+    ///   primary (180 and reflect-x commit but give an unstable CRC; 90/270
+    ///   pass `TEST_ONLY` although the source refuses them after the
+    ///   controller is disabled, so they are never claimed, inferred); the
+    ///   second overlay (plane 49, not tested). No transform bit means only
+    ///   `Normal` is placed there.
     /// - YUV formats cannot be scaled on any plane (source,
     ///   `ltdc.c:1585-1600`); that is **not modelled** here and is left to
     ///   `TEST_ONLY`.
@@ -169,10 +189,20 @@ impl DriverProfile {
                 // Primary plus the first overlay scale; later overlays do not.
                 let mut overlays = 0;
                 for plane in caps.planes.as_mut_slice() {
+                    // Straight alpha (observed 2026-11-27); the planner then
+                    // refuses premultiplied layers on every plane.
+                    if plane.kind != PlaneKind::Cursor {
+                        plane.blend_modes = BlendMode::Coverage.mask();
+                        plane.transforms = 0;
+                    }
                     let scales = match plane.kind {
                         PlaneKind::Primary => true,
                         PlaneKind::Overlay => {
                             overlays += 1;
+                            if overlays == 1 {
+                                // Reflect-x only (observed 2026-11-27, Q6).
+                                plane.transforms = Transform::FlipH.mask();
+                            }
                             overlays == 1
                         }
                         PlaneKind::Cursor => false,
@@ -259,6 +289,110 @@ mod tests {
         }
         DriverProfile::Imx95Dpu.apply(&mut caps);
         caps
+    }
+
+    /// The three LTDC planes as KMS reports them on the board (no
+    /// `pixel blend mode`, so premultiplied; no transforms), then the profile.
+    fn ltdc_caps() -> Capabilities {
+        let mut caps = Capabilities::default();
+        caps.outputs
+            .push(OutputCaps {
+                id: OUT,
+                size: Size::new(1920, 1080),
+                refresh_mhz: 60_000,
+            })
+            .unwrap();
+        for (id, kind) in [
+            (34, PlaneKind::Primary),
+            (42, PlaneKind::Overlay),
+            (49, PlaneKind::Overlay),
+        ] {
+            let mut plane = PlaneCaps {
+                id: PlaneId(id),
+                kind,
+                outputs: 1,
+                zpos: Zpos::Range { min: 0, max: 2 },
+                plane_alpha: true,
+                blend_modes: BlendMode::Premultiplied.mask(),
+                ..PlaneCaps::default()
+            };
+            plane
+                .formats
+                .push(FormatModifier::linear(PixelFormat::ARGB8888))
+                .unwrap();
+            caps.planes.push(plane).unwrap();
+        }
+        DriverProfile::Stm32Ltdc.apply(&mut caps);
+        caps
+    }
+
+    #[test]
+    fn stm32_ltdc_blends_straight_alpha_on_every_plane() {
+        // Session 2026-11-27, Q2: straight alpha, not premultiplied.
+        for plane in ltdc_caps().planes.as_slice() {
+            assert_eq!(plane.blend_modes, BlendMode::Coverage.mask());
+            assert!(plane.plane_alpha, "plane alpha is left as KMS reports it");
+        }
+    }
+
+    #[test]
+    fn stm32_ltdc_refuses_a_premultiplied_layer() {
+        let caps = ltdc_caps();
+        let mut layer = full(RGB, 0);
+        layer.blend = BlendMode::Premultiplied;
+        let frame = Frame {
+            output: OUT,
+            layers: &[layer],
+        };
+        let Err(PlanError::NoPlane { reasons, .. }) = plan(&frame, &caps, &Buffers) else {
+            panic!("premultiplied must be refused");
+        };
+        assert!(reasons.contains(RejectReasons::BLEND));
+        layer.blend = BlendMode::Coverage;
+        let frame = Frame {
+            output: OUT,
+            layers: &[layer],
+        };
+        assert!(plan(&frame, &caps, &Buffers).is_ok());
+    }
+
+    #[test]
+    fn stm32_ltdc_claims_only_reflect_x_on_the_first_overlay() {
+        let caps = ltdc_caps();
+        let t: Vec<u8> = caps
+            .planes
+            .as_slice()
+            .iter()
+            .map(|p| p.transforms)
+            .collect();
+        // Primary 34: none; overlay 42: reflect-x; overlay 49: none.
+        assert_eq!(t, [0, Transform::FlipH.mask(), 0]);
+    }
+
+    #[test]
+    fn stm32_ltdc_never_claims_rotation_or_reflect_y() {
+        let forbidden = Transform::Rotate90.mask()
+            | Transform::Rotate180.mask()
+            | Transform::Rotate270.mask()
+            | Transform::FlipV.mask();
+        for plane in ltdc_caps().planes.as_slice() {
+            assert_eq!(plane.transforms & forbidden, 0);
+        }
+    }
+
+    #[test]
+    fn stm32_ltdc_keeps_the_scaling_facts() {
+        let caps = ltdc_caps();
+        let scaling: Vec<bool> = caps
+            .planes
+            .as_slice()
+            .iter()
+            .map(|p| p.scaling.is_some())
+            .collect();
+        assert_eq!(scaling, [true, true, false]);
+        let up = caps.planes.as_slice()[1].scaling.unwrap();
+        assert_eq!(up.max_upscale, 1080 << 16);
+        assert_eq!(up.max_downscale, 1 << 16);
     }
 
     fn plan_layers(layers: &[Layer]) -> Result<usize, PlanError> {
