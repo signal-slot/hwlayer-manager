@@ -1,0 +1,531 @@
+# Observed snapshot 2: Verdin iMX95 (Mallow carrier, LVDS panel), read-only
+#
+# File date: 2026-11-28 (the planner's date; the file name follows it so that it
+#   does not collide with observed-2026-11-27.txt).
+# Date of the run: 2026-11-27, board clock 23:00 UTC (the date printed under
+#   "### date" below). Tag for everything below: observed 2026-11-27, on the
+#   board, over ssh.
+# What was run: two short shell scripts piped to `sh -s` over ssh. They only
+#   cat/od/ls/grep/find files under /proc, /sys and the device tree, and read
+#   dmesg. Nothing was written on the board (not even /tmp), nothing was
+#   started, stopped, loaded or mounted, DRM was not opened, the serial console
+#   was not used, nothing was rebooted, Weston was not touched.
+# Sanitised: host name, address, user, serial number (the soc0 serial_number line
+#   is dropped) and tty paths removed; the ssh client's post-quantum warning is
+#   dropped. Device-tree property values are printed as text (NUL -> space,
+#   other bytes -> '?') or as hex bytes (big-endian 32-bit cells).
+# Sections: (a) /proc/interrupts, (b) panel and LDB nodes (the first script
+#   looked for `panel-lvds` and found it absent; the node is named
+#   `panel-lvds-native`, read by the second script), (c) soc0 and dmesg,
+#   (d) SM/SCMI, (e) remoteproc, then the weston checks.
+#
+# Not readable / not observed (observed 2026-11-27):
+#   - /sys/kernel/debug/scmi*: no such file or directory.
+#   - No sysfs or debugfs entry for the SM's MISC/LMM/CPU protocols (cfg name,
+#     build info, board info, LM names or states) exists. The only SM facts
+#     come from dmesg. No SCMI driver named lmm or cpu appears in the
+#     scmi_protocol driver list under (d).
+#   - The SM configuration name ("cfg") is not shown anywhere; the only dmesg hit
+#     is "No module param cfg file specified", which belongs to a Wi-Fi driver.
+#   - SoC ID: the kernel prints "SMCCC: SOC_ID: ARCH_SOC_ID not implemented"; no
+#     other ID register was read. Only soc0 family/machine/revision/soc_id exist.
+#   - /proc/interrupts has no line for a remoteproc or a "mu" with that name; the
+#     mailbox/MU lines that exist are listed under (a). No interrupt line of an
+#     LDB or LVDS device exists (the LDB has no interrupt property in the DT
+#     nodes read below). DPU interrupt counts are a single read, not a rate.
+#   - Nothing was read about the display lease of Weston, DRM master, or modes.
+# ----------------------------------------------------------------------------
+# Decoded by hand from the hex below (observed 2026-11-27 for the bytes, the
+# decoding is arithmetic on them). panel-lvds-native/panel-timing carries three
+# values per property, which are min / typ / max in the device-tree display-timing
+# binding:
+#   clock-frequency  0x041b54a0 0x043ce660 0x045ffec0 = 68900000 71100000 73400000 Hz
+#   hactive          0x500 x3 = 1280        vactive 0x320 x3 = 800
+#   hfront-porch     0x17 0x3c 0x47 = 23 60 71      hback-porch  0x17 0x3c 0x47 = 23 60 71
+#   hsync-len        0x0f 0x28 0x2f = 15 40 47
+#   vfront-porch     0x05 0x07 0x0a = 5 7 10        vback-porch  0x05 0x07 0x0a = 5 7 10
+#   vsync-len        0x06 0x09 0x0c = 6 9 12
+#   hsync-active 0, vsync-active 0, de-active 1, pixelclk-active 1
+#   width-mm 0xd9 = 217, height-mm 0x88 = 136, data-mapping vesa-24
+#   Typical totals (inferred from the typ column): htotal 1280+60+40+60 = 1440,
+#   vtotal 800+7+9+7 = 823, so typ refresh 71100000 / (1440*823) = 59.99 Hz.
+# ldb@4 assigned-clock-rates cells 0xb1fdcbc0 0x1daa4ca0 = 2986200000 497700000 Hz
+#   (observed bytes; assigned-clocks are two clock-controller (phandle 0x11)
+#   indices, 0x25 and 0x26). 497700000 = 7 x 71100000 (arithmetic; the relation
+#   to the typ pixel clock is inferred); the clock names behind the indices were
+#   not looked up here.
+# ----------------------------------------------------------------------------
+### date
+Fri Nov 27 23:00:46 UTC 2026
+### weston-start
+active
+### (a) /proc/interrupts header
+           CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       
+### (a) /proc/interrupts matching lines
+ 15:      44799          0          0          0          0          0     GICv3 258 Level     445b0000.mailbox[3-0], 445b0000.mailbox[3-1]
+ 16:         26          0          0          0          0          0     GICv3  56 Level     47550000.mailbox[0-0], 47550000.mailbox[1-0]
+ 17:          2          0          0          0          0          0     GICv3 287 Level     47350000.v2x-mu[0-0], 47350000.v2x-mu[1-0]
+ 18:          0          0          0          0          0          0     GICv3  59 Level     47300000.mailbox[0-0], 47300000.mailbox[1-0]
+ 19:          0          0          0          0          0          0     GICv3 286 Level     47320000.mailbox[0-0], 47320000.mailbox[1-0]
+ 20:          0          0          0          0          0          0     GICv3  60 Level     47330000.mailbox[0-0], 47330000.mailbox[1-0]
+ 21:          0          0          0          0          0          0     GICv3 271 Level     47340000.mailbox[0-0], 47340000.mailbox[1-0]
+ 22:          0          0          0          0          0          0     GICv3 357 Edge      arm-smmu-v3-evtq
+ 24:          0          0          0          0          0          0     GICv3 360 Edge      arm-smmu-v3-gerror
+ 25:          0          0          0          0          0          0     GICv3 350 Level     imx-neutron-mailbox
+ 26:          0          0          0          0          0          0     GICv3  23 Level     arm-pmu
+ 27:          0          0          0          0          0          0     GICv3 266 Level     42430000.mailbox[0-1], 42430000.mailbox[1-1]
+135:          0          0          0          0          0          0  irqsteer  62 Level     4b0d0000.bridge
+220:          0          0          0          0          0          0     GICv3 123 Level     imx9_ddr_perf_pmu
+229:          0          0          0          0          0          0     GICv3 322 Level     mmu-4d900000.gpu
+242:      13824          0          0          0          0          0  DPU DISP IRQ0  19 Edge      4b400000.display-controller
+243:          0          0          0          0          0          0  DPU DISP IRQ0  20 Edge      4b400000.display-controller
+244:          1          0          0          0          0          0  DPU DISP IRQ0  18 Edge      4b400000.display-controller
+245:          1          0          0          0          0          0  DPU DISP IRQ0  15 Edge      4b400000.display-controller
+246:      13538          0          0          0          0          0  DPU DISP IRQ0   3 Edge      4b400000.display-controller
+247:          0          0          0          0          0          0  DPU DISP IRQ2  42 Edge      4b400000.display-controller
+248:          0          0          0          0          0          0  DPU DISP IRQ2  43 Edge      4b400000.display-controller
+249:          0          0          0          0          0          0  DPU DISP IRQ2  41 Edge      4b400000.display-controller
+250:          0          0          0          0          0          0  DPU DISP IRQ2  38 Edge      4b400000.display-controller
+251:          0          0          0          0          0          0  DPU DISP IRQ2   9 Edge      4b400000.display-controller
+252:         15          0          0          0          0          0  DPU COMCTRL IRQ  54 Edge      blit_ctrl0-4b400000.display-controller
+253:         15          0          0          0          0          0  DPU COMCTRL IRQ  55 Edge      blit_ctrl1-4b400000.display-controller
+254:         15          0          0          0          0          0  DPU COMCTRL IRQ  56 Edge      blit_ctrl2-4b400000.display-controller
+255:         14          0          0          0          0          0  DPU COMCTRL IRQ  57 Edge      blit_ctrl3-4b400000.display-controller
+### (b) panel-lvds
+panel-lvds absent
+### LDB/LVDS node names
+### (c) soc0
+family: Freescale i.MX
+machine: Toradex Verdin iMX95 WB on Verdin Development Board
+revision: 2.0
+soc_id: i.MX95
+uevent: 
+### dmesg soc
+[    0.040993] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/syscon@4b0c0000/ldb@4/channel@0
+[    0.041054] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/bridge@4b0d0000/channel@0
+[    0.041158] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.041199] /soc/bridge@4b0d0000/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.041219] /soc/bridge@4b0d0000/channel@0: Fixed dependency cycle(s) with /soc/display-controller@4b400000
+[    0.041245] /soc/display-controller@4b400000: Fixed dependency cycle(s) with /soc/bridge@4b0d0000/channel@0
+[    0.047926] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/syscon@4b0c0000/ldb@4/channel@0
+[    0.047970] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/bridge@4b0d0000/channel@0
+[    0.048203] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.048348] /soc/bridge@4b0d0000/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.048370] /soc/bridge@4b0d0000/channel@0: Fixed dependency cycle(s) with /soc/display-controller@4b400000
+[    0.048464] /soc/bridge@4b0d0000/channel@0: Fixed dependency cycle(s) with /soc/display-controller@4b400000
+[    0.048523] /soc/display-controller@4b400000: Fixed dependency cycle(s) with /soc/bridge@4b0d0000/channel@0
+[    0.150418] SMCCC: SOC_ID: ARCH_SOC_ID not implemented, skipping ....
+[    0.183096] OF: /soc/pcie@4ca00000: no msi-map translation for id 0x8 on (null)
+[    0.186406] OF: /soc/pcie@4ca00000: no iommu-map translation for id 0x8 on (null)
+[    0.197004] /soc/bridge@4b0d0000/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.197103] /soc/syscon@4b0c0000/ldb@4/channel@0: Fixed dependency cycle(s) with /soc/syscon@4b010000/bridge@8
+[    0.197163] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/syscon@4b0c0000/ldb@4/channel@0
+[    0.197185] /soc/syscon@4b010000/bridge@8: Fixed dependency cycle(s) with /soc/bridge@4b0d0000/channel@0
+### (d) dmesg sm/scmi
+[    0.056194] scmi_core: SCMI protocol bus registered
+[    0.117566] arm-scmi firmware:scmi: SCMI Notifications - Core Enabled.
+[    0.117814] arm-scmi firmware:scmi: SCMI Protocol v2.1 'NXP:IMX' Firmware version 0x23e
+[    0.148247] scmi-perf-domain scmi_dev.9: Initialized 13 performance domains
+[    0.148425] arm-scmi firmware:scmi: NXP SM MISC Version 1.1
+[    0.148458] arm-scmi firmware:scmi: i.MX MISC NUM DEV CTRL: 7, NUM BRD CTRL: 2,NUM Reason: 32
+[    0.148691] arm-scmi firmware:scmi: NXP SM BBM Version 1.0
+[    0.149825] scmi-imx-bbm scmi_dev.11: registered as rtc1
+[    0.150354] input: scmi_dev.11 as /devices/platform/firmware:scmi/scmi_dev.11/input/input0
+[    8.535443] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    8.721331] No module param cfg file specified
+### debugfs scmi
+ls: cannot access '/sys/kernel/debug/scmi*': No such file or directory
+### sysfs scmi/lmm/sm
+/sys/kernel/debug/pinctrl/scmi_dev.6-scmi-pinctrl
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:43820000.gpio
+/sys/class/devlink/platform:firmware:scmi--platform:4c010010.usb
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:428b0000.mmc
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:4ad00000.syscon
+/sys/class/devlink/platform:firmware:scmi--platform:4c200000.usb
+/sys/class/devlink/platform:firmware:scmi--platform:4cde0000.netc-prb-ierb
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:42500000.pwm
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:4ad20100.syscon
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:44530000.adc
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:42520000.i3c-master
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:4c300000.pcie
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:43820000.gpio
+/sys/class/devlink/scmi_protocol:scmi_dev.6--pci:0001:00:08.0
+/sys/class/devlink/platform:firmware:scmi--platform:4b0c0000.syscon
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:425e0000.spi
+/sys/class/devlink/platform:firmware:scmi--platform:4ab00004.imx95-neutron
+/sys/class/devlink/platform:firmware:scmi--scmi_protocol:scmi_dev.9
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:426b0000.i2c
+/sys/class/devlink/platform:firmware:scmi--platform:4b010000.syscon
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:4c010010.usb
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:42700000.spi
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:424f0000.pwm
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:42850000.mmc
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:4c200000.usb
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:425a0000.serial
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:backlight-lvds-native
+/sys/class/devlink/platform:firmware:scmi--scmi_protocol:scmi_dev.7
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:428b0000.mmc
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:regulator-wifi-en
+/sys/class/devlink/platform:firmware:scmi--platform:4b0c0000.syscon:phy@8
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:44350000.i2c
+/sys/class/devlink/scmi_protocol:scmi_dev.6--i2c:2-004a
+/sys/class/devlink/scmi_protocol:scmi_dev.3--platform:4d900000.gpu
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:42500000.pwm
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:4b0c0000.syscon
+/sys/class/devlink/scmi_protocol:scmi_dev.4--platform:42000000.dma-controller
+/sys/class/devlink/platform:firmware:scmi--platform:remoteproc-cm7
+/sys/class/devlink/scmi_protocol:scmi_dev.6--platform:regulator-usdhc2-vqmmc
+/sys/class/devlink/platform:firmware:scmi--platform:4ad10000.syscon
+scmi_dev.1
+scmi_dev.10
+scmi_dev.11
+scmi_dev.2
+scmi_dev.3
+scmi_dev.4
+scmi_dev.5
+scmi_dev.6
+scmi_dev.7
+scmi_dev.8
+scmi_dev.9
+scmi-clocks
+scmi-cpufreq
+scmi-hwmon
+scmi-imx-bbm
+scmi-imx-misc-ctrl
+scmi-perf-domain
+scmi-pinctrl
+scmi-power-domain
+scmi-reset
+scmi-system-power
+### (e) remoteproc
+remoteproc0
+  name: neutron-rproc
+  state: offline
+  firmware: rproc-neutron-rproc-fw
+remoteproc1
+  name: imx-rproc
+  state: offline
+  firmware: rproc-imx-rproc-fw
+firmware_class path: []
+### weston-end
+active
+
+### ===== second script (b): panel-lvds-native, LDB, pixel link, DPU nodes =====
+### top-level names matching panel/lvds/backlight/display
+backlight-lvds-native
+panel-lvds-native
+== /backlight-lvds-native
+brightness-levels
+compatible
+default-brightness-level
+enable-gpios
+name
+phandle
+pinctrl-0
+pinctrl-names
+pwms
+== /panel-lvds-native
+#address-cells
+#size-cells
+backlight
+compatible
+data-mapping
+height-mm
+name
+panel-timing
+port@0
+width-mm
+=== dump /backlight-lvds-native
+-- backlight-lvds-native/brightness-levels
+ 00 00 00 00 00 00 00 2d 00 00 00 3f 00 00 00 58
+ 00 00 00 77 00 00 00 9e 00 00 00 cb 00 00 00 ff
+-- backlight-lvds-native/compatible
+pwm-backlight 
+-- backlight-lvds-native/default-brightness-level
+ 00 00 00 04
+-- backlight-lvds-native/enable-gpios
+   ?   ?    
+-- backlight-lvds-native/name
+backlight-lvds-native 
+-- backlight-lvds-native/phandle
+ 00 00 01 56
+-- backlight-lvds-native/pinctrl-0
+ 00 00 00 bc
+-- backlight-lvds-native/pinctrl-names
+ 64 65 66 61 75 6c 74 00
+-- backlight-lvds-native/pwms
+ 00 00 00 da 00 00 00 00 00 65 b9 ab 00 00 00 01
+=== dump /panel-lvds-native
+-- panel-lvds-native/#address-cells
+ 00 00 00 01
+-- panel-lvds-native/#size-cells
+ 00 00 00 00
+-- panel-lvds-native/backlight
+  ?V
+-- panel-lvds-native/compatible
+panel-lvds 
+-- panel-lvds-native/data-mapping
+vesa-24 
+-- panel-lvds-native/height-mm
+ 00 00 00 88
+-- panel-lvds-native/name
+panel-lvds-native 
+[dir] panel-lvds-native/panel-timing
+-- panel-lvds-native/panel-timing/clock-frequency
+ 04 1b 54 a0 04 3c e6 60 04 5f fe c0
+-- panel-lvds-native/panel-timing/de-active
+ 00 00 00 01
+-- panel-lvds-native/panel-timing/hactive
+ 00 00 05 00 00 00 05 00 00 00 05 00
+-- panel-lvds-native/panel-timing/hback-porch
+ 00 00 00 17 00 00 00 3c 00 00 00 47
+-- panel-lvds-native/panel-timing/hfront-porch
+ 00 00 00 17 00 00 00 3c 00 00 00 47
+-- panel-lvds-native/panel-timing/hsync-active
+ 00 00 00 00
+-- panel-lvds-native/panel-timing/hsync-len
+ 00 00 00 0f 00 00 00 28 00 00 00 2f
+-- panel-lvds-native/panel-timing/name
+panel-timing 
+-- panel-lvds-native/panel-timing/pixelclk-active
+ 00 00 00 01
+-- panel-lvds-native/panel-timing/vactive
+ 00 00 03 20 00 00 03 20 00 00 03 20
+-- panel-lvds-native/panel-timing/vback-porch
+ 00 00 00 05 00 00 00 07 00 00 00 0a
+-- panel-lvds-native/panel-timing/vfront-porch
+ 00 00 00 05 00 00 00 07 00 00 00 0a
+-- panel-lvds-native/panel-timing/vsync-active
+ 00 00 00 00
+-- panel-lvds-native/panel-timing/vsync-len
+ 00 00 00 06 00 00 00 09 00 00 00 0c
+[dir] panel-lvds-native/port@0
+[dir] panel-lvds-native/port@0/endpoint
+-- panel-lvds-native/port@0/endpoint/name
+endpoint 
+-- panel-lvds-native/port@0/endpoint/phandle
+ 00 00 01 58
+-- panel-lvds-native/port@0/endpoint/remote-endpoint
+ 00 00 01 57
+-- panel-lvds-native/port@0/name
+port 
+-- panel-lvds-native/port@0/reg
+ 00 00 00 00
+-- panel-lvds-native/width-mm
+ 00 00 00 d9
+=== LDB: soc/syscon@4b0c0000
+#address-cells
+#clock-cells
+#size-cells
+clocks
+compatible
+ldb@4
+name
+phandle
+phy@8
+phy@c
+power-domains
+reg
+=== dump /soc/syscon@4b0c0000/ldb@4
+#address-cells
+#size-cells
+assigned-clock-rates
+assigned-clocks
+channel@0
+channel@1
+clock-names
+clocks
+compatible
+name
+phandle
+reg
+status
+-- soc/syscon@4b0c0000/ldb@4/#address-cells
+ 00 00 00 01
+-- soc/syscon@4b0c0000/ldb@4/#size-cells
+ 00 00 00 00
+-- soc/syscon@4b0c0000/ldb@4/assigned-clock-rates
+ b1 fd cb c0 1d aa 4c a0
+-- soc/syscon@4b0c0000/ldb@4/assigned-clocks
+ 00 00 00 11 00 00 00 25 00 00 00 11 00 00 00 26
+-- soc/syscon@4b0c0000/ldb@4/clock-names
+ldb_di0 ldb_di1 ldb_ch0 ldb_ch1 
+-- soc/syscon@4b0c0000/ldb@4/clocks
+ 00 00 00 72 00 00 00 03 00 00 00 72 00 00 00 04
+ 00 00 00 72 00 00 00 01 00 00 00 72 00 00 00 02
+-- soc/syscon@4b0c0000/ldb@4/compatible
+fsl,imx95-ldb 
+-- soc/syscon@4b0c0000/ldb@4/name
+ldb 
+-- soc/syscon@4b0c0000/ldb@4/phandle
+ 00 00 01 2d
+-- soc/syscon@4b0c0000/ldb@4/reg
+ 00 00 00 04 00 00 00 04
+-- soc/syscon@4b0c0000/ldb@4/status
+okay 
+=== dump /soc/syscon@4b0c0000/ldb@4/channel@0
+#address-cells
+#size-cells
+name
+phy-names
+phys
+port@0
+port@1
+reg
+status
+-- soc/syscon@4b0c0000/ldb@4/channel@0/#address-cells
+ 00 00 00 01
+-- soc/syscon@4b0c0000/ldb@4/channel@0/#size-cells
+ 00 00 00 00
+-- soc/syscon@4b0c0000/ldb@4/channel@0/name
+channel 
+-- soc/syscon@4b0c0000/ldb@4/channel@0/phy-names
+ 6c 76 64 73 5f 70 68 79 00
+-- soc/syscon@4b0c0000/ldb@4/channel@0/phys
+ 00 00 00 73
+-- soc/syscon@4b0c0000/ldb@4/channel@0/reg
+ 00 00 00 00
+-- soc/syscon@4b0c0000/ldb@4/channel@0/status
+okay 
+=== dump /soc/syscon@4b0c0000/phy@8
+#address-cells
+#size-cells
+clock-names
+clocks
+compatible
+gpr
+name
+phandle
+port@0
+power-domains
+reg
+status
+-- soc/syscon@4b0c0000/phy@8/#address-cells
+ 00 00 00 01
+-- soc/syscon@4b0c0000/phy@8/#size-cells
+ 00 00 00 00
+-- soc/syscon@4b0c0000/phy@8/clock-names
+apb 
+-- soc/syscon@4b0c0000/phy@8/clocks
+ 00 00 00 11 00 00 00 4b
+-- soc/syscon@4b0c0000/phy@8/compatible
+fsl,imx95-lvds0-phy 
+-- soc/syscon@4b0c0000/phy@8/gpr
+ 00 00 00 72
+-- soc/syscon@4b0c0000/phy@8/name
+phy 
+-- soc/syscon@4b0c0000/phy@8/phandle
+ 00 00 01 2e
+-- soc/syscon@4b0c0000/phy@8/power-domains
+ 00 00 00 5c 00 00 00 0d
+-- soc/syscon@4b0c0000/phy@8/reg
+ 00 00 00 08 00 00 00 04
+-- soc/syscon@4b0c0000/phy@8/status
+okay 
+=== dump /soc/bridge@4b0d0000
+#address-cells
+#size-cells
+channel@0
+channel@1
+clocks
+compatible
+interrupt-parent
+interrupts
+name
+nxp,blk-ctrl
+phandle
+reg
+status
+-- soc/bridge@4b0d0000/#address-cells
+ 00 00 00 01
+-- soc/bridge@4b0d0000/#size-cells
+ 00 00 00 00
+-- soc/bridge@4b0d0000/clocks
+ 00 00 00 11 00 00 00 4b
+-- soc/bridge@4b0d0000/compatible
+nxp,imx95-pixel-interleaver 
+-- soc/bridge@4b0d0000/interrupt-parent
+ 00 00 00 60
+-- soc/bridge@4b0d0000/interrupts
+ 00 00 00 3e
+-- soc/bridge@4b0d0000/name
+bridge 
+-- soc/bridge@4b0d0000/nxp,blk-ctrl
+ 00 00 00 77
+-- soc/bridge@4b0d0000/phandle
+ 00 00 01 30
+-- soc/bridge@4b0d0000/reg
+ 00 00 00 00 4b 0d 00 00 00 00 00 00 00 02 00 00
+-- soc/bridge@4b0d0000/status
+okay 
+=== dump /soc/bridge@4b0d0000/channel@0
+#address-cells
+#size-cells
+name
+port@0
+port@1
+reg
+status
+-- soc/bridge@4b0d0000/channel@0/#address-cells
+ 00 00 00 01
+-- soc/bridge@4b0d0000/channel@0/#size-cells
+ 00 00 00 00
+-- soc/bridge@4b0d0000/channel@0/name
+channel 
+-- soc/bridge@4b0d0000/channel@0/reg
+ 00 00 00 00
+-- soc/bridge@4b0d0000/channel@0/status
+okay 
+=== dump /soc/syscon@4b010000/bridge@8
+compatible
+name
+phandle
+ports
+reg
+status
+-- soc/syscon@4b010000/bridge@8/compatible
+nxp,imx95-dc-pixel-link 
+-- soc/syscon@4b010000/bridge@8/name
+bridge 
+-- soc/syscon@4b010000/bridge@8/phandle
+ 00 00 01 2c
+-- soc/syscon@4b010000/bridge@8/reg
+ 00 00 00 08 00 00 00 04
+-- soc/syscon@4b010000/bridge@8/status
+okay 
+=== dpu node
+-- soc/display-controller@4b400000/clock-names
+pix apb axi ocram ldb ldb_vco 
+-- soc/display-controller@4b400000/clocks
+ 00 00 00 11 00 00 00 50 00 00 00 11 00 00 00 4b
+ 00 00 00 11 00 00 00 4c 00 00 00 11 00 00 00 4e
+ 00 00 00 7c 00 00 00 11 00 00 00 25
+-- soc/display-controller@4b400000/compatible
+nxp,imx95-dpu 
+-- soc/display-controller@4b400000/interrupt-names
+store9_shdload store9_framecomplete store9_seqcomplete extdst0_shdload extdst0_framecomplete extdst0_seqcomplete extdst4_shdload extdst4_framecomplete extdst4_seqcomplete extdst1_shdload extdst1_framecomplete extdst1_seqcomplete extdst5_shdload extdst5_framecomplete extdst5_seqcomplete domainblend0_
+-- soc/display-controller@4b400000/interrupt-parent
+ 00 00 00 60
+-- soc/display-controller@4b400000/interrupts
+ 00 00 01 c0 00 00 01 c1 00 00 01 c2 00 00 00 40
+ 00 00 00 41 00 00 00 42 00 00 00 43 00 00 00 44
+ 00 00 00 45 00 00 00 c0 00 00 00 c1 00 00 00 c2
+ 00 00 00 c3 00 00 00 c4 00 00 00 c5 00 00 00 46
+ 00 00 00 47 00 00 00 48 00 00 00 49 00 00 00 4a
+ 00 00 00 4b 00 00 00 4c 00 00 00 4d 00 00 00 4e
+ 00 00 00 4f 00 00 00 50 00 00 00 51 00 00 00 52
+ 00 00 00 53 00 00 00 54 00 00 00 55 00 00 00 56
+-- soc/display-controller@4b400000/name
+display-controller 
+-- soc/display-controller@4b400000/nxp,blk-ctrl
+ 00 00 00 77
+-- soc/display-controller@4b400000/phandle
+ 00 00 01 31
+-- soc/display-controller@4b400000/power-domains
+ 00 00 00 5c 00 00 00 0d
+-- soc/display-controller@4b400000/reg
+ 00 00 00 00 4b 40 00 00 00 00 00 00 00 40 00 00
+-- soc/display-controller@4b400000/status
+okay 
+### systemctl weston
+active
