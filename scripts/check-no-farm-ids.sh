@@ -48,6 +48,19 @@ FIXTURES=(
   'scripts/check-no-board-secrets.sh|Password=x|FIXTURES table entry that names the credential sample to allow'
   'scripts/check-zephyr-apps.test.sh|192.168.1.5|fixture: private-range sample the Zephyr-app check must reject'
   'scripts/check-zephyr-apps.test.sh|/dev/ttyUSB0|fixture: serial path the Zephyr-app check must reject'
+  'scripts/check-no-farm-ids.test.sh|ip="10.1.2.3"|fixture: fake IPv4 this check must reject'
+  'scripts/check-no-farm-ids.test.sh|1.2.3.4|fixture: lockfile version that must not be flagged'
+  'scripts/check-no-board-secrets.test.sh|linux-kernel@vger.kernel.org|fixture: public kernel mailing-list address'
+  'scripts/board-run-bundle.test.sh|10.9.8.7|fixture: fake board address the bundle scrubber must remove'
+  'scripts/board-run-bundle.test.sh|aa:bb:cc:dd:ee:ff|fixture: fake MAC the bundle scrubber must remove'
+  'scripts/testdata/board-run-bundle/fake-cmd.sh|10.9.8.7|fixture: fake board address the bundle scrubber must remove'
+  'scripts/testdata/board-run-bundle/fake-cmd.sh|/dev/ttyUSB3|fixture: fake UART path the bundle scrubber must remove'
+  'scripts/testdata/board-run-bundle/fake-cmd.sh|aa:bb:cc:dd:ee:ff|fixture: fake MAC the bundle scrubber must remove'
+  'scripts/scrub-kms-dump-README.md|`/dev/serial/by-id/*`|README table row naming the pattern the scrubber replaces'
+  'scripts/testdata/scrub-kms-dump/input.txt|/dev/ttyUSB7|fixture: fake UART path the KMS-dump scrubber must remove'
+  'scripts/testdata/scrub-kms-dump/input.txt|02:00:5e:10:00:01|fixture: fake MAC the KMS-dump scrubber must remove'
+  'scripts/testdata/scrub-kms-dump/input.txt|password=hunter2|fixture: fake credential the KMS-dump scrubber must remove'
+  'crates/composition-drm/tests/common/recorded.rs|parse_format(token: &str)|Rust parameter named token, not a credential'
 )
 
 # Never scanned: this script (holds the patterns) and the lockfile.
