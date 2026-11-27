@@ -505,18 +505,25 @@ fn clip_to_output(layer: &Layer, output: Size) -> Result<Option<(Rect, Rect)>, (
         _ => return Err(()),
     };
     // Maps what was cut off one destination axis back to the source axis.
+    //
+    // The source length and the kept cut can each be near 2^32 and the cut
+    // near 2^33, so their products exceed i64; they are computed in i128. A
+    // result that does not fit a `Rect` cannot be programmed either, and is
+    // refused like a clip that would need fractional source pixels.
     let axis = |start: i32, length: u32, shown: u32, cut_low: i64, cut_high: i64, flip: bool| {
-        let length = length as i64;
-        let shown = shown as i64;
-        let near = if flip { cut_high } else { cut_low };
-        let kept = shown - cut_low - cut_high;
-        if near * length % shown != 0 || kept * length % shown != 0 {
+        let length = length as i128;
+        let shown = shown as i128;
+        let near = (if flip { cut_high } else { cut_low }) as i128;
+        let kept = shown - cut_low as i128 - cut_high as i128;
+        if near < 0 || kept < 0 || near * length % shown != 0 || kept * length % shown != 0 {
             return Err(());
         }
-        Ok((
-            start + (near * length / shown) as i32,
-            (kept * length / shown) as u32,
-        ))
+        let offset = near * length / shown;
+        let width = kept * length / shown;
+        if start as i128 + offset > i32::MAX as i128 || width > u32::MAX as i128 {
+            return Err(());
+        }
+        Ok((start + offset as i32, width as u32))
     };
     let (x, width) = axis(
         layer.source.x,
@@ -746,7 +753,7 @@ impl<F: FnMut(&Plan) -> Verdict> Search<'_, F> {
             let zpos = match (self.caps.planes[plane_index].zpos, below) {
                 (Zpos::Fixed(z), None) => Some(z),
                 (Zpos::Fixed(z), Some(b)) => (z > b).then_some(z),
-                (Zpos::Range { min, .. }, None) => Some(min),
+                (Zpos::Range { min, max }, None) => (min <= max).then_some(min),
                 (Zpos::Range { min, max }, Some(b)) => {
                     let z = min.max(b.saturating_add(1));
                     (z > b && z <= max).then_some(z)
@@ -1393,6 +1400,97 @@ mod tests {
         .unwrap();
         let placed: Vec<usize> = plan.assignments().iter().map(|a| a.layer).collect();
         assert_eq!(placed, [0, 2]);
+    }
+
+    fn huge_buffer(width: u32, height: u32) -> Buffers {
+        Buffers(std::vec![(
+            BufferId(10),
+            BufferInfo {
+                size: Size::new(width, height),
+                format: XRGB,
+                modifier: crate::types::Modifier::LINEAR,
+            },
+        )])
+    }
+
+    #[test]
+    fn clipping_a_huge_flipped_destination_is_refused_not_overflowed() {
+        // A destination and source of more than 4 billion pixels, cut while
+        // flipped: the source pixels behind the cut are a product of values
+        // up to 2^33 and 2^32. That product exceeds i64, so it must be
+        // rejected, not overflowed (debug builds caught this as a panic) or
+        // wrapped (release builds produced a garbage source region).
+        let buffers = huge_buffer(4_000_000_000, 300);
+        let caps = caps(&[plane(1, Zpos::Fixed(0), &[XRGB])]);
+        let mut layer = Layer::new(
+            BufferId(10),
+            Rect::new(0, 0, 4_000_000_000, 300),
+            Rect::new(0, 0, 4_200_000_000, 300),
+            0,
+        );
+        layer.transform = Transform::FlipH;
+        assert_eq!(
+            plan(
+                &Frame {
+                    output: OUT,
+                    layers: &[layer],
+                },
+                &caps,
+                &buffers
+            ),
+            Err(PlanError::CannotClip { layer: 0 })
+        );
+    }
+
+    #[test]
+    fn clipping_a_gigantic_source_stays_inside_the_source() {
+        // The destination is shifted left out of the output by 2^31 pixels
+        // and is as wide as the source, so the visible part starts at whole
+        // source pixels. The offset of 2^31 does not fit an i32; clipping
+        // must refuse instead of wrapping the source coordinate negative.
+        let buffers = huge_buffer(4_200_000_000, 100);
+        let caps = caps(&[plane(1, Zpos::Fixed(0), &[XRGB])]);
+        let layer = Layer::new(
+            BufferId(10),
+            Rect::new(0, 0, 4_200_000_000, 100),
+            Rect::new(-2_147_483_648, 0, 4_200_000_000, 100),
+            0,
+        );
+        assert_eq!(
+            plan(
+                &Frame {
+                    output: OUT,
+                    layers: &[layer],
+                },
+                &caps,
+                &buffers
+            ),
+            Err(PlanError::CannotClip { layer: 0 })
+        );
+    }
+
+    #[test]
+    fn plane_with_inverted_zpos_range_is_never_chosen() {
+        // A capability description claiming a plane stacks in `5..=2`
+        // describes no position; the plane must not be used at all instead
+        // of getting the position 5.
+        let caps = caps(&[plane(1, Zpos::Range { min: 5, max: 2 }, &[XRGB])]);
+        let buffers = Buffers(std::vec![buffer(10, 1920, 1080, XRGB)]);
+        let layers = [full_layer(10, 0)];
+        assert_eq!(
+            plan(
+                &Frame {
+                    output: OUT,
+                    layers: &layers,
+                },
+                &caps,
+                &buffers
+            ),
+            Err(PlanError::NoPlane {
+                layer: 0,
+                reasons: RejectReasons::Z_ORDER
+            })
+        );
     }
 
     /// Tiny deterministic generator; no external crates in the core.
