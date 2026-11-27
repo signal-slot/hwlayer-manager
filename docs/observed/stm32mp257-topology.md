@@ -96,6 +96,9 @@ taken; whether the KVM shows a picture is unverified.** What is known:
 - observed 2026-11-28: Weston scans out a 1920x1080 XR24 buffer on the CRTC
   with `active=1`, so a picture is being sent; its content was not seen.
 
+The two-plane harness run (`twoplane`, unsupported combinations, swap-z and
+alpha variants) is in [`stm32mp257.md`](stm32mp257.md).
+
 ## State left
 
 Weston was never stopped (probe and modetest read without master);
