@@ -11,6 +11,8 @@
 //!   (writable → ready → submitted → scanning → released).
 //! - [`backend`]: the contract a display backend implements.
 //! - [`engine`]: ties the three together for a single backend.
+//! - [`trace`]: structured traces of what the engine does, for an optional
+//!   sink.
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -22,6 +24,7 @@ pub mod fixed;
 pub mod limits;
 pub mod planner;
 pub mod presentation;
+pub mod trace;
 pub mod types;
 
 pub use backend::{BackendError, BackendEvent, DisplayBackend};
@@ -34,6 +37,7 @@ pub use planner::{
     Assignment, BufferLookup, Plan, PlanError, RejectReasons, SearchLimits, Verdict,
 };
 pub use presentation::{BufferState, DisplayEvent, PresentError, Presentation};
+pub use trace::{DropReason, NoTrace, Trace, TraceEvent};
 pub use types::{
     BlendMode, BufferId, BufferInfo, Frame, Layer, Modifier, OutputId, PixelFormat, PlaneId, Rect,
     Size, SubmissionId, Transform, ALPHA_OPAQUE,

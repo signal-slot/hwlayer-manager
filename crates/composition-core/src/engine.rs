@@ -9,7 +9,8 @@ use crate::fixed::FixedVec;
 use crate::limits::MAX_LAYERS;
 use crate::planner::{self, Plan, PlanError, SearchLimits, Verdict};
 use crate::presentation::{BufferState, DisplayEvent, PresentError, Presentation};
-use crate::types::{BufferId, BufferInfo, Frame, SubmissionId};
+use crate::trace::{DropReason, NoTrace, Trace, TraceEvent};
+use crate::types::{BufferId, BufferInfo, Frame, OutputId, SubmissionId};
 
 /// Why the engine refused an operation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -45,13 +46,17 @@ impl From<BackendError> for Error {
 }
 
 /// Plans frames, submits them to a backend and tracks buffer lifetimes.
-pub struct Engine<B: DisplayBackend> {
+///
+/// `T` receives the engine's structured trace (see [`crate::trace`]); the
+/// default, [`NoTrace`], keeps nothing and costs nothing.
+pub struct Engine<B: DisplayBackend, T: Trace = NoTrace> {
     backend: B,
     caps: Capabilities,
     generation: u32,
     presentation: Presentation,
     limits: SearchLimits,
     latch_timeout: Option<u64>,
+    trace: T,
 }
 
 impl<B: DisplayBackend> Engine<B> {
@@ -83,7 +88,41 @@ impl<B: DisplayBackend> Engine<B> {
             presentation: Presentation::EMPTY,
             limits: SearchLimits::default(),
             latch_timeout: None,
+            trace: NoTrace,
         }
+    }
+}
+
+impl<B: DisplayBackend, T: Trace> Engine<B, T> {
+    /// The engine with its trace going to `trace` instead.
+    ///
+    /// This moves the engine; on an MCU, attach the sink before the engine
+    /// is written into its final storage.
+    pub fn with_trace<U: Trace>(self, trace: U) -> Engine<B, U> {
+        Engine {
+            backend: self.backend,
+            caps: self.caps,
+            generation: self.generation,
+            presentation: self.presentation,
+            limits: self.limits,
+            latch_timeout: self.latch_timeout,
+            trace,
+        }
+    }
+
+    /// Replaces the trace sink, returning the previous one.
+    pub fn set_trace(&mut self, trace: T) -> T {
+        core::mem::replace(&mut self.trace, trace)
+    }
+
+    /// The trace sink.
+    pub fn trace(&self) -> &T {
+        &self.trace
+    }
+
+    /// The trace sink, for reading out or clearing what it recorded.
+    pub fn trace_mut(&mut self) -> &mut T {
+        &mut self.trace
     }
 
     /// Asks the backend for its capabilities again, as
@@ -128,7 +167,9 @@ impl<B: DisplayBackend> Engine<B> {
     pub fn advance_time(&mut self, now: u64) {
         self.presentation.set_time(now);
         if let Some(timeout) = self.latch_timeout {
+            let start = self.presentation.events_len();
             self.presentation.report_overdue(timeout);
+            self.trace_events(start, None, DropReason::Replaced);
         }
     }
 
@@ -168,7 +209,23 @@ impl<B: DisplayBackend> Engine<B> {
 
     /// [`Engine::validate`] into `plan`; see [`planner::plan_into`].
     fn validate_into(&mut self, frame: &Frame<'_>, plan: &mut Plan) -> Result<(), Error> {
+        let result = self.plan_frame(frame, plan);
+        if self.trace.enabled() {
+            let event = TraceEvent::Validate {
+                output: frame.output,
+                layers: frame.layers.len(),
+                result: result.map(|()| plan.assignments()),
+            };
+            self.trace.record(self.presentation.now(), event);
+        }
+        result
+    }
+
+    /// [`Engine::validate_into`] without its trace entry.
+    fn plan_frame(&mut self, frame: &Frame<'_>, plan: &mut Plan) -> Result<(), Error> {
         let backend = &mut self.backend;
+        let trace = &mut self.trace;
+        let now = self.presentation.now();
         // An assignment the hardware rejects is worth replacing by another;
         // any other failure would repeat for every assignment.
         let mut fatal = None;
@@ -177,12 +234,23 @@ impl<B: DisplayBackend> Engine<B> {
             &self.caps,
             &self.presentation,
             self.limits,
-            |candidate| match backend.check(frame, candidate) {
-                Ok(()) => Verdict::Accept,
-                Err(BackendError::Rejected) => Verdict::TryNext,
-                Err(error) => {
-                    fatal = Some(error);
-                    Verdict::GiveUp
+            |candidate| {
+                let result = backend.check(frame, candidate);
+                if trace.enabled() {
+                    let event = TraceEvent::Check {
+                        output: frame.output,
+                        assignments: candidate.assignments(),
+                        result,
+                    };
+                    trace.record(now, event);
+                }
+                match result {
+                    Ok(()) => Verdict::Accept,
+                    Err(BackendError::Rejected) => Verdict::TryNext,
+                    Err(error) => {
+                        fatal = Some(error);
+                        Verdict::GiveUp
+                    }
                 }
             },
             plan,
@@ -201,6 +269,20 @@ impl<B: DisplayBackend> Engine<B> {
     /// [`DisplayEvent::Presented`] follows once it is on screen. On failure
     /// the display and all buffer states are unchanged.
     pub fn commit(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<SubmissionId, Error> {
+        let result = self.commit_untraced(frame, plan);
+        if self.trace.enabled() {
+            let event = TraceEvent::Commit {
+                output: frame.output,
+                result,
+            };
+            self.trace.record(self.presentation.now(), event);
+        }
+        result
+    }
+
+    /// [`Engine::commit`] without its trace entry; what happens on the way
+    /// is traced.
+    fn commit_untraced(&mut self, frame: &Frame<'_>, plan: &Plan) -> Result<SubmissionId, Error> {
         if plan.generation != self.generation {
             return Err(Error::StalePlan);
         }
@@ -256,10 +338,12 @@ impl<B: DisplayBackend> Engine<B> {
             // The display went away during the commit: nothing will latch.
             return Err(Error::Backend(BackendError::DeviceLost));
         }
+        let start = self.presentation.events_len();
         let recorded = self.presentation.submit(frame.output, &buffers, replace)?;
+        self.trace_events(start, None, DropReason::Replaced);
         debug_assert_eq!(recorded, submission);
         if let Some(output) = own_latch {
-            self.presentation.latched(output, recorded)?;
+            self.latched(output, recorded)?;
         }
         Ok(recorded)
     }
@@ -309,17 +393,75 @@ impl<B: DisplayBackend> Engine<B> {
 
     fn apply_backend_event(&mut self, event: BackendEvent) -> Result<(), Error> {
         match event {
-            BackendEvent::Latched { output, submission } => {
-                self.presentation.latched(output, submission)?;
-            }
+            BackendEvent::Latched { output, submission } => self.latched(output, submission)?,
             BackendEvent::DeviceLost => self.device_lost()?,
             BackendEvent::CapabilitiesChanged => {
                 self.refresh_capabilities();
+                let start = self.presentation.events_len();
                 self.presentation
                     .push_event(DisplayEvent::CapabilitiesChanged)?;
+                self.trace_events(start, None, DropReason::Replaced);
             }
         }
         Ok(())
+    }
+
+    fn latched(&mut self, output: OutputId, submission: SubmissionId) -> Result<(), Error> {
+        // The buffers a latch releases belonged to the frame it takes off
+        // screen.
+        let previous = if self.trace.enabled() {
+            self.presentation.on_screen(output)
+        } else {
+            None
+        };
+        let start = self.presentation.events_len();
+        self.presentation.latched(output, submission)?;
+        self.trace_events(start, previous, DropReason::Replaced);
+        Ok(())
+    }
+
+    /// Traces the display events queued since the queue held `start`.
+    ///
+    /// A [`DisplayEvent::Released`] after a [`DisplayEvent::Presented`] is
+    /// attributed to `previous`, the submission the latch took off screen;
+    /// after a [`DisplayEvent::Dropped`] for `reason`
+    /// [`DropReason::Replaced`], to the dropped submission. A device loss
+    /// releases everything at once and attributes nothing.
+    fn trace_events(&mut self, start: usize, previous: Option<SubmissionId>, reason: DropReason) {
+        if !self.trace.enabled() {
+            return;
+        }
+        let now = self.presentation.now();
+        let mut owner = None;
+        for index in start..self.presentation.events_len() {
+            let Some(event) = self.presentation.queued_event(index) else {
+                break;
+            };
+            let event = match event {
+                DisplayEvent::Presented { output, submission } => {
+                    owner = previous;
+                    TraceEvent::Latched { output, submission }
+                }
+                DisplayEvent::Dropped { output, submission } => {
+                    owner = (reason == DropReason::Replaced).then_some(submission);
+                    TraceEvent::Dropped {
+                        output,
+                        submission,
+                        reason,
+                    }
+                }
+                DisplayEvent::Released { buffer } => TraceEvent::Released {
+                    buffer,
+                    submission: owner,
+                },
+                DisplayEvent::LatchTimeout { output, submission } => {
+                    TraceEvent::LatchTimeout { output, submission }
+                }
+                DisplayEvent::DeviceLost => TraceEvent::DeviceLost,
+                DisplayEvent::CapabilitiesChanged => TraceEvent::CapabilitiesChanged,
+            };
+            self.trace.record(now, event);
+        }
     }
 
     // Out of line and cold, like refresh_capabilities: forgetting every
@@ -328,10 +470,12 @@ impl<B: DisplayBackend> Engine<B> {
     #[cold]
     #[inline(never)]
     fn device_lost(&mut self) -> Result<(), Error> {
+        let start = self.presentation.events_len();
         self.presentation.reset()?;
         self.refresh_capabilities();
-        self.presentation.push_event(DisplayEvent::DeviceLost)?;
-        Ok(())
+        let pushed = self.presentation.push_event(DisplayEvent::DeviceLost);
+        self.trace_events(start, None, DropReason::DeviceLost);
+        Ok(pushed?)
     }
 
     // Out of line and cold: it runs only when the display changes, and the
