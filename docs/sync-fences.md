@@ -189,10 +189,8 @@ pub struct Layer { ...existing fields..., pub ready: Option<ReadyToken> }
   verified against this kernel.)
 - **Release / out fence.** Optional: set the CRTC property `OUT_FENCE_PTR`
   to a user address; the kernel returns a `sync_file` that signals when the
-  *previous* frame's buffers are no longer used... (per the kernel's
-  documented semantics, the out fence signals when this commit is complete,
-  i.e. at the flip); on the CRTC this is a per-commit fence, not a per-buffer
-  one. The first use is as a second completion source next to the page-flip
+  commit has completed (at the flip, per the kernel documentation); on the
+  CRTC this is a per-commit fence, not a per-buffer one. The first use is as a second completion source next to the page-flip
   event, which is redundant for scanout; it matters for exporting a release
   fd to an external producer (§3.4). Page-flip events remain the primary
   latch; `OUT_FENCE_PTR` is not needed for M1.
