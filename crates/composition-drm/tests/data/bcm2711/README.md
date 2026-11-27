@@ -104,3 +104,48 @@ mode) and once with the destination at the mode size (720x1280):
 
 These runs are portability evidence for the HVS5 profile work. They never
 count toward M1, M2 or M3.
+
+## Sweeps (observed 2026-11-27)
+
+`kms_sweep` and `scale_probe` from repository commit 0e4f9b8, run as root on
+the idle board (kernel 6.12.47+rpt-rpi-v8, no display manager or compositor
+active, DSI-1 720x1280, CRTC 90, primary 79, 16 candidate overlays). Files:
+`sweep-modifiers-2026-11-27.txt`, `sweep-combos-2026-11-27.txt`,
+`sweep-combos-scaled-2026-11-27.txt`, `sweep-replace-2026-11-27.txt`,
+`scale-probe-ladder-2026-11-27.txt`; each has a header with date, kernel,
+command and commit. All but `replace` are TEST_ONLY.
+
+- **Modifiers** (planes 79, 127, 138; vc4-t-tiled, sand64, sand128, sand256
+  tried on every format): of the pairs listed in `IN_FORMATS`, the ones the
+  sweep could build passed ADDFB2 and TEST_ONLY (observed, 138 pair/plane
+  results): T-tiled (0x0700000000000001) on the eight 32/16-bit RGB formats,
+  SAND64/SAND128/SAND256 (0x...03, 0x...04, 0x...05) on NV12 and NV21. Of the
+  unlisted pairs the sweep could build (342 pair/plane results), every one was
+  refused by ADDFB2 with EINVAL and never reached TEST_ONLY, so the kernel
+  rejects unlisted modifiers before the atomic check. Not tested: the sweep
+  cannot build RGB8 (RGB888), BGR8 (BGR888) or P030 buffers, so those formats
+  show `addfb=unsupported-format` with `test_only=not reached` on all three
+  planes (42 pair/plane results). That covers RGB8/LINEAR, BGR8/LINEAR and
+  P030/SAND128, which are listed (9 results), and RGB8, BGR8 and P030 with
+  the vendor modifiers 0x0700000000000001/03/04/05, which are not listed (33
+  results). Whether the kernel accepts them is not measured. The three planes
+  gave the same counts (primary and overlays alike). The dumb buffers are
+  zero-filled: this says what the kernel accepts, not that the hardware scans
+  such content out correctly.
+- **Combinations** (`combos --max 16`, 462 requests per run): every request
+  was accepted at 1:1, with `--scale-v 0.5` and with `--scale-v 2`, up to all
+  16 planes active full-screen (`COMBO_MAX accepted_k=16`). No LBM or
+  line-buffer limit showed up in TEST_ONLY at 720x1280 with 16 scaled planes;
+  whether HVS5 would scan that out is not measured (observed: accepted;
+  hardware behaviour: not measured).
+- **Scale ladder** (`scale_probe --max-factor 64`, planes 79 and 127, dst
+  360x640): every upscale factor up to 64 on `h`, `v` and `both` and every
+  downscale tried (0.5, 0.75, 0.9) was accepted, so the ceiling is "64 or
+  more" and the downscale floor is "0.5 or below"; no rejection was found.
+- **Replace** (`replace`): the setup commit succeeded with 1 event;
+  `first=ok second=EBUSY events=1`, so a second nonblocking flip while the
+  first is pending is refused with EBUSY and is not queued (observed). The
+  output stays dark after the run.
+
+These runs are portability evidence for the HVS5 profile work. They never
+count toward M1, M2 or M3.
