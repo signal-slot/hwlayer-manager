@@ -1,0 +1,24 @@
+# Synthetic fixture: every value is made up (documentation ranges); not a board capture.
+device /dev/dri/card0, driver fakedrm 1.2.3 (Fake DRM), date 20200101
+connector 31 (index 0): HDMI-A-1, connected
+    PATH: blob = 7
+    EDID: blob = 9
+      00ffffffffffff0010ac0000534e3030
+      0a1d0103803c2278eaee95a3544c9926
+      0f5054a54b00714f8180a9c0d1c00101
+    Monitor Serial Number: ABC1234567 # secrets-ok
+    serial = 0123456789 # secrets-ok
+    EDID inline = 00ffffffffffff0010ac0000534e30300a1d0103803c2278 # secrets-ok
+mgmt addr 192.0.2.17 and 198.51.100.4 port 22 # secrets-ok
+mgmt v6 2001:db8::1f and fe80::1:2:3:4 # secrets-ok
+nic 02:00:5e:10:00:01 and 02-00-5e-10-00-02 # secrets-ok
+console /dev/ttyUSB7 and /dev/serial/by-id/usb-Fake_0001 and /dev/ttyRPMSG0 # secrets-ok
+login tester@testboard1 and git@github.com # secrets-ok
+upload password=hunter2 token="abc123" # secrets-ok
+host testboard1 seen as TESTBOARD1.lan and testboard10 stays # secrets-ok
+time 19:44:22-19:45:12 and 12:34:56 stay
+plane 33 (index 0): type Primary, possible_crtcs 0x1
+    zpos: range 0..=7 [atomic] = 0
+    IN_FORMATS: blob [immutable] = 12
+      modifier 0x0000000000000000: XR24 AR24 NV12
+      modifier 0x0800000000000001: XR24 AR24
