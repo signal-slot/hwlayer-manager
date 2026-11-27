@@ -1,0 +1,2 @@
+# SYNTHETIC fixture: no date line.
+METRIC id=M-1.median unit=ms value=16.67

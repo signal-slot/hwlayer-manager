@@ -1,0 +1,7 @@
+# SYNTHETIC fixture: invented numbers for the self-test, not a measurement.
+RUN date=2026-01-03 side=zephyr stage=A commit=0000000 tool=synthetic
+METRIC id=M-1.median name="frame interval median" unit=ms value=16.70
+METRIC id=M-1.max name="frame interval max" unit=us value=17500
+METRIC id=M-2b.light name="latch-to-light" value=not measurable (no photodiode)
+METRIC id=M-3.dropped name="dropped frames" unit=frames value=2
+METRIC id=M-5.plane name="plane assignment" value=layer 0
