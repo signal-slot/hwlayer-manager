@@ -1,0 +1,90 @@
+#!/bin/sh
+# Run the checks of the pull-request CI locally.
+#
+# The step list below must follow .github/workflows/ci.yml (documented in
+# docs/ci.md). When a step is added, changed or removed there, change it here
+# in the same commit.
+#
+# Usage: sh scripts/check-all.sh [--keep-going] [--cross]
+#   --keep-going  run every step even after a failure (default: stop at the
+#                 first failure)
+#   --cross       also run the aarch64 cross-build steps of ci.yml. They use
+#                 scripts/cross-aarch64.sh, which adds the
+#                 aarch64-unknown-linux-musl rustup target on first use.
+#
+# Nothing is installed by this script. A missing thumbv7em-none-eabihf target
+# is reported with the rustup command to run.
+set -eu
+
+keep_going=0
+cross=0
+for a in "$@"; do
+    case $a in
+        --keep-going) keep_going=1 ;;
+        --cross) cross=1 ;;
+        -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+        *) echo "unknown argument: $a" >&2; exit 2 ;;
+    esac
+done
+
+cd "$(dirname "$0")/.."
+
+T=thumbv7em-none-eabihf
+if ! rustup target list --installed 2>/dev/null | grep -qx "$T"; then
+    echo "FAIL  target $T is not installed (nothing was run)"
+    echo "      install it with: rustup target add $T"
+    exit 1
+fi
+
+pass=0
+fail=0
+failed=""
+
+summary() {
+    echo "----"
+    echo "summary: $pass passed, $fail failed"
+    if [ -n "$failed" ]; then
+        echo "failed steps:$failed"
+    fi
+}
+
+# step NAME CMD...: run CMD, print PASS/FAIL, stop on failure unless --keep-going.
+step() {
+    name=$1
+    shift
+    echo "==> $name: $*"
+    if "$@"; then
+        echo "PASS  $name"
+        pass=$((pass + 1))
+    else
+        echo "FAIL  $name"
+        fail=$((fail + 1))
+        failed="$failed
+  $name"
+        if [ "$keep_going" -eq 0 ]; then
+            summary
+            exit 1
+        fi
+    fi
+}
+
+step "cargo fmt" cargo fmt --all --check
+step "cargo clippy" cargo clippy --locked --workspace --all-targets -- -D warnings
+step "cargo test" cargo test --locked --workspace
+step "build composition-core ($T)" \
+    cargo build --locked -p composition-core --target "$T"
+step "build composition-ffi-staticlib ($T, no std, release)" \
+    cargo build --locked -p composition-ffi-staticlib --no-default-features \
+    --features panic-handler --target "$T" --release
+
+if [ "$cross" -eq 1 ]; then
+    step "cross aarch64: composition-drm" \
+        scripts/cross-aarch64.sh --locked -p composition-drm
+    step "cross aarch64: probe example" \
+        scripts/cross-aarch64.sh --locked -p composition-drm --example probe
+    step "cross aarch64: drm-harness" \
+        scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
+fi
+
+summary
+[ "$fail" -eq 0 ]
