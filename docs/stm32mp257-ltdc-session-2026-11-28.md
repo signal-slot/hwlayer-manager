@@ -1,10 +1,12 @@
-# STM32MP257F-DK (LTDC): board session A, 2026-11-28
+# STM32MP257F-DK (LTDC): board sessions A and B, 2026-11-28
 
-Session A of the open questions in
-[`design/stm32mp257-backend.md`](design/stm32mp257-backend.md) §7: Q1
-(pixel colours), Q2 (premultiplied or straight alpha), Q3 (scaling) and Q7
-(underrun under load). Q5, Q6, Q9 and Q10 are left to session B (placeholders
-at the end).
+Sessions A and B of the open questions in
+[`design/stm32mp257-backend.md`](design/stm32mp257-backend.md) §7. Session A:
+Q1 (pixel colours), Q2 (premultiplied or straight alpha), Q3 (scaling) and Q7
+(underrun under load). Session B: Q9 (NV12, C8), Q5 (writing zpos), Q6
+(rotation and reflections) and the Q10 summary; its own conditions are under
+"Session B: conditions", after Q7. The summary table of all answers is at the
+end.
 
 These runs are **portability evidence only**. They count toward neither M1,
 M2 nor M3.
@@ -385,21 +387,378 @@ on planes 34 and 42. Values from 12 to 15 buffers per plane were not tried.
   refused). A backend that wants headroom has to watch the counters after
   a commit.
 
-## Q5: writing zpos
+## Session B: conditions
 
-Session B, not run yet.
+- **observed 2026-11-27** (host UTC date, as in session A): session B ran
+  from host 2026-11-27T23:01:13Z to 23:08:11Z UTC (2026-11-28 JST). The board
+  clock again ran about 9 h 53 min behind the host (`DATE
+  2026-11-27T13:08:58Z` in the run started at host 23:02:23Z). Every host
+  time below is `date -u` on the host, taken just before and after each run.
+- The same limits as session A applied: ssh only, no serial console, reset,
+  reboot, flashing, boot-chain change or package install, and no change to
+  DRM, udev or seat configuration. Weston was stopped three times, once per
+  question (Q9 at 23:02:19Z, Q5 at 23:03:20Z, Q6 at 23:04:12Z), with
+  `systemctl stop weston-graphical-session seatd-weston`, and started again
+  after each (23:03:05Z, 23:03:53Z, 23:07:59Z), each time read back as
+  `active` for both units.
+- Binaries: `scripts/cross-aarch64.sh -p composition-drm --example
+  plane_commit --example probe` and `--example props`, unchanged, at commit
+  `03fda2d` (`origin/main`, which holds `plane_commit`), built for
+  `aarch64-unknown-linux-musl` (rust-lld), and copied to `/tmp` on the board.
+  A shell wrapper of this session (in `/tmp` on the board, not in the
+  repository) ran one `plane_commit` per call and read the KMS state and the
+  CRC while the commit was held.
+- **The KVM failed again.** The NanoKVM's MCP server failed to connect at
+  session start with HTTP 404 from its relay (observed 2026-11-27), so **no
+  screenshot was taken** and `scripts/camera-check.py` judged nothing. As in
+  session A, the pictures were judged by the LTDC output CRC instead:
+  `echo auto > /sys/kernel/debug/dri/0/crtc-0/crc/control`, then about 2 s
+  into the 4 s hold of each `plane_commit` run, 40 entries of `crtc-0/crc/data`
+  (one per frame) were read and counted per value. An entry is `FRAME CRC`;
+  entries are separated by a NUL byte (observed 2026-11-27).
+- The CRC method only says whether two pictures are equal. A run shows a
+  layer on top when its CRC equals the CRC of a reference run in which that
+  layer alone covers the same pixels (inferred from the method). A CRC that
+  changes from frame to frame means the output picture changes from frame to
+  frame (inferred); what that looks like is unknown without a picture.
+- `plane_commit` draws eight vertical colour bars into every buffer (white,
+  yellow, cyan, green, magenta, red, blue, black; its doc comment). The bars
+  are the same in every row. So reflect-y and rotation 0 give the **same**
+  picture, and reflect-x, reflect-x+reflect-y and rotation 180 give the same
+  mirrored picture (inferred). The CRC can show reflect-x working but cannot
+  show reflect-y working.
+- After every run: the LTDC counters from `/sys/kernel/debug/dri/0/state`
+  and the new `dmesg` lines matching drm, ltdc, stm32, dsi, hdmi or adv.
+  **Every run of session B ended with `transfer_error=0
+  fifo_underrun_error=0 fifo_underrun_warning=0` and no new kernel line**
+  (observed 2026-11-27). The tables below do not repeat this.
+
+The layers of the runs (`plane_commit` `--layer` specs; `P` and `O` are used
+in the tables):
+
+| Name | Spec |
+|---|---|
+| `P` | `plane=34,format=XR24,src=1920x1080,dst=0,0,1920x1080` |
+| `O` | `plane=42,format=XR24,src=640x480,dst=640,300,640x480` |
+| `N` | `plane=42,format=NV12,src=640x480,dst=640,300,640x480` |
+| `S` | `plane=49,format=XR24,src=320x240,dst=800,420,320x240` (inside `O`) |
+
+Every committed run was `/tmp/plane_commit /dev/dri/card0 --hold-ms 4000
+--layer … [--layer …]`. The reference CRCs (observed 2026-11-27):
+
+| Host time (UTC) | Layers | CRC over 2 or 40 frames |
+|---|---|---|
+| 23:02:23Z | `P` alone | `0x00002fab` (2 of 2) |
+| 23:02:44Z | `P` + `O` | `0x0000d38f` (2 of 2) |
+| 23:06:06Z | `P` + `O` (repeat) | `0x0000d38f` (40 of 40) |
+| 23:07:15Z | `plane=34,format=XR24,src=960x540,dst=0,0,960x540` alone | `0x00009ab8` (40 of 40) |
+
+The Q9 and Q5 runs and the first Q6 runs read two frames each, because the
+wrapper first dropped the NUL-separated entries after the second. From
+23:06:06Z on, every run read 40.
+
+## Q9: NV12 on plane 42 (and C8)
+
+### Format lists (probe)
+
+Host 2026-11-27T23:01:25Z, Weston running, `probe` (read only; observed
+2026-11-27):
+
+```text
+plane 34 Primary: outputs 0b1, zpos 0..=2, plane alpha true, blend [premultiplied], scaling not claimed
+  formats (21): AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8?? YUYV YVYU UYVY VYUY
+plane 42 Overlay: outputs 0b1, zpos 0..=2, plane alpha true, blend [premultiplied], scaling not claimed
+  formats (25): AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8?? YUYV YVYU UYVY VYUY NV12 NV21 YU12 YV12
+plane 49 Overlay: outputs 0b1, zpos 0..=2, plane alpha true, blend [premultiplied], scaling not claimed
+  formats (17): AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8??
+```
+
+- Observed 2026-11-27: **C8 is offered on all three planes** (`C8??` is
+  probe's fourcc print of `C8  `). The CRTC has the 256-entry gamma LUT that
+  the driver uses as the C8 CLUT (read from source, row 53 of
+  [`stm32mp257-ltdc-source-diff-6.6.md`](stm32mp257-ltdc-source-diff-6.6.md)).
+  C8 was not committed and is not implemented here.
+- Observed 2026-11-27: the interleaved YUV formats (YUYV, YVYU, UYVY, VYUY)
+  are on planes 34 and 42. **The semi-planar and planar ones (NV12, NV21,
+  YU12, YV12) are on plane 42 only.** Plane 49 has no YUV format. This
+  matches the source rule "semi-planar and planar only for an MP25 layer with
+  nonzero index" (read from source, row 46 of the diff), with plane 49
+  lacking the layer's YUV capability bits (inferred).
+- `props` at 23:01:40Z (observed 2026-11-27): planes 34 and 42 have
+  `COLOR_ENCODING` (BT.601, BT.709) and `COLOR_RANGE` (limited, full), both
+  at BT.601 limited; plane 49 has neither.
+
+### Runs (Weston stopped at 23:02:19Z)
+
+| Host time (UTC) | Layers / flags | TEST_ONLY | COMMIT | CRTC active | RECOVER | RESTORE | CRC |
+|---|---|---|---|---|---|---|---|
+| 23:02:32Z–23:02:37Z | `P` + `N` | ok | ok | 1 | ok | ok | `0x00008d0f` (2 of 2) |
+| 23:02:48Z–23:02:53Z | `P` + `N` (repeat) | ok | ok | 1 | ok | ok | `0x00008d0f` (2 of 2) |
+| 23:03:01Z | `P` + NV12 on plane 49, `--test-only-only` | EINVAL | not made | 0 | – | – | – |
+| 23:03:02Z | `P` + `N` scaled to dst 1280x960, `--test-only-only` | EINVAL | not made | 0 | – | – | – |
+
+The first run's lines (observed 2026-11-27):
+
+```text
+START crtc_active=0 primary=34 primary_fb=0
+LAYER plane=34 format=XR24 src=1920x1080 dst=0,0,1920x1080 zpos=none rotation=none alpha=none
+LAYER plane=42 format=NV12 src=640x480 dst=640,300,640x480 zpos=none rotation=none alpha=none
+TEST_ONLY ok
+COMMIT ok
+HOLD ms=4000
+STATE plane=34 fb=57 zpos=0 rotation=0x1 alpha=65535
+STATE plane=42 fb=58 zpos=1 rotation=0x1 alpha=65535
+CRTC active=1
+RECOVER ok
+RESTORE ok
+VERDICT plane_commit: DONE
+```
+
+During the hold, the KMS state showed `plane[42]` with `crtc=crtc-0`,
+`fb=58` and `normalized-zpos=1` (observed 2026-11-27).
+
+### Conclusions
+
+- Observed 2026-11-27: **an NV12 overlay on plane 42 at 1:1 over an XR24
+  primary passes TEST_ONLY and commits**, through the same dumb-buffer path
+  (one tall dumb buffer with the CbCr plane at an offset, per the example's
+  doc comment). The CRC was stable and the same in both runs.
+- Observed 2026-11-27: the NV12 picture's CRC (`0x8d0f`) differs from the
+  primary-alone CRC (`0x2fab`), so the NV12 layer is scanned out. It also
+  differs from the XR24 overlay with the same bars (`0xd38f`).
+- Inferred: the difference from XR24 is expected, because the example's RGB
+  to BT.601-limited conversion and the LTDC's conversion back round the
+  colours. The CRC cannot tell a small rounding difference from wrong
+  colours, so **whether the bars have the right colours is not answered**;
+  that needs a picture.
+- Observed 2026-11-27: NV12 on plane 49 is refused by TEST_ONLY (EINVAL), as
+  its format list says, and a scaled NV12 layer on plane 42 is refused by
+  TEST_ONLY (EINVAL). The latter matches the source rule "Scaling is not
+  supported with yuv pixel format" (read from source, row 34 of the diff).
+
+## Q5: writing zpos (crossed values on the fixed planes)
+
+`props` at 23:01:40Z (observed 2026-11-27): `zpos` is a range property
+`0..=2` on all three planes, mutable, with the values 0 (34), 1 (42) and 2
+(49).
+
+### Runs (Weston stopped at 23:03:20Z)
+
+| Host time (UTC) | Layers (zpos) | TEST_ONLY | COMMIT | CRTC active | RECOVER | RESTORE | normalized-zpos during the hold | CRC | Equals |
+|---|---|---|---|---|---|---|---|---|---|
+| 23:03:21Z–23:03:25Z | `P` zpos 2, `O` zpos 0 | ok | ok | 1 | ok | ok | 34 → 1, 42 → 0 | `0x00002fab` (2 of 2) | `P` alone: **the primary is on top** and hides `O` |
+| 23:03:40Z–23:03:44Z | `P` 0, `O` 1, `S` 2 (default order) | ok | ok | 1 | ok | ok | 0, 1, 2 | `0x00001135` (2 of 2) | none: `S` visible inside `O` |
+| 23:03:45Z–23:03:49Z | `P` 0, `O` 2, `S` 1 (overlays crossed) | ok | ok | 1 | ok | ok | 0, 2, 1 | `0x0000d38f` (2 of 2) | `P` + `O`: **`O` is on top** and hides `S` |
+
+The crossed run's lines (observed 2026-11-27):
+
+```text
+LAYER plane=34 format=XR24 src=1920x1080 dst=0,0,1920x1080 zpos=2 rotation=none alpha=none
+LAYER plane=42 format=XR24 src=640x480 dst=640,300,640x480 zpos=0 rotation=none alpha=none
+TEST_ONLY ok
+COMMIT ok
+HOLD ms=4000
+STATE plane=34 fb=56 zpos=2 rotation=0x1 alpha=65535
+STATE plane=42 fb=57 zpos=0 rotation=0x1 alpha=65535
+CRTC active=1
+RECOVER ok
+RESTORE ok
+```
+
+and the kernel state during its hold:
+
+```text
+plane[34]: plane-0
+	crtc=crtc-0
+	fb=56
+	normalized-zpos=1
+plane[42]: plane-1
+	crtc=crtc-0
+	fb=57
+	normalized-zpos=0
+plane[49]: plane-2
+	crtc=(null)
+	fb=0
+	normalized-zpos=2
+```
+
+After the run (between 23:03:25Z and 23:03:40Z, observed 2026-11-27): `props` read the `zpos`
+properties back as 0, 1, 2 (RESTORE worked), while the debugfs state still
+showed `normalized-zpos=0` for the disabled plane 42 and 2 for plane 49.
+
+### Conclusions
+
+- Observed 2026-11-27: **crossed zpos on the fixed planes is accepted by
+  TEST_ONLY and by the commit, and the hardware follows it.** The primary
+  with zpos 2 over an overlay with zpos 0 gives exactly the primary-alone
+  picture, and with the two overlays crossed the upper one hides the lower
+  one.
+- Observed 2026-11-27: the kernel normalizes over the enabled planes only
+  (2 and 0 become 1 and 0 with plane 49 off). This matches
+  `normalize_zpos = true` and `normalized_zpos` written to the blending
+  order register (read from source, row 40 of the diff).
+- Inferred: the `normalized-zpos` shown for a disabled plane is left over
+  from its last commit, not recomputed, and does not matter.
+- Inferred: a backend may treat the three zpos properties as freely
+  writable within `0..=2` and need not move layers between planes to change
+  their order (the design note §6 swap moved layers).
 
 ## Q6: rotation 180 and reflections
 
-Session B, not run yet.
+`props` at 23:01:40Z (observed 2026-11-27): every plane has a `rotation`
+bitmask property at `rotate-0` (value 1). The `drm` crate does not return the
+bitmask's value names, so the supported set was found by TEST_ONLY.
 
-## Q9: NV12 on plane 42
+### Runs (Weston stopped at 23:04:12Z)
 
-Session B, not run yet.
+The overlay rows use `P` + `O` with the rotation on `O`; the primary rows use
+`P` + `O` with the rotation on `P`, except where noted. `plane_commit`
+writes a reflection alone as `rotate-0` plus the reflection (`0x11`, `0x21`).
+"Reference" is the expected picture (see the conditions): `0xd38f` for an
+unmirrored result.
+
+| Host time (UTC) | Plane, rotation (value) | TEST_ONLY | COMMIT | CRTC active | RECOVER | RESTORE | CRC per 40 frames (or 2) |
+|---|---|---|---|---|---|---|---|
+| 23:04:13Z–23:04:18Z | 42, `180` (0x4) | EINVAL | EINVAL | 0 | ok | ok | none (CRTC off) |
+| 23:04:26Z–23:04:31Z | 42, `reflect-x` (0x11) | ok | ok | 1 | ok | ok | `0x9a93` (2 of 2) |
+| 23:04:31Z–23:04:35Z | 42, `reflect-y` (0x21) | ok | ok | 1 | ok | ok | `0xd38f` (2 of 2) |
+| 23:04:36Z–23:04:40Z | 42, `reflect-x+reflect-y` (0x31) | ok | ok | 1 | ok | ok | `0x9a93`, then `0xcce8` |
+| 23:04:50Z–23:04:55Z | 42, `reflect-x+reflect-y` (0x31) | ok | ok | 1 | ok | ok | `0x9a93` (2 of 2) |
+| 23:06:16Z–23:06:21Z | 42, `reflect-x` (0x11) | ok | ok | 1 | ok | ok | `0x9a93` 40 of 40 |
+| 23:06:21Z–23:06:25Z | 42, `reflect-y` (0x21) | ok | ok | 1 | ok | ok | `0xd38f` 40 of 40 |
+| 23:06:25Z–23:06:30Z | 42, `reflect-x+reflect-y` (0x31) | ok | ok | 1 | ok | ok | `0x9a93` 24 of 40, 13 other values |
+| 23:05:08Z–23:05:12Z | 34, `180` (0x4) | ok | ok | 1 | ok | ok | not read (wrapper fault) |
+| 23:05:12Z–23:05:26Z | 34, `reflect-x`, `reflect-y`, `reflect-x+reflect-y` | ok, ok, ok | ok, ok, ok | 1, 1, 1 | ok | ok | not read (wrapper fault) |
+| 23:06:37Z–23:06:41Z | 34, `180` (0x4) | ok | ok | 1 | ok | ok | `0xc582` 23 of 40, 16 other values |
+| 23:06:41Z–23:06:46Z | 34, `reflect-x` (0x11) | ok | ok | 1 | ok | ok | `0xc582` 19 of 40, 17 other values |
+| 23:06:46Z–23:06:51Z | 34, `reflect-y` (0x21) | ok | ok | 1 | ok | ok | `0xd38f` 40 of 40 |
+| 23:06:51Z–23:06:55Z | 34, `reflect-x+reflect-y` (0x31) | ok | ok | 1 | ok | ok | `0xc582` 21 of 40, 19 other values |
+| 23:07:06Z–23:07:10Z | 34 alone, `reflect-x` | ok | ok | 1 | ok | ok | changing (only part of the counts kept: the host-side filter cut the lines) |
+| 23:07:25Z–23:07:29Z | 34 alone, `reflect-x` (repeat) | ok | ok | 1 | ok | ok | no value more than twice in 40 |
+| 23:07:10Z–23:07:15Z | 34 alone at 960x540 (dst 0,0), `reflect-x` | ok | ok | 1 | ok | ok | `0x1b1d` 19 of 40, 21 other values (1:1 reference `0x9ab8` 40 of 40) |
+
+90 and 270, **`--test-only-only` only; nothing was committed**:
+
+| Host time (UTC) | Layers, rotation | TEST_ONLY | CRTC active |
+|---|---|---|---|
+| 23:07:38Z | `P` + `O`, `O` at `90` (0x2) | EINVAL | 0 |
+| 23:07:39Z | `P` + `O`, `O` at `270` (0x8) | EINVAL | 0 |
+| 23:07:41Z | `P` alone at `90` (0x2) | **ok** | 0 |
+| 23:07:41Z | `P` alone at `270` (0x8) | **ok** | 0 |
+| 23:07:49Z | `P` at `90` + `O` | **ok** | 0 |
+
+Lines of the overlay 180 run and of the primary 180 run (observed 2026-11-27):
+
+```text
+LAYER plane=42 format=XR24 src=640x480 dst=640,300,640x480 zpos=none rotation=0x4 alpha=none
+TEST_ONLY EINVAL
+COMMIT EINVAL
+HOLD ms=4000
+STATE plane=34 fb=0 zpos=0 rotation=0x1 alpha=65535
+STATE plane=42 fb=0 zpos=1 rotation=0x1 alpha=65535
+CRTC active=0
+RECOVER ok
+RESTORE ok
+
+LAYER plane=34 format=XR24 src=1920x1080 dst=0,0,1920x1080 zpos=none rotation=0x4 alpha=none
+TEST_ONLY ok
+COMMIT ok
+HOLD ms=4000
+STATE plane=34 fb=57 zpos=0 rotation=0x4 alpha=65535
+STATE plane=42 fb=58 zpos=1 rotation=0x1 alpha=65535
+CRTC active=1
+RECOVER ok
+RESTORE ok
+```
+
+The live device tree's LTDC node (`/proc/device-tree`, read at 23:07:49Z,
+observed 2026-11-27) has `compatible = "st,stm32mp25-ltdc"`, the children
+`l1l2`, `l3`, `rot` and `port`, and **no `rotation-memory` property**. The
+reserved regions `ltdc-sec-layer` and `ltdc-sec-rotation` exist.
+
+### Conclusions
+
+- Observed 2026-11-27, supported values: **the overlay (42) accepts
+  rotate-0 with reflect-x, reflect-y or both, and refuses `rotate-180`,
+  `rotate-90` and `rotate-270`** (EINVAL). **The primary (34) accepts
+  `rotate-180`, the reflections and, at TEST_ONLY, `rotate-90` and
+  `rotate-270`**, also with an overlay enabled. EINVAL could come from the
+  property's value check or from `atomic_check`; `plane_commit` cannot tell
+  which (inferred).
+- Observed 2026-11-27: overlay reflect-x gives a stable mirrored picture
+  (`0x9a93`, 40 of 40), different from the unmirrored `0xd38f`. Overlay
+  reflect-y gives the unmirrored CRC, which is what bars that are equal in
+  every row should give; whether the flip happened is not visible to this
+  method.
+- Observed 2026-11-27: **reflect-x on the primary, alone or as part of 180,
+  gives a CRC that changes from frame to frame** (about half the frames at
+  one value, the rest all different), at 1920x1080 and at 960x540, with and
+  without the overlay. **Overlay reflect-x+reflect-y does the same** (24 of
+  40). Overlay reflect-x alone and every reflect-y run were stable. The
+  underrun counters stayed 0 and the kernel logged nothing.
+- Inferred: horizontal mirroring on plane 34, and mirroring in both
+  directions on plane 42, produce an output picture that is not stable from
+  frame to frame. It may be a visible artefact (jitter, a wrong column or
+  line) or an effect on the CRC unit only. **Only a picture can tell**, and
+  until one does these transforms should not be claimed.
+- Observed 2026-11-27: no commit of session B failed after a passing
+  TEST_ONLY, so **whether such a failure leaves the display stopped is still
+  not observed.** The only rejected commit (overlay 180) failed at TEST_ONLY
+  as well, changed nothing (the CRTC stayed off as it was before), and the
+  RECOVER commit right after it brought the CRTC up. In every committed run
+  the CRTC stayed active and RECOVER and RESTORE were ok; Weston restarted
+  normally at 23:07:59Z. No recovery beyond the program's own was needed.
+- Inferred: the primary's 90/270 pass TEST_ONLY **although the device tree
+  has no `rotation-memory`**. The source read for Q10 says `crtc_rotation` is
+  cleared without `rotation-memory`, so the primary should not offer
+  90/270 (read from source, rows 43-44 of the diff). Either the board kernel's
+  `ltdc.c` differs from the 6.6 tree read there, or the property is created
+  some other way. The source also puts the "rotation buffer too small"
+  refusal in `atomic_update` after the controller is disabled (rows 54-56),
+  and with no rotation memory at all that path may fail or worse. **A
+  commit of 90/270 on this board is unsafe and was not made.** A backend
+  must never claim or try 90/270 here.
 
 ## Q10: ST v6.18 source rows against the board's 6.6.129
 
-Session B, not run yet (the companion diff is the ltdc-src-diff item).
+The diff is [`stm32mp257-ltdc-source-diff-6.6.md`](stm32mp257-ltdc-source-diff-6.6.md)
+(read on 2026-11-28; ST `v6.18-stm32mp` `3056405e` against ST `v6.6-stm32mp`
+tip `548f960c`, tag `v6.6-stm32mp-r3.1`, `SUBLEVEL` 129). Summary (read from
+source, from that file):
+
+- Of the 77 cited rows, all plane-path rows (sync, vblank, scaling rules,
+  zpos, alpha and blend factors, format lists, rotation property, the
+  post-TEST_ONLY 90/270 refusals, underrun counters) **match**. The
+  differences are the compatible strings (one `st,stm32mp25-ltdc` in 6.6,
+  MP251 and MP255 in 6.18), which open the rotator registers on every MP25
+  in 6.6, a missing "Invalid dst rectangle" warning in 6.6, CRTC-enable
+  bus-format handling, LVDS RGB666, and a 6.6 binding that does not describe
+  `rotation-memory` or the firewall children.
+
+Matched against the board (session A's `uname -a` and this session):
+
+| Item | Board | Diff file | Verdict | Tag |
+|---|---|---|---|---|
+| Kernel version | `6.6.129` | 6.6 tip `SUBLEVEL` 129 | matches | observed 2026-11-27 (board), read from source (diff) |
+| Build date in `uname -a` | `#1 SMP PREEMPT Thu Mar  5 15:03:43 UTC 2026` | tip `548f960c` committed 2026-06-01 | the build date is three months before the tip commit | observed 2026-11-27 |
+| Compatible | `st,stm32mp25-ltdc` (live device tree) | 6.6: `st,stm32mp25-ltdc`; 6.18: `st,stm32mp251/255-ltdc` | matches 6.6 | observed 2026-11-27 |
+| `rotation-memory` | absent from the LTDC node | absent from every 6.6 DT file read (row 62) | matches | observed 2026-11-27 |
+| Primary offers 90/270 | TEST_ONLY ok for both | not offered without `rotation-memory` (rows 43-44) | **differs** | observed 2026-11-27 (board), read from source (diff) |
+| Zpos writable and normalized | yes (Q5) | rows 39-40 | matches | observed 2026-11-27 |
+| Straight-alpha blend factors | yes (Q2, session A) | row 42 (`BF1_PAXCA`) | matches | observed 2026-11-27 |
+| YUV scaling refused | yes (Q9) | row 34 | matches | observed 2026-11-27 |
+| NV12 on plane 42 only | yes (Q9) | row 46 | matches | observed 2026-11-27 |
+| Plane 49 has no scaler, plane 42 upscales only | yes (Q3, session A) | rows 33-34 | matches | observed 2026-11-27 |
+
+- Inferred: Yocto kernels usually get their build timestamp from the source
+  commit, so a build date of 2026-03-05 points to a 6.6.129 source older
+  than the `548f960c` tip (2026-06-01), or to a patched tree. **The board
+  kernel is probably not exactly `548f960c`.** The primary's 90/270 is the one
+  observed behaviour the diff's rows do not predict.
+- Inferred: apart from that, every source row that was checked against the
+  board held, so the diff's rows can be used for the board's plane path. The
+  rotation rows should be re-read in the `linux-stm32mp` source of the
+  board's `meta-st-stm32mp` revision (session A, "Board and kernel").
 
 ## State after the session
 
@@ -412,3 +771,46 @@ $ systemctl is-active weston-graphical-session seatd-weston
 active
 active
 ```
+
+## State after session B
+
+Host 2026-11-27T23:07:59Z to 23:08:11Z (observed 2026-11-27): Weston started
+again, plane 34 shows `allocated by = weston` with the CRTC `active=1`, the
+counters read `transfer_error=0 fifo_underrun_error=0
+fifo_underrun_warning=0`, the CRC `control` file read back empty, the
+session's directory under `/tmp` was removed (a count of 0 matching entries
+afterwards), and:
+
+```text
+$ systemctl is-active weston-graphical-session seatd-weston
+active
+active
+```
+
+## Summary of sessions A and B
+
+| Question | Answer | Tag |
+|---|---|---|
+| Q1 pixel colours | Not judged by a picture: the KVM failed in both sessions. Predicted from Q2: twoplane's translucent `EXPECT` regions would fail, opaque ones pass | observed 2026-11-27 (no picture), inferred (prediction) |
+| Q2 premultiplied or straight | **Straight alpha** on plane 42 (AR24), `α` = pixel alpha × plane alpha, from the output CRC | observed 2026-11-27 (CRC), inferred (the formula) |
+| Q3 scaling | Plane 42 upscales to the mode size, plane 49 does not scale, nothing downscales. The scaler filters (no nearest or bilinear match). `fifo_underrun_warning` grows only while a scaled layer is shown, no errors | observed 2026-11-27 |
+| Q5 writing zpos | **Works.** Crossed zpos passes TEST_ONLY and commits, and the hardware follows it (primary on top hides the overlay, crossed overlays swap); the kernel normalizes over enabled planes | observed 2026-11-27 |
+| Q6 rotation | Overlay: reflect-x and reflect-y accepted, `rotate-180/90/270` EINVAL. Primary: 180 and reflections commit; 90/270 pass TEST_ONLY (not committed). Primary reflect-x/180 and overlay reflect-x+reflect-y give a frame-to-frame changing CRC. No failure after a passing TEST_ONLY was seen, so the "display stopped" question stays open | observed 2026-11-27 |
+| Q7 underrun under load | No `fifo_underrun_error` or `transfer_error` under CPU and memory load, three planes, scaled layer; warnings with scaling only; buffers limited by 128 MiB CMA | observed 2026-11-27 |
+| Q9 NV12, C8 | NV12 commits on plane 42 at 1:1 and is scanned out (colours not judged); refused on plane 49 and when scaled. C8 is offered on all three planes, not tried | observed 2026-11-27 |
+| Q10 source gap | The 6.6 plane path matches the 6.18 rows except compatible strings and minor items. The board kernel is probably older than the 6.6 tip read, and its primary offers 90/270 although the source says it should not | read from source (diff), observed 2026-11-27 (board), inferred (kernel revision) |
+
+## Recommendations for `DriverProfile::Stm32Ltdc` (all inferred)
+
+These are recommendations for the ltdc-profile item, not changes made here.
+
+| Area | Recommendation | Evidence |
+|---|---|---|
+| Alpha mode | Report the alpha formats as **straight (coverage) alpha**, not premultiplied, at least for plane 42; mark planes 34 and 49 as assumed the same until measured | Q2 |
+| Plane alpha | Keep plane alpha on all planes, combined multiplicatively with pixel alpha | Q2 |
+| Zpos | Treat `zpos` as mutable `0..=2` on all three planes; the planner may reorder by writing zpos | Q5 |
+| Transforms, overlays | At most reflect-x on plane 42. Do not claim `rotate-180` (EINVAL) or reflect-x+reflect-y (unstable CRC). Reflect-y is accepted but its effect was not seen. Plane 49 not tested | Q6 |
+| Transforms, primary | Claim none until a picture is taken: 180 and reflect-x commit but give an unstable CRC. Never claim 90/270: they pass TEST_ONLY while the source puts their refusal after the controller is disabled, and the board has no rotation memory | Q6, Q10 |
+| Formats | NV12 (and by the format list NV21, YU12, YV12) on plane 42 only, unscaled only; interleaved YUV on planes 34 and 42; no YUV on plane 49 | Q9, Q3 |
+| C8 | Leave out (needs a CLUT the engine does not model) | Q9 |
+| Scaling | Upscale on plane 42, none on plane 49 (plane 34 was not probed in these sessions); no downscale. Expect underrun warnings while scaling | Q3 |
