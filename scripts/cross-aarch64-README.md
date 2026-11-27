@@ -3,8 +3,17 @@
 Cross-builds for aarch64 Linux (`aarch64-unknown-linux-musl`, static, linked by the toolchain's own `rust-lld`; no aarch64 gcc needed) and ends by running `file` on every executable it built. It exits non-zero unless all of them are `ARM aarch64`.
 
 ```sh
-scripts/cross-aarch64.sh                                    # probe + drm-harness
+scripts/cross-aarch64.sh                                    # the recipe: probe + drm-harness
 scripts/cross-aarch64.sh -p composition-drm --example probe # any cargo build args
+scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
+```
+
+This script is the recipe; a bare `cargo build` for the probe is not. With no arguments it builds the probe example and the harness. CI runs these explicit lines (see `.github/workflows/ci.yml`):
+
+```sh
+scripts/cross-aarch64.sh --locked -p composition-drm
+scripts/cross-aarch64.sh --locked -p composition-drm --example probe
+scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
 ```
 
 Executable paths go to stdout; progress, the `file` output and cargo diagnostics go to stderr.
@@ -19,9 +28,9 @@ The script prints `toolchain: <path>` for the route it took:
 
 `HWLAYER_XBUILD_FORCE_PRIVATE=1` skips routes 1 and 2 (to test the fallback).
 
-## Cache
+## Cache (fallback)
 
-`${HWLAYER_XBUILD_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/hwlayer-manager/xbuild}`, a few hundred MB, holding `rustup/`, `cargo/` and the downloaded `rustup-init`. To clear it, remove that directory. The script refuses a cache inside the repository or under `/tmp` or `/var/tmp`.
+The cache is used only when route 3 (`private`) is taken. `${HWLAYER_XBUILD_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/hwlayer-manager/xbuild}`, a few hundred MB, holding `rustup/`, `cargo/` and the downloaded `rustup-init`. To clear it, remove that directory. The script refuses a cache inside the repository or under `/tmp` or `/var/tmp`.
 
 ## Linker
 

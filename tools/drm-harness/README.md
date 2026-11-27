@@ -15,14 +15,22 @@ about any hardware.
 
 ## Build
 
-On the board's architecture, statically linked, with no cross C toolchain:
+On the board's architecture, statically linked, with no cross C toolchain, use
+the repository's script (it prints the executable paths on stdout):
 
 ```sh
-rustup target add aarch64-unknown-linux-musl
-cargo build --release -p composition-drm-harness --target aarch64-unknown-linux-musl \
-    --config 'target.aarch64-unknown-linux-musl.linker="rust-lld"'
+scripts/cross-aarch64.sh        # probe example + drm-harness, no arguments
+# or only the harness, as CI does:
+scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
 # target/aarch64-unknown-linux-musl/release/drm-harness
 ```
+
+If the active Rust cannot provide the musl target or a linker, the script
+falls back to a private rustup in a cache directory,
+`${HWLAYER_XBUILD_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/hwlayer-manager/xbuild}`
+(a few hundred MB, first run needs network). Remove that directory to clear
+it. Details: `scripts/cross-aarch64-README.md`. A bare `cargo build` is not
+the recipe.
 
 Copy the binary to the board (for example to `/tmp`) and run it as root.
 Nothing else may be DRM master of the device: stop the compositor that owns
