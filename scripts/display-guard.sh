@@ -31,8 +31,7 @@
 
 CANDIDATES="display-manager.service gdm.service gdm3.service lightdm.service
 sddm.service lxdm.service xdm.service greetd.service weston.service
-cage.service cage@tty1.service cog.service sway.service plasma-kiosk.service
-kiosk.service"
+cage.service cog.service sway.service plasma-kiosk.service kiosk.service"
 
 wait_s=15
 
