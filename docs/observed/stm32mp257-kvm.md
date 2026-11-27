@@ -18,6 +18,10 @@ physical output**. There is no captured-against-expected table, and no
 screenshots exist. The KVM's web interface and credentials were not tried:
 the credentials are not on this machine and the task allows only the MCP path.
 
+An unauthenticated `GET /` on the KVM's own host answered HTTP 200 (observed
+2026-11-28), so the unit is up on the network; the failure is in the MCP relay
+path, and a capture needs its credentials, which are not available here.
+
 What was run anyway, over ssh, so that the harness verdicts are current:
 
 | Item | Value |
