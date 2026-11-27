@@ -28,12 +28,11 @@ Fetch order and outcome (2026-11-28):
    credential configuration.
 3. Web-fetch subagent on the raw URLs: worked.
    - rpi-6.18.y: all six files read in full (chunked with offsets).
-   - mainline: `vc4_crtc.c`, `vc4_kms.c`, `vc4_drv.h`, `vc4_plane.c` and
-     `vc4_regs.h` read in full. `vc4_hvs.c` was read verbatim only up to
-     about character 39,300 of 50,400. The first request for it returned
-     HTTP 429. The remaining tail (`vc6_hvs_hw_init`, `vc4_hvs_cob_init`,
-     `vc4_hvs_bind`, `vc4_hvs_unbind`) was only summarised and is not used
-     below except where marked.
+   - mainline: all six files read in full. The first request for
+     `vc4_hvs.c` returned HTTP 429 and gave verbatim text only up to about
+     character 39,300 of 50,400; a second pass with an offset on
+     2026-11-28 read the tail (`vc4_hvs_cob_init`, `vc4_hvs_bind`)
+     verbatim, for both trees.
 
 Limits of this reading. The fetch tool returns no line numbers, so
 references give the exact function and file and no line. Text came through
@@ -63,8 +62,7 @@ Generation names: HVS5 is `VC4_GEN_5` (BCM2711). HVS6 is `VC4_GEN_6_C` or
 | HVS6 UPM sizing for SAND | raster formula only | SAND128 stride terms added |
 | `vc4_crtc_handle_page_flip` underrun unmask | `if (vc4->gen < VC4_GEN_6_C)` | `if (0 && ...)`, dead code |
 
-All rows are **read from source** (2026-11-28) except the mainline
-`vc4_hvs.c` items, which are limited to the verbatim part.
+All rows are **read from source** (2026-11-28).
 
 ## 2. Scaling paths and limits
 
@@ -262,21 +260,33 @@ Identical for HVS5 and HVS6 (no generation gating) unless noted.
 - read from source (2026-11-28): dlist memory in `__vc4_hvs_alloc`. HVS5:
   `dlist_start = HVS_BOOTLOADER_DLIST_END` (32), size
   `(SCALER_DLIST_SIZE >> 2) - 32` words, `SCALER_DLIST_SIZE` 0x4000.
-  HVS6: size `HVS_READ(SCALER6_CXM_SIZE)`. Mainline calls `drm_mm_init` for
-  `dlist_mm` once. The rpi reading reported a second unconditional
-  `drm_mm_init` with the 4064-word HVS5 size that would override the HVS6
-  value; this is **inferred** to be a misreading of the fetched text until a
-  second read confirms it, and it is not relied on. The dlist budget belongs to
-  plan item vc4-dlist-source.
+  HVS6: size `HVS_READ(SCALER6_CXM_SIZE)`. `hvs->dlist_mem_size` is set from that size. Mainline
+  calls `drm_mm_init(&hvs->dlist_mm, ...)` once. rpi-6.18.y calls it twice:
+  the same per-generation call, then a second unconditional
+  `drm_mm_init(&hvs->dlist_mm, HVS_BOOTLOADER_DLIST_END,
+  (SCALER_DLIST_SIZE >> 2) - HVS_BOOTLOADER_DLIST_END)` right after
+  `INIT_WORK(&hvs->free_dlist_work, ...)`. Confirmed by a second verbatim
+  read (2026-11-28). inferred (2026-11-28): on HVS6 the second call
+  replaces the `SCALER6_CXM_SIZE` size with the 4064-word gen 4/5 size, while
+  `dlist_mem_size` keeps the CXM value. The dlist budget belongs to plan item
+  vc4-dlist-source.
 - read from source (2026-11-28): `vc4_hvs_atomic_check` sums
   `vc4_plane_dlist_size` over the CRTC's planes, adds 1 for
   `SCALER_CTL0_END` and allocates with `drm_mm_insert_node`. In rpi, stale
   entries are queued by `vc4_hvs_mark_dlist_entry_stale` and freed from a
   worker once the 6-bit frame counter passes; mainline has no
   `vc4_hvs_alloc_dlist_entry` in the text read.
-- read from source (2026-11-28), rpi only: HVS6 COB is 3840 pixels wide with
-  4 lines per channel; HVS5 COB 44416 pixels with 4096-pixel lines. Mainline
-  `vc4_hvs_cob_init` was not read verbatim.
+- read from source (2026-11-28), both trees identical: `vc4_hvs_cob_init`
+  gives HVS5 `VC5_COB_SIZE` 44416 with 4096-pixel lines (channel 2 and 1: 3
+  lines each, channel 0 the rest) and HVS6 `VC6_COB_LINE_WIDTH` 3840 with
+  `VC6_COB_NUM_LINES` 4 (channel 2 base 0 top 3840; channel 1 base 3856
+  top 19216; channel 0 base 19232 top 34592, derived from the code).
+- read from source (2026-11-28): `vc4_hvs_bind` requests the HVS interrupt
+  only for `gen < VC4_GEN_6_C` in mainline. rpi-6.18.y additionally requests
+  one `chN-eof` interrupt per channel on HVS6 (handler
+  `vc6_hvs_eof_irq_handler`, `IRQF_NO_AUTOEN`).
+- read from source (2026-11-28): rpi uploads two filter kernels (Mitchell
+  and nearest-neighbour), mainline one.
 
 ## 6. Present in only one tree
 
@@ -318,7 +328,7 @@ All inferred (2026-11-28):
 
 ## 8. Not covered
 
-- Mainline `vc4_hvs.c` tail (`vc4_hvs_cob_init`, `vc4_hvs_bind`).
-- A second read of the rpi `__vc4_hvs_alloc` dlist initialisation.
+- The `if (0 && ...)` underrun unmask in rpi `vc4_crtc.c` was read once; a
+  search of both `vc4_hvs.c` files found no such code there.
 - Kernel configuration, device tree and firmware-KMS (`vc4->firmware_kms`)
   paths beyond the early return in `vc4_pv_muxing_atomic_check`.
