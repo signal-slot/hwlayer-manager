@@ -57,7 +57,7 @@ drm-harness [OPTIONS] <SCENARIO>
 | `--device <PATH>` | `/dev/dri/card0` | device node to open |
 | `--connector <NAME>` | first connected | connector name or prefix, e.g. `LVDS` |
 | `--profile generic\|imx95` | `generic` | `DriverProfile` handed to the backend |
-| `--seconds <N>` | 5 | how long each picture is held for a camera |
+| `--seconds <N>` | 5 | how long each picture is held for a camera (in `revoke`: the screen after the revocation); at most 86400 |
 | `--frames <N>` | 240 (`move`), 600 (`rotate`) | frame count |
 | `--buffers <K>` | 3 | buffers per plane in `rotate` and `revoke` (3 to 16) |
 | `--source master\|kernel-lease\|dlm` | `master` | where the descriptor comes from, see [Sources](#sources) |
@@ -91,6 +91,17 @@ The main kinds:
   (`VmHWM`) for the scenario.
 - `VERDICT <scenario> PASS|FAIL <reason>` ends every scenario; `all` adds
   `SUMMARY passed=.. failed=..`. The exit status is 0 only if all passed.
+- SIGTERM and SIGINT stop the run instead of killing it, so that it still
+  prints `resources` and `VERDICT` (the session ends, so the buffers are
+  released). A stop never turns a failure into a pass:
+  - A stop during a hold (`two-planes`, `zorder-alpha`, `revoke`, after their
+    checks) ends the hold; the verdict is what the checks found, with
+    `stopped by SIGTERM or SIGINT during the hold, buffers released` added
+    to the reason. A PASS exits 0, a FAIL exits 1.
+  - A stop before the checks were made is `FAIL ... stopped by SIGTERM or
+    SIGINT before the checks were made`, exit 1.
+  - Either way no further scenario runs; `all` prints `SUMMARY` for those
+    that did, and exits non-zero if any of them failed.
 
 Measurement notes:
 

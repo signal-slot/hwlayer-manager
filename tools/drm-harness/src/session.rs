@@ -127,7 +127,11 @@ pub struct Pairing {
 }
 
 fn connector_name(info: &connector::Info) -> String {
-    format!("{:?}-{}", info.interface(), info.interface_id())
+    format!(
+        "{}-{}",
+        crate::conn_names::interface_name(info.interface()),
+        info.interface_id()
+    )
 }
 
 /// Pairs connected connectors with CRTCs the way `DrmBackend` does, to name
@@ -287,9 +291,7 @@ impl Session {
             let pairing = pairings.iter().find(|p| u32::from(p.crtc) == out.id.0);
             let name = pairing.map_or("?".to_string(), |p| p.connector.clone());
             let wanted = match &options.connector {
-                Some(want) => name
-                    .to_ascii_lowercase()
-                    .starts_with(&want.to_ascii_lowercase()),
+                Some(want) => crate::conn_names::connector_matches(&name, want),
                 None => true,
             };
             let pick = wanted && selected.is_none();
@@ -675,6 +677,7 @@ impl Session {
 
     /// Validates, commits and waits for the latch.
     pub fn present(&mut self, layers: &[Layer]) -> Result<Shown, String> {
+        crate::stop::check()?;
         let frame = self.frame(layers);
         let start = Instant::now();
         let plan = self
@@ -723,6 +726,7 @@ impl Session {
 
     /// Waits until the device has events or `timeout` passes.
     pub fn wait(&self, timeout: Duration) -> Result<(), String> {
+        crate::stop::check()?;
         self.engine
             .backend()
             .wait_for_events(Some(timeout))
@@ -772,15 +776,19 @@ impl Session {
             .field("step", step)
             .field("seconds", seconds)
             .emit();
-        let deadline = Instant::now() + Duration::from_secs(seconds);
         let mut events = Vec::new();
-        loop {
-            events.extend(self.drain()?);
-            let now = Instant::now();
-            if now >= deadline {
-                return Ok(events);
-            }
-            self.wait((deadline - now).min(Duration::from_millis(200)))?;
-        }
+        // A stop ends the hold early, not the scenario: the caller's checks
+        // were made, and `Outcome` carries the stop with what they found.
+        crate::stop::hold_for(
+            seconds,
+            Duration::from_millis(200),
+            &crate::stop::requested,
+            |slice| {
+                events.extend(self.drain()?);
+                self.wait(slice)
+            },
+        )?;
+        events.extend(self.drain()?);
+        Ok(events)
     }
 }

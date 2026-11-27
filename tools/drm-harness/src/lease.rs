@@ -188,10 +188,7 @@ fn choose(card: &Card, request: &LeaseRequest) -> io::Result<Leased> {
     let pairing = found
         .into_iter()
         .find(|p| match &request.connector {
-            Some(want) => p
-                .connector
-                .to_ascii_lowercase()
-                .starts_with(&want.to_ascii_lowercase()),
+            Some(want) => crate::conn_names::connector_matches(&p.connector, want),
             None => true,
         })
         .ok_or_else(|| {
