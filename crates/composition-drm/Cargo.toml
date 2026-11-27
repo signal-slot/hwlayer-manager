@@ -17,5 +17,9 @@ rustix = { version = "1", features = ["event"] }
 name = "twoplane"
 test = true
 
+[[example]]
+name = "kms_sweep"
+test = true
+
 [lints]
 workspace = true
