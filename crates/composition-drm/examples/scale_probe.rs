@@ -12,6 +12,11 @@
 //!   --resolution N     stop the binary search when the accepted and the
 //!                      rejected factor are N steps of 1/65536 apart
 //!                      (default 256, about 0.004)
+//!   --max-factor N     largest upscale factor to try (default 32). Above 32
+//!                      the ladder doubles (64, 128, ...); the factor that
+//!                      shrinks the source to one pixel on the axis is always
+//!                      tried too, so with `--dst` set to the mode size and a
+//!                      large N the search ends at the mode size
 //!   --connector ID     connector to use (default: the first connected one)
 //! ```
 //!
@@ -34,7 +39,8 @@
 //!   on the primary plane below it, and every other plane of the CRTC
 //!   switched off in the request.
 //! * A primary plane is tested alone.
-//! * Upscale: factors 1, 1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 32 in ascending
+//! * Upscale: factors 1, 1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 32 (then doubling
+//!   up to `--max-factor`, and the one-pixel-source factor) in ascending
 //!   order, stopping at the first rejection. If one is rejected, a binary
 //!   search between the last accepted and the first rejected factor runs
 //!   down to `--resolution`. It assumes the accepted factors form an
@@ -79,7 +85,7 @@ use drm::control::{
 use drm::{ClientCapability, Device as BasicDevice};
 
 const USAGE: &str = "usage: scale_probe [/dev/dri/cardN] [--device PATH] [--plane ID] \
-[--dst WxH] [--resolution N] [--connector ID]";
+[--dst WxH] [--resolution N] [--max-factor N] [--connector ID]";
 
 /// Upscale ladder, tried in ascending order.
 const UPSCALES: [f64; 11] = [1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 32.0];
@@ -97,6 +103,7 @@ struct Options {
     plane: Option<u32>,
     dst: Option<(u32, u32)>,
     resolution: u32,
+    max_factor: u32,
     connector: Option<u32>,
 }
 
@@ -106,6 +113,7 @@ fn parse_args() -> Result<Options, String> {
         plane: None,
         dst: None,
         resolution: 256,
+        max_factor: 32,
         connector: None,
     };
     let mut args = std::env::args().skip(1);
@@ -122,6 +130,12 @@ fn parse_args() -> Result<Options, String> {
                 options.resolution = number(&value("--resolution")?)?;
                 if options.resolution == 0 {
                     return Err("--resolution must be at least 1".into());
+                }
+            }
+            "--max-factor" => {
+                options.max_factor = number(&value("--max-factor")?)?;
+                if options.max_factor == 0 {
+                    return Err("--max-factor must be at least 1".into());
                 }
             }
             "--dst" => {
@@ -447,10 +461,17 @@ fn test(probe: &Probe<'_>, under: &Under<'_>, axis: Axis, factor16: u64) -> Opti
 
 /// The largest accepted upscale on `axis`, as text, and whether factor 1
 /// itself was accepted.
-fn upscale(probe: &Probe<'_>, under: &Under<'_>, axis: Axis, resolution: u32) -> (String, bool) {
+fn upscale(
+    probe: &Probe<'_>,
+    under: &Under<'_>,
+    axis: Axis,
+    resolution: u32,
+    max_factor: u32,
+) -> (String, bool) {
     let mut accepted: Option<u64> = None;
     let mut rejected: Option<u64> = None;
-    for factor in UPSCALES {
+    let ladder = ladder(probe.dst, axis, max_factor);
+    for &factor in &ladder {
         let factor16 = fixed(factor);
         match test(probe, under, axis, factor16) {
             Some(Ok(())) => accepted = Some(factor16),
@@ -466,6 +487,13 @@ fn upscale(probe: &Probe<'_>, under: &Under<'_>, axis: Axis, resolution: u32) ->
     };
     let Some(mut high) = rejected else {
         // No rejection: the ladder ended, or the buffer could not go further.
+        println!(
+            "NOTE plane={} axis={} no rejection up to {} ({})",
+            u32::from(under.plane.handle),
+            axis.name(),
+            factor_text(low),
+            ladder_end(probe.dst, axis, max_factor, low),
+        );
         return (format!("{}+", factor_text(low)), true);
     };
     while high - low > u64::from(resolution) {
@@ -476,6 +504,43 @@ fn upscale(probe: &Probe<'_>, under: &Under<'_>, axis: Axis, resolution: u32) ->
         }
     }
     (factor_text(low), true)
+}
+
+/// The largest factor that keeps the source at least one pixel on `axis`.
+fn one_pixel_factor(dst: (u32, u32), axis: Axis) -> u32 {
+    match axis {
+        Axis::H => dst.0,
+        Axis::V => dst.1,
+        Axis::Both => dst.0.min(dst.1),
+    }
+}
+
+/// Upscale factors to try on `axis`, ascending: the base ladder, doublings
+/// above it, and the one-pixel-source factor, all up to `max_factor`.
+fn ladder(dst: (u32, u32), axis: Axis, max_factor: u32) -> Vec<f64> {
+    let cap = f64::from(max_factor.min(one_pixel_factor(dst, axis)));
+    let mut factors: Vec<f64> = UPSCALES.into_iter().filter(|f| *f <= cap).collect();
+    let mut next = 64.0;
+    while next <= cap {
+        factors.push(next);
+        next *= 2.0;
+    }
+    if factors.last().is_none_or(|last| *last < cap) {
+        factors.push(cap);
+    }
+    factors
+}
+
+/// Why an upscale ladder that ended without a rejection ended where it did.
+fn ladder_end(dst: (u32, u32), axis: Axis, max_factor: u32, reached: u64) -> &'static str {
+    let one_pixel = one_pixel_factor(dst, axis);
+    if reached < fixed(f64::from(max_factor.min(one_pixel))) {
+        "the source buffer or a source below one pixel stopped the ladder"
+    } else if one_pixel <= max_factor {
+        "limited by the mode size: the source is one pixel"
+    } else {
+        "limited by --max-factor"
+    }
 }
 
 /// Tests the downscales on all axes. Returns `accepted`, `rejected` or
@@ -497,7 +562,8 @@ fn downscale(probe: &Probe<'_>, under: &Under<'_>) -> (&'static str, String) {
         }
     }
     let verdict = match (ok, bad) {
-        (_, 0) if ok > 0 => "accepted",
+        (0, 0) => "untested",
+        (_, 0) => "accepted",
         (0, _) => "rejected",
         _ => "partial",
     };
@@ -738,11 +804,29 @@ fn probe_planes(
                 );
                 continue;
             };
-            // Large enough for the 2x source of the 0.5 downscale.
-            let size = (dst.0.saturating_mul(2), dst.1.saturating_mul(2));
-            let fb = make_fb(card, size, format).map_err(|e| {
-                format!("buffer {}x{} {}: {e}", size.0, size.1, fourcc_text(format))
-            })?;
+            // Large enough for the 2x source of the 0.5 downscale; if the
+            // driver refuses a buffer that big (a full-screen `--dst`), fall
+            // back to the destination size: upscales still run, downscales
+            // that do not fit are not tested.
+            let doubled = (dst.0.saturating_mul(2), dst.1.saturating_mul(2));
+            let (size, fb) = match make_fb(card, doubled, format) {
+                Ok(fb) => (doubled, fb),
+                Err(e) => {
+                    println!(
+                        "NOTE plane={} buffer {}x{} {} refused ({e}); using {}x{}",
+                        u32::from(plane.handle),
+                        doubled.0,
+                        doubled.1,
+                        fourcc_text(format),
+                        dst.0,
+                        dst.1
+                    );
+                    let fb = make_fb(card, dst, format).map_err(|e| {
+                        format!("buffer {}x{} {}: {e}", dst.0, dst.1, fourcc_text(format))
+                    })?;
+                    (dst, fb)
+                }
+            };
             let fb_handle = fb.fb;
             buffers.push(fb);
             let under = Under {
@@ -758,9 +842,27 @@ fn probe_planes(
                 },
             };
             tested += 1;
-            let (max_h, ok_h) = upscale(probe, &under, Axis::H, options.resolution);
-            let (max_v, ok_v) = upscale(probe, &under, Axis::V, options.resolution);
-            let (max_both, ok_both) = upscale(probe, &under, Axis::Both, options.resolution);
+            let (max_h, ok_h) = upscale(
+                probe,
+                &under,
+                Axis::H,
+                options.resolution,
+                options.max_factor,
+            );
+            let (max_v, ok_v) = upscale(
+                probe,
+                &under,
+                Axis::V,
+                options.resolution,
+                options.max_factor,
+            );
+            let (max_both, ok_both) = upscale(
+                probe,
+                &under,
+                Axis::Both,
+                options.resolution,
+                options.max_factor,
+            );
             let (down, min_down) = downscale(probe, &under);
             all_ok &= ok_h && ok_v && ok_both;
             println!(
