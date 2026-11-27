@@ -1,0 +1,14 @@
+# source: docs/observed/stm32mp257-topology.md
+# commit: 20df182
+# observed: 2026-11-28
+# origin: observed
+# note: "C8??" is the probe's text for the C8 fourcc, kept as printed; the last plane's formats line ends in a trailing space, kept
+# the probe text below is copied verbatim from the fenced block (source lines 47-54)
+device /dev/dri/card0, driver stm
+output 0: crtc 41 1920x1080 @ 60.000 Hz
+plane 34 Primary: outputs 0b1, zpos 0..=2, plane alpha true, blend [premultiplied], scaling not claimed
+  formats (21): AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8?? YUYV YVYU UYVY VYUY
+plane 42 Overlay: outputs 0b1, zpos 0..=2, plane alpha true, blend [premultiplied], scaling not claimed
+  formats (25): AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8?? YUYV YVYU UYVY VYUY NV12 NV21 YU12 YV12
+plane 49 Overlay: outputs 0b1, zpos 0..=2, plane alpha true, blend [premultiplied], scaling not claimed
+  formats (17): AR24 XR24 AB24 XB24 RA24 RX24 BA24 BX24 RG16 BG16 RG24 BG24 AR15 XR15 AR12 XR12 C8?? 
