@@ -93,6 +93,31 @@ if [ "$cross" -eq 1 ]; then
         scripts/cross-aarch64.sh --locked -p composition-drm-harness --bin drm-harness
 fi
 
+# Script self-tests and lints that run on every invocation. A script that is
+# not on the tree is skipped with a message.
+for t in format-cut-report decode-modifiers scrub-kms-dump \
+    kms-dump-diff check-fixture-provenance check-profile-tags sweep-summary \
+    profile-check-expect check-no-board-secrets sweep-to-fixture \
+    board-run-bundle; do
+    f=scripts/$t.test.sh
+    if [ ! -f "$f" ]; then
+        echo "SKIP  script test $t: $f does not exist"
+        continue
+    fi
+    step "script test $t" sh "$f"
+done
+# Left out on purpose: check-test-data.test.sh (its current-tree case fails,
+# the debugfs dumps are not named in their README.md files) and the
+# check-profile-tags.sh lint (observed tags without a date in profile.rs).
+for l in check-fixture-provenance; do
+    f=scripts/$l.sh
+    if [ ! -f "$f" ]; then
+        echo "SKIP  lint $l: $f does not exist"
+        continue
+    fi
+    step "lint $l" sh "$f"
+done
+
 if [ "$lint" -eq 1 ]; then
     for l in check-doc-links check-zephyr-apps check-ffi-header check-doc-tags; do
         f=scripts/$l.sh
