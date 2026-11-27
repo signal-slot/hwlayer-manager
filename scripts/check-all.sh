@@ -13,8 +13,10 @@
 #                 aarch64-unknown-linux-musl rustup target on first use.
 #   --lint        after the CI steps, also run the repository's lint scripts
 #                 that exist: check-doc-links.sh, check-zephyr-apps.sh,
-#                 check-ffi-header.sh (base ref origin/main; skipped with a
-#                 message when it does not resolve) and check-doc-tags.sh.
+#                 check-ffi-header.sh, check-doc-tags.sh,
+#                 check-no-board-secrets.sh and check-commit-subjects.sh.
+#                 The three that take a base ref get origin/main and are
+#                 skipped with a message when it does not resolve.
 #                 These are not CI steps; without --lint nothing changes.
 #
 # Nothing is installed by this script. A missing thumbv7em-none-eabihf target
@@ -29,7 +31,7 @@ for a in "$@"; do
         --keep-going) keep_going=1 ;;
         --cross) cross=1 ;;
         --lint) lint=1 ;;
-        -h|--help) sed -n '2,21p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
         *) echo "unknown argument: $a" >&2; exit 2 ;;
     esac
 done
@@ -119,21 +121,25 @@ for l in check-fixture-provenance; do
 done
 
 if [ "$lint" -eq 1 ]; then
-    for l in check-doc-links check-zephyr-apps check-ffi-header check-doc-tags; do
+    for l in check-doc-links check-zephyr-apps check-ffi-header check-doc-tags \
+        check-no-board-secrets check-commit-subjects; do
         f=scripts/$l.sh
         if [ ! -f "$f" ]; then
             echo "SKIP  lint $l: $f does not exist"
             continue
         fi
-        if [ "$l" = check-ffi-header ]; then
+        case $l in
+        check-ffi-header|check-no-board-secrets|check-commit-subjects)
             if ! git rev-parse --verify -q origin/main >/dev/null 2>&1; then
                 echo "SKIP  lint $l: origin/main does not resolve"
                 continue
             fi
             step "lint $l" "$f" origin/main
-        else
+            ;;
+        *)
             step "lint $l" "$f"
-        fi
+            ;;
+        esac
     done
 fi
 
