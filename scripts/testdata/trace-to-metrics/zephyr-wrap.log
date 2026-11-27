@@ -1,0 +1,8 @@
+# SYNTHETIC fixture: invented numbers for the self-test, not a measurement.
+# date: 2026-01-03
+# The cyc32 counter wraps between the second and third event; freq_hz is an example value.
+CETRACE v=1 ev=hdr seq=0 src=zephyr clock=cyc32 freq_hz=1000000 t0=4294967000 at_unit=same build="synthetic" board="synthetic"
+CETRACE v=1 ev=commit seq=1 t=4294967100 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=4294967200 at=0 out=0 sub=1 tev=4294967150
+CETRACE v=1 ev=commit seq=3 t=1000 at=0 out=0 result=ok sub=2
+CETRACE v=1 ev=latched seq=4 t=17000 at=0 out=0 sub=2 tev=16700
