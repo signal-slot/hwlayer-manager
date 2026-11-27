@@ -23,13 +23,9 @@
 //! `EVENT_ORDER_SEED=<n>`; raise the number of seeds with
 //! `EVENT_ORDER_SEEDS=<n>`.
 //!
-//! One engine bug is excluded from the random run and pinned by an ignored
-//! test: a latch the engine does not expect, seen inside a commit
-//! (`known_bug_duplicate_latch_in_commit`: the run neither arms a commit hook
-//! that latches while the fake holds a commit the engine believes latched, nor
-//! injects such a latch while one is armed). The run takes every queued event
-//! before it presents, for the model's sake; a plan made stale by a queued
-//! capability change is covered by directed cases.
+//! The run takes every queued event before it presents, for the model's
+//! sake; a plan made stale by a queued capability change is covered by
+//! directed cases.
 
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
@@ -446,13 +442,6 @@ impl<'a> Harness<'a> {
         self.trace.borrow_mut().push(text);
     }
 
-    /// True if the fake holds a commit the engine does not know as pending
-    /// (an injected latch was believed), or the reverse.
-    fn desynced(&self) -> bool {
-        OUTS.iter()
-            .any(|o| self.engine.backend().pending(*o) != self.m.pending_on(*o))
-    }
-
     fn lost_armed(&self) -> bool {
         self.armed_event == Some(BackendEvent::DeviceLost)
     }
@@ -666,12 +655,12 @@ impl<'a> Harness<'a> {
                 self.engine.backend_mut().fail_next_commits(1);
                 self.log("  arm fail_next_commits".into());
             }
-            1 if !self.in_armed && !self.after_armed && !self.desynced() && !self.lost_armed() => {
+            1 if !self.in_armed && !self.after_armed && !self.lost_armed() => {
                 self.in_armed = true;
                 self.engine.backend_mut().vsync_in_next_commit();
                 self.log("  arm vsync_in_next_commit".into());
             }
-            2 if !self.after_armed && !self.in_armed && !self.desynced() && !self.lost_armed() => {
+            2 if !self.after_armed && !self.in_armed && !self.lost_armed() => {
                 self.after_armed = true;
                 self.engine.backend_mut().vsync_after_next_commit();
                 self.log("  arm vsync_after_next_commit".into());
@@ -854,12 +843,6 @@ impl<'a> Harness<'a> {
             5 => SubmissionId(self.m.next_id + self.rng.below(3)),
             _ => SubmissionId(1 + self.rng.below(self.m.next_id + 2)),
         };
-        // A latch the engine believes while the fake still holds the commit
-        // is reported again by the next vertical blank of the fake; inside a
-        // commit that reaches `known_bug_duplicate_latch_in_commit`.
-        if (self.in_armed || self.after_armed) && self.m.pending_on(output) == Some(submission) {
-            return Ok(());
-        }
         let copies = if kind == 1 { 2 } else { 1 };
         self.log(format!(
             "inject Latched {output:?} {submission:?} x{copies}"
@@ -1274,9 +1257,11 @@ fn latch_of_a_replaced_submission_is_not_the_new_one() {
     );
 }
 
+/// Regression: a latch that matched nothing, seen while a commit the
+/// backend had accepted collected its events, failed the commit. The
+/// hardware then held a frame whose buffers the engine counted as idle.
 #[test]
-#[ignore = "bug: Engine::commit returns an error for a spurious latch seen after the backend accepted the frame"]
-fn known_bug_duplicate_latch_in_commit() {
+fn duplicate_latch_in_commit_does_not_fail_the_accepted_frame() {
     let mut engine = engine_with_buffers(true);
     let first = show(&mut engine, O0, &[B1]).unwrap();
     engine.backend_mut().vsync();
@@ -1295,16 +1280,91 @@ fn known_bug_duplicate_latch_in_commit() {
             output: O0,
             submission: first,
         });
-    let result = show(&mut engine, O0, &[B2]);
-    // Whatever the engine answers, it must not both fail the frame and leave
-    // the hardware holding it: B2 would be shown while it counts as idle.
-    let hardware_holds = engine.backend().pending(O0).is_some();
-    let engine_knows = engine.buffer_state(B2) == Some(BufferState::Submitted);
+    let second = show(&mut engine, O0, &[B2]).unwrap();
+    assert_eq!(engine.backend().pending(O0), Some(second));
+    assert_eq!(engine.buffer_state(B2), Some(BufferState::Submitted));
+    assert_eq!(engine.buffer_state(B1), Some(BufferState::Scanning));
+    // The duplicate is still reported, once, and changed nothing.
+    assert_eq!(drain_events(&mut engine), [Err(unexpected(O0, first))]);
+    engine.backend_mut().vsync();
     assert_eq!(
-        hardware_holds,
-        engine_knows,
-        "commit gave {result:?}, the backend holds the frame, the engine says {:?}",
-        engine.buffer_state(B2)
+        drain_events(&mut engine),
+        [
+            Ok(DisplayEvent::Presented {
+                output: O0,
+                submission: second
+            }),
+            Ok(DisplayEvent::Released { buffer: B1 }),
+        ]
+    );
+}
+
+/// The same with the replaced pending submission latched inside the commit
+/// next to the spurious latches: it is recorded before the new submission,
+/// and the spurious ones are reported after the commit's own events, in the
+/// order they came.
+#[test]
+fn spurious_latches_in_commit_are_reported_after_its_events() {
+    let mut engine = engine_with_buffers(true);
+    let first = show(&mut engine, O0, &[B1]).unwrap();
+    engine.backend_mut().vsync_in_next_commit();
+    engine
+        .backend_mut()
+        .inject_event_in_next_commit(BackendEvent::Latched {
+            output: OutputId(9),
+            submission: SubmissionId(40),
+        });
+    let second = show(&mut engine, O0, &[B2]).unwrap();
+    engine.backend_mut().inject_event(BackendEvent::Latched {
+        output: O0,
+        submission: SubmissionId(41),
+    });
+    assert_eq!(
+        drain_events(&mut engine),
+        [
+            Ok(DisplayEvent::Presented {
+                output: O0,
+                submission: first
+            }),
+            Err(unexpected(OutputId(9), SubmissionId(40))),
+            Err(unexpected(O0, SubmissionId(41))),
+        ]
+    );
+    assert_eq!(engine.buffer_state(B1), Some(BufferState::Scanning));
+    assert_eq!(engine.buffer_state(B2), Some(BufferState::Submitted));
+    assert_eq!(engine.backend().pending(O0), Some(second));
+}
+
+/// Regression: a latch on another output that carried the new submission's
+/// id was taken for the commit's own latch and then failed the accepted
+/// commit. Ids are reused after a commit that failed once the backend had
+/// taken it; here a DeviceLost the backend reports while it keeps the frame.
+#[test]
+fn latch_on_another_output_with_the_new_id_is_not_the_commits_own() {
+    let mut engine = engine_with_buffers(true);
+    let o1 = OUTS[1];
+    engine
+        .backend_mut()
+        .inject_event_in_next_commit(BackendEvent::DeviceLost);
+    assert_eq!(
+        show(&mut engine, o1, &[B1]),
+        Err(Error::Backend(BackendError::DeviceLost))
+    );
+    assert_eq!(drain_events(&mut engine), [Ok(DisplayEvent::DeviceLost)]);
+    let stale = engine.backend().pending(o1).unwrap();
+    engine.backend_mut().vsync_in_next_commit();
+    let id = show(&mut engine, O0, &[B2]).unwrap();
+    assert_eq!(id, stale);
+    assert_eq!(engine.backend().pending(O0), Some(id));
+    assert_eq!(engine.buffer_state(B2), Some(BufferState::Submitted));
+    assert_eq!(drain_events(&mut engine), [Err(unexpected(o1, stale))]);
+    engine.backend_mut().vsync();
+    assert_eq!(
+        drain_events(&mut engine),
+        [Ok(DisplayEvent::Presented {
+            output: O0,
+            submission: id
+        })]
     );
 }
 
