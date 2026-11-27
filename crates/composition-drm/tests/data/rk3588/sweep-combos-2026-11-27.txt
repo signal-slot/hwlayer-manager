@@ -1,0 +1,87 @@
+# date: 2026-11-27 (board clock, UTC)
+# kernel: 6.18.55-current-rockchip64
+# board: FriendlyElec NanoPC-T6 (RK3588, VOP2, driver rockchip)
+# command: kms_sweep combos --max 8 /dev/dri/card0
+# built from repository commit: 0e4f9b80805117d97bcd15d6cc3e60ee062fef03
+# state: master, no display manager or compositor running
+DATE 2026-11-27T22:24:25Z
+KERNEL 6.18.55-current-rockchip64
+DEVICE /dev/dri/card0
+DRIVER rockchip version 1.0.0 date 0 desc RockChip Soc DRM
+MODE 1920x1080@60Hz connector 84 crtc 81
+PLANE id 33 Primary possible_on_crtc true zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 39 Primary possible_on_crtc false zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 45 Overlay possible_on_crtc true zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 51 Overlay possible_on_crtc true zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 57 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+PLANE id 63 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+PLANE id 69 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+PLANE id 75 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+CANDIDATES 33,45,51,57,63,69,75 primary 33
+NOTE --max 8 is more than the 7 usable planes
+COMBO k=1 set=0 planes=33 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=2 set=0 planes=33,45 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=2 set=1 planes=33,51 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=2 set=2 planes=33,57 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=2 set=3 planes=33,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=2 set=4 planes=33,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=2 set=5 planes=33,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=0 planes=33,45,51 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=1 planes=33,45,57 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=2 planes=33,45,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=3 planes=33,45,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=4 planes=33,45,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=5 planes=33,51,57 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=6 planes=33,51,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=7 planes=33,51,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=8 planes=33,51,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=9 planes=33,57,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=10 planes=33,57,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=11 planes=33,57,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=12 planes=33,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=13 planes=33,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=3 set=14 planes=33,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=0 planes=33,45,51,57 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=1 planes=33,45,51,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=2 planes=33,45,51,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=3 planes=33,45,51,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=4 planes=33,45,57,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=5 planes=33,45,57,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=6 planes=33,45,57,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=7 planes=33,45,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=8 planes=33,45,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=9 planes=33,45,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=10 planes=33,51,57,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=11 planes=33,51,57,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=12 planes=33,51,57,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=13 planes=33,51,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=14 planes=33,51,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=15 planes=33,51,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=16 planes=33,57,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=17 planes=33,57,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=18 planes=33,57,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=4 set=19 planes=33,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO k=5 set=0 planes=33,45,51,57,63 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=1 planes=33,45,51,57,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=2 planes=33,45,51,57,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=3 planes=33,45,51,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=4 planes=33,45,51,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=5 planes=33,45,51,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=6 planes=33,45,57,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=7 planes=33,45,57,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=8 planes=33,45,57,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=9 planes=33,45,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=10 planes=33,51,57,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=11 planes=33,51,57,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=12 planes=33,51,57,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=13 planes=33,51,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=5 set=14 planes=33,57,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=6 set=0 planes=33,45,51,57,63,69 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=6 set=1 planes=33,45,51,57,63,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=6 set=2 planes=33,45,51,57,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=6 set=3 planes=33,45,51,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=6 set=4 planes=33,45,57,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=6 set=5 planes=33,51,57,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO k=7 set=0 planes=33,45,51,57,63,69,75 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=EINVAL
+COMBO_MAX accepted_k=4
+VERDICT kms_sweep: DONE combos

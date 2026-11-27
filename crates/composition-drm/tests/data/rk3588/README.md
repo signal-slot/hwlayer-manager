@@ -97,3 +97,75 @@ Cluster versus Esmart is recognised through KMS as (all observed 2026-11-27):
 * The earlier note says no plane scaled. In this run every probed plane
   scaled (up to 8x, down to 0.5), so the "scaling not claimed" line in the
   probe summary is the planner's own default, not a kernel statement.
+
+## Sweeps (observed 2026-11-27)
+
+Same board, kernel and state as above (master, no display manager or
+compositor; only getty units ran, and they still do). Binaries built from
+repository commit 0e4f9b80805117d97bcd15d6cc3e60ee062fef03 with
+`scripts/cross-aarch64.sh`; each file's header has the exact command. All runs
+are TEST_ONLY, nothing was committed.
+
+| File | Content |
+| --- | --- |
+| `sweep-combos-2026-11-27.txt` | `kms_sweep combos --max 8`: full-screen 1920x1080 linear layers, 1:1. |
+| `sweep-combos-scaled-2026-11-27.txt` | the same with `--scale-v 2`, `--scale-h 2`, `--scale-h 0.5` (three runs). |
+| `sweep-modifiers-2026-11-27.txt` | `kms_sweep modifiers` plus `--modifier linear`, `afbc-16x16`, `sand128` on every format. |
+| `scale-probe-classes-2026-11-27.txt` | `scale_probe --plane 33` (Cluster) and `--plane 57` (Esmart), `--max-factor 64`, dst 960x540 and 1920x1080. |
+
+### Combinations (Q4)
+
+* The candidates for CRTC 81 are 7 planes (33, 45, 51, 57, 63, 69, 75);
+  plane 39 does not reach it. So 8 simultaneous windows on one video port are
+  not reachable with this CRTC; the sweep went to k=7.
+* `COMBO_MAX accepted_k=4`. Every one of the 20 four-plane sets tried (the
+  primary 33 plus 3 others, Cluster and Esmart mixed) was accepted; every one
+  of the 15 five-plane, 6 six-plane and 1 seven-plane sets tried returned
+  EINVAL. Counts per k: 1/1, 6/6, 15/15, 20/20 accepted, then 0/15, 0/6, 0/1.
+  These are all the subsets: with 7 candidates and the primary fixed there are
+  C(6,k-1) sets per k, and none was left out.
+* Why 5 fail is not known from this run (the sweep reports only EINVAL). The
+  layers were full-screen at 1:1, so a bandwidth or per-port window limit
+  both fit; this is inferred, not observed. Four windows per video port is
+  not in docs/rk3588-backend-design.md's table.
+* Scaled runs gave the identical result: COMBO_MAX accepted_k=4 for
+  `--scale-v 2`, `--scale-h 2` and `--scale-h 0.5`. Every plane class
+  accepted a 2x upscale (Cluster and Esmart together, all 20 four-plane
+  sets) and a 0.5 horizontal downscale.
+
+### Modifiers
+
+* No `listed=yes` pair with a successful ADDFB2 was refused by TEST_ONLY:
+  400 listed pairs `addfb=ok test_only=ok`. The listed pairs that did not
+  reach TEST_ONLY are `addfb=unsupported-format` (YU08, YU10 on Cluster, 18
+  pairs per Cluster plane; 2 per Esmart plane): the sweep cannot lay out
+  those formats, which says nothing about the kernel.
+* Unlisted pairs the kernel accepted: linear (0x0) on Cluster planes 33, 45,
+  51 for XR24, AR24, XB24, AB24, RG24, BG24, RG16, BG16, YUYV, Y210 (10 per
+  plane, `listed=no addfb=ok test_only=ok`), although the Cluster IN_FORMATS
+  blob lists only AFBC modifiers. These MODIFIER lines disagree with the
+  listed IN_FORMATS (the sweep reports linear as unlisted for Cluster).
+  Linear XR30 and XB30 on Cluster failed at ADDFB2 (EINVAL), probably because
+  the sweep's linear buffer layout for them differs; not investigated.
+* AFBC on Esmart (0x0800000000000001, unlisted): ADDFB2 accepts it for 9
+  formats (XR24, AR24, XB24, AB24, RG24, BG24, RG16, BG16, YUYV) but
+  TEST_ONLY returns EINVAL, consistent with "AFBC only on Cluster". The other
+  formats fail already at ADDFB2. SAND128 (0x0700000000000004) fails at
+  ADDFB2 (EINVAL) on every Esmart format it was tried on (all non-
+  `unsupported-format` ones) and on Cluster.
+* Linear Esmart pairs (21 formats, one modifier) were all accepted,
+  including NV12 linear. NV12 is not in the Cluster plane's format list, so
+  "NV12 linear on Cluster" was not testable; Cluster linear YUYV and Y210 are
+  accepted (unlisted, above).
+
+### Scaling per class (scale_probe, RESULT lines)
+
+| Plane | Class | max_upscale h / v / both | downscale |
+| --- | --- | --- | --- |
+| 33 | Cluster | 8.0 / 8.0 / 8.0 (dst 960x540 and 1920x1080) | accepted down to 0.5 |
+| 57 | Esmart | 8.0 / 8.0 / 8.0 (dst 960x540 and 1920x1080) | accepted down to 0.5 |
+
+`--max-factor 64` did not raise the upscale limit: the 8.0 reported by RESULT is the same for both classes and both destination sizes, so the earlier
+`--max-factor 32` data is unchanged. No difference between Cluster and Esmart
+scaling showed in these runs (VOP2 source describes different scalers per
+class; that is not seen here for the ratios tested).

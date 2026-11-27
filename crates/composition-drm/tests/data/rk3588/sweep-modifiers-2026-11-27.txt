@@ -1,0 +1,735 @@
+# date: 2026-11-27 (board clock, UTC)
+# kernel: 6.18.55-current-rockchip64
+# board: FriendlyElec NanoPC-T6 (RK3588, VOP2, driver rockchip)
+# command: kms_sweep modifiers --modifier linear --modifier afbc-16x16 --modifier sand128 /dev/dri/card0
+# built from repository commit: 0e4f9b80805117d97bcd15d6cc3e60ee062fef03
+# state: master, no display manager or compositor running
+DATE 2026-11-27T22:24:36Z
+KERNEL 6.18.55-current-rockchip64
+DEVICE /dev/dri/card0
+DRIVER rockchip version 1.0.0 date 0 desc RockChip Soc DRM
+MODE 1920x1080@60Hz connector 84 crtc 81
+PLANE id 33 Primary possible_on_crtc true zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 39 Primary possible_on_crtc false zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 45 Overlay possible_on_crtc true zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 51 Overlay possible_on_crtc true zpos 0..7 in_formats 126 pairs formats XR30,XB30,XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,YU08,YU10,YUYV,Y210
+PLANE id 57 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+PLANE id 63 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+PLANE id 69 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+PLANE id 75 Overlay possible_on_crtc true zpos 0..7 in_formats 21 pairs formats XR24,AR24,XB24,AB24,RG24,BG24,RG16,BG16,NV12,NV21,NV16,NV61,NV20,NV24,NV42,NV30,NV15,YVYU,VYUY,YUYV,UYVY
+CANDIDATES 33,45,51,57,63,69,75 primary 33
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000001 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000001 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000041 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000041 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000011 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000011 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000081 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000081 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000051 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000051 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x08000000000000c1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x08000000000000c1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000091 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000091 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x08000000000000d1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x08000000000000d1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB30 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0800000000000071 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0800000000000071 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=XB30 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=XR24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=AR24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=XB24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=AB24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=RG24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=BG24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=RG16 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=BG16 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=YU08 modifier=0x0000000000000000 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0000000000000000 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=Y210 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=33 format=XR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=XB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=YU08 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YU10 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=33 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=33 format=Y210 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000001 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000001 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000041 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000041 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000011 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000011 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000081 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000081 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000051 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000051 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x08000000000000c1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x08000000000000c1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000091 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000091 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x08000000000000d1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x08000000000000d1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB30 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0800000000000071 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0800000000000071 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=XB30 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=XR24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=AR24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=XB24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=AB24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=RG24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=BG24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=RG16 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=BG16 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=YU08 modifier=0x0000000000000000 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0000000000000000 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=Y210 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=45 format=XR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=XB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=YU08 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YU10 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=45 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=45 format=Y210 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000001 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000001 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000001 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000041 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000041 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000041 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000011 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000011 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000011 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000081 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000081 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000081 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000051 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000051 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000051 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x08000000000000c1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x08000000000000c1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x08000000000000c1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000091 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000091 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000091 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x08000000000000d1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x08000000000000d1 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x08000000000000d1 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB30 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0800000000000071 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0800000000000071 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0800000000000071 listed=yes addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=XB30 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=XR24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=AR24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=XB24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=AB24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=RG24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=BG24 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=RG16 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=BG16 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=YU08 modifier=0x0000000000000000 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0000000000000000 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=Y210 modifier=0x0000000000000000 listed=no addfb=ok test_only=ok
+MODIFIER plane=51 format=XR30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=XB30 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=YU08 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YU10 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=51 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=51 format=Y210 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV20 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=57 format=NV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV42 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=NV30 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=57 format=NV15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=YVYU modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=VYUY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=YUYV modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=UYVY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=57 format=XR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=AR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=XB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=AB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=RG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=BG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=RG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=BG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=NV12 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV21 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV16 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV61 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV20 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=57 format=NV24 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV42 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV30 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=57 format=NV15 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=YVYU modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=VYUY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=YUYV modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=57 format=UYVY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV21 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV20 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=57 format=NV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV42 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=NV30 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=57 format=NV15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=YVYU modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=VYUY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=57 format=UYVY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV20 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=63 format=NV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV42 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=NV30 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=63 format=NV15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=YVYU modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=VYUY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=YUYV modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=UYVY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=63 format=XR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=AR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=XB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=AB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=RG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=BG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=RG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=BG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=NV12 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV21 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV16 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV61 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV20 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=63 format=NV24 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV42 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV30 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=63 format=NV15 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=YVYU modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=VYUY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=YUYV modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=63 format=UYVY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV21 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV20 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=63 format=NV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV42 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=NV30 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=63 format=NV15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=YVYU modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=VYUY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=63 format=UYVY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV20 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=69 format=NV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV42 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=NV30 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=69 format=NV15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=YVYU modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=VYUY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=YUYV modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=UYVY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=69 format=XR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=AR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=XB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=AB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=RG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=BG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=RG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=BG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=NV12 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV21 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV16 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV61 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV20 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=69 format=NV24 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV42 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV30 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=69 format=NV15 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=YVYU modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=VYUY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=YUYV modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=69 format=UYVY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV21 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV20 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=69 format=NV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV42 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=NV30 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=69 format=NV15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=YVYU modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=VYUY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=69 format=UYVY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=XR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=AR24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=XB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=AB24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=RG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=BG24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=RG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=BG16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV12 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV21 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV16 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV61 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV20 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=75 format=NV24 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV42 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=NV30 modifier=0x0000000000000000 listed=yes addfb=unsupported-format test_only=not reached
+MODIFIER plane=75 format=NV15 modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=YVYU modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=VYUY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=YUYV modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=UYVY modifier=0x0000000000000000 listed=yes addfb=ok test_only=ok
+MODIFIER plane=75 format=XR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=AR24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=XB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=AB24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=RG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=BG24 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=RG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=BG16 modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=NV12 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV21 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV16 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV61 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV20 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=75 format=NV24 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV42 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV30 modifier=0x0800000000000001 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=75 format=NV15 modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=YVYU modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=VYUY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=YUYV modifier=0x0800000000000001 listed=no addfb=ok test_only=EINVAL
+MODIFIER plane=75 format=UYVY modifier=0x0800000000000001 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=XR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=AR24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=XB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=AB24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=RG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=BG24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=RG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=BG16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV12 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV21 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV16 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV61 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV20 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=75 format=NV24 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV42 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=NV30 modifier=0x0700000000000004 listed=no addfb=unsupported-format test_only=not reached
+MODIFIER plane=75 format=NV15 modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=YVYU modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=VYUY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=YUYV modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=75 format=UYVY modifier=0x0700000000000004 listed=no addfb=EINVAL test_only=not reached
+VERDICT kms_sweep: DONE modifiers
