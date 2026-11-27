@@ -1,0 +1,16 @@
+# observed: /sys/kernel/debug/dri/<card>/hvs_dlists (vc4 / BCM2711 HVS5), read-only, idle board, debugfs already mounted
+# date: 2026-11-28
+# kernel: 6.12.47+rpt-rpi-v8
+# board: Raspberry Pi CM4 carrier with built-in DSI panel; scrubbed with scripts/scrub-kms-dump.py
+HVS chan 0:
+dlist: 63: 0x4800d804
+dlist: 64: 0x00000000
+dlist: 65: 0x4000fff0
+dlist: 66: 0x050002d0
+dlist: 67: 0x021b0000
+dlist: 68: 0xceb00000
+dlist: 69: 0xcebbd7e0
+dlist: 70: 0x000005a0
+dlist: 71: 0x80000000
+HVS chan 1 disabled
+HVS chan 2 disabled
