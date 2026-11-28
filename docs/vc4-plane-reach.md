@@ -92,6 +92,38 @@ VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 l
 
 The full post-fix `SWAPZ` and `PLAN` lines are not in the notes this document was built from (not measured here). No unmarked swapped `EXPECT` block was reported (observed 2026-11-27). The VERDICT line does not say that `--swap-z` was asked for but skipped (observed 2026-11-27); a change to say so is proposed for `twoplane.rs`, not made here. Losing overlays 281 and 292 to the 16-plane cap is a `composition-core` decision, not a defect of the fix. Camera-check verdict: not observed.
 
+### After, re-run with full lines (commit 0ba62fc)
+
+Date: 2026-11-28, 07:46Z UTC (observed 2026-11-28, board clock). Commit: `0ba62fc34774b893e13357e7dd6d2f600065ae9a`, the integration tip, built for `aarch64-unknown-linux-musl` on the host with `scripts/cross-aarch64.sh` and copied to the board's `/tmp`, run as an unprivileged user (observed 2026-11-28). No display manager or compositor was running; nothing was stopped; `/tmp` was cleaned afterwards and the board left as found (observed 2026-11-28). Commands: `probe /dev/dri/card0` and `twoplane /dev/dri/card0 --swap-z`.
+
+Output order differed from the 2026-11-27 runs (observed 2026-11-28): the HDMI connector now reads as connected (the KVM is attached to it) and is output 0 (CRTC 102, 640x480 @ 75.000 Hz, the console mode); the DSI panel is output 1 (CRTC 90, 720x1280 @ 60.000 Hz). The planes in the table above are unchanged.
+
+Kept planes (observed 2026-11-28, from the `probe` plane list, 16 planes of 60):
+
+| | Kept planes |
+| --- | --- |
+| Primary | 79 (reaches output 1 only, mask `0b10`), 91 (reaches output 0 only, mask `0b1`) |
+| Overlays | 127, 138, 149, 160, 171, 182, 193, 204, 215, 226, 237, 248 (12, mask `0b11`) |
+| Cursor | 677 (output 1 only), 688 (output 0 only) |
+
+Every kept plane reaches at least one of the two probed outputs and no other plane does (observed 2026-11-28); no overlay that reaches an output is dropped with only two outputs probed (inferred: 2 + 12 + 2 = 16).
+
+Verbatim lines of `twoplane --swap-z` (observed 2026-11-28):
+
+```
+PLAN from frame 0:
+  layer 0 (background) -> plane 91 Primary zpos 0 src 0,0 640x480 dst 0,0 640x480
+  layer 1 (overlay) -> plane 127 Overlay zpos 1 src 0,0 128x240 dst 320,120 128x240
+SWAPZ skipped: a plane of the plan has a fixed zpos
+EXPECT phase=swapped skipped reason=fixed-zpos
+RESULT frames=600 committed=600 latched=600 released=1198 dropped=0 late=0 period_ms=13.333 latch_interval_mean_ms=13.330 latch_interval_max_ms=13.443 elapsed_s=7.993
+VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 640x480@75.000Hz
+```
+
+No unmarked swapped `EXPECT` block was printed (observed 2026-11-28); the `EXPECT phase=swapped skipped reason=fixed-zpos` line comes after the eight `EXPECT phase=normal` lines. A second run with `--frames 3000` printed the same `PLAN`, `SWAPZ` and swapped-`EXPECT` lines and `VERDICT twoplane: PASS 3000 frames on two planes, 3000 latched, 5998 released, 0 late, driver vc4 mode 640x480@75.000Hz` (observed 2026-11-28). The `VERDICT` line still does not say that `--swap-z` was skipped (observed 2026-11-28).
+
+Camera-check verdict: not observed. The KVM listed for this board captures the HDMI output, not the DSI panel. `twoplane` used the HDMI console mode 640x480 @ 75 Hz and has no option to choose another mode, and the KVM screenshot tool returned "failed to capture screenshot" twice while the 3000-frame run was drawing (observed 2026-11-28). `scripts/camera-check.py` was therefore not run.
+
 ### CM4 before/after
 
 | | Before 82a0355 | After |
