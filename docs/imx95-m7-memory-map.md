@@ -33,15 +33,33 @@ Related, not edited here: [`imx95-zephyr-feasibility.md`](imx95-zephyr-feasibili
 | S | NXP System Manager, <https://github.com/nxp-imx/imx-sm> | tag `rel_imx_sm_2026q3`, commit `eec232878ab7dd460f5a8f3767d39dc7e9412efa`; files fetched as `https://raw.githubusercontent.com/nxp-imx/imx-sm/eec232878ab7dd460f5a8f3767d39dc7e9412efa/<path>` on 2026-11-28 |
 | T | Toradex kernel, `linux-toradex`, branch `toradex_6.6-2.2.x-imx` | commit `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` (branch head on 2026-11-28, resolved and read by the earlier item recorded in [`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md#1-pins)); **not re-read here** |
 | M | NXP MCUXpresso SDK examples, <https://github.com/nxp-mcuxpresso/mcuxsdk-examples> | commit `cc8974f843f496ac0ec959c55164766fd0d489bd` (2026-11-23), read via [`imx95-mcux-display.md`](imx95-mcux-display.md#pinned-sources) (pins EX, CORE) |
+| R | Toradex BSP release manifest, `https://git.toradex.com/toradex-manifest.git` | tag `7.8.0` = commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e` (`git ls-remote`, 2026-11-28). Only the ref was resolved; **the manifest content was not read** (see below) |
+| N | Toradex NXP layer, `https://git.toradex.com/meta-toradex-nxp.git` | branch `scarthgap-7.x.y` head `b0b9f0fd9d3e4854e3d764bcd2b383b337318f3a` (`git ls-remote`, 2026-11-28); this layer carries no `7.x` tags. Ref only; **not read** |
 
-**Not found: a Toradex tag for 6.6.157-7.8.0.** On 2026-11-28 the Toradex git
-host answered the page fetch with an anti-bot "Access Denied" page, and
-the GitHub repositories `toradex/linux-toradex` and
-`toradex/meta-toradex-nxp` returned HTTP 404 (also a plain
-`git ls-remote` failed here on a credential-helper error). So no tag, and no
-`SRCREV` of BSP 7.8.0, could be resolved. Section 2 therefore rests on source T
-(a branch head, **inferred** to be near but not equal to the running
-6.6.157-7.8.0 kernel) and on the DT excerpts that earlier items recorded. The
+**Not found: the kernel tree of BSP 7.8.0 (6.6.157-7.8.0).** Re-tried on
+2026-11-28 by item memmap-reread; the outcome per step:
+
+| Step (2026-11-28) | Result |
+|---|---|
+| `git ls-remote https://git.toradex.com/linux-toradex.git` | answered. The tree has **no** Toradex release tags for BSP 7.x: its tags are mainline `vX.Y[-rcN]` and old image tags (newest Toradex image tags from 2020). Branch `toradex_6.6-2.2.x-imx` head is still `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df`, the same commit as source T. So BSP 7.8.0 is identified only by the kernel `SRCREV` in `meta-toradex-nxp` |
+| `git ls-remote https://git.toradex.com/toradex-manifest.git` | answered: tag `7.8.0` exists (source R), plus `7.8.0-devel-202608` and `7.8.0-devel-202609` |
+| `git ls-remote https://git.toradex.com/meta-toradex-nxp.git` | answered: branch `scarthgap-7.x.y` (source N); no 7.x tags |
+| `git clone` / `git fetch --depth 1` of `toradex-manifest` tag `7.8.0` (into the task's temp dir and into the dependency cache) | refused by this agent's tool sandbox before running; nothing was downloaded |
+| `curl` of the cgit `plain/` URL of the 7.8.0 manifest | refused by the tool sandbox before running |
+| web fetch of `https://git.toradex.com/cgit/toradex-manifest.git/plain/...?h=7.8.0` (two paths; tag `7.8.0` = commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e`) | HTTP 200, but the body was the Anubis anti-bot "Access Denied" page; no content |
+| `https://github.com/toradex/toradex-manifest/tree/7.8.0` and the matching `raw.githubusercontent.com` path (same tag, commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e` on the Toradex host) | HTTP 404 (as were `toradex/linux-toradex` and `toradex/meta-toradex-nxp` on the earlier attempt) |
+| web search for a GitHub mirror of `linux-toradex` | none found. The Verdin iMX95 mainline DT series (v3, March 2026) exists on the mailing lists, but mainline is not the 7.8.0 kernel, so it was not used |
+
+So the chain manifest `7.8.0` → `meta-toradex-nxp` revision → kernel
+`SRCREV` → `imx95-verdin.dtsi` could not be followed past the first ref, and
+**every carveout in section 2 stays unconfirmed against BSP 7.8.0**. Section 2
+rests on source T (a branch head; whether it equals the 7.8.0 `SRCREV` is
+**not found**: it may be equal, older or newer) and on the DT excerpts that
+earlier items recorded. What would settle it: a git client allowed to clone
+`toradex-manifest` at `7.8.0`, then `meta-toradex-nxp` at the revision it pins,
+reading `SRCREV` in the `linux-toradex` recipe and `git show <SRCREV>:arch/arm64/boot/dts/freescale/imx95-verdin.dtsi`;
+or the board's own `/proc/device-tree/reserved-memory` (a board item, not this
+one). The
 NXP RM for the i.MX95 is not publicly fetchable; "reference-manual facts" below
 are only those that Z, L, S and M quote or encode. Nothing was taken from the
 RM itself.
@@ -94,6 +112,12 @@ Source T, read by an earlier item and re-stated in
 node). The NXP lf-6.6 EVK dts (L `arch/arm64/boot/dts/freescale/imx95-19x19-evk.dts:52-105`,
 `:260-270`) is the comparison: it has the same vdev carveouts but **no**
 `m7_reserved` region.
+
+**Unconfirmed against BSP 7.8.0** (re-checked 2026-11-28, see
+[Sources](#sources)): every "read from source (T ...)" below is read at the
+branch head `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df`, not at the 7.8.0
+kernel `SRCREV`, which could not be resolved. That the 7.8.0 DT has the same
+carveouts is **inferred** only.
 
 | Region (Verdin DT) | Address | Size | Flags | Tag |
 |---|---|---|---|---|
@@ -223,8 +247,10 @@ What that needs (all **inferred**; none of it was tried or built):
 
 ## 6. What this study does not establish
 
-- The Toradex tag for 6.6.157-7.8.0, the `SRCREV` of BSP 7.8.0 and the exact
-  `imx95-verdin.dtsi` at it (**not found**; section Sources).
+- The `SRCREV` of BSP 7.8.0 and the exact `imx95-verdin.dtsi` at it
+  (**not found**; re-tried 2026-11-28, see [Sources](#sources)). `linux-toradex`
+  carries no 7.x release tag; the manifest tag `7.8.0` exists but its content
+  was not read, so section 2's carveouts remain unconfirmed for 7.8.0.
 - Whether the DPU may bus-master into `m7_reserved` under the Verdin SM
   configuration, and whether it can reach any M7MIX address (**not found**).
 - Any figure from the i.MX95 reference manual itself (not public here).
