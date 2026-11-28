@@ -29,7 +29,7 @@ How the sources were read: the files were fetched over HTTPS from `raw.githubuse
 
 | S11 | Board snapshot, `docs/imx95-zephyr/observed-2026-11-27.txt` | taken 2026-11-27 (board clock 18:49 UTC), Reference Multimedia Image 7.8.0 build 17, kernel 6.6.157-7.8.0 | remoteproc sysfs, `/proc/device-tree`, dmesg, debugfs `clk_summary` and `pm_genpd`, `/lib/firmware`. Not read: `/proc/interrupts`, SoC revision, the SM cfg, any M7 console |
 
-S8 to S10 are what the board actually runs. The SM configuration, the Verdin/Mallow device tree and the LVDS panel overlay that Toradex ships are therefore **unknown**. No Toradex `imx-sm` fork was found: `github.com/toradex/imx-sm` and `git.toradex.com/imx-sm.git` do not exist (checked with `git ls-remote`). That does not rule out a Toradex patch or cfg file inside S8.
+S8 to S10 are what the board actually runs. The SM configuration, the Verdin/Mallow device tree and the LVDS panel overlay that Toradex ships are therefore **unknown** in this document's own reading. The later read in [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) (2026-11-28) supersedes the earlier statement that no Toradex `imx-sm` fork exists: the fork is `imx-sm-toradex` (`git.toradex.com/imx-sm-toradex.git`, pinned `SRCREV` `9e5555333eb27c75dc670945443a13dfc2760f16`, read from source there). The earlier `git ls-remote` check covered only the names `github.com/toradex/imx-sm` and `git.toradex.com/imx-sm.git`. The fork's `configs/verdin-imx95.cfg` itself has still not been read.
 
 ## 1. Ownership model
 
@@ -46,7 +46,7 @@ S8 to S10 are what the board actually runs. The SM configuration, the Verdin/Mal
 
 ### `mx95evk.cfg`, the config NXP builds for its own Verdin machine
 
-S2 builds `mx95evk` for `imx95-19x19-verdin`. That machine requires `imx95-evk.inc`, which sets `SYSTEM_MANAGER_CONFIG` to `mx95evk` unless an `IMXBOOT_VARIANT` is set, and the Verdin conf does not override it (read from source, S2). **Whether Toradex's BSP builds the same config is not known (S8 not read).**
+S2 builds `mx95evk` for `imx95-19x19-verdin`. That machine requires `imx95-evk.inc`, which sets `SYSTEM_MANAGER_CONFIG` to `mx95evk` unless an `IMXBOOT_VARIANT` is set, and the Verdin conf does not override it (read from source, S2). **Toradex's BSP does not build the same config:** its layer sets `SYSTEM_MANAGER_CONFIG = "verdin-imx95"` and builds the `imx-sm-toradex` fork (read from source, [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) §2.1). The `mx95evk` tables below are therefore NXP's, not the board's.
 
 | LM | Header | CPUs | Display resources |
 | --- | --- | --- | --- |
