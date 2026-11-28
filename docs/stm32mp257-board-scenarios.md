@@ -2,6 +2,8 @@
 
 One board session on the STM32MP257F-DK (ST LTDC, `stm` DRM driver, HDMI sink at 1920x1080), observed 2026-11-28 over ssh only, running rows A1-A5 of [`board-scenarios.md`](board-scenarios.md) with the repository's runner [`scripts/board-scenarios.sh`](../scripts/board-scenarios.sh) over the `tools/drm-harness` binary. The method is the one in [`linux-board-scenarios.md`](linux-board-scenarios.md) (read only); this page holds the results for this board until they are folded into `board-scenarios.md` and `platform-capabilities.md`.
 
+A newer run of rows A1-A6 with `--trace` on current main (A5 modeset PASS, connector-name bug gone, A6 FAIL) is in [`stm32mp257-board-scenarios-2026-11-28-trace.md`](stm32mp257-board-scenarios-2026-11-28-trace.md).
+
 ## Portability evidence only
 
 These runs are portability evidence. **They never count toward M1, M2 or M3**: M1 is the i.MX95 Linux run, M2 the i.MX95 Zephyr comparison, M3 the AM62P run. A PASS here says that the harness and the DRM backend behave on the LTDC driver; it satisfies no acceptance condition of those milestones.
