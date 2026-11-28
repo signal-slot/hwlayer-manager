@@ -57,7 +57,7 @@ row "kernel version (uname -v)" "$(first "$root/proc/sys/kernel/version")"
 # device-tree strings are NUL-separated; serial-number is never read
 row "device-tree model" "$(first "$root/proc/device-tree/model")"
 if [ -r "$root/proc/device-tree/compatible" ]; then
-  row "device-tree compatible" "$(tr '\000' ',' < "$root/proc/device-tree/compatible" | sed 's/,$//; s/,/, /g')"
+  row "device-tree compatible" "$(tr '\000' ';' < "$root/proc/device-tree/compatible" | sed 's/;$//; s/;/; /g')"
 fi
 
 # monitor name (descriptor tag 0xFC) from an EDID blob; serial (0xFF) is ignored
