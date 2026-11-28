@@ -54,3 +54,18 @@ The demo firmware fills this table for the AM62P DSS and the i.MX 95 DPU (`displ
 - Real concurrency: the fake runs the vsync callback synchronously, at points the test picks, and defers it while the port's lock is held.
 - That a driver's `latched_count` really follows its hardware (the GO bit on the AM62P, ExtDst0's sync busy bit on the i.MX 95), and the timing of latches.
 - Memory ordering and caches between the R5F/M7, the display controller and the producer.
+
+## Latch semantics and evidence
+
+What the sources say, **read from source** (no board was involved; details, line references and open points are in the studies):
+
+- [`am62p-dss-gobit-source.md`](am62p-dss-gobit-source.md): plane registers are shadowed. Software writes them, then sets one bit, the GO bit (bit 5 of the video port's control register, one per video port), to validate the configuration. The hardware copies the shadow values to the active registers once, and clears GO when it has done so. The Linux `tidss` driver describes the copy as happening at the vertical front porch, before the vertical blank interrupt, and treats "GO reads 1" as "not latched yet". What the hardware does if GO is set again while it is still 1, or if a shadow register is written between GO and the copy, is not answered by any source read; the study marks the torn-configuration and merged-commit cases as inferred.
+- [`am62p-dss-sharing-source.md`](am62p-dss-sharing-source.md): when Linux and a remote core both program one video port, they share its GO bit, so one core's commit can latch the other's half-written registers and the latched count no longer matches the commits.
+
+Host tests that pin the backend's latch and release behaviour. They run on a fake driver in which the test decides when a frame start happens. They are **host references, not board results**:
+
+- `backends/twoplane/tests/twoplane.rs`: builds and runs the C test (`tests/c/twoplane_test.c`) with a fake driver that has shadow registers, a commit count and a latched count; also the freestanding-compile check.
+- `backends/twoplane/tests/latch_props.rs`: seeded property test of commit/latch accounting: latched count never above commits, a submission presented at most once, a superseded one dropped, every buffer released once, refused calls change nothing.
+- `backends/twoplane/tests/m3_03_host.rs`: host simulation of the M3-03 cases (producer stops and restarts, safety flip over an in-flight commit, back-to-back commits, latch timeout).
+
+Not measured: no AM62P board measurement of the GO bit, the latch, or its timing exists yet. Every timing in this section is read from a source or modelled on the host, not measured. The board result will be in docs/m3-am62p-report.md.
