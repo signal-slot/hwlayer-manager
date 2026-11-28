@@ -10,10 +10,10 @@ does, not what a running i.MX8M Plus does.
 | Tree | Ref | Commit | Status |
 |---|---|---|---|
 | mainline Linux (`torvalds/linux`, shallow, blobless) | `Makefile` says 7.4-rc4 (`VERSION = 7`, `PATCHLEVEL = 4`, `EXTRAVERSION = -rc4`); no tag at the clone's HEAD | `f4585067150b85e33f60876149a6e742928da75e` (merge of thermal-7.4-rc5, 2026-11-27) | read: `drivers/gpu/drm/mxsfb/lcdif_*`, `arch/arm64/boot/dts/freescale/imx8mp.dtsi`, `Documentation/devicetree/bindings/display/fsl,lcdif.yaml`, `drivers/media/platform/nxp/imx-pxp.c` |
-| NXP `linux-imx` | newest `lf-6.6` tag listed by `git ls-remote`: `lf-6.6.52-2.2.2` | tag object `f9a8e33f5cde3e96a57569e9dfa70481fe688943`, peeled commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc` (both from `ls-remote`) | **not read**: the clone and raw fetches were refused in this session, so no vendor file was opened |
+| NXP `linux-imx` | newest `lf-6.6` tag listed by `git ls-remote`: `lf-6.6.52-2.2.2` | tag object `f9a8e33f5cde3e96a57569e9dfa70481fe688943`, peeled commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc` (both from `ls-remote`) | **one file read**: `drivers/gpu/drm/imx/lcdifv3/lcdifv3-plane.c` at the tag, fetched raw; clone and every other file were refused, so the rest is unread |
 
-Consequence: the vendor-tree questions (planes, formats and blending beyond
-mainline, `lcdifv3` driver, `gpu-viv`, g2d nodes) are open. They are listed in
+Consequence: of the vendor tree only the plane file (section 9) was read; the
+vendor CRTC code, DT nodes, `gpu-viv` and g2d nodes are open. They are listed in
 "Open questions", with no claim made about them. Paths in the tables are
 relative to the mainline root, which is the only tree read. The clone is
 kept outside the repository.
@@ -112,12 +112,30 @@ kept outside the repository.
 | Buffer release can only follow the flip event; there is no explicit scan-out fence | section 5 | inferred |
 | Whether a blitter could do the composition (and under which driver) depends on the vendor tree, which was not read | section 7 | inferred (open) |
 
+## 9. Vendor tree (`linux-imx` lf-6.6.52-2.2.2): plane file only
+
+Paths relative to the linux-imx root. Line numbers are counted from the fetched
+file and may be off by a few lines.
+
+| Fact | Where (linux-imx) | Tag |
+|---|---|---|
+| Vendor plane formats: XRGB8888, ARGB8888, RGB565, XBGR8888, ABGR8888, ARGB1555, XRGB1555; unlike mainline this includes ARGB and ABGR 32-bit and has no YUV format | `drivers/gpu/drm/imx/lcdifv3/lcdifv3-plane.c:22-30` | read from source |
+| Plane check uses `DRM_PLANE_NO_SCALING` both ways; no scaling in the vendor driver either | `lcdifv3-plane.c:~62-65` | read from source |
+| The plane must sit at CRTC position (0,0); a nonzero `crtc_x` or `crtc_y` is rejected, and an invisible plane is rejected | `lcdifv3-plane.c:~55-57`, `~67-68` | read from source |
+| A change of framebuffer pitch forces `mode_changed`, because the pitch registers cannot be changed while the controller runs (comment in the file) | `lcdifv3-plane.c:~70-77` | read from source |
+| Only the primary plane type is handled in `atomic_update`; the default branch is a "TODO: add overlay later" return, so overlay planes are not implemented in this file | `lcdifv3-plane.c:~101-110` | read from source |
+| The plane init refuses a nonzero `zpos` and creates an immutable zpos property of 0; no alpha or blend-mode property is created in this file | `lcdifv3-plane.c:~150-160`, `~172-177` | read from source |
+| The vendor driver sets `fb_modifiers_not_supported`: linear only | `lcdifv3-plane.c:~147` | read from source |
+| The scan-out address is source offset plus the buffer's DMA address, written through `lcdifv3_set_fb_addr`; the format is set through `lcdifv3_set_pix_fmt` for the primary plane | `lcdifv3-plane.c:~97-117` | read from source |
+| Vendor ARGB formats are advertised but, with a single plane at zpos 0, there is nothing to blend with in this file | `lcdifv3-plane.c:22-30`, `~150-177` | inferred |
+| The vendor tree adds no overlay or blending beyond mainline, as far as this plane file shows; the CRTC file, register layer, DT nodes and `gpu-viv` stay unread | section above | inferred (open) |
+
 ## Open questions
 
-1. **Vendor tree, not read.** Does `linux-imx` `lf-6.6.52-2.2.2` (commit
-   `5a0a5e71d2bd`) add overlay planes, alpha, scaling or other formats in its
-   `lcdifv3` driver (`drivers/gpu/drm/imx/lcdifv3/`)? Its DT nodes and
-   compatible strings are unread.
+1. **Vendor tree, mostly unread.** Only `lcdifv3-plane.c` was read. The
+   vendor CRTC code, register layer and DT nodes of `lf-6.6.52-2.2.2`
+   (commit `5a0a5e71d2bd`) are unread; does any of them add overlay or
+   blending hardware use?
 2. Does the vendor tree expose `gpu2d` through `drivers/mxc/gpu-viv` or a g2d
    node, and which blit operations (blend, scale, format convert) can it do?
    Mainline only shows two `vivante,gc` nodes.
