@@ -56,10 +56,51 @@ expected colours from the 2026-11-28 harness EXPECT lines are listed in
 [docs/observed/stm32mp257-kvm.md](observed/stm32mp257-kvm.md) and in the Q1
 section of the sessions A/B document.
 
-## Part 2: Q6 transforms, NV12 colours, plane 34 scaling — reserved
+## Part 2: Q6 transforms, NV12 colours, plane 34 scaling — not run
 
-This section is left for the part 2 item. Part 2 needs the same working KVM
-capture, so it is blocked by the same failure.
+The part 2 item started at 2026-11-28 01:51 host UTC (observed 2026-11-28).
+The KVM's MCP server again failed to connect with the same HTTP 404 as in the
+gate above. No KVM tool was registered, so no screenshot could be taken. Part
+1 also found no working capture, so part 2 stops here.
+
+None of the following was done: no plane_commit build or copy to the board,
+no Weston stop, no TEST_ONLY or commit, no screenshot, no `camera-check.py`
+run. So no probe has a verdict:
+
+| Probe | Status |
+|---|---|
+| Q6, plane 34 (primary): 0, rotate-180, reflect-x | not run, no picture |
+| Q6, primary CRC instability as a visible defect | not run, no picture |
+| Q6, plane 42: 0, reflect-x, reflect-y, reflect-x+reflect-y | not run, no picture |
+| Q6, plane 49: 0, reflect-x, reflect-y, rotate-180 | not run, no picture |
+| NV12 colours on plane 42, 1:1 | not run, no picture |
+| Plane 34 scaling, smaller src upscaled to the mode | not run, no picture |
+
+**Q6 verdict: open.** The transform claims still rest on session B's
+TEST_ONLY and CRC results and on the source reading (inferred). Plane 49
+transforms and plane 34 scaling were never probed at all.
+
+## Session C summary
+
+| Question | Result | Tag |
+|---|---|---|
+| Gate (KVM capture) | fails: MCP HTTP 404, at 01:37 and 01:51 host UTC | observed 2026-11-28 |
+| Q1 pixel colours | open, not run | observed 2026-11-28 |
+| Q6 transforms (planes 34, 42, 49) | open, not run | observed 2026-11-28 |
+| NV12 colours, plane 42 | open, not run | observed 2026-11-28 |
+| Plane 34 scaling | open, not run | observed 2026-11-28 |
+| Straight-alpha prediction for Q1 | untested on the picture | inferred |
+
+## State after part 2 — observed 2026-11-28
+
+The state was read over ssh, read only, at 2026-11-28 01:51 host UTC:
+
+- `systemctl is-active weston-graphical-session seatd-weston` printed `active`
+  and `active`.
+- Kernel 6.6.129.
+- The board's `/tmp` holds no harness files.
+
+Nothing was stopped, installed, run or changed on the board.
 
 ## State after part 1 — observed 2026-11-28
 
@@ -77,4 +118,5 @@ Nothing was stopped, installed, run or changed on the board.
 1. The MCP relay path to the KVM is fixed, or the MCP server is registered
    again.
 2. A fresh A1 rehearsal reports "capture works".
-3. This item runs again, and its results replace the "not run" rows above.
+3. The part 1 and part 2 items run again, and their results replace the
+   "not run" rows above.
