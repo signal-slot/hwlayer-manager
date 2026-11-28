@@ -79,6 +79,23 @@ Files and commits contain no board addresses, host names, IPs, serial numbers,
 UART or device paths, or credentials. They come from the environment at run
 time and stay out of the repository.
 
+## Board test apps
+
+- A board test is a Zephyr application or a small program kept in this
+  repository under `tests/board/`; [tests/board/README.md](tests/board/README.md)
+  indexes them.
+- The Zephyr workspace and SDK come from the environment
+  (`ZEPHYR_WORKSPACE`, `ZEPHYR_SDK_INSTALL_DIR`);
+  [scripts/prepare-zephyr.sh](scripts/prepare-zephyr.sh) can set them up. CI
+  does not build board apps.
+- A board session follows [docs/imx95-m7-runbook.md](docs/imx95-m7-runbook.md)
+  and the board rules in [docs/imx95-board.md](docs/imx95-board.md): files only
+  under `/tmp`, no packages, no U-Boot environment changes, never write the
+  eMMC boot areas, and restore Weston and check that it is active again.
+- Results are dated observations, or are marked *not measured*.
+- No board addresses, host names, IPs, users, serial or UART paths, or
+  credentials in files or commits.
+
 ## Tests
 
 - Board tests are Zephyr applications or small programs kept in this
