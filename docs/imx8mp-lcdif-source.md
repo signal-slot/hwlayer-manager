@@ -1,6 +1,6 @@
 # i.MX8M Plus LCDIFv3 display path, read from source (SoW §5.3)
 
-Date: 2026-11-28. **Nothing here is observed on a board.** No device was used.
+Date: 2026-11-28. **No claim here comes from a board run.** No device was used.
 Every row is tagged `read from source` (the cited file and line say it) or
 `inferred` (a conclusion drawn from what was read). Rows say what the code
 does, not what a running i.MX8M Plus does.
