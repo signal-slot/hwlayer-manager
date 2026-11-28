@@ -86,7 +86,7 @@ scrub() {
 	local args=() w e
 	for w in ${BOARD_SSH:-}; do
 		case $w in -*) continue ;; esac
-		for e in "$w" "${w#*@}"; do
+		for e in "$w" "${w#*@}" "${w%%@*}"; do
 			[ -n "$e" ] || continue
 			e=$(printf '%s' "$e" | sed 's/[][\.*^$|/&]/\\&/g')
 			args+=(-e "s|$e|<board>|g")
@@ -138,8 +138,9 @@ finish() {
 	[ $finished -eq 0 ] || return 0
 	finished=1
 	if [ $guard_stopped -eq 1 ]; then
-		restore_out=$(run_ssh "$sudo_p sh $dir/display-guard.sh restore $dir/dg.state" 2>&1 | scrub)
-		rc_guard=${PIPESTATUS[0]}
+		restore_out=$(run_ssh "$sudo_p sh $dir/display-guard.sh restore $dir/dg.state" 2>&1; echo "RC=$?")
+		rc_guard=${restore_out##*RC=}
+		restore_out=$(printf '%s\n' "${restore_out%RC=*}" | scrub)
 		detect_out=$(run_ssh "sh $dir/display-guard.sh detect" 2>&1 | scrub)
 	fi
 	run_ssh "rm -rf $dir" > /dev/null 2>&1
@@ -161,8 +162,9 @@ say "SESSION start=$start (host UTC) kernel=$kernel"
 say "BINARIES ${present[*]}"
 
 guard_stopped=1   # restore also covers a half-failed stop
-stop_out=$(run_ssh "$sudo_p sh $dir/display-guard.sh stop $dir/dg.state" 2>&1 | scrub)
-rc_stop=${PIPESTATUS[0]}
+stop_out=$(run_ssh "$sudo_p sh $dir/display-guard.sh stop $dir/dg.state" 2>&1; echo "RC=$?")
+rc_stop=${stop_out##*RC=}
+stop_out=$(printf '%s\n' "${stop_out%RC=*}" | scrub)
 say "$stop_out"
 [ "$rc_stop" -eq 0 ] || say "WARN: display-guard stop exit $rc_stop"
 
