@@ -15,8 +15,8 @@ generic helper, and this note reads it.
 - **read from source**: also `drivers/gpu/drm/drm_atomic_uapi.c` and `include/drm/drm_atomic.h`
   at `v6.18`, same tag and host (paths `drivers/gpu/drm/drm_atomic_uapi.c` and
   `include/drm/drm_atomic.h` with `?h=v6.18`), read 2026-11-28 UTC.
-- **Not read**: `drivers/gpu/drm/drm_atomic.c` at `v6.18` (the fetch was refused). Nothing below
-  is claimed from it. What it decides is listed under "Open".
+- **read from source**: also `drivers/gpu/drm/drm_atomic.c` at `v6.18` (same tag and host,
+  `?h=v6.18`), read 2026-11-28 UTC.
 
 ## What a nonblocking second commit gets: -EBUSY
 
@@ -49,9 +49,14 @@ All references are in `drm_atomic_helper.c` at `v6.18`.
   1540), `drm_atomic_commit(state)` otherwise (line 1542), and `drm_atomic_check_only()` for
   `DRM_MODE_ATOMIC_TEST_ONLY` (lines 1537 to 1538). The only error it retries is -EDEADLK (line
   1548); any other `ret`, -EBUSY included, is returned at line 1560.
-- **inferred**: so the -EBUSY from `stall_checks` reaches userspace unchanged, provided
-  `drm_atomic_nonblocking_commit()` (declared at `drm_atomic.h` line 845; body in `drm_atomic.c`,
-  not read) hands the driver's `atomic_commit` result back as is.
+- **read from source**: in `drm_atomic.c`, `drm_atomic_nonblocking_commit()` (line 1595) runs
+  `drm_atomic_check_only()` (line 1598) and then returns
+  `config->funcs->atomic_commit(state->dev, state, true)` (line 1606) unchanged.
+  `drm_atomic_commit()` (line 1562) does the same with `false` (line 1577). Both are declared in
+  `drm_atomic.h` (lines 844 and 845). So `nonblock` is true exactly for the ioctl's
+  `DRM_MODE_ATOMIC_NONBLOCK`, and the -EBUSY from `stall_checks` reaches userspace unchanged for a
+  driver whose `atomic_commit` is `drm_atomic_helper_commit` (the driver's own hook is what
+  `funcs->atomic_commit` points at, which this file does not show).
 - **inferred**: the refusal happens before the state swap, so the pending commit is neither
   replaced nor cancelled. It keeps its event and completes normally. This is the answer for a
   driver that uses `drm_atomic_helper_commit`; a driver with its own `atomic_commit` hook (see the
@@ -101,8 +106,10 @@ All references are in `drm_atomic_helper.c` at `v6.18`.
   (line 2183). So on the legacy cursor path an async-check -EBUSY is not returned to the caller by
   this file.
 - **read from source**: on that fallback `stall_checks` is still called (line 2456) before the
-  legacy test (line 2471), and the plane loop (line 2522) still applies when `nonblock` is true.
-  Whether `drm_atomic_commit()` passes `nonblock` true or false is in `drm_atomic.c` (not read).
+  legacy test (line 2471). Both legacy cursor helpers call `drm_atomic_commit()`, which passes
+  `nonblock` **false** (`drm_atomic.c` line 1577). So the EBUSY tests at lines 2312, 2500 and 2522
+  are skipped for a legacy cursor update, and it waits as in the blocking case above; it is not
+  refused with -EBUSY by this file.
 - **read from source**: `drm_atomic_uapi.c` at `v6.18` contains no assignment to
   `legacy_cursor_update` or `async_update`. A cursor-only update through the **atomic** ioctl
   with `DRM_MODE_ATOMIC_NONBLOCK` therefore does not take the legacy path: `drm_mode_atomic_ioctl()`
@@ -117,7 +124,7 @@ All references are in `drm_atomic_helper.c` at `v6.18`.
 
 ## Open (not answered here)
 
-- What `drm_atomic_commit()` and `drm_atomic_nonblocking_commit()` in `drm_atomic.c` pass as
-  `nonblock` to the driver's `atomic_commit`, and whether they return its result unchanged.
+- Nothing in the generic code is left open. The drivers' own `atomic_commit` hooks (and
+  `drm_atomic_helper_async_check` overrides) are not read here.
 - Which target-board drivers use `drm_atomic_helper_commit` unmodified: see the two linked notes.
   Only a `pending_probe` run on a board can say what a board returns.
