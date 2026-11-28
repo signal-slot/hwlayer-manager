@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: verdin_imx95/mimx9596/m7
+name: Toradex Verdin iMX95 (Cortex-M7)
+type: mcu
+arch: arm
+ram: 256
+flash: 256
+toolchain:
+  - zephyr
+  - gnuarmemb
+supported:
+  - uart
+vendor: toradex

@@ -1,0 +1,22 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Only the console pads. Copied from upstream imx95_evk-pinctrl.dtsi
+ * (lpuart3_default). On the Verdin module, GPIO_IO14 / GPIO_IO15 are the
+ * UART_2 CTS / RTS pins (SODIMM 143 / 141), which Linux on Mallow muxes for
+ * lpuart8. See ../../README.md.
+ */
+
+#include <nxp/imx/pinctrl/mimx9596avzxn-pinctrl.dtsi>
+
+&pinctrl {
+	lpuart3_default: lpuart3_default {
+		group0 {
+			pinmux = <&iomuxc_gpio_io15_lpuart_rx_lpuart3_rx>,
+				 <&iomuxc_gpio_io14_lpuart_tx_lpuart3_tx>;
+			bias-pull-up;
+			slew-rate = "slightly_fast";
+			drive-strength = "x4";
+		};
+	};
+};

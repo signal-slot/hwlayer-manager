@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Out-of-tree Zephyr board for the Cortex-M7 of the Toradex Verdin iMX95.
+# Derived from upstream Zephyr boards/nxp/imx95_evk/board.yml; see
+# ../../README.md for the pinned commit. Only the TCM M7 target
+# (verdin_imx95/mimx9596/m7) is defined: no A55, no ddr or flash variant.
+
+board:
+  name: verdin_imx95
+  full_name: Verdin iMX95 (Cortex-M7)
+  vendor: toradex
+  socs:
+  - name: mimx9596

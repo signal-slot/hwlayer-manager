@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Only the M7 target exists. The SoC part number is the one upstream's
+# imx95_evk selects; it is the only i.MX95 part with a pinctrl file in
+# hal_nxp at the pinned commit. That it equals the part on the Verdin
+# module is not checked (see ../../README.md).
+
+config BOARD_VERDIN_IMX95
+	select SOC_MIMX9596_M7 if BOARD_VERDIN_IMX95_MIMX9596_M7
+	select SOC_PART_NUMBER_MIMX9596AVZXN
