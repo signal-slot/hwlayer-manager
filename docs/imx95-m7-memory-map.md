@@ -31,38 +31,34 @@ Related, not edited here: [`imx95-zephyr-feasibility.md`](imx95-zephyr-feasibili
 | Z | Zephyr, <https://github.com/zephyrproject-rtos/zephyr> | tag `v4.5.0` (the tag is pinned by [`zephyr-workspace.md`](zephyr-workspace.md)), commit `41d10b59730406bbab4ca9f1fbbe9e96aafb4966` (`git ls-remote` peel of the tag, 2026-11-28); files fetched as `https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/v4.5.0/<path>` on 2026-11-28 |
 | L | NXP Linux, <https://github.com/nxp-imx/linux-imx> | tag `lf-6.6.52-2.2.2` = branch `lf-6.6.y` tip at commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc` (tag peel and branch tip both this commit, `git ls-remote` 2026-11-28; committer date 2025-11-26); files fetched as `https://raw.githubusercontent.com/nxp-imx/linux-imx/5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc/<path>` on 2026-11-28 |
 | S | NXP System Manager, <https://github.com/nxp-imx/imx-sm> | tag `rel_imx_sm_2026q3`, commit `eec232878ab7dd460f5a8f3767d39dc7e9412efa`; files fetched as `https://raw.githubusercontent.com/nxp-imx/imx-sm/eec232878ab7dd460f5a8f3767d39dc7e9412efa/<path>` on 2026-11-28 |
-| T | Toradex kernel, `linux-toradex`, branch `toradex_6.6-2.2.x-imx` | commit `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` (branch head on 2026-11-28, resolved and read by the earlier item recorded in [`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md#1-pins)); **not re-read here** |
+| K | Toradex kernel of BSP 7.8.0, `https://git.toradex.com/linux-toradex.git`, branch `toradex_6.6-2.2.x-imx` | commit `64f85d65c112c45ceb6c7e0566885afc62b1a551` (committer date 2026-09-25): the `SRCREV_machine` of BSP 7.8.0 (see the chain below). Read 2026-11-28 by item memmap-reread with `git fetch --depth 1 --filter=blob:none` of that commit plus a fetch of the DT blobs by id, then `git show`. Files: `arch/arm64/boot/dts/freescale/imx95-verdin.dtsi` (blob `c25f8e4c7792b3fc0d7d94e8c7afac4e34050f9a`), `imx95-verdin-mallow.dtsi` (`4ba4ab29e25965c0150dc61c7e4e1cb1c3d5a260`), `imx95-verdin-wifi-mallow.dts` (`2049b2b07f538f2900f418df434cf8a65f6f8256`), `imx95-verdin-nonwifi-mallow.dts` (`98fca21d4bf092b5b68d669ca54a826196e71ca3`), `imx95-verdin-wifi.dtsi` (`35a9c7f41e3e842763d58b538c6924cc391be081`), `imx95-verdin-nonwifi.dtsi` (`044ec8bcf8cd1a5b84a48b8abf3dda1a712981a9`) |
+| T | Toradex kernel, `linux-toradex`, branch `toradex_6.6-2.2.x-imx` | commit `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` (branch head on 2026-11-28, committer date 2026-11-03, read by the earlier item recorded in [`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md#1-pins)). `git diff 64f85d65c112c45ceb6c7e0566885afc62b1a551 8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` over the six Verdin/Mallow DT files of K and `drivers/remoteproc/imx_rproc.c` is empty (2026-11-28), so T and K have identical copies of those files |
 | M | NXP MCUXpresso SDK examples, <https://github.com/nxp-mcuxpresso/mcuxsdk-examples> | commit `cc8974f843f496ac0ec959c55164766fd0d489bd` (2026-11-23), read via [`imx95-mcux-display.md`](imx95-mcux-display.md#pinned-sources) (pins EX, CORE) |
-| R | Toradex BSP release manifest, `https://git.toradex.com/toradex-manifest.git` | tag `7.8.0` = commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e` (`git ls-remote`, 2026-11-28). Only the ref was resolved; **the manifest content was not read** (see below) |
-| N | Toradex NXP layer, `https://git.toradex.com/meta-toradex-nxp.git` | branch `scarthgap-7.x.y` head `b0b9f0fd9d3e4854e3d764bcd2b383b337318f3a` (`git ls-remote`, 2026-11-28); this layer carries no `7.x` tags. Ref only; **not read** |
+| R | Toradex BSP release manifest, `https://git.toradex.com/toradex-manifest.git` | tag `7.8.0` = commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e` (`git ls-remote` and `git fetch --depth 1` of the tag, 2026-11-28); files `tdxref/default.xml`, `bsp/pinned-tdx.xml` |
+| N | Toradex NXP layer, `https://git.toradex.com/meta-toradex-nxp.git` | commit `e0f9a9c3a84fe7f26538092f272db56c3e4770c1`, the revision R pins (fetched by id, 2026-11-28); files `recipes-kernel/linux/linux-toradex_6.6-2.2.x.bb`, `conf/machine/verdin-imx95.conf` |
 
-**Not found: the kernel tree of BSP 7.8.0 (6.6.157-7.8.0).** Re-tried on
-2026-11-28 by item memmap-reread; the outcome per step:
+**How K is tied to BSP 7.8.0** (item memmap-reread, 2026-11-28; every step
+read from source):
 
-| Step (2026-11-28) | Result |
-|---|---|
-| `git ls-remote https://git.toradex.com/linux-toradex.git` | answered. The tree has **no** Toradex release tags for BSP 7.x: its tags are mainline `vX.Y[-rcN]` and old image tags (newest Toradex image tags from 2020). Branch `toradex_6.6-2.2.x-imx` head is still `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df`, the same commit as source T. So BSP 7.8.0 is identified only by the kernel `SRCREV` in `meta-toradex-nxp` |
-| `git ls-remote https://git.toradex.com/toradex-manifest.git` | answered: tag `7.8.0` exists (source R), plus `7.8.0-devel-202608` and `7.8.0-devel-202609` |
-| `git ls-remote https://git.toradex.com/meta-toradex-nxp.git` | answered: branch `scarthgap-7.x.y` (source N); no 7.x tags |
-| `git clone` / `git fetch --depth 1` of `toradex-manifest` tag `7.8.0` (into the task's temp dir and into the dependency cache) | refused by this agent's tool sandbox before running; nothing was downloaded |
-| `curl` of the cgit `plain/` URL of the 7.8.0 manifest | refused by the tool sandbox before running |
-| web fetch of `https://git.toradex.com/cgit/toradex-manifest.git/plain/...?h=7.8.0` (two paths; tag `7.8.0` = commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e`) | HTTP 200, but the body was the Anubis anti-bot "Access Denied" page; no content |
-| `https://github.com/toradex/toradex-manifest/tree/7.8.0` and the matching `raw.githubusercontent.com` path (same tag, commit `d989ca3a34d834e0829b1ee2ef92822ec32b046e` on the Toradex host) | HTTP 404 (as were `toradex/linux-toradex` and `toradex/meta-toradex-nxp` on the earlier attempt) |
-| web search for a GitHub mirror of `linux-toradex` | none found. The Verdin iMX95 mainline DT series (v3, March 2026) exists on the mailing lists, but mainline is not the 7.8.0 kernel, so it was not used |
+| Step | What was read | Result |
+|---|---|---|
+| 1 | `linux-toradex` refs (`git ls-remote`) | no Toradex release tags for BSP 7.x (only mainline `vX.Y[-rcN]` and old image tags), so 7.8.0 is pinned only through the layer recipe |
+| 2 | R `tdxref/default.xml` (includes `bsp/pinned-tdx.xml`) and R `bsp/pinned-tdx.xml` | `<project name="meta-toradex-nxp.git" ... revision="e0f9a9c3a84fe7f26538092f272db56c3e4770c1" upstream="scarthgap-7.x.y"/>` |
+| 3 | N `conf/machine/verdin-imx95.conf:23` and `:27-39` | `PREFERRED_PROVIDER_virtual/kernel = "linux-toradex"`; the DTB list includes `imx95-verdin-wifi-mallow.dtb` and `imx95-verdin-nonwifi-mallow.dtb` |
+| 4 | N `recipes-kernel/linux/linux-toradex_6.6-2.2.x.bb:36-40` | `COMPATIBLE_MACHINE = "(mx8-nxp-bsp\|mx9-nxp-bsp)"`, `LINUX_VERSION = "6.6.157"`, `SRCBRANCH = "toradex_6.6-2.2.x-imx"`, `SRCREV_machine = "64f85d65c112c45ceb6c7e0566885afc62b1a551"` |
+| 5 | K `imx95-verdin-{wifi,nonwifi}-mallow.dts` | each includes only `imx95-verdin.dtsi`, `imx95-verdin-{wifi,nonwifi}.dtsi` and `imx95-verdin-mallow.dtsi`; none of the four Mallow/wifi files mentions `reserved-memory`, `memory`, `cm7`, `remoteproc`, `mu7`, `vdev` or `rsc`, so the carveouts come from `imx95-verdin.dtsi` alone |
 
-So the chain manifest `7.8.0` → `meta-toradex-nxp` revision → kernel
-`SRCREV` → `imx95-verdin.dtsi` could not be followed past the first ref, and
-**every carveout in section 2 stays unconfirmed against BSP 7.8.0**. Section 2
-rests on source T (a branch head; whether it equals the 7.8.0 `SRCREV` is
-**not found**: it may be equal, older or newer) and on the DT excerpts that
-earlier items recorded. What would settle it: a git client allowed to clone
-`toradex-manifest` at `7.8.0`, then `meta-toradex-nxp` at the revision it pins,
-reading `SRCREV` in the `linux-toradex` recipe and `git show <SRCREV>:arch/arm64/boot/dts/freescale/imx95-verdin.dtsi`;
-or the board's own `/proc/device-tree/reserved-memory` (a board item, not this
-one). The
-NXP RM for the i.MX95 is not publicly fetchable; "reference-manual facts" below
-are only those that Z, L, S and M quote or encode. Nothing was taken from the
-RM itself.
+That `LINUX_VERSION` 6.6.157 at this `SRCREV` is the running
+`6.6.157-7.8.0` kernel is **inferred** (version string plus release tag; the
+board's own DT was not read by this item). The NXP RM for the i.MX95 is not
+publicly fetchable; "reference-manual facts" below are only those that Z, L,
+S and M quote or encode. Nothing was taken from the RM itself.
+
+An earlier attempt on the same day (recorded in this file's history) could
+not get past step 1 because the agent sandbox refused `git clone`/`curl`, the
+cgit web pages return an anti-bot page, and there is no GitHub mirror of
+`toradex-manifest`, `linux-toradex` or `meta-toradex-nxp` (HTTP 404). Git
+fetches over HTTPS from the Toradex host work.
 
 ## 1. The Cortex-M7 view (Zephyr and the SoC description)
 
@@ -106,43 +102,50 @@ M7's SM grants).
 
 ## 2. What the Verdin iMX95 kernel DT gives the M7
 
-Source T, read by an earlier item and re-stated in
-[`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md#31-verdin-and-mallow-files)
-(`imx95-verdin.dtsi`, reserved-memory block and the `cm7: remoteproc-cm7`
-node). The NXP lf-6.6 EVK dts (L `arch/arm64/boot/dts/freescale/imx95-19x19-evk.dts:52-105`,
+Source K, the BSP 7.8.0 kernel (see [Sources](#sources)), read 2026-11-28:
+`imx95-verdin.dtsi` (blob `c25f8e4c7792b3fc0d7d94e8c7afac4e34050f9a`), its
+`reserved-memory` block (`:151-217`), the `cm7: remoteproc-cm7` node
+(`:44-54`) and `&mu7` (`:569-571`). The Mallow board files add nothing to
+these (Sources, step 5). The same content was read earlier at source T and
+re-stated in
+[`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md#31-verdin-and-mallow-files);
+T and K have identical copies of the file. The NXP lf-6.6 EVK dts (L `arch/arm64/boot/dts/freescale/imx95-19x19-evk.dts:52-105`,
 `:260-270`) is the comparison: it has the same vdev carveouts but **no**
 `m7_reserved` region.
 
-**Unconfirmed against BSP 7.8.0** (re-checked 2026-11-28, see
-[Sources](#sources)): every "read from source (T ...)" below is read at the
-branch head `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df`, not at the 7.8.0
-kernel `SRCREV`, which could not be resolved. That the 7.8.0 DT has the same
-carveouts is **inferred** only.
+**Confirmed for BSP 7.8.0 at the kernel source** (2026-11-28): every row
+below was read at K, the 7.8.0 `SRCREV`. It is not a board observation; the
+running DT can still differ if U-Boot or an overlay changes it (see the
+`rsc-table` row under "Further facts").
 
-| Region (Verdin DT) | Address | Size | Flags | Tag |
+| Region (Verdin DT, K line) | Address | Size | Flags | Tag |
 |---|---|---|---|---|
-| `m7_reserved` | `0x80000000` | `0x1000000` (16 MiB) | `no-map` | read from source (T, via [`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md#31-verdin-and-mallow-files)); the EVK dts has none (read from source, L) |
-| `vdev0vring0` | `0x88000000` | `0x8000` (32 KiB) | `no-map` | read from source (T; same address in L EVK dts `:75`) |
-| `vdev0vring1` | `0x88008000` | `0x8000` | `no-map` | read from source (T; L `:80`) |
-| `vdev1vring0` | `0x88010000` | `0x8000` | `no-map` | read from source (T; L `:85`) |
-| `vdev1vring1` | `0x88018000` | `0x8000` | `no-map` | read from source (T; L `:90`) |
-| `vdevbuffer` | `0x88020000` | `0x100000` (1 MiB), `shared-dma-pool` | `no-map` | read from source (T; L `:100-104`) |
-| `rsc_table` | `0x88220000` | `0x1000` (4 KiB) | `no-map` | read from source (T; L `:95`) |
-| `linux_cma` | alloc range `0x80000000`..`0xFF000000` | `0x3c000000` (960 MiB) | `reusable`, `shared-dma-pool` | read from source (T, via the same doc; L EVK dts `:62-67` has the same size) |
+| `m7_reserved: memory@80000000` (`:170-173`) | `0x80000000` | `0x1000000` (16 MiB) | `no-map` | read from source (K); the EVK dts has none (read from source, L) |
+| `vdev0vring0` (`:187-190`) | `0x88000000` | `0x8000` (32 KiB) | `no-map` | read from source (K; same address in L EVK dts `:75`) |
+| `vdev0vring1` (`:192-195`) | `0x88008000` | `0x8000` | `no-map` | read from source (K; L `:80`) |
+| `vdev1vring0` (`:197-200`) | `0x88010000` | `0x8000` | `no-map` | read from source (K; L `:85`) |
+| `vdev1vring1` (`:202-205`) | `0x88018000` | `0x8000` | `no-map` | read from source (K; L `:90`) |
+| `vdevbuffer` (`:207-211`) | `0x88020000` | `0x100000` (1 MiB), `compatible = "shared-dma-pool"` | `no-map` | read from source (K; L `:100-104`) |
+| `rsc_table: rsc-table@88220000` (`:182-185`) | `0x88220000` | `0x1000` (4 KiB) | `no-map` | read from source (K; L `:95`) |
+| `linux_cma: linux,cma` (`:162-168`) | `alloc-ranges = <0 0x80000000 0 0x7F000000>`, i.e. `0x80000000`..`0xFEFFFFFF` | `0x3c000000` (960 MiB) | `reusable`, `shared-dma-pool`, `linux,cma-default` | read from source (K; L EVK dts `:62-67` has the same size) |
+| `ele_reserved: memory@9c300000` (`:156-160`) | `0x9c300000` | `0x100000` (1 MiB), `shared-dma-pool` | `no-map` | read from source (K); used by `&ele_fw2`, not by the M7 |
+| `npu_dma: npu-dma` (`:175-180`) | dynamic (no `reg`, no `alloc-ranges`) | `0x8000000` (128 MiB), alignment 1 MiB | `reusable`, `shared-dma-pool` | read from source (K); used by `&neutron`, not by the M7 |
+| `vpu_boot: vpu_boot@a0000000` (`:213-216`) | `0xa0000000` | `0x100000` (1 MiB) | `no-map` | read from source (K); not referenced by the `cm7` node |
 
 Further facts:
 
 | Finding | Tag |
 |---|---|
-| The `cm7: remoteproc-cm7` node (`compatible = "fsl,imx95-cm7"`, `power-domains = <&scmi_devpd IMX95_PD_M7>`) lists `memory-region = <&vdevbuffer>, <&vdev0vring0>, <&vdev0vring1>, <&vdev1vring0>, <&vdev1vring1>, <&rsc_table>, <&m7_reserved>`, mailboxes `&mu7` 0/1/3, `fsl,startup-delay-ms = <50>`; `&mu7` is `okay` | read from source (T, via the same doc) |
+| The `cm7: remoteproc-cm7` node (`compatible = "fsl,imx95-cm7"`, `power-domains = <&scmi_devpd IMX95_PD_M7>`, `mbox-names = "tx", "rx", "rxdb"`) lists `memory-region = <&vdevbuffer>, <&vdev0vring0>, <&vdev0vring1>, <&vdev1vring0>, <&vdev1vring1>, <&rsc_table>, <&m7_reserved>`, mailboxes `&mu7` 0/1/3, `fsl,startup-delay-ms = <50>`; `&mu7` is `status = "okay"` | read from source (K `:44-54`, `:569-571`) |
 | `linux_cma`'s allocation range includes `0x80000000`, but `m7_reserved` and the vdev nodes are `no-map` carveouts, so Linux neither maps nor allocates them | read from source (`no-map`, `alloc-ranges`); the consequence is inferred |
-| The `0x80000000-0x8FFFFFFF` bytes outside those nodes (the rest of the first 256 MiB; a Toradex patch summary says the first 256 MB of SDRAM is "reserved for Cortex-M7 firmware", summary text only) are **not** carved out in the DT excerpts, so they sit inside `linux_cma`'s range | inferred (from the node list; the 256 MB remark was not read in full) |
-| Linux `imx_rproc` loads ELF segments only into addresses it can map: the TCM windows, and memory-regions whose node name does not start with `vdev` (`m7_reserved`, `rsc_table`). A DDR address outside those fails with "bad phdr da" | read from source ([`imx95-m7-rproc-load.md`](imx95-m7-rproc-load.md): L `imx_rproc.c:765-844`); Toradex user report of `bad phdr da 0x90000000` is consistent (inferred) |
-| This repository's earlier snapshot of the live board and the source disagree on the `rsc-table` size (1 MiB versus 4 KiB; see [`imx95-m7-fb-memory.md`](imx95-m7-fb-memory.md#7-interaction-with-linuxs-reserved-memory) and [`imx95-m7-rproc-load.md`](imx95-m7-rproc-load.md)). That is a board matter outside this study | not resolved here |
+| The `0x80000000-0x8FFFFFFF` bytes outside those nodes (the rest of the first 256 MiB; a Toradex patch summary says the first 256 MB of SDRAM is "reserved for Cortex-M7 firmware", summary text only) are **not** carved out in K, so they sit inside `linux_cma`'s range. That includes the 1 MiB gap `0x88120000-0x8821FFFF` between `vdevbuffer`'s end and `rsc_table` | read from source (node list of K); the consequence and the gap arithmetic are inferred; the 256 MB remark was not read in full |
+| Linux `imx_rproc` loads ELF segments only into addresses it can map: the TCM windows, and memory-regions whose node name does not start with `vdev` (`m7_reserved`, `rsc_table`). A DDR address outside those fails with "bad phdr da" | read from source ([`imx95-m7-rproc-load.md`](imx95-m7-rproc-load.md): L `imx_rproc.c:765-844`; `drivers/remoteproc/imx_rproc.c` is identical at T and K, 2026-11-28); Toradex user report of `bad phdr da 0x90000000` is consistent (inferred) |
+| This repository's earlier snapshot of the live board and the source disagree on the `rsc-table` size (1 MiB versus 4 KiB; see [`imx95-m7-fb-memory.md`](imx95-m7-fb-memory.md#7-interaction-with-linuxs-reserved-memory) and [`imx95-m7-rproc-load.md`](imx95-m7-rproc-load.md)). K, the 7.8.0 source, has 4 KiB, so if the snapshot's 1 MiB holds, something after the kernel build (U-Boot fixup, overlay or a different DTB) changes the running DT | read from source (K size); the explanation is inferred; not resolved here (a board matter) |
 
 Reading (**inferred**): the only DDR the Verdin DT gives the M7 for code and
-data is the 16 MiB `m7_reserved` at `0x80000000`, plus the vdev/rsc region at
-`0x88000000-0x88220FFF` that is reserved for rpmsg. Zephyr's `m7/ddr` board
+data is the 16 MiB `m7_reserved` at `0x80000000`, plus the vdev carveouts at
+`0x88000000-0x8811FFFF` and the `rsc_table` at `0x88220000-0x88220FFF`, which
+are reserved for rpmsg. Zephyr's `m7/ddr` board
 claims 42 MiB at `0x80000000` (section 1.1); the 26 MiB beyond `m7_reserved`
 lies in `linux_cma`'s range, so that board's window is too large for this DT.
 
@@ -242,15 +245,14 @@ What that needs (all **inferred**; none of it was tried or built):
 | `CONFIG_DPU_FB_NUM=0` so the stock driver allocates none, and the application hands the driver its own full-screen, x=0, y=0, 32-byte-aligned, matching-pitch buffers (the zero-copy path, section 1.1). If the build rejects a zero-length array, the alternative is a small out-of-tree driver change | application `prj.conf` | otherwise the driver's static arrays (8,192,000 B) stay in DTCM, which cannot hold them (section 4). Kconfig allows `0`; the zero-length array compiling is unverified |
 | Either the nocache attribute above, or `sys_cache_data_flush_range()` of the frame before each commit | application | the stock driver does no cache maintenance (section 1.1); the costs are not measured ([`imx95-m7-fb-memory.md`](imx95-m7-fb-memory.md#5-flush-before-commit-versus-a-nocache-region)) |
 | MPU: the generic v7-M code programs the chosen `zephyr,sram` and flash regions, and rounds sizes up to a power of two. A 16 MiB region at `0x80000000` is already a power of two, so it fits without rounding; a 7.813 MiB sub-range would round up to 8 MiB at an 8 MiB-aligned base, which `0x80000000` satisfies | board / MPU | per [`imx95-m7-fb-memory.md`](imx95-m7-fb-memory.md#4-what-zephyr-does-for-the-m7s-mpu-and-cache) (read from source there) plus arithmetic |
-| Match the Zephyr `reg` to the Linux carveout. If the Verdin SM config or the live DT differs from section 2 (it was not read), change the address and size here, and in the DT of the board that Linux runs | board DTS and the Linux DT | the carveout is the contract with Linux |
+| Match the Zephyr `reg` to the Linux carveout. If the Verdin SM config or the live DT differs from section 2 (neither was read here; section 2 is the 7.8.0 kernel source), change the address and size here, and in the DT of the board that Linux runs | board DTS and the Linux DT | the carveout is the contract with Linux |
 | A DPU-side check before any claim: that the DPU transactions may read `0x80000000-0x80FFFFFF` under the Verdin SM config. The EVK excerpt (section 3) suggests the A55-owned DPU may not; the answer decides whether Linux must hand the DPU to the M7's logical machine first | SM config (item sm-config-read3) | otherwise the fetch can fault or read zeros |
 
 ## 6. What this study does not establish
 
-- The `SRCREV` of BSP 7.8.0 and the exact `imx95-verdin.dtsi` at it
-  (**not found**; re-tried 2026-11-28, see [Sources](#sources)). `linux-toradex`
-  carries no 7.x release tag; the manifest tag `7.8.0` exists but its content
-  was not read, so section 2's carveouts remain unconfirmed for 7.8.0.
+- That the running board's DT matches source K. Section 2 is confirmed at
+  the 7.8.0 kernel source (2026-11-28), not on the board; the earlier board
+  snapshot's 1 MiB `rsc-table` suggests a later change (**inferred**).
 - Whether the DPU may bus-master into `m7_reserved` under the Verdin SM
   configuration, and whether it can reach any M7MIX address (**not found**).
 - Any figure from the i.MX95 reference manual itself (not public here).
