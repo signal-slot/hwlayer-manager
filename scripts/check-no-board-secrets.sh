@@ -51,6 +51,9 @@
 #   - A YAML step line "uses: owner/repo[/path]@ref" (GitHub Actions) is
 #     skipped as a whole. A line that runs ssh to a host is not.
 #   - "actions/NAME@vN" anywhere (prose in commit messages, for example).
+#   - Display-mode strings: "WxH@Hz", "WxH@R" and "<digits>x<digits>@<digits>[.<digits>]"
+#     (1920x1080@60, 1280x720@59.94). Only a user part that is a mode spec and
+#     a host part that is a rate match; "root@board7" is still flagged.
 #   - Literal placeholders: "user@host", "repo@commit", "repo@pin", "a@b.c", and any @example.com,
 #     @example.org, @example.net, @example.invalid address.
 #   - "name@commit" pins: @ followed only by hex digits ("imx-sm@af1e3702"),
@@ -243,6 +246,7 @@ safe_sed='s#actions/[A-Za-z0-9_.-]+@v[0-9][A-Za-z0-9.]*# #g;
 s#(^|[^A-Za-z0-9_])(user@host|repo@commit|repo@pin)'"$B"'# #g;
 s#[A-Za-z0-9_.-]+@example\.(com|org|net|invalid)# #g;
 s#[A-Za-z0-9_.-]+@b\.c# #g;
+s#(^|[^A-Za-z0-9_.-])(WxH|[0-9]+x[0-9]+)@(Hz|R|[0-9]+(\.[0-9]+)?)'"$B"'#\1 #g;
 s#https?://lore\.kernel\.[A-Za-z0-9./-]*/[^ ]*@[A-Za-z0-9.-]+# #g'
 # Public mailing-list and archive hosts (exact domains; a sub-domain or a
 # longer name does not match). Like shape_sed, not applied to ssh lines.
