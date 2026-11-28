@@ -59,6 +59,8 @@ dependencies.
 | Adversarial event order as a C caller sees it (C program built against the header and the static library; needs `cc` and a nested `cargo build`) | `crates/composition-ffi-staticlib/tests/event_order.rs`, `tests/c/event_order.c` | `cargo test -p composition-ffi-staticlib --test event_order` |
 | Adversarial event order against the C two-plane backend | `backends/twoplane/tests/adversarial.rs`, `tests/c/adversarial_test.c` | `cargo test -p composition-twoplane --test adversarial` |
 | C API smoke tests | `crates/composition-ffi-staticlib/tests/c_api.rs` | `cargo test -p composition-ffi-staticlib --test c_api` |
+| Stateless advisory planner through the C ABI (`ce_advise`, `ce_explain_layer`, `ce_abi_check_advise`: argument checks, error mapping, check callback, deterministic advice) | `crates/composition-ffi/tests/advise.rs` | `cargo test -p composition-ffi --test advise` |
+| `ce_advise` as a C caller sees it (C program built against the header and the static library; needs `cc` and a nested `cargo build`) | `crates/composition-ffi-staticlib/tests/advise.rs`, `tests/c/advise.c` | `cargo test -p composition-ffi-staticlib --test advise` |
 | Pure parsing code of `composition-drm` (IN_FORMATS and modifier blobs, property enums) | **gap**: no fuzz test | none |
 
 ## 3. Hardware integration scenarios

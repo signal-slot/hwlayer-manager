@@ -59,6 +59,8 @@ typedef int32_t ce_status;
 #define CE_ERR_BACKEND_REJECTED (-16)
 #define CE_ERR_SEARCH_LIMIT (-17)
 #define CE_ERR_CANNOT_CLIP (-18)
+/* ce_advise: no plane takes the composition target on this output. */
+#define CE_ERR_NO_COMPOSE_PLANE (-19)
 /* The buffer or submission lifecycle forbids the operation. */
 #define CE_ERR_DUPLICATE_BUFFER (-30)
 #define CE_ERR_BUFFER_TABLE_FULL (-31)
@@ -340,6 +342,127 @@ int32_t ce_poll_event(ce_engine *engine, ce_event *event);
  */
 ce_status ce_set_latch_timeout(ce_engine *engine, uint64_t ticks);
 ce_status ce_advance_time(ce_engine *engine, uint64_t now);
+
+/*
+ * Advisory planning, stateless: which layers can go on planes, which the
+ * caller draws into one composition buffer itself, and why. No engine, no
+ * backend, no buffer registration; nothing is committed and nothing is
+ * remembered between calls. The same input always gives the same advice.
+ *
+ * The composed layers are one contiguous run in stacking order: the caller
+ * renders them into one buffer of the format in ce_compose_target, which
+ * then stands in for the run as one full-output layer. Runs are tried
+ * shortest first, lower first, so as few layers as possible are composed.
+ */
+
+/* ce_layer_advice.placement */
+enum {
+	CE_PLACE_PLANE = 0,   /* on a plane: see assignment */
+	CE_PLACE_COMPOSE = 1, /* drawn by the caller into the composition buffer */
+	CE_PLACE_HIDDEN = 2,  /* entirely off the output */
+};
+
+/* ce_layer_advice.blocker: why a layer is not on a plane */
+enum {
+	CE_BLOCKER_NONE = 0,        /* on a plane, or hidden */
+	CE_BLOCKER_STATIC = 1,      /* no plane can take it alone: see reasons */
+	CE_BLOCKER_COMBINATION = 2, /* fits a plane alone, not with the others */
+	CE_BLOCKER_BACKEND = 3,     /* the check callback refused it */
+	CE_BLOCKER_CLIP = 4,        /* cannot be clipped exactly */
+	CE_BLOCKER_BUDGET = 5,      /* search budget ended first */
+};
+
+/* ce_assignment.layer of the composition target. */
+#define CE_COMPOSE_LAYER 0xFFFFFFFFu
+
+/* The buffer the caller renders the composed layers into. */
+typedef struct ce_compose_target {
+	uint64_t modifier;
+	uint32_t format;
+	uint8_t blend;   /* CE_BLEND_*: the composed result against what is below */
+	uint8_t enabled; /* 0: composition is not allowed */
+} ce_compose_target;
+
+typedef struct ce_advise_options {
+	uint32_t max_steps;          /* planner steps per candidate; 0: default */
+	uint32_t max_backend_checks; /* check calls in total; 0: default */
+	uint32_t max_candidates;     /* candidate runs; 0: default (all) */
+	ce_compose_target compose;
+} ce_advise_options;
+
+typedef struct ce_layer_advice {
+	ce_assignment assignment; /* valid if placement == CE_PLACE_PLANE */
+	uint32_t reasons;         /* CE_REJECT_*, for CE_BLOCKER_STATIC */
+	uint8_t placement;        /* CE_PLACE_* */
+	uint8_t blocker;          /* CE_BLOCKER_* */
+} ce_layer_advice;
+
+typedef struct ce_advice {
+	ce_layer_advice layers[CE_MAX_LAYERS]; /* [0, layer_count), frame order */
+	ce_assignment compose;  /* valid if has_compose; layer is CE_COMPOSE_LAYER */
+	uint32_t layer_count;
+	/*
+	 * The composed run, inclusive, as positions in the stacking order of
+	 * the layers on the output (bottom first, equal z_order in frame order;
+	 * hidden layers have no position). Valid if has_compose.
+	 */
+	uint32_t compose_low;
+	uint32_t compose_high;
+	uint8_t has_compose;
+} ce_advice;
+
+/* Buffer metadata for ce_advise: the caller's own table. */
+typedef struct ce_buffer_entry {
+	uint32_t buffer;
+	ce_buffer_info info;
+} ce_buffer_entry;
+
+/*
+ * Returns true if this header and the library agree on the sizes of the
+ * ce_advise structures. Call it once at start-up with CE_ABI_CHECK_ADVISE().
+ */
+bool ce_abi_check_advise(size_t compose_target, size_t advise_options, size_t layer_advice,
+			 size_t advice, size_t buffer_entry);
+#define CE_ABI_CHECK_ADVISE() \
+	ce_abi_check_advise(sizeof(ce_compose_target), sizeof(ce_advise_options), \
+			    sizeof(ce_layer_advice), sizeof(ce_advice), sizeof(ce_buffer_entry))
+
+/*
+ * Plans frame against caps with the metadata in buffers (the first entry
+ * of a buffer id wins; buffers need not be ready).
+ *
+ * If check is not NULL it is called like ce_backend_ops.check, with ctx,
+ * this frame and each legal assignment (e.g. for a DRM TEST_ONLY commit);
+ * the composition target's assignment has layer == CE_COMPOSE_LAYER, the
+ * other layer indices refer to frame. It returns CE_OK to accept,
+ * CE_ERR_BACKEND_REJECTED to try another assignment; any other value stops
+ * the call and is reported as by ce_present.
+ *
+ * Returns CE_OK and writes *advice in full, or a negative status with
+ * *advice untouched and *info (if not NULL) filled. With compose.enabled
+ * == 0 a frame that does not fit the planes is still CE_OK: every layer on
+ * the output is CE_PLACE_COMPOSE with its blocker and has_compose is 0.
+ * CE_ERR_NO_COMPOSE_PLANE: not even the composition target alone fits a
+ * plane (info->reasons says why, 0 if check refused it).
+ * The library converts caps on the stack (about the size of
+ * ce_capabilities).
+ */
+ce_status ce_advise(const ce_capabilities *caps, const ce_buffer_entry *buffers,
+		    size_t buffer_count, const ce_frame *frame, const ce_advise_options *options,
+		    ce_status (*check)(void *ctx, const ce_frame *frame,
+				       const ce_assignment *assignments, size_t count),
+		    void *ctx, ce_advice *advice, ce_error_info *info);
+
+/*
+ * Per-plane static reasons (CE_REJECT_*) for one layer, without a search:
+ * reasons[i] is what stops the layer on caps->planes[i] taken alone;
+ * entries past plane_count are 0. A layer entirely off the output gets no
+ * reasons. On failure reasons is untouched and *info (if not NULL) says
+ * why, with layer 0.
+ */
+ce_status ce_explain_layer(const ce_capabilities *caps, uint32_t output, const ce_layer *layer,
+			   const ce_buffer_info *buffer, uint32_t reasons[CE_MAX_PLANES],
+			   ce_error_info *info);
 
 #ifdef __cplusplus
 }
