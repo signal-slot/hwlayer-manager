@@ -42,16 +42,24 @@ the executable paths on stdout and runs `file` on them):
 
 ```sh
 git rev-parse --short HEAD                      # record it in the session document
-scripts/cross-aarch64.sh --locked -p composition-drm --example twoplane --example plane_commit
-# the two paths printed, normally
+scripts/cross-aarch64.sh --locked -p composition-drm --example twoplane --example plane_commit --example props
+# the three paths printed, normally
 #   target/aarch64-unknown-linux-musl/release/examples/twoplane
 #   target/aarch64-unknown-linux-musl/release/examples/plane_commit
+#   target/aarch64-unknown-linux-musl/release/examples/props
 ```
 
-If the plane-commit-pattern item has merged (a new orientation pattern in
-`plane_commit`), build from that commit: the `EXPECT` lines and the pattern
-description in `crates/composition-drm/examples/plane_commit.rs` then replace
-the bar generator of section 4. Do not copy that description here.
+`props` only reads (its header says it never sets a property or commits and
+needs no DRM master). It is built to read each plane's `zpos`,
+`COLOR_ENCODING` and `COLOR_RANGE` values, which the NV12 and quadrant cases
+below need recorded (read from source: `examples/props.rs`).
+
+The `plane_commit` of main has a `pattern=quadrants` layer option and prints
+`EXPECT` lines for it (read from source: the header of
+`crates/composition-drm/examples/plane_commit.rs`). Section 4 uses it for the
+orientation cases; the bar generator below stays for the `bars` default. Do
+not copy the pattern description here. Build from main, or any commit that has
+the option, and record the commit.
 
 Session variables (a scratch directory on the host, not in the repository):
 
@@ -108,8 +116,8 @@ Copy (before the lease; nothing is stopped yet):
 
 ```sh
 ssh $BOARD "mkdir -p $DIR"
-scp $EX/twoplane $EX/plane_commit $BOARD:$DIR/
-ssh $BOARD "chmod +x $DIR/twoplane $DIR/plane_commit; ls -l $DIR"
+scp $EX/twoplane $EX/plane_commit $EX/props $BOARD:$DIR/
+ssh $BOARD "chmod +x $DIR/twoplane $DIR/plane_commit $DIR/props; ls -l $DIR"
 ```
 
 State before (read only; keep the output in `$OUT/state-before.txt`). Record
@@ -122,6 +130,7 @@ ssh $BOARD 'uname -r; systemctl is-active weston-graphical-session seatd-weston;
   grep -E "transfer_error|fifo_underrun" /sys/kernel/debug/dri/0/state;
   grep -E "^plane\[|allocated by|fb=|crtc=" /sys/kernel/debug/dri/0/state | head -40;
   ls /dev/dri' | tee "$OUT/state-before.txt"
+ssh $BOARD "$DIR/props /dev/dri/card0" > "$OUT/props-before.txt"   # read only; plane zpos, COLOR_ENCODING, COLOR_RANGE
 ```
 
 Expected before: `active` twice, plane 34 `allocated by = weston`.
@@ -155,10 +164,11 @@ anything else. Do not reboot.
 
 ## 3. Part 1, Q1: twoplane pixel colours
 
-Three runs, each `/tmp/mp257-session-c/twoplane /dev/dri/card0 ...`
-(options read from `crates/composition-drm/examples/twoplane.rs`). The log of
+Two runs, each `/tmp/mp257-session-c/twoplane /dev/dri/card0 ...`
+(options read from `crates/composition-drm/examples/twoplane.rs`: the device
+is the positional argument, then `--frames`, `--swap-z`, `--plane-alpha`). The log of
 each run is needed: it holds the `EXPECT` lines. Order matters only for the
-KVM lease: all three are short.
+KVM lease: both are short.
 
 | Run | Command | Pictures | Phases |
 |---|---|---|---|
@@ -270,7 +280,7 @@ pass) and are inferred from the Q2 CRC measurements. Read them as follows:
   `#807f80`/`#901090`), that contradicts Q2 and must be reported as such:
   say which colour was measured and keep the CRC evidence of session A next
   to it.
-- Q1 is judged **per run, per phase**: three verdict lines for Q1a
+- Q1 is judged **per run, per phase**: three verdict lines: Q1a
   (normal, swapped) and Q1b, each with its picture file.
 
 `twoplane --blend coverage` cannot test the straight-alpha profile: the
@@ -378,11 +388,12 @@ RECOVER commit.
 
 Orientation: the bars are the same in every row, so reflect-y and rotation 0
 look the same, and reflect-x, 180 and reflect-x+reflect-y look the same
-(session B). Until the plane-commit-pattern item's orientation pattern is
-built in, **reflect-y can only be judged as "no defect, unchanged", not as
-"flipped"**. If that pattern has merged and you built from it, take the
-`EXPECT` lines it prints (and its doc comment for the pattern) in place of the
-bar generator below, and add reflect-y to the verdicts as flipped or not.
+(session B). With the bars, **reflect-y can only be judged as "no defect,
+unchanged", not as "flipped"**. The `pattern=quadrants` layer option of
+`plane_commit` (four colours, one per quadrant: top left red, top right
+green, bottom left blue, bottom right white; read from source) gives every
+flip a different picture, reflect-y included. Run the quadrant cases of
+section 4.1 as well, and add reflect-y to the verdicts as flipped or not.
 
 EXPECT files for the bars (host, no lease), using `$OUT/bars-expect.py` of
 section 1. The coordinates are the layer's `dst`. The strip `0 0 1920 216`
@@ -427,10 +438,93 @@ ssh $BOARD 'grep -E "transfer_error|fifo_underrun" /sys/kernel/debug/dri/0/state
 and record `fifo_underrun_warning` for the scaled cases (session A: the
 warning counts grow only while a scaled layer is shown).
 
-NV12 colours: what the rounding of the BT.601 conversion should give is for
-the ltdc-yuv-source item (`docs/stm32mp257-ltdc-yuv-source.md`). Compare its
-expected colours with the measured distances once it has merged; until then
-the verdict is against the plain bar colours at tolerance 40.
+NV12 colours: the source baseline is
+[`stm32mp257-ltdc-yuv-source.md`](stm32mp257-ltdc-yuv-source.md) (read from
+source: the driver honours `COLOR_ENCODING` and `COLOR_RANGE`, defaults BT.601
+limited range; the rounding is inferred, expect +-1 to +-2). Take the two
+property values from `$OUT/props-before.txt` (plane 42) and write them in
+the session document next to the NV12 verdict; `plane_commit` sets neither.
+The verdict is against the plain bar colours at tolerance 40, and the
+measured distances are compared with that baseline.
+
+### 4.1 Quadrant cases (orientation of every flip)
+
+`pattern=quadrants` is added to a layer spec. Its `EXPECT` lines are written
+by `plane_commit` itself into its log, in the format
+`scripts/twoplane-expect.py` reads (phase `commit`), so no generator is needed:
+
+```sh
+Q=,pattern=quadrants
+run_case q6-oRYq  "--layer plane=34,format=XR24,src=1920x1080,dst=0,0,1920x1080$Q --layer $O$Q,rotation=reflect-y"
+# the same for rotation=reflect-x, rotation=reflect-x+reflect-y and 180 on the overlay,
+# and for the primary alone (rotation=... on plane 34, no overlay)
+scripts/twoplane-expect.py $OUT/q6-oRYq/plane_commit.log --out $OUT/q6-oRYq    # expect-commit.json
+python3 scripts/camera-check.py $OUT/q6-oRYq/g1.png $OUT/q6-oRYq/expect-commit.json --rotation 0 --panel full
+```
+
+Caveats (read from source, the `plane_commit.rs` header):
+
+- A sample is dropped when another layer with a higher, equal or unknown
+  `zpos` covers it. Give each layer its `zpos=N` from `$OUT/props-before.txt`
+  (a value the plane refuses is an errno, which is an answer) or use one
+  quadrant layer on its own; otherwise a layer under or over another gets
+  no samples.
+- A layer with `alpha` below 65535 gets `skipped reason=plane-alpha`, and a
+  `bars` layer gets `skipped reason=bars-pattern`; `twoplane-expect.py` then
+  writes no `commit` file. For a quadrant check use full alpha, and no bars
+  layer in the same request (the primary may be a quadrant layer too).
+- The sample position after a rotation is computed with an assumed order
+  (scale, turn counter-clockwise, reflect) that matters only for 90 and 270,
+  which this runbook never commits. For 0, 180 and the reflections it is
+  independent of that order.
+- For NV12 with quadrants, the `rgb` of an `EXPECT` line is the source
+  colour; the converted colour is judged with the baseline above.
+
+### 4.2 Taking the KVM frame with `scripts/picture-hook.sh`
+
+`scripts/picture-hook.sh` (see `scripts/picture-hook-README.md`) is the hook of
+`board-scenarios.sh --hook`, and it also works by hand: `picture-hook.sh ROW
+PHASE` takes one KVM frame with the command in `PICTURE_CAPTURE` (called as
+`$PICTURE_CAPTURE OUTFILE`; the KVM lease provides it, so it is typed at the
+terminal and written in no file) and judges it with `camera-check.py` against
+`$PICTURE_EXPECT_DIR/ROW.json`, if that file exists. It writes
+`$PICTURE_DIR/pictures.log` with one line per picture (`ROW PHASE UTC-TIME FILE
+VERDICT`), and the camera-check output beside the PNG. The log time is host
+UTC. The hook calls camera-check without options, so the EXPECT file must
+carry its own panel: `twoplane-expect.py` and `bars-expect.py` write the full
+screen, which is right for KVM frames.
+
+For the grabs of a case, name the grab phases in `PICTURE_ON_PHASES`, so that
+each call takes its picture at once, and call the hook at the clock times of
+section 4:
+
+```sh
+export PICTURE_CAPTURE='<capture command from the lease>'   # typed at the terminal only
+export PICTURE_DIR=$OUT/pictures PICTURE_EXPECT_DIR=$OUT/expect
+export PICTURE_ON_PHASES="g1 g2 g3"
+mkdir -p $PICTURE_EXPECT_DIR
+cp $OUT/q6-oRYq/expect-commit.json $PICTURE_EXPECT_DIR/q6-oRYq.json
+run_case q6-oRYq "..."                  # as above
+sleep 3; sh scripts/picture-hook.sh q6-oRYq g1
+sleep 2; sh scripts/picture-hook.sh q6-oRYq g2
+sleep 2; sh scripts/picture-hook.sh q6-oRYq g3
+wait; cat $PICTURE_DIR/pictures.log
+```
+
+Limits: one EXPECT file per ROW, so a case that is judged against two files
+(primary and overlay) uses the hook only for the capture and is then judged
+with the camera-check calls of section 4; or give each file its own ROW name
+and take one picture per ROW. The picture counter is shared across rows, so
+call the hook one case at a time. `hold-start`/`hold-end` (the delayed picture
+with `PICTURE_DELAY`) are meant for `board-scenarios.sh`; by hand the grab
+phases above are simpler. Exit status 1 is a failed capture or a FAIL verdict,
+2 an environment error. If the capture fails, `pictures.log` holds
+`capture failed (status N)`: that is the error text to record (section 5).
+
+A helper `scripts/ltdc-picture-expect.py` may be added by a parallel item to
+write EXPECT files for the transform, NV12 and plane-34 scaling cases. It is
+not on main when this runbook is written, so nothing above uses it; use it
+only after checking that it exists.
 
 ## 5. Recording rules
 
