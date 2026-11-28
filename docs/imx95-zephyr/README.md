@@ -47,3 +47,32 @@ and what could not be read.
 A snapshot says what the board does today. It does not say who could own the
 DPU under a different System Manager configuration; that comes from source
 reading and is in the feasibility document, not here.
+
+## How these are made and read
+
+Tools that make and read the snapshots:
+
+- [`scripts/imx95-observe.sh`](../../scripts/imx95-observe.sh): the read-only
+  board snapshot script that produces files of this kind.
+- [`scripts/imx95-observe-summary.py`](../../scripts/imx95-observe-summary.py):
+  turns a snapshot into a short ownership table.
+- [`docs/imx95-m7-runbook.md`](../imx95-m7-runbook.md): how a board session
+  uses the scripts.
+- [`docs/imx95-zephyr-feasibility.md`](../imx95-zephyr-feasibility.md): the
+  feasibility document that reads the snapshots together with the source
+  studies.
+
+Docs that cite these snapshots:
+
+- [`docs/glossary.md`](../glossary.md)
+- [`docs/imx95-display-power.md`](../imx95-display-power.md)
+- [`docs/imx95-m7-fb-memory.md`](../imx95-m7-fb-memory.md)
+- [`docs/imx95-m7-ldb-driver.md`](../imx95-m7-ldb-driver.md)
+- [`docs/imx95-m7-reduced-scope.md`](../imx95-m7-reduced-scope.md)
+- [`docs/imx95-m7-rpmsg-log.md`](../imx95-m7-rpmsg-log.md)
+- [`docs/imx95-m7-rproc-load.md`](../imx95-m7-rproc-load.md)
+- [`docs/open-issues.md`](../open-issues.md)
+- [`docs/sow-traceability.md`](../sow-traceability.md)
+- [`docs/wp5-evidence.md`](../wp5-evidence.md)
+
+No `summary-*.md` file exists in this directory on this tip, so none is linked.
