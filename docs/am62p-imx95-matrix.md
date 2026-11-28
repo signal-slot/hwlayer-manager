@@ -1,5 +1,7 @@
 # AM62P and i.MX95: difference matrix (WP4, from recorded docs)
 
+> **Two matrices, one scope (WP4).** This file is the longer, sectioned form of the AM62P vs i.MX95 matrix, written from the documents on 2026-11-28 before the i.MX95 board observations were merged. [`wp4-difference-matrix.md`](wp4-difference-matrix.md) is the compact one-table form with per-cell tags and dates, and it carries those observations. Where the two disagree, `wp4-difference-matrix.md` lists the differences under "Known differences between the two matrices"; neither file is the winner.
+
 This page compares the TI AM62P and the NXP i.MX95 using **only what other files of this repository record**. It adds no finding. It was written on 2026-11-28 from the documents at the commit this file was added in. Nothing here was measured by this page, and no device was used.
 
 Every cell carries a tag and the document it comes from. Tags are those of the source, carried over unchanged:

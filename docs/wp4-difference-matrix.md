@@ -2,6 +2,8 @@
 
 > SoW.md §8 WP4: "Contrast the AM62P pipeline with i.MX95 and document which constraints are truly generic."
 
+> **Two matrices, one scope (WP4).** This file is the compact, one-table form of the matrix: each cell carries its own tag and date, and the i.MX95 column includes the read-only observations of 2026-11-27 and 2026-11-28. [`am62p-imx95-matrix.md`](am62p-imx95-matrix.md) is the longer, sectioned form (Linux DRM side, MCU / Zephyr side, `backends/twoplane` per SoC, lease and Weston coexistence) and was written from the documents before those observations were merged. Read both; see "Known differences between the two matrices" at the end of this file where they disagree.
+
 Draft written 2026-11-28 from documents already merged in this repository. It adds no finding, uses no device and read no document outside the repository. Nothing here is a claim toward M1, M2 or M3, and no cell is taken from one SoC to fill the other.
 
 ## Tags and sources
@@ -40,3 +42,19 @@ Files used: `docs/platform-capabilities.md`, `docs/twoplane-backend.md`, `docs/i
 2. i.MX95: the board's SM config (and whether the Linux side may start the M7) is still open in `docs/imx95-zephyr-feasibility.md`; the M7 rows will change once it is read.
 3. Any observed value on the AM62P, and any Zephyr-side measurement on the i.MX95.
 4. `docs/am62p-imx95-matrix.md` already holds an earlier comparison with its own tag scheme; the two documents overlap and the planner may want to merge or cross-link them. Neither was changed to do so.
+
+## Known differences between the two matrices
+
+Listed on 2026-11-28 after reading both files. No winner is chosen and no cell of either file was changed. The i.MX95 display-owner and M7-start cells are left out on purpose: a separate item refreshes them after the M7 run.
+
+| Cell | This file | [`am62p-imx95-matrix.md`](am62p-imx95-matrix.md) |
+| --- | --- | --- |
+| Whether any cell is observed | i.MX95 cells tagged observed (2026-11-27, 2026-11-28); no AM62P cell observed | "No cell below has this tag"; nothing observed on either SoC |
+| i.MX95 CRTCs, encoder, connector | 2 CRTCs, 1 encoder, 1 LVDS connector wired to CRTC 39 only (observed 2026-11-28) | 2 CRTCs, one encoder each (source); the Verdin panel's LDB channel, CRTC and connector "not read" |
+| i.MX95 plane count and formats | 7 planes, 6 usable on the LVDS output; formats, zpos and alpha observed 2026-11-28 | The same figures tagged source; at most 6 active across both CRTCs |
+| VScaler4 and silicon revision | VScaler4 used on this revision 2.0 SoC (inferred) | The board's revision "is not known" |
+| i.MX95 interrupts to the M7 | Unknown; `/proc/interrupts` not read | Not recorded |
+| i.MX95 firmware and SCMI | System Manager SCMI v2.1, firmware 0x23e, protocol list (observed 2026-11-27) | Only that clocks and power come from SCMI (source) |
+| i.MX95 scanout memory | CMA range, reserved regions and M7 DDR overlap given | i.MX95 memory values "not recorded" |
+| i.MX95 `imx-rproc` state | `offline`, no firmware name (observed 2026-11-27) | Not recorded |
+| Engine backend, i.MX95 | `backends/twoplane` would need a DPU port (inferred); no i.MX95 Zephyr backend | The demo firmware fills the twoplane table for the i.MX 95 DPU (`TP`); not in this repository |
