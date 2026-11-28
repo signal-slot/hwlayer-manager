@@ -4,10 +4,12 @@ Written 2026-11-28 for plan #470 item `weston-lease-src-read`. Companion to
 `docs/weston-release-read.md` (plane assignment) and `docs/weston-imx-lease.md`
 (NXP and AGL lease search). Neither file is edited here.
 
-## 0. Status: the Weston tree was not fetched for this item
+## 0. Status: only the 12.0.5 tree could be fetched
 
 The item asked for a clone of `gitlab.freedesktop.org/wayland/weston` at a
-release tag and a read of its DRM lease support. **That read did not happen.**
+release tag and a read of its DRM lease support. At first **no clone was
+possible**; later one was (section 0a), so `12.0.5` is read first hand and
+`16.0.2` is not.
 
 - `git ls-remote --tags` on the Weston URL worked on 2026-11-28 and gave the
   tag list in section 1.
@@ -30,6 +32,26 @@ is stated comes from three places, each tagged:
 
 Nothing in this item touched a board.
 
+### 0a. Update: tag 12.0.5 was then read (2026-11-28)
+
+After the permission layer allowed one clone, `git clone --depth 1 --branch
+12.0.5` of the Weston URL succeeded (checkout `3d2cd9978c68c6338e902e9369266dbe8c4766c3`).
+A second clone for `16.0.2` and a `git fetch` of that tag into the first clone
+were still refused, so `16.0.2` stays "other doc" only. Read in the `12.0.5`
+tree on 2026-11-28:
+
+| # | Finding | Tag |
+|---|---------|-----|
+| T1 | A recursive case-insensitive whole-word search for `lease`, `leases`, `leasing`, `leased`, `drm-lease`, `drm_lease` over the tree (`.git` and `po` excluded) has **no hit** | read from source (2026-11-28, 12.0.5) |
+| T2 | A search for `drm.?lease` and `wp_drm` has **no hit**. So neither `wp_drm_lease_device_v1` nor any `wp_drm_*` name occurs anywhere in the tree | read from source (2026-11-28, 12.0.5) |
+| T3 | `protocol/` holds only Weston's own XML files (`ivi-application`, `ivi-hmi-controller`, `text-cursor-position`, `weston-content-protection`, `weston-debug`, `weston-desktop-shell`, `weston-direct-display`, `weston-output-capture`, `weston-test`, `weston-touch-calibration`) and `meson.build`. No lease XML. `protocol/meson.build:4` takes `wayland-protocols` `>= 1.31` as a dependency | read from source (2026-11-28, 12.0.5) |
+| T4 | `libweston/backend-drm/` has `drm-gbm.c drm-internal.h drm-virtual.c drm.c fb.c kms-color.c kms.c libbacklight.[ch] meson.build modes.c state-helpers.c state-propose.c vaapi-recorder.[ch]`; no lease file | read from source (2026-11-28, 12.0.5) |
+| T5 | The DRM backend reads the connector `non-desktop` property (`kms.c:168`, `modes.c:149-154`) and calls `weston_head_set_non_desktop` (`modes.c:608`). This marks a head; it does not lease anything | read from source (2026-11-28, 12.0.5) |
+| T6 | `meson_options.txt` has 36 `option(` entries; no `lease` word in the file (T1) | read from source (2026-11-28, 12.0.5) |
+
+T1 to T6 confirm K1 for `12.0.5` first hand. `16.0.2` and newer trees were
+not read here.
+
 ## 1. Tag and commit
 
 | Item | Value | Tag |
@@ -47,10 +69,10 @@ second tree, the same two trees as `docs/weston-release-read.md`.
 
 | # | Question | Answer | Tag |
 |---|----------|--------|-----|
-| K1 | Does Weston `12.0.5` or `16.0.2` contain lease code (whole-word search for `lease`, `leases`, `leasing`, `leased`, `drm-lease`, `drm_lease`, `*.po` excluded)? | **No hit in either tree.** So no `wp_drm_lease_device_v1` global, no lease option and no lease-protocol XML in either release | read from source (other doc): `docs/weston-release-read.md` row R1, 2026-11-28, tags `12.0.5` and `16.0.2` |
+| K1 | Does Weston `12.0.5` or `16.0.2` contain lease code (whole-word search for `lease`, `leases`, `leasing`, `leased`, `drm-lease`, `drm_lease`, `*.po` excluded)? | **No hit in either tree.** So no `wp_drm_lease_device_v1` global, no lease option and no lease-protocol XML in either release | read from source (2026-11-28, 12.0.5: T1 to T6); `16.0.2` read from source (other doc): `docs/weston-release-read.md` row R1 |
 | K2 | Does NXP `weston-imx` have lease code? | No, at `weston-imx-12.0.5` (`a29bbd0f…`), `14.0.2` and `15.0.1` | read from source (other doc): `docs/weston-imx-lease.md` rows S3 to S5 |
 | K3 | What lease support is around Weston? | AGL's `meta-agl-drm-lease` patches add a `--drm-lease=<name>` **client** option to a 13.0.x Weston. It takes an fd from `drm-lease-manager` through `libdlmclient`. `Upstream-Status: Pending` | read from source (other doc): `docs/weston-imx-lease.md` rows S7, S8 |
-| K4 | Is there a `wp_drm_lease_device_v1` implementation in the Weston DRM backend that a lease-source mode would use? | **Not read.** K1 says the string `lease` does not occur in either tree, so the answer for `12.0.5` and `16.0.2` is "no" (inferred from K1). Trees newer than `16.0.2` (`main`) were not searched | inferred (from K1) |
+| K4 | Is there a `wp_drm_lease_device_v1` implementation in the Weston DRM backend that a lease-source mode would use? | K1 and T2 say the string `lease` and any `wp_drm*` name do not occur in `12.0.5` (and, per the other doc, not in `16.0.2`), so the answer for both is "no" (inferred from K1). Trees newer than `16.0.2` (`main`) were not searched | inferred (from K1) |
 | K5 | Which libweston version introduced it? | **Not established.** K1 says it is not in `12.0.5` or `16.0.2`; if it exists at all it is in an unreleased tree or on a branch not searched. No version is given here, so none can be quoted | not read |
 | K6 | The meson option that enables it? | **Not established**, same reason as K5. Do not use a name from memory | not read |
 | K7 | The `weston.ini` connector lease keys? | **Not established**, same reason. `docs/weston-release-read.md` and `docs/weston-imx-lease.md` found no lease key in `12.0.5`, `16.0.2` or `weston-imx` | not read |
