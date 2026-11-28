@@ -169,10 +169,10 @@ file name or heading.
 
 | Output | Destination | Tag |
 |---|---|---|
-| before and after snapshots | a dated file under `docs/imx95-zephyr/` (for example `observed-<date>.txt`, as the existing observation items do), not into [imx95-board.md](imx95-board.md) | observed, with date |
-| `start` and `stop` output, dmesg lines of the run, the M7 log | the same dated file, as a separate section | observed, with date |
-| conclusions (what the M7 could or could not do) | [imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md) with a date and a pointer to the dated file | observed or inferred, as it is |
-| anything about display ownership or latch timing | [imx95-linux-zephyr-compare.md](imx95-linux-zephyr-compare.md) or [m2-linux-zephyr-comparison.md](m2-linux-zephyr-comparison.md) only if a comparison was actually run | observed, with date |
+| before and after snapshots | a dated file under `docs/imx95-zephyr/` (for example `observed-2026-11-27.txt`, as the existing observation items do), not into [imx95-board.md](imx95-board.md) | tag as observed only with the run date |
+| `start` and `stop` output, dmesg lines of the run, the M7 log | the same dated file, as a separate section | tag as observed only with the run date |
+| conclusions (what the M7 could or could not do) | [imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md) with a date and a pointer to the dated file | tag as observed (with the run date) or inferred, as it is |
+| anything about display ownership or latch timing | [imx95-linux-zephyr-compare.md](imx95-linux-zephyr-compare.md) or [m2-linux-zephyr-comparison.md](m2-linux-zephyr-comparison.md) only if a comparison was actually run | tag as observed only with the run date |
 | new open questions | [open-issues.md](open-issues.md) | inferred |
 
 Before committing, run `scripts/check-no-board-secrets.sh` and
