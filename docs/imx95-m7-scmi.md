@@ -1,7 +1,9 @@
 # i.MX95 M7 under upstream Zephyr: SCMI reach for display clocks and power domains
 
-Source study, 2026-11-28. No board was accessed. Every row is tagged
-**read from source** or **inferred**; nothing here is **observed**.
+Source study, 2026-11-28, reconciled 2026-11-28 against the pinned NXP
+imx-sm reference configuration and the dated board snapshots. No board was
+accessed by this item. Every row is tagged **read from source**, **inferred**
+or, where it quotes a dated snapshot, **observed 2026-11-27**.
 
 ## Question and short answer
 
@@ -131,16 +133,47 @@ Verdin LVDS panel path would need new SoC-init code (LDB clock/parent/rate,
 LDB and DISPLAYMIX blk-ctrl register writes) that upstream does not have. This
 is a gap in upstream, not something this study found working.
 
-## What the SM must grant the M7's logical machine (inferred)
+## Agents, channels and rights the SM actually records
 
-Nothing in the Zephyr tree states these; they follow from the SCMI calls above
-and from how the SM filters requests per agent. They are untested and the
-Toradex SM configuration was not read in this item (see the SM items of the
-plan).
+Reconciliation, 2026-11-28. The pinned SM source is NXP imx-sm
+<https://github.com/nxp-imx/imx-sm/tree/af1e37026c6ba19cdca98fd6e91494efd3e7b5ec>
+(tag `rel_imx_sm_2025q3` = `lf-6.6.52-2.2.2`, commit
+`af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`). This item could not re-fetch it
+(network fetches were refused on the node), so the line numbers below are
+quoted from the notes that read it on 2026-11-28
+([imx95-dpu-scmi-ids.md](imx95-dpu-scmi-ids.md) §2.3 and §3,
+[imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) §3-§4,
+[imx95-sm-display-lm.md](imx95-sm-display-lm.md)); they were not re-checked
+here. Everything from `mx95evk` is NXP's reference configuration, **not** the
+Verdin's: Toradex builds `configs/verdin-imx95.cfg` from its own fork, which
+nobody has read (see [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) §1).
+
+| Statement | Value | Source | Tag |
+|---|---|---|---|
+| Agents in `mx95evk` | LM1 `M7` has `SCMI_AGENT0 "M7"`; LM2 has `SCMI_AGENT1 "AP-S"` (secure, TF-A) and `SCMI_AGENT2 "AP-NS"` (Linux) | imx-sm `configs/mx95evk.cfg` @ `af1e370` l. 358, 483, 552 (via imx95-verdin-sm-config.md §3) | read from source (NXP reference); inferred for Verdin |
+| Per-agent SCMI permission tables | agent 0 "M7" `config_scmi.h:57-63`, agent 1 "AP-S" `:150-156`, agent 2 "AP-NS" `:220-226` | imx-sm `configs/mx95evk/config_scmi.h` @ `af1e370` (via imx95-dpu-scmi-ids.md §2.3) | read from source |
+| M7 agent's channel | the M7 LM owns `MU5_A` (and `MU7_B`, `MU8_B`), consistent with this file's MU5 channel 0 | imx-sm `configs/mx95evk.cfg` @ `af1e370` l. 397-399 (via imx95-sm-display-lm.md) | read from source (NXP reference); the shmem window `0x44611000` is Zephyr's EVK value and is in no SM source read, so it stays inferred |
+| Display clock rights, M7 agent | none: no clock permission for any display clock | `config_scmi.h:57-63` region (via imx95-dpu-scmi-ids.md §2.3) | read from source (NXP reference) |
+| Display clock rights, AP-NS | `SM_SCMI_PERM_ALL` on DISP1PIX/DISP2PIX/DISP3PIX `:244-246`, LDBPLL and LDBPLL_VCO `:264-265`, MIPIPHY clocks `:287-290`, VIDEOPLL1 and VIDEOPLL1_VCO `:308-309` | `config_scmi.h` @ `af1e370` (via imx95-dpu-scmi-ids.md §2.3) | read from source (NXP reference) |
+| `DISPAPB`/`DISPAXI`/`DISPOCRAM` rights | no `clkPerms` entry for any agent | `config_scmi.h` @ `af1e370`, re-read 2026-11-28 by imx95-dpu-scmi-ids.md §2.3 | read from source (NXP reference) |
+| Power-domain rights, DISPLAY (13) and CAMERA (3) | AP-NS `SM_SCMI_PERM_ALL` (`config_scmi.h:452-453`); M7 agent none | `config_scmi.h` @ `af1e370` (via imx95-dpu-scmi-ids.md §3) | read from source (NXP reference) |
+| Linux's own SCMI view | protocol v2.1 vendor `NXP:IMX`, SM firmware version `0x23e`; the Linux SCMI node lists protocols `0x11`, `0x12`, `0x13`, `0x14`, `0x15`, `0x19`, `0x81`, `0x84`, and no `0x82` (CPU) or `0x80` (LMM) node | `docs/imx95-zephyr/observed-2026-11-28.txt` section (d), and `docs/imx95-zephyr/observed-2026-11-27.txt` (`/proc/device-tree/firmware/scmi`) | observed 2026-11-27 |
+| Which agent holds `CPU_M7P` rights | **open.** Candidate A: nobody but LM1 itself, as in `mx95evk` (the only `CPU_M7P` lines are LM1's own, `mx95evk.cfg` 342-354; no line in the AP-S or AP-NS blocks; AP-NS has only `LMM_1 NOTIFY`, l. 587). Candidate B: AP-S or AP-NS, as NXP's `configs/other/mx95evkrpmsg.cfg` grants. The Toradex `verdin-imx95.cfg` would decide and was not read; no pinned source settles it | imx95-verdin-sm-config.md §3-§5 (candidate A at `af1e370`; candidate B named there, file not read) | open |
+
+The observed absence of the vendor CPU/LMM protocols in Linux's SCMI node does
+not settle `CPU_M7P`: it only says Linux does not bind those protocols
+(observed 2026-11-27); it is not an SM rights list.
+
+## What the M7's logical machine would need (inferred)
+
+Nothing in the Zephyr tree states these; they follow from the SCMI calls above.
+They are untested. Where the `mx95evk` reference configuration (table above)
+speaks, it is noted; the Verdin configuration is unread.
 
 1. **A channel.** An SCMI agent for the M7 LM wired to MU5 channel 0 and a
    shared-memory window at `0x44611000` (size 0x80), reachable from the M7 MPU
-   map. Otherwise `scmi_protocol` init fails at boot.
+   map. Otherwise `scmi_protocol` init fails at boot. `mx95evk` gives the M7 LM
+   `MU5_A` (read from source, table above); the window is open.
 2. **Protocol visibility.** Base, power (0x11), clock (0x14) and, for
    `soc_init`'s CPU call, the NXP CPU protocol (0x82). Pin control (0x19) only
    if pinctrl is used. The CPU-domain call (`soc.c:369-377`) comes after the
@@ -148,30 +181,33 @@ plan).
    display clocks were already programmed.
 3. **Power-domain permission on DISPLAY (13) and CAMERA (3).** The M7 LM needs
    power-state set/get rights on both, or `soc_init` returns `-EACCES` and
-   stops. If Linux (A55 LM) already powers them, a second ON request from the
-   M7 is harmless only if the SM allows it; OFF must not be requested from the
+   stops. Under `mx95evk` the M7 agent has none and only AP-NS holds them (read
+   from source, table above), so the DSI `soc_init` path would be denied there
+   (inferred from that table; Verdin open). OFF must not be requested from the
    M7 while Linux uses the display.
 4. **Clock permissions** on VIDEOPLL1_VCO (18), VIDEOPLL1 (19), DISP1PIX (80),
    MIPIPHYPLLBYPASS (67), MIPITESTBYTE (69), plus parent-set and rate-set
-   rights. Shared PLLs mean Linux and the M7 would fight over rates: the SM
-   normally lets only an agent with exclusive ownership change them, so a
-   split-ownership display (Linux keeps a plane, M7 the other) is not
-   expressible by SCMI alone (inferred). For an LVDS panel the equivalent list
-   is the LDB pixel clock and `LDBPLL(_VCO)` (38, 37) plus the DISP pixel
-   clock; their exact IDs on the Toradex SM were not read.
+   rights. Under `mx95evk` only AP-NS holds them (read from source, table
+   above). Shared PLLs mean Linux and the M7 would fight over rates, so a
+   split-ownership display is not expressible by SCMI alone (inferred). For an
+   LVDS panel the list is `LDBPLL_VCO` (37), `LDBPLL` (38) and the DISP pixel
+   clock (IDs in `imx95-dpu-scmi-ids.md` §2, `dev_sm_clock.h` `:105-106`,
+   `:149` per that note; not re-fetched here). The LDB pixel clock itself is
+   the fixed-factor `ldb_pll_div7` on the Linux side, not an SCMI clock ID.
 5. **MMIO access to the display blocks.** SCMI does not grant register access.
-   The resource-protection configuration (RDC/XRDC-style domain assignment in
-   the SM's board configuration) must give the M7's domain access to the DPU
+   The resource-protection configuration (TRDC-style domain assignment in the
+   SM's board configuration) must give the M7's domain access to the DPU
    (`0x4b400000`), DISPLAYMIX blk-ctrl, DPU IRQSTEER (`0x4b0b0000`), and the
    scanout memory, and route the DPU interrupt (NVIC 215 via the M7 DT) to the
-   M7. Without it the first DPU register access faults the M7.
+   M7. Under `mx95evk` the DC, DISPLAYMIX, LVDS, MIPI and VIDEO_PLL1 resources
+   are `OWNER` in AP-NS and the M7 LM lists none (read from source,
+   imx95-sm-display-lm.md, `mx95evk.cfg` @ `af1e370` l. 599, 616-632, 790-794, 878).
 6. **Linux must not own the same resources.** If the A55 LM's DPU/DISPLAYMIX
    and clocks are not released, the SM will deny the M7 (`SCMI_DENIED` =
    `-EACCES`; for clock enable the Zephyr helper then silently returns 0, see
    above).
 
-Items 1 to 6 are the same conclusion the plan's ownership items are meant to
-confirm from the SM sources; treat them as hypotheses until checked there.
+Items 1 to 6 remain hypotheses for the Verdin until `verdin-imx95.cfg` is read.
 
 ## Gaps and risks for the Verdin iMX95 (inferred)
 
@@ -187,6 +223,9 @@ confirm from the SM sources; treat them as hypotheses until checked there.
 
 ## Not done
 
-- No board access, no Toradex SM configuration or `imx-sm` source read here.
+- No board access. The Toradex SM configuration (`verdin-imx95.cfg`) was not
+  read. The imx-sm facts in the reconciliation table are quoted from the other
+  notes' reads at the pin, not re-fetched here.
 - Nothing built or run; the SCMI calls were not exercised.
-- Linux-side SCMI use of the same clock and power IDs was not compared.
+- Linux-side SCMI use of the same clock and power IDs was not compared here;
+  see [imx95-dpu-scmi-ids.md](imx95-dpu-scmi-ids.md).
