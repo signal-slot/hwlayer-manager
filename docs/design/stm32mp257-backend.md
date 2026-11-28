@@ -6,7 +6,7 @@ Status: design only. This note makes no measurement and changes no code.
 
 Every hardware statement carries one tag:
 
-- **observed DATE**: seen on the STM32MP257F-DK in a session recorded in
+- **observed DATE** (a YYYY-MM-DD date, e.g. 2026-11-28): seen on the STM32MP257F-DK in a session recorded in
   [`../observed/stm32mp257-topology.md`](../observed/stm32mp257-topology.md)
   (2026-11-28) or [`../observed/stm32mp257.md`](../observed/stm32mp257.md)
   (2026-11-27, re-run 2026-11-28). Dates are the host clock's.
@@ -82,19 +82,34 @@ with no rejection, plane 49 only 1.0, no downscale anywhere; observed
 
 ## 4. DriverProfile
 
-The observed documents suggest a profile in the `Imx95Dpu` style:
+`DriverProfile::Stm32Ltdc` in `crates/composition-drm/src/profile.rs` claims
+(read from source, 2026-11-28, of that file):
 
-- scaling: upscale only (`max_downscale = 1.0`); the upper bound comes from
-  measurement or the reference manual, not a guess (2x is a lower bound);
-- blend: premultiplied only, which composition-drm already reports; an ARGB
-  overlay that must ignore alpha needs an XRGB buffer;
+- scaling: the primary plane and the first overlay (by kind and order) get
+  upscale only (`max_downscale = 1.0`, `max_upscale` a nominal 1080x, not a
+  measured bound); later overlays and the cursor get no scaling claim, so a
+  scaled layer on them is refused (`NoPlane SCALING`). Evidence: plane 42
+  upscales to the mode size, plane 49 does not scale, nothing downscales
+  (observed 2026-11-27, session A, Q3 in
+  [`../stm32mp257-ltdc-session-2026-11-28.md`](../stm32mp257-ltdc-session-2026-11-28.md)).
+  The primary's scaling was not probed in sessions A and B (inferred from
+  the layer-0 register fact);
+- blend: **straight (coverage) alpha** on every non-cursor plane, replacing
+  the generic "premultiplied" the library reports when the property is
+  absent (commit `ca5393a`). The planner therefore refuses premultiplied
+  layers on these planes. Evidence: the output CRC on plane 42 (AR24) fits
+  pixel alpha times plane alpha as straight alpha (observed 2026-11-27; the
+  formula is inferred). Planes 34 and 49 are **assumed** the same
+  (inferred); no picture confirms any of it. An ARGB overlay that must
+  ignore alpha still needs an XRGB buffer (inferred: no blend-mode property
+  exists to select "none");
 - no rule for plane 49 lacking YUV (the format lists carry it);
-- transforms are not a profile matter.
+- transforms are not claimed.
 
-State at this commit: `crates/composition-drm/src/profile.rs` already has
-`DriverProfile::Stm32Ltdc`, built on the later measurements. It belongs to
-the `drm-profiles` item and this note does not change it. Two design points
-for that item:
+State at this commit: the profile above is in the tree, built on the
+session A and B measurements. The recommended transform claims (reflect-x on
+plane 42 only, nothing on the primary, never 90/270) are not applied yet.
+Two design points:
 
 - Which overlay has a scaler is a register fact, seen on one board (layers 0
   and 1; inferred for others). Planes should be identified by kind and order,
@@ -147,33 +162,57 @@ The console and reset are away: a session is ssh only and must not reboot,
 touch boot media or U-Boot. Weston holds DRM master and is stopped only for
 the run and restored afterwards (this worked on 2026-11-27).
 
-1. **Pixel colours.** With a working KVM: screenshots in both `--swap-z`
-   phases (about 2 s and 7 s of a 600-frame run) and with `--plane-alpha
-   32768`, compared with the `EXPECT` lines.
-2. **Premultiplied or straight alpha.** No blend-mode property exists; the
-   translucent-overlay colours decide it. Needs the KVM.
-3. **Scaling upper bound and quality.** Confirm the later per-plane results
-   independently; look beyond the mode size, at picture quality, and at
-   underrun with a scaled overlay over a full-screen primary under load.
+Sessions A and B are in
+[`../stm32mp257-ltdc-session-2026-11-28.md`](../stm32mp257-ltdc-session-2026-11-28.md)
+(summary table at its end). Each question below is **answered** or **open**.
+
+1. **Pixel colours.** Status: **open**. No picture exists; the KVM session
+   (session C) is pending. Wanted: screenshots in both `--swap-z` phases
+   (about 2 s and 7 s of a 600-frame run) and with `--plane-alpha 32768`,
+   compared with the `EXPECT` lines.
+2. **Premultiplied or straight alpha.** Status: **answered**. Straight alpha
+   on plane 42, pixel alpha times plane alpha, from the output CRC (observed
+   2026-11-27; the formula is inferred). See
+   [Q2](../stm32mp257-ltdc-session-2026-11-28.md#q2-premultiplied-or-straight-alpha).
+3. **Scaling upper bound and quality.** Status: **answered**. Plane 42
+   upscales to the mode size, plane 49 does not scale, nothing downscales,
+   the scaler filters, underrun warnings only while a scaled layer is shown
+   (observed 2026-11-27); plane 34 was not probed. See
+   [Q3](../stm32mp257-ltdc-session-2026-11-28.md#q3-scaling-bounds-quality-and-underrun).
 4. **Scaler layers on other MP25 variants or firewall settings** (register
-   fact, one board seen).
-5. **Writing zpos.** A commit with crossed zpos on fixed planes.
-6. **Rotation.** Whether 90/270 can work on this image at all (rotator on
-   MP255 only, `rotation-memory` needed, other layers excluded; source).
-   Whether 180 and reflections work through a composition-drm transform
-   feature. Whether the post-TEST_ONLY failure really leaves the display
-   stopped.
-7. **Underrun under load.** Three planes, a scaled layer, maximum buffers;
-   read `fifo underrun` in the kernel log and the CRTC counters.
-8. **Other outputs.** Only HDMI through the KVM was seen. Whether LVDS or DSI
-   routes exist here is open; source creates a DPI encoder but checks for
-   LVDS in the mode check (inferred route question).
-9. **C8 and YUV.** Whether to map C8 and the CLUT, and whether NV12 on plane
-   42 works through the same buffer path (not run).
-10. **Source gap.** Source rows come from the ST v6.18 tree, the board runs
-    6.6.129; diff before treating source rows as describing the board.
-11. **Clock.** The board clock was not NTP-synchronised; record host time for
-    every run.
+   fact, one board seen). Status: **open**. Missing: a reading from ST source
+   or public documents; pending.
+5. **Writing zpos.** Status: **answered**. Crossed zpos passes TEST_ONLY and
+   commits and the hardware follows it (observed 2026-11-27). See
+   [Q5](../stm32mp257-ltdc-session-2026-11-28.md#q5-writing-zpos-crossed-values-on-the-fixed-planes).
+6. **Rotation.** Status: **open**. Seen so far (observed 2026-11-27, see
+   [Q6](../stm32mp257-ltdc-session-2026-11-28.md#q6-rotation-180-and-reflections)):
+   overlay reflect-x and reflect-y accepted, `rotate-180/90/270` EINVAL;
+   primary 180 and reflections commit, 90/270 pass TEST_ONLY; primary
+   reflect-x/180 and overlay reflect-x+reflect-y give an unstable CRC.
+   Missing: the effect in a picture, plane 49 (not tested), and whether a
+   failure after a passing TEST_ONLY leaves the display stopped (none seen).
+7. **Underrun under load.** Status: **answered**. No `fifo_underrun_error` or
+   `transfer_error` under CPU and memory load with three planes and a scaled
+   layer; warnings only with scaling (observed 2026-11-27). See
+   [Q7](../stm32mp257-ltdc-session-2026-11-28.md#q7-underrun-under-load).
+8. **Other outputs.** Status: **open**. Only HDMI through the KVM was seen.
+   Missing: whether LVDS or DSI routes exist on this image; source creates a
+   DPI encoder but checks for LVDS in the mode check (inferred). Pending.
+9. **C8 and YUV.** Status: **answered**. NV12 commits on plane 42 at 1:1 and
+   is scanned out, refused on plane 49 and when scaled; C8 is offered on all
+   three planes, not tried (observed 2026-11-27; NV12 colours not judged).
+   See
+   [Q9](../stm32mp257-ltdc-session-2026-11-28.md#q9-nv12-on-plane-42-and-c8).
+10. **Source gap.** Status: **answered**. The 6.6 plane path matches the 6.18
+    rows except compatible strings and minor items; the board kernel is
+    probably older than the 6.6 tip read (read from source, observed
+    2026-11-27, inferred). See
+    [Q10](../stm32mp257-ltdc-session-2026-11-28.md#q10-st-v618-source-rows-against-the-boards-66129).
+11. **Clock.** Status: **answered**. The board clock is not NTP-synchronised;
+    sessions A and B recorded host UTC for every run (observed 2026-11-27).
+    See
+    [conditions](../stm32mp257-ltdc-session-2026-11-28.md#tags-clock-and-conditions).
 
 ## 8. Not done here
 
