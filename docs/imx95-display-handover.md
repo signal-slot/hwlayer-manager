@@ -1,12 +1,15 @@
 # i.MX95: ways to hand the display from Linux to the M7, against the board rules
 
 Date: 2026-11-28. Scope: SoW §5.1 / §9 M2 (WP3). Source study. **No board was
-accessed and nothing was observed, built or run.** Every finding is tagged
+accessed for this note and nothing was built or run.** Every finding is tagged
 **read from source** (content fetched and seen at the pin in §1) or
-**inferred** (my reasoning from it). Two tags carry a qualifier:
+**inferred** (my reasoning from it). Three tags carry a qualifier:
 "read from source (secondary)" is a Toradex community post, not BSP source,
-and "read from source (other doc)" is a fact taken from a sibling note that
-cites its own pin. No board addresses, host names or credentials appear.
+"read from source (other doc)" is a fact taken from a sibling note that
+cites its own pin, and "observed 2026-11-27" is a fact seen on the board in
+the read-only snapshots [observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt)
+(S1) and [observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt) (S2),
+which this note cites but did not take. No board addresses, host names or credentials appear.
 
 Read first: [imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md) (it is
 not edited here). This note extends its §4 ("instead of Linux") and replaces an
@@ -25,7 +28,7 @@ earlier desk version of this file that rested only on sibling notes. Related:
 |---|---|---|---|
 | LX | NXP linux-imx, <https://github.com/nxp-imx/linux-imx> | tag `lf-6.6.52-2.2.2` = commit `5a0a5e71d2bd` (as recorded in the feasibility note, S6; not re-resolved here). On 2026-11-28 the GitHub API showed the tag as an annotated tag object `f9a8e33f5cde3e96a57569e9dfa70481fe688943`; its target commit was not fetched | raw files at the tag: `drivers/gpu/drm/imx/dpu95/dpu95-drv.c` (241 lines), `dpu95-kms.c`, `drivers/gpu/drm/bridge/imx/imx95-ldb.c` (541 lines), `drivers/of/platform.c`, `drivers/of/Kconfig` |
 | MK | NXP imx-mkimage, <https://github.com/nxp-imx/imx-mkimage> | tag `lf-6.6.52-2.2.2` = commit `81fca6434be0` (feasibility S3) | `iMX95/soc.mak`, `README` |
-| SM | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `lf-6.6.52-2.2.2`, same commit as `rel_imx_sm_2025q3` = `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec` | `README.md`; everything else via the sibling notes |
+| SM | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `lf-6.6.52-2.2.2`, same commit as `rel_imx_sm_2025q3` = `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec` (the later tag `rel_imx_sm_2026q3` = `eec23287` is the pin of [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md), not used here; neither is shown to be the board's SM, firmware version 0x23e, observed 2026-11-27) | `README.md`; everything else via the sibling notes |
 | TX | Toradex community, <https://community.toradex.com/t/how-to-apply-a-device-tree-overlay/29036> and the Verdin iMX95 threads linked from it | no commit; forum posts, seen 2026-11-28 through a search result summary, **not the page itself** | overlay mechanism of Yocto BSPs (secondary) |
 | TK | Toradex kernel `toradex_6.6-2.2.x-imx` = `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` | see [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §1 | DT facts only, through that note |
 
@@ -34,10 +37,13 @@ Limits, stated plainly:
 - The NXP 6.6.52 tree stands in for the board kernel (Toradex
   6.6.157-7.8.0). That the display drivers are the same is **inferred**.
 - The Toradex U-Boot, `meta-toradex-bsp-common` and `meta-toradex-nxp` were
-  **not read**: GitHub copies returned 404 and `git.toradex.com` answered with
-  a bot challenge. Where §4 says how Toradex applies overlays, the source is
-  community text only.
-- No Toradex imx-sm fork or Verdin SM configuration was read; see
+  **not read**: GitHub copies returned 404 and the cgit pages of
+  `git.toradex.com` answered with a bot challenge. (The kernel tree on that
+  host *was* read with `git`, [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md)
+  §3.) Where §4 says how Toradex applies overlays, the source is community text
+  only.
+- No Toradex imx-sm fork or Verdin SM configuration (`verdin-imx95`) was read;
+  see [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) §1 and
   [imx95-sm-display-lm.md](imx95-sm-display-lm.md) §1. Statements about the
   Verdin SM use NXP's `mx95evk` as a stand-in (**inferred**).
 - Line numbers of LX files were counted from the fetched text; they may be off
@@ -134,10 +140,13 @@ The base DT file name could also be set through the U-Boot variable `fdtfile`
 (community post), which is a U-Boot environment write.
 
 **What the overlay would say.** The kernel's own nodes are `status = "disabled"`
-in the SoC dtsi and the panel overlay turns on `dpu`, `display_pixel_link`,
-`ldb`, `ldb0_phy`, `pixel_interleaver` and the panel (read from source (other
-doc): [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3.2,
-[imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md) §2). A disabling
+in the SoC dtsi ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3.2) and
+the panel overlay turns on `dpu`, `display_pixel_link`, `ldb`, `ldb0_phy`,
+`pixel_interleaver` and the panel (read from source (other doc):
+[imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md) §2). On the board the
+corresponding nodes are `display-controller@4b400000`, `ldb@4` with
+`channel@0`, `phy@8`, the pixel-link `bridge@8` and `panel-lvds-native`
+(observed 2026-11-27, S1 and S2; the node names differ from the labels). A disabling
 overlay would set `status = "disabled"` on `&dpu`, `&displaymix_irqsteer`,
 `&pixel_interleaver`, `&display_pixel_link`, `&ldb`, `&ldb0_phy`, the panel and
 the backlight, or simply leave out the panel overlay (inferred; the feasibility
@@ -238,12 +247,16 @@ it should be tried only with the Weston restore path ready.
 
 **What is available (read from source).**
 
-- The board's DT has the `remoteproc-cm7` node (`fsl,imx95-cm7`), mailbox unit
-  `mu7`, reserved regions for vrings, `vdevbuffer`, a resource table and a
-  16 MiB `no-map` M7 region ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md)
-  §3.1; feasibility §3, observed 2026-11-27).
+- The Toradex kernel DT has the `remoteproc-cm7` node (`fsl,imx95-cm7`),
+  mailbox unit `mu7`, reserved regions for vrings, `vdevbuffer`, a resource
+  table and a 16 MiB `no-map` M7 region ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md)
+  §3.1). The board shows the same node and regions, with `remoteproc1`
+  `offline` (observed 2026-11-27, S1, S2).
 - `imx_rproc` starts the core through the SiP call to TF-A, which uses the SM's
-  CPU protocol (feasibility §2, S4/S6). Linux can set the firmware name and
+  CPU protocol (feasibility §2, S4/S6; NXP 6.6.52 source, see
+  [imx95-sm-linux-interfaces.md](imx95-sm-linux-interfaces.md) §2). The board
+  binds no SCMI LMM or CPU driver (observed 2026-11-27, S2); the Toradex
+  `imx_rproc.c` is unread. Linux can set the firmware name and
   state through sysfs (feasibility §2). Whether TF-A's request is permitted
   depends on the SM's CPU permissions (inferred; under `mx95evk` it is
   probably refused, feasibility §2).
@@ -306,7 +319,9 @@ does not rely on the eMMC boot area?
 
 - Toradex's U-Boot, `meta-toradex-bsp-common` and BSP 7.8.0 recipes: how the
   image applies overlays and where the container lives. Not read.
-- The Verdin SM configuration (see [imx95-sm-display-lm.md](imx95-sm-display-lm.md)).
+- The Verdin SM configuration `verdin-imx95` (see
+  [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) and
+  [imx95-sm-display-lm.md](imx95-sm-display-lm.md)). Not read.
 - Driver-core and genpd detach behaviour on unbind, and DRM core behaviour with
   an open master: not read.
 - Whether the board kernel has an overlay configfs or a `/dev/mem`-like path

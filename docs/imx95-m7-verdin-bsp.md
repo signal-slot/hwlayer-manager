@@ -1,7 +1,10 @@
 # Verdin iMX95 Cortex-M7: BSP facts for a Zephyr image (source study)
 
 Study date: 2026-11-28. Method: source reading only, no device access.
-This file makes no hardware claim. Nothing here was run or observed on a board.
+This file makes no hardware claim of its own. Nothing here was run on a board.
+Where a row is cross-checked against the dated board snapshots in
+[imx95-zephyr/](imx95-zephyr/README.md) it says **observed 2026-11-27** and
+names the snapshot; those rows are the only ones that rest on a device.
 
 Tags used on every finding:
 
@@ -10,6 +13,10 @@ Tags used on every finding:
 - **inferred**: my deduction from sources; no source says it directly.
 - **not found**: I looked and could not read it (see
   [What was not found](#what-was-not-found)).
+- **observed 2026-11-27**: seen on the board in
+  [observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt) (S1) or
+  [observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt) (S2; the run
+  was on 2026-11-27, the file carries the planner's date).
 
 ## Scope and limits of this study
 
@@ -17,17 +24,25 @@ The target is Verdin iMX95 on a Mallow carrier, Toradex Reference Multimedia
 Image 7.8.0, NXP kernel 6.6.157-7.8.0. Upstream Zephyr has no Verdin iMX95
 board, only the NXP i.MX95 EVK M7 target.
 
-The Toradex BSP kernel tree (`linux-toradex`, branch `toradex_6.6-2.2.x-imx`
-per a Toradex staff post) could not be read: github.com/toradex/linux-toradex
-returned 404, git.toradex.com cgit answered with an anti-bot block, and
-`git ls-remote` against GitHub failed on a credential-helper error. The
-Verdin facts below therefore come from Toradex-authored **upstream Linux and
-U-Boot patches** for `imx95-verdin.dtsi` (read on lkml.iu.edu and
-lists.infradead.org, except where marked excerpt) and from **Toradex developer
-pages and forum threads** (read 2026-11-28). A statement about the
-6.6.157-7.8.0 BSP tree itself is tagged *inferred*. The imx-sm and Zephyr
-facts were read through a page-fetching helper and are EVK facts, not Verdin
-facts.
+This file was first written from Toradex-authored **upstream Linux and U-Boot
+patches** for `imx95-verdin.dtsi` (read on lkml.iu.edu and lists.infradead.org,
+except where marked excerpt) and from **Toradex developer pages and forum
+threads** (read 2026-11-28), because the Toradex kernel tree could not be read
+at that time (github.com/toradex/linux-toradex returned 404, the cgit host
+answered with an anti-bot block). That is **no longer the case**: a later read
+of branch `toradex_6.6-2.2.x-imx` at `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df`
+over `git.toradex.com` is in [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md)
+§3 (read from source, 2026-11-28). It confirms the remoteproc node, the
+reserved-memory layout, the console aliases and the absence of display nodes in
+the Verdin and Mallow files (§2.4, §3 and §1 below). That SHA is the branch head
+on 2026-11-28, not the SRCREV of BSP 7.8.0, so it is *inferred* to be near the
+running 6.6.157-7.8.0 kernel, not equal to it. The Toradex `imx_rproc.c` was
+not read at that SHA; the driver statements below come from NXP's 6.6.52 tree
+([imx95-m7-rproc-load.md](imx95-m7-rproc-load.md) §a) or from the mainline patch
+named in each row. The imx-sm and Zephyr facts were read through a
+page-fetching helper; the imx-sm ones are EVK facts, not Verdin facts (the
+Verdin SM configuration is still unread:
+[imx95-verdin-sm-config.md](imx95-verdin-sm-config.md)).
 
 ## 1. Console UART of the M7
 
@@ -37,7 +52,7 @@ facts.
 | In NXP's `configs/mx95evk.cfg` the System Manager gives the M7 logical machine (`LM1 name="M7"`) `LPUART3 OWNER`, plus `PIN_GPIO_IO14 OWNER` and `PIN_GPIO_IO15 OWNER`. The AP-NS (non-secure A55) block owns `LPUART8` and LPUART1/4/5/6/7. | read from source (imx-sm `rel_imx_sm_2026q3`, `configs/mx95evk.cfg`) |
 | An NXP engineer's forum answer says LPUART3 is assigned to the M7 in the SCMI (SM) config, and using it from Linux requires removing `LPUART3 OWNER` from the M7 resources in `configs/mx95evk.cfg` and adding `PERLPI_LPUART3 ALL` to the A55 resources. The thread's DT diff is for `imx95-19x19-evk.dts`; an EVK statement. | read from source (excerpt; page returned 403) |
 | Variscite's DART-MX95 documentation says LPUART3 is the Cortex-M7 debug console when M7 support is enabled. Different SoM; it shows only that LPUART3 is the NXP-default M7 console. | read from source (excerpt) |
-| The Verdin DT aliases are `serial0..4` = lpuart7, lpuart8, lpuart1, lpuart2, lpuart6 (Bluetooth). **lpuart3 is not used by Linux in the Verdin DT.** Verdin `UART_1` = lpuart7, `UART_2` = lpuart8, `UART_3` = lpuart1 (Linux console), `UART_4` = lpuart2. | read from source (Toradex U-Boot patch v2 `imx95-verdin.dtsi`; Verdin Mallow Linux patch v3 5/6) |
+| The Verdin DT aliases are `serial0..4` = lpuart7, lpuart8, lpuart1, lpuart2, lpuart6 (Bluetooth). **lpuart3 is not used by Linux in the Verdin DT.** Verdin `UART_1` = lpuart7, `UART_2` = lpuart8, `UART_3` = lpuart1 (Linux console), `UART_4` = lpuart2. | read from source (Toradex U-Boot patch v2 `imx95-verdin.dtsi`; Verdin Mallow Linux patch v3 5/6; the Toradex tree at `8ad2b7ff` has the same aliases and does not enable lpuart3, [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3.1) |
 | Pads behind those UARTs: UART_1 on GPIO_IO08..11, UART_2 on GPIO_IO12/13, UART_3 on UART1_RXD/TXD, UART_4 on UART2_RXD/TXD. | read from source (summary of the truncated half of the U-Boot patch page; not verbatim) |
 | The EVK config's M7 pads GPIO_IO14/GPIO_IO15 are not among the pads Linux uses for UART_1/UART_2 (GPIO_IO08..13). | inferred |
 | Toradex's "How to load and run firmware on alternative cores (NXP)" page (updated 2026-11-11) says the alternative-core serial console is on the `ttyUSB2` port of the USB debug connector and U-Boot on `ttyUSB3`. The text is shared by the i.MX 95/93/8MP/8MM tabs; the i.MX 95 tab's pinout/connection details did not survive extraction. It names no LPUART and no Mallow header. | read from source |
@@ -71,15 +86,26 @@ static const struct imx_rproc_att imx_rproc_att_imx95_m7[] = {
 /* .ops = &imx_rproc_ops_sm_lmm, .cpuid = 1, .lmid = 1 ("Must align with System Manager Firmware") */
 ```
 
+The `.ops = &imx_rproc_ops_sm_lmm` line (SCMI LMM/CPU start and stop) is the
+**mainline patch**, not the board's driver. NXP's 6.6.52 `imx_rproc.c` has no
+SCMI code: it starts and stops the M7 with the SiP call `0xC2000005` to TF-A
+(`IMX_RPROC_SMC`), see [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md) §a and
+[imx95-sm-linux-interfaces.md](imx95-sm-linux-interfaces.md) §2 (read from
+source, NXP `lf-6.6.52-2.2.2`). The board's S2 snapshot shows no SCMI LMM or
+CPU driver and no "Using CPU/LMM Protocol OPS" line (observed 2026-11-27), which
+fits the SMC reading; the Toradex `imx_rproc.c` itself is unread (inferred).
+
 | M7 view | System address | Size | Meaning | Tag |
 |---|---|---|---|---|
 | 0x00000000 | 0x203C0000 | 256 KiB | TCM code (ITCM), non-secure | read from source |
 | 0x20000000 | 0x20400000 | 256 KiB | TCM system (DTCM), non-secure | read from source |
 | 0x80000000 | 0x80000000 | 0x50000000 | DDR, identity mapped, not driver-owned | read from source |
 
-CPU ID 1 and LM ID 1 match `LM1 name="M7"` / `CPU_M7P` in `mx95evk.cfg`. I
-did not read the merged `drivers/remoteproc/imx_rproc.c` or the 6.6 BSP copy:
-that the BSP table is identical is *inferred*.
+CPU ID 1 and LM ID 1 match `LM1 name="M7"` / `CPU_M7P` in NXP's EVK config
+`mx95evk.cfg` (read from source; an EVK fact). The 6.6.52 NXP copy of
+`imx_rproc.c` has the same three windows (`imx_rproc.c:130-140`, read from
+source, [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md) §a). The Toradex
+6.6.157-7.8.0 copy was not read; that it is identical is *inferred*.
 
 ### 2.2 Zephyr EVK M7 target
 
@@ -92,7 +118,8 @@ that the BSP table is identical is *inferred*.
 | SCMI | `scmi_shmem0` at 0x44611000 (0x80), mailbox `mu5` at 0x44610000 | read from source |
 
 A Zephyr image linked for ITCM at 0 and DTCM at 0x20000000 matches the
-remoteproc table above for M7-side addresses and sizes. *inferred*.
+remoteproc table above for M7-side addresses and sizes. *inferred* (two read
+tables compared; nothing was linked or loaded for this row).
 
 ### 2.3 imx-sm memory grants for the M7 LM (EVK config)
 
@@ -103,45 +130,65 @@ From `configs/mx95evk.cfg` (`rel_imx_sm_2026q3`), M7 LM:
 - `DDR EXEC, begin=0x080000000, end=0x089FFFFFF` (160 MiB)
 
 The DDR window overlaps the AP-NS DDR entry `0x088000000..0x089FFFFFF`. All
-*read from source*, EVK only. The Verdin SM configuration was **not found**:
+*read from source*, EVK only. The Verdin SM configuration is **not found**:
 NXP imx-sm `configs/` lists mx95alt, mx95evk, mx95frdm, mx952alt, mx952evk,
 mx937alt, mx937frdm, mx94alt, mx94evk, other, simu, with no Verdin or Toradex
-entry. Toradex ships its own SM inside imx-boot; whether its M7 grants equal
-the EVK ones is unknown.
+entry. Toradex builds its own fork with `SYSTEM_MANAGER_CONFIG =
+"verdin-imx95"`, whose `configs/verdin-imx95.cfg` could not be fetched
+([imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) §1 and §6, read from
+source 2026-11-28). Whether its M7 grants equal the EVK ones is unknown. The
+board's SM reports firmware version 0x23e, MISC 1.1 and BBM 1.0 (observed
+2026-11-27, S2), which does not identify the cfg.
 
 ### 2.4 Verdin reserved DDR (Linux DT)
 
-Toradex's `imx95-verdin.dtsi` as posted for U-Boot (patch 2/3, v2, April
-2026, read) has the same remoteproc and reserved-memory layout as the upstream
-EVK DT and the Toradex SMARC patch (section 3). A Toradex staff post says the
-Verdin iMX95 RPMsg setup is in the base DT `imx95-verdin.dtsi` on branch
-`toradex_6.6-2.2.x-imx`. The U-Boot cover letter says "the first DDR region is
-reserved for Cortex-M7 firmware"; a summary of that series' `verdin-imx95.h`
-says the first 256 MB of SDRAM is reserved for M7 firmware (summary text, not
-verbatim). Whether the 6.6.157-7.8.0 BSP DT is identical to these patches is
-*inferred*, not verified.
+Toradex's `imx95-verdin.dtsi` in the kernel tree (`toradex_6.6-2.2.x-imx` at
+`8ad2b7ff`, [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3.1, lines
+44-53 and the reserved-memory block) has `m7_reserved` at `0x80000000` with
+size `0x1000000` (**16 MiB**), no-map, plus the vring, `vdevbuffer` and
+`rsc_table` regions of section 3 (read from source). The running board has
+`memory@80000000` of 16 MiB and the same vring/buffer/table nodes
+(observed 2026-11-27, S1, `reserved-memory`; sizes in
+[imx95-m7-memory-map.md](imx95-m7-memory-map.md)). The U-Boot patch series (v2,
+April 2026) has the same layout. Its cover letter says "the first DDR region is
+reserved for Cortex-M7 firmware"; a *summary* of that series' `verdin-imx95.h`
+said the first 256 MB of SDRAM is reserved for M7 firmware. That 256 MB figure
+is a U-Boot-side summary and **disagrees** with the Linux DT and the board
+(16 MiB); it is not used here (read from source, summary text, not verbatim).
+A Toradex staff post says the Verdin iMX95 RPMsg setup is in the base DT
+`imx95-verdin.dtsi` on branch `toradex_6.6-2.2.x-imx`, which the tree read
+confirms. Whether the 6.6.157-7.8.0 BSP DT equals the branch head is
+*inferred*; the observed node names and sizes match it.
 
 ## 3. Resource table and rpmsg vrings versus the DT
 
-Reserved-memory nodes (all `no-map`), identical in the Verdin dtsi (U-Boot
-patch v2), the SMARC patch v1 (2026-03-03) and the upstream 19x19 EVK patch v3
-(2026-07-24). *read from source*:
+Reserved-memory regions (all `no-map`), identical in the Toradex kernel tree's
+Verdin dtsi ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3.1), the
+Verdin dtsi in the U-Boot patch v2, the SMARC patch v1 (2026-03-03) and the
+upstream 19x19 EVK patch v3 (2026-07-24) (*read from source*). The first
+columns use the DT labels; the last gives the **node name on the board**
+(observed 2026-11-27, S1 `reserved-memory` listing), which is what
+`imx_rproc` matches:
 
-| Region | Address | Size |
-|---|---|---|
-| `m7_reserved` (`memory@80000000`) | 0x80000000 | 0x1000000 (16 MiB) |
-| `vdev0vring0` | 0x88000000 | 0x8000 (32 KiB) |
-| `vdev0vring1` | 0x88008000 | 0x8000 |
-| `vdev1vring0` | 0x88010000 | 0x8000 |
-| `vdev1vring1` | 0x88018000 | 0x8000 |
-| `vdevbuffer` (`vdev0buffer` in EVK v3), `shared-dma-pool` | 0x88020000 | 0x100000 (1 MiB) |
-| `rsc_table` | 0x88220000 | 0x1000 (4 KiB) |
+| Region (label) | Address | Size | Node name on the board |
+|---|---|---|---|
+| `m7_reserved` | 0x80000000 | 0x1000000 (16 MiB) | `memory@80000000` |
+| `vdev0vring0` | 0x88000000 | 0x8000 (32 KiB) | `vdev0vring0@88000000` |
+| `vdev0vring1` | 0x88008000 | 0x8000 | `vdev0vring1@88008000` |
+| `vdev1vring0` | 0x88010000 | 0x8000 | `vdev1vring0@88010000` |
+| `vdev1vring1` | 0x88018000 | 0x8000 | `vdev1vring1@88018000` |
+| `vdevbuffer` (`vdev0buffer` in EVK v3), `shared-dma-pool` | 0x88020000 | 0x100000 (1 MiB) | `vdevbuffer@88020000` |
+| `rsc_table` | 0x88220000 | 0x1000 (4 KiB) | `rsc-table@88220000` (hyphen) |
 
 The `remoteproc-cm7` node (compatible `fsl,imx95-cm7`, label `cm7`):
 `mbox-names = "tx", "rx", "rxdb"`, `mboxes = <&mu7 0 1 &mu7 1 1 &mu7 3 1>`,
 `memory-region = <&vdevbuffer>, <&vdev0vring0>, <&vdev0vring1>,
 <&vdev1vring0>, <&vdev1vring1>, <&rsc_table>, <&m7_reserved>`, and `&mu7`
-set to `okay`. *read from source*.
+set to `okay`. *read from source*. The board has a `remoteproc-cm7` node with
+`fsl,imx95-cm7`, `mbox-names` tx/rx/rxdb and `fsl,startup-delay-ms` 50; it has
+no `fsl,auto-boot` property, and it also has an `rpmsg-lifecycle` node
+(`nxp,rpmsg-lifecycle`) that none of the sources above covers (observed
+2026-11-27, S1).
 
 Review history (read): on the SMARC v1 patch Frank Li noted that the driver
 hardcodes the rsc-table address and asked for `memory-region-names` support to
@@ -150,22 +197,37 @@ last-minute rename and sent a v2 with renamed nodes. The v2 diff could not be
 fetched; it was reported applied as commit
 `f0e54db969cd2af80d065ee45827ff24317d507a` (search excerpt). A May 2026
 binding thread (excerpt) says imx95-verdin takes an extra carveout named
-`m7_reserved`. Final node names in the BSP 6.6 tree: **not found**.
+`m7_reserved`. The node names in the Toradex 6.6 tree and on the board are in
+the table above (the board's: observed 2026-11-27). Only the underscore/hyphen
+difference between DT labels and node names matters to the driver.
 
-How it lines up (*inferred* from these sources and the Linux remoteproc
-convention):
+How it lines up. Items 1, 2 and 4 are *inferred* from the sources named. Item 1
+corrects an earlier version of this file, which said the driver hardcodes the
+address and that the ELF's table must sit there:
 
-1. `imx_rproc` writes ITCM/DTCM through the 0x203C0000/0x20400000 aliases and
-   reads the resource table from the rsc_table carveout, whose address the
-   driver hardcodes. A Zephyr image's `.resource_table` section must therefore
-   sit at 0x88220000 (DDR is identity-mapped).
-2. The table's vdev entry must name vrings inside 0x88000000..0x8801FFFF and
-   the 1 MiB buffer pool at 0x88020000 so both sides agree.
-3. Zephyr has no resource table for i.MX95 (see section 5), so a table would
-   be new code. The Toradex remoteproc page's example log shows `no dtb
-   rsrc-table` for a hello_world ELF that booted, so a table may not be
-   mandatory; that log was a generic example, not stated to be i.MX95
-   (*read from source*).
+1. `imx_rproc` writes ITCM/DTCM through the 0x203C0000/0x20400000 aliases. In
+   NXP's 6.6.52 driver it remembers the memory-region whose node name is
+   exactly `rsc-table`, returns that region as the table location whatever the
+   ELF holds, accepts a table-less ELF ("No resource table in elf" is only
+   logged) and at start copies the ELF's cached table (zero bytes if none) to
+   it (`imx_rproc.c:633-642`, `:700-709`, `:837-838`, read from source,
+   [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md)). The board's node is named
+   `rsc-table@88220000` (observed 2026-11-27), so that path applies there if
+   the Toradex driver copy matches (unread). A `.resource_table` section in the
+   ELF need not be linked at 0x88220000.
+2. If an ELF does carry a table, its vdev entry must name vrings inside
+   0x88000000..0x8801FFFF and the 1 MiB buffer pool at 0x88020000 so both
+   sides agree.
+3. Upstream Zephyr v4.5.0 **does** have i.MX95 M7 resource-table support, off
+   by default: `.resource_table` in `soc/nxp/imx/imx9/imx95/m7/linker.ld` under
+   `CONFIG_OPENAMP_RSC_TABLE`, and an OpenAMP sample overlay
+   `samples/subsys/ipc/openamp_rsc_table/boards/imx95_evk_mimx9596_m7.overlay`
+   (table at 0x88220000, shared memory at 0x88000000, `mu7`) (read from source,
+   [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md)). What the board's default
+   build lacks is a table. The Toradex remoteproc page's example log shows `no
+   dtb rsrc-table` for a hello_world ELF that booted, so a table is not
+   mandatory; that log was a generic example, not stated to be i.MX95 (*read
+   from source*).
 4. Kick mailboxes: the Linux node uses `mu7`; the EVK imx-sm config gives the
    M7 `MU7_B`, `MU5_A`, `MU8_B`; Zephyr keeps `mu7` disabled and uses `mu5` for
    SCMI. Pairing Linux's MU7 side with the M7's MU7_B is *inferred*.
@@ -204,14 +266,16 @@ Toradex's own statements (developer.toradex.com and community, read
 |---|---|---|
 | Console | LPUART3 (`serial@42570000`) | probably LPUART3 (inferred); Toradex says the alt-core console is `ttyUSB2` of the USB debug port; pins **not found** |
 | M7 SM config | `mx95evk.cfg` LM1 | Toradex SM config **not found**; no Verdin entry in NXP imx-sm |
-| Boot of M7 | NXP EVK flow (U-Boot `bootaux`/imx-mkimage) | Toradex documents U-Boot `bootaux` (copy to 0x203c0000) and Linux remoteproc (ELF, on by default) |
-| Resource table | none in Zephyr for i.MX95 | `rsc_table` carveout at 0x88220000 in the Verdin dtsi (U-Boot patch) |
+| Boot of M7 | NXP EVK flow (U-Boot `bootaux`/imx-mkimage) | Toradex documents U-Boot `bootaux` (copy to 0x203c0000) and Linux remoteproc (ELF, on by default). Linux start/stop is an SMC to TF-A in NXP 6.6.52 (read from source; Toradex copy unread). The board's M7 is `remoteproc1`, `offline`, no M7 image in `/lib/firmware` (observed 2026-11-27) |
+| Resource table | optional in Zephyr v4.5.0 (`CONFIG_OPENAMP_RSC_TABLE`, off by default; sample overlay at 0x88220000) | `rsc-table@88220000` carveout, 4 KiB, in the Verdin dtsi and on the board (read from source; observed 2026-11-27) |
 | Memory | ITCM 0 / DTCM 0x20000000 (256 KiB each), optional DDR at 0x80000000 | same M7-side map expected; Linux loads via 0x203C0000/0x20400000; `m7_reserved` 16 MiB at 0x80000000 |
 | Board support | `boards/nxp/imx95_evk` | none upstream |
-| Display | `dpu`/`mipi_dsi` labels exist but are disabled, M7-only | EVK SM config gives DC, LVDS, DSI and DISPLAYMIX to AP-NS, not the M7; Verdin unknown |
+| Display | `dpu`/`mipi_dsi` labels exist but are disabled, M7-only | EVK SM config gives DC, LVDS, DSI and DISPLAYMIX to AP-NS, not the M7. On the board Linux claims the DPU (`4b400000`), LDB, pixel link and `panel-lvds-native` (observed 2026-11-27, S1/S2). The Toradex Verdin and Mallow dtsi files enable none of them, so they come from an overlay not read ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3.1). The Verdin SM config is unread |
 
-All rows are *read from source* or *inferred* as noted; the Verdin column is
-mostly *not found*.
+Tags: the EVK column is *read from source* (Zephyr v4.5.0, imx-sm EVK
+config). The Verdin column is *read from source* (Toradex tree, patches),
+*observed 2026-11-27* where a row says so, or *inferred*; the SM-config and
+console-pin cells are *not found*.
 
 ## 5. What an out-of-tree Zephyr board or overlay for Verdin would need
 
@@ -224,11 +288,12 @@ All *inferred* from sections 1-4; nothing was built or tried.
 2. Pin control for that LPUART: confirm the M7 LM owns the pads and route
    them in the board DT. Pad names come from the Verdin datasheet and Mallow
    schematic (not read).
-3. A resource table section, linked at the rsc_table address of the Linux DT
-   (0x88220000), with vring and buffer entries matching the DT. Zephyr has none
-   for i.MX95 (v4.5.0: no rsc_table in the board dir or dtsi, no resource-table
-   header under `include/zephyr/ipc/`, no `imx95_evk` overlay in the OpenAMP
-   sample), so this is new code; a table-less ELF may boot (section 3, item 3).
+3. Optionally a resource table with vring and buffer entries matching the DT.
+   Zephyr v4.5.0 has the pieces (`CONFIG_OPENAMP_RSC_TABLE`, the SoC linker
+   script's `.resource_table`, the `imx95_evk_mimx9596_m7` OpenAMP sample
+   overlay; section 3, item 3), which need the `open-amp` and `libmetal`
+   modules. The driver accepts a table-less ELF (section 3, item 1), so the
+   table is only needed for rpmsg.
 4. A firmware ELF whose load segments sit in ITCM/DTCM (the driver writes them
    via 0x203C0000/0x20400000) or inside DDR 0x80000000 (the 16 MiB
    `m7_reserved` carveout, no-map). Zephyr's EVK DDR variant is 42 MiB at
@@ -236,6 +301,7 @@ All *inferred* from sections 1-4; nothing was built or tried.
    `ddr` node. Toradex user reports of ELFs at 0x80000000/0x90000000 failing
    (section 3) are a warning, not a diagnosis.
 5. Confirmation from the Verdin SM configuration actually shipped in the image
+   (`verdin-imx95`, unread: [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md))
    that LM1 (M7) has CPU_M7P and PD_M7 start/stop rights and which peripherals
    it owns. If the display controller is to be used from the M7 the same
    configuration would have to grant `DC`, `LVDS`, `BLK_CTRL_DISPLAYMIX` and
@@ -248,13 +314,15 @@ All *inferred* from sections 1-4; nothing was built or tried.
 ## What was not found
 
 - Verdin iMX95 SM (imx-sm) configuration: not in NXP imx-sm `configs/` at the
-  pinned tag; Toradex's copy (inside its imx-boot) was not read.
-- Toradex `linux-toradex` BSP DT (branch `toradex_6.6-2.2.x-imx`) and a head
-  commit SHA: GitHub 404, cgit anti-bot block, `git ls-remote` failed. The BSP
-  DT is represented only by Toradex-authored U-Boot/Linux patches.
-- Toradex `meta-toradex-*` recipes, U-Boot tree and any MCUXpresso SDK
-  `verdin_imx95` board: GitHub 404 for the two repos tried; no evidence for or
-  against an SDK board. The Toradex i.MX95 Zephyr blog
+  pinned tag; Toradex builds `verdin-imx95` in its own imx-sm fork, and that
+  file was not fetched ([imx95-verdin-sm-config.md](imx95-verdin-sm-config.md)
+  §1 and §6).
+- Toradex `imx_rproc.c` and the `meta-toradex-*` recipes (BSP 7.8.0 SRCREV):
+  not read. The Toradex kernel DT was read later
+  ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §3).
+- Toradex U-Boot tree and any MCUXpresso SDK `verdin_imx95` board: GitHub 404
+  for the repos tried; no evidence for or against an SDK board. The Toradex
+  i.MX95 Zephyr blog
   (https://www.toradex.com/blog/imx95-zephyr-asymmetric-multiprocessing)
   returned HTTP 403 to the fetch helper on 2026-11-28 and was not read.
 - M7 console LPUART on Verdin and its pad names and SODIMM/Mallow header pins
@@ -273,6 +341,17 @@ Commit or tag where one was identified.
   https://github.com/zephyrproject-rtos/zephyr/tree/v4.5.0/boards/nxp/imx95_evk
   and
   https://github.com/zephyrproject-rtos/zephyr/blob/v4.5.0/dts/arm/nxp/imx/nxp_imx95_m7.dtsi
+- Toradex kernel, branch `toradex_6.6-2.2.x-imx`, commit
+  `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` (read 2026-11-28; see
+  [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) §1 and §3):
+  https://git.toradex.com/linux-toradex.git
+- NXP linux-imx, tag `lf-6.6.52-2.2.2`, commit
+  `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc` (`imx_rproc.c`, as read in
+  [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md)):
+  https://github.com/nxp-imx/linux-imx/blob/lf-6.6.52-2.2.2/drivers/remoteproc/imx_rproc.c
+- Board snapshots (observed 2026-11-27):
+  [observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt) (S1),
+  [observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt) (S2)
 - Linux, Toradex SMARC i.MX95 Cortex-M7 patch v1 (read) and replies:
   https://lkml.iu.edu/2603.0/04066.html ,
   https://lkml.iu.edu/2603.0/04485.html , https://lkml.iu.edu/2603.0/04509.html ;
@@ -307,6 +386,7 @@ Commit or tag where one was identified.
   https://docs.toradex.com/116068-datasheet-toradex-verdin-i.mx-95-evk.pdf
 
 Mailing-list, forum and developer-page URLs are not commit-pinned; the
-mailing-list pages are fixed text, the one pinned kernel commit is the SMARC
-v2 commit above, and no BSP-tree commit could be pinned. Re-verify every row
+mailing-list pages are fixed text. The pinned kernel commits are the SMARC v2
+commit and the Toradex tree commit above; the latter is the branch head on the
+read date, not the 7.8.0 SRCREV. Re-verify every row
 marked excerpt against its primary page before using it in a port.
