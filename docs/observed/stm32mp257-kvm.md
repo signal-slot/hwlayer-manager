@@ -160,7 +160,11 @@ HTTP 404 dialing http://<kvm relay>/p2p/v1/<id>/<id>/kvm/<id>/mcp
 
 A tool search for a screenshot tool found nothing registered. The lease
 grants no other access path to the KVM (ssh is granted to the board only,
-and the KVM's credential file is not on this host), so none was tried. No
+and the KVM's credential file is not on this host). One unauthenticated
+read-only probe of the KVM's web interface from the host after the session
+start: the front page answered HTTP 200 and the MJPEG stream endpoint
+answered HTTP 401, so the KVM is up and reachable but a frame needs the
+credential that is not here. No
 screenshot was taken, no picture was saved, and `scripts/camera-check.py` was
 not run on a frame. Host self-test only: `python3 scripts/camera-check.py
 --self-test` printed `31 checks` and `PASS`.
