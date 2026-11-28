@@ -165,7 +165,7 @@ back; its `OK` lines are then the proof.
 ## Where the outputs go
 
 Raw outputs are committed only after the checks below and with a date in the
-file name or heading.
+file name or heading (the format is YYYY-MM-DD, for example 2026-11-28).
 
 | Output | Destination | Tag |
 |---|---|---|
