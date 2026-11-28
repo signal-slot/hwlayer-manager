@@ -10,9 +10,10 @@ works on hardware.** Every finding carries one tag:
 - **read from source**: the pinned file says so, at the line given.
 - **inferred**: my deduction from what was read; no source states it.
 
-The only board facts used are quoted from the read-only snapshot
+The board facts used are quoted from the read-only snapshots
 [`imx95-zephyr/observed-2026-11-27.txt`](imx95-zephyr/observed-2026-11-27.txt)
-and keep its tag (observed 2026-11-27).
+and [`imx95-zephyr/observed-2026-11-28.txt`](imx95-zephyr/observed-2026-11-28.txt)
+and keep their tags (observed 2026-11-27, observed 2026-11-28).
 
 Already covered elsewhere, linked rather than repeated:
 
@@ -20,6 +21,11 @@ Already covered elsewhere, linked rather than repeated:
   SCMI CPU protocol, `mx95evk` vs `mx95evkrpmsg`), and the remoteproc gate:
   [`imx95-zephyr-feasibility.md`](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board)
   and its [gate section](imx95-zephyr-feasibility.md#8-gate-can-an-m7-image-be-started-from-linux-remoteproc-with-files-only-under-tmp).
+- What the board's System Manager image is: Toradex builds its own fork
+  `imx-sm-toradex` with a `verdin-imx95` config that could not be read, so
+  the LM and rights tables in these docs come from NXP's `mx95evk.cfg` at
+  `af1e3702` and every Verdin statement from them is **inferred for
+  Verdin**: [`imx95-verdin-sm-config.md`](imx95-verdin-sm-config.md#5-verdict).
 - The Verdin reserved-memory map, the `remoteproc-cm7` node, Toradex's own
   remoteproc instructions and user reports:
   [`imx95-m7-verdin-bsp.md`](imx95-m7-verdin-bsp.md) sections 2 and 3.
@@ -95,7 +101,7 @@ the v6 patch quoted in
 | Stop: `arm_smccc_smc(IMX_SIP_RPROC, IMX_SIP_RPROC_STOP, …)`; `res.a1` set means "Not in wfi, force stopped" | `imx_rproc.c:440-483`, SMC at `:463-469` | read from source |
 | `IMX_SIP_RPROC` = `0xC2000005`, `START` 0, `STARTED` 1, `STOP` 2 | `imx_rproc.c:71-74` | read from source |
 | Probe asks `IMX_SIP_RPROC_STARTED`; non-zero → `RPROC_DETACHED` (Linux attaches, loads nothing) | `imx_rproc.c:1034-1053` | read from source |
-| What TF-A does with the SiP call (TF-A names `0xC2000005` `IMX_SIP_SRC`, the kernel `IMX_SIP_RPROC`; SCMI CPU protocol `set_reset_addr`/`start`/`stop` on M7P, as the secure AP agent) and which SM configs allow it (NXP EVK configs; the Verdin SM config is a separate read) | [feasibility, "2. How M7 firmware is loaded on this board"](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board) | read from source there (imx-atf), not re-read |
+| What TF-A does with the SiP call (TF-A names `0xC2000005` `IMX_SIP_SRC`, the kernel `IMX_SIP_RPROC`; SCMI CPU protocol `set_reset_addr`/`start`/`stop` on M7P, as the secure AP agent). NXP's `mx95evk.cfg` grants the AP-S agent no `CPU_M7P` right, so under that config the SM is expected to refuse the START and STOP; whether Toradex's own `verdin-imx95` cfg (unread, see the SM-config doc) adds the right is the open point | [feasibility, "2. How M7 firmware is loaded on this board"](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board); [`imx95-verdin-sm-config.md` §4-§5](imx95-verdin-sm-config.md#5-verdict) | read from source there (imx-atf; imx-sm at tag `lf-6.6.52-2.2.2` = `af1e3702`), not re-read; the refusal expectation is inferred for Verdin |
 | `fsl,startup-delay-ms` is `0x32` (50 ms) and `power-domains` is `<0x5c 0x11>` on the board's `remoteproc-cm7` node | snapshot (b2) | observed 2026-11-27 |
 | Domain `0x11` = 17 = `IMX95_PD_M7` in Zephyr's ID table (Z1 `include/zephyr/dt-bindings/power/imx95_power.h:27`); that Linux uses the same SM domain number is inferred; the node is then likely to hold the M7 power domain on while the device is bound (runtime PM "unsupported" in the snapshot) | Z1 header; snapshot (b2) | inferred |
 
@@ -118,6 +124,7 @@ the v6 patch quoted in
 | `get_loaded_rsc_table` (attach path) returns `priv->rsc_table` with size `SZ_1K` | L1 `imx_rproc.c:688-698` | read from source |
 | `imx_rproc_prepare()` adds every memory-region except nodes named `vdev0buffer` and `rsc-table` as a carveout (`da` = physical base) | L1 `imx_rproc.c:583-631` | read from source |
 | The board's DT has a node named `rsc-table` (`rsc-table@88220000`, 4 KiB) and a buffer node named `vdevbuffer`, not `vdev0buffer` | snapshot (b) | observed 2026-11-27 |
+| The board's DT also has a top-level `rpmsg-lifecycle` node (`compatible = nxp,rpmsg-lifecycle`), not referenced by the `remoteproc-cm7` node; what its driver does is out of scope here | snapshot (b2) | observed 2026-11-27 |
 | Hence on this board `priv->rsc_table` is set, and at start Linux copies the ELF's cached table (zero bytes if the ELF has none) into `0x88220000`; a table-less hello is unaffected, and `vdevbuffer` is registered as an ordinary carveout | from the rows above and the generic `rproc_start()` copy | inferred |
 
 ### Firmware name and search path
@@ -202,7 +209,10 @@ sides must agree on which copy carries the vring addresses.
 ## What m7-run must check on the board
 
 All read-only unless marked; the order matters. Items 1-5 decide whether to
-write anything at all.
+write anything at all. Recorded runs: the two board items that reached this
+checklist on 2026-11-28 (`m7-run`, `m7-run2`) stopped at gate check (c) and
+wrote nothing; the gate decision and both run records are in the
+[feasibility gate section](imx95-zephyr-feasibility.md#8-gate-can-an-m7-image-be-started-from-linux-remoteproc-with-files-only-under-tmp).
 
 1. **The kernel driver is L1's SMC variant.** dmesg has
    `imx-rproc is available` and no "Using CPU/LMM Protocol OPS" line. If an
@@ -210,9 +220,11 @@ write anything at all.
    `e_entry & 0xFFFF0000` and start/stop go through SCMI LMM/CPU from Linux;
    re-read this note's boot-address and resource-table rows before going on.
 2. **State is `offline`** in `/sys/class/remoteproc/remoteproc*/state` for the
-   one whose `name` is `imx-rproc` (do not assume the index). If `attached` or
-   `running`, stop here and record it; the feasibility gate forbids stopping a
-   core someone else started.
+   one whose `name` is `imx-rproc` (do not assume the index: `remoteproc0` is
+   `neutron-rproc`, the NPU core, inferred from its name, and was `offline`
+   too on both snapshot days, observed 2026-11-27 and 2026-11-28). If
+   `attached` or `running`, stop here and record it; the feasibility gate
+   forbids stopping a core someone else started.
 3. **The node's memory-regions are the ones assumed**: resolve the seven
    `memory-region` phandles of `/proc/device-tree/remoteproc-cm7` against the
    `phandle` property of each `reserved-memory` child, and confirm
@@ -227,6 +239,11 @@ write anything at all.
    saw a data abort on such a write from U-Boot, with an SM TRDC denial logged
    ([verdin-bsp §3](imx95-m7-verdin-bsp.md#3-resource-table-and-rpmsg-vrings-versus-the-dt));
    whether AP-NS may write the M7 TCM under the Toradex SM config is unknown.
+   In the recorded `mx95evk.cfg` tables the M7 TCM window (`M7MIX DATA`,
+   line 414) is a grant to LM1, and the record shows no matching grant for an
+   AP agent there ([`imx95-verdin-sm-config.md` §4](imx95-verdin-sm-config.md#4-display-resources-and-m7-rights-p1),
+   inferred for Verdin); that is consistent with the logged TRDC denial
+   (inferred).
    If it may not, the write is an external abort in kernel context and can take
    Linux down (inferred). Do this step only when a reset or power-cycle path is
    available to restore the board, and with the serial console open if
@@ -238,7 +255,9 @@ write anything at all.
    directory; write a plain file name (no `/`, no `..`) to `firmware`;
    `echo start`. Record dmesg: expect "No resource table in elf" for a
    table-less image, then either success or "Failed to enable remote core!"
-   (the SiP START refused by the SM, see the feasibility gate).
+   (the SiP START refused by the SM, see the feasibility gate;
+   [`imx95-verdin-sm-config.md` §5.4](imx95-verdin-sm-config.md#5-verdict)
+   expects the refusal under an `mx95evk`-like config, inferred for Verdin).
 7. **Evidence the M7 runs**: the M7 console UART (LPUART3 by default, Verdin
    pins unknown, see [verdin-bsp §1](imx95-m7-verdin-bsp.md#1-console-uart-of-the-m7)),
    or `trace0` in the remoteproc debugfs directory if the image carries the
