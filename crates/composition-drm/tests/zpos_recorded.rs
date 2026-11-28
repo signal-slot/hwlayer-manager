@@ -5,14 +5,14 @@
 //! Baseline tests: they pin what the planner does today, including results
 //! that look wrong for a VOP2 or an HVS. A profile item may change them.
 //!
-//! Fixture data is copied inline; nothing reads `docs/observed`.
-//! - RK3588: `docs/observed/rk3588-topology.md`, observed 2026-11-28 (kernel
+//! Fixture data is copied inline; nothing reads `docs/`.
+//! - RK3588: `tests/data/rk3588/topology-2026-11-28.md`, observed 2026-11-28 (kernel
 //!   6.18.55-current-rockchip64), and the plan #457 scen-t6 handoff, observed
 //!   2026-11-27 (same kernel): 8 planes, zpos 0..=7 on every plane, plane
 //!   alpha, blend [none, premultiplied, coverage], scaling not claimed, AFBC
 //!   only on Cluster planes, planes 39 and 69 cannot reach video_port0.
 //!   The probe's Cluster lists are the AFBC pairs only (no linear pair).
-//! - BCM2712: `docs/observed/bcm2712-topology.md`, observed 2026-11-28 (kernel
+//! - BCM2712: `docs/platform-capabilities.md`, observed 2026-11-28 (kernel
 //!   6.18.50+rpt-rpi-2712): primary 83 with zpos 0, shared overlays with zpos
 //!   1..=17 mutable, 16 planes kept after the `MAX_PLANES` cut (plan #457
 //!   fix-x09), linear formats only after the `MAX_FORMATS` cut.

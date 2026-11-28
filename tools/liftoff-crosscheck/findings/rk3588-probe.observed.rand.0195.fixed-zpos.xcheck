@@ -3,7 +3,7 @@
 # GEN_VERSION=1 seed=0x5eed11f70ffc4226 case_seed=0x40e9522c59a7ec79
 # family=rand index=0195 topology=rk3588-probe model=full
 xcheck 1
-origin observed 2026-11-28 probe text of docs/observed/rk3588-topology.md at commit db71077, recorded, no claim about any other board or kernel; format lists truncated at 32 by the probe
+origin observed 2026-11-28 probe text of tests/data/rk3588/topology-2026-11-28.md at commit db71077, recorded, no claim about any other board or kernel; format lists truncated at 32 by the probe
 profile generic
 output 81 1920 1080 60000
 plane 33 kind=primary outputs=0x1 zpos=fixed:0 alpha=1 blend=opaque,premul,coverage transforms=normal scaling=none max_source=none full_output=0

@@ -1,6 +1,6 @@
 # Hand-written xcheck v1 topology: RK3588 (VOP2), NanoPC-T6 recording.
 #
-# Source file : docs/observed/rk3588-topology.md (observed 2026-11-28, kernel
+# Source file : tests/data/rk3588/topology-2026-11-28.md (observed 2026-11-28, kernel
 #               6.18.55 recording, topology session only, no frame submitted)
 # Commit      : eab4162 (HEAD when this file was written)
 # Observed    : 2026-11-28

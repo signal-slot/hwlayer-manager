@@ -4,7 +4,7 @@
 //!
 //! These are baseline tests: they pin what the planner does with the data as
 //! recorded and with no profile applied. Tests for the vc4 profiles show the
-//! difference later. Nothing here reads `docs/observed`; the data is copied
+//! difference later. Nothing here reads `docs/`; the data is copied
 //! into the fixtures below.
 //!
 //! Evidence tags: *observed* = in the recorded probe output or property dump,
@@ -46,7 +46,7 @@ struct Topology {
     formats: &'static [&'static [u8; 4]],
 }
 
-// Source: docs/observed/bcm2712-topology.md, output-0 probe block, Raspberry Pi 5
+// Source: docs/platform-capabilities.md, output-0 probe block, Raspberry Pi 5
 // Model B (BCM2712), kernel 6.18.50+rpt-rpi-2712, recorded 2026-11-28.
 // The kernel exposes 56 planes. The connected output (CRTC id 94, 1920x1080
 // @ 60 Hz) reaches primary 83, the 16 shared overlays 107, 118, ... 272
@@ -76,7 +76,7 @@ const PI5: Topology = Topology {
     ],
 };
 
-// Source: docs/observed/bcm2711-cm4-topology.md, DSI-1 probe block, reTerminal
+// Source: docs/platform-capabilities.md, DSI-1 probe block, reTerminal
 // (CM4, BCM2711), recorded 2026-11-28. The kernel exposes 60 planes. The
 // connected output (CRTC id 90 `pixelvalve-1`, DSI-1, 720x1280 @ 60 Hz)
 // reaches primary 79 and the shared overlays 127, 138, ... 226 (stride 11,

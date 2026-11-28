@@ -6,6 +6,9 @@
 //! lines are refused or parse to a record that formats back to exactly the
 //! mutated input; arbitrary bytes never panic; non-trace lines in a mixed
 //! log give `Ok(None)` as `parse_line` documents.
+//!
+//! provenance: synthetic. No recorded board data; a board name is only a
+//! string value of a generated event.
 
 use composition_core::{
     Assignment, BackendError, BufferId, DropReason, Error, OutputId, PlanError, PlaneId,

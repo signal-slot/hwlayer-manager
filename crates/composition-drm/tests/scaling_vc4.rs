@@ -3,7 +3,7 @@
 //!
 //! Baseline tests: they pin what the planner does today with no vc4 profile
 //! applied, so that `Vc4Hvs5` and `Vc4Hvs6` change it on purpose. Nothing here
-//! reads `docs/observed`; the recorded data is copied into the fixtures below
+//! reads `docs/`; the recorded data is copied into the fixtures below
 //! (the same fixtures as `generic_vc4.rs`, which does not share them).
 //!
 //! Evidence tags: *observed* = in the recorded probe output or `TEST_ONLY` run,
@@ -40,7 +40,7 @@ struct Topology {
     formats: &'static [&'static [u8; 4]],
 }
 
-// Source: docs/observed/bcm2712-topology.md, output-0 probe block, Raspberry Pi 5
+// Source: docs/platform-capabilities.md, output-0 probe block, Raspberry Pi 5
 // Model B (BCM2712), kernel 6.18.50+rpt-rpi-2712, recorded 2026-11-28.
 // The kernel exposes 56 planes. The connected output (CRTC id 94, 1920x1080
 // @ 60 Hz) reaches primary 83, the 16 shared overlays 107, 118, ... 272
@@ -70,7 +70,7 @@ const PI5: Topology = Topology {
     ],
 };
 
-// Source: docs/observed/bcm2711-cm4-topology.md, DSI-1 probe block, reTerminal
+// Source: docs/platform-capabilities.md, DSI-1 probe block, reTerminal
 // (CM4, BCM2711), recorded 2026-11-28. The kernel exposes 60 planes. The
 // connected output (CRTC id 90 `pixelvalve-1`, DSI-1, 720x1280 @ 60 Hz)
 // reaches primary 79 and the shared overlays 127, 138, ... 226 (stride 11,
@@ -82,7 +82,7 @@ const PI5: Topology = Topology {
 // Formats: the probe's 32, identical on every plane. Plane alpha true, blend
 // [none, premultiplied, coverage], scaling "not claimed". The kernel accepted
 // scale-up and scale-down in a TEST_ONLY run on this board (observed
-// 2026-11-28, docs/observed/bcm2711-cm4.md, "Unsupported combinations"); the
+// 2026-11-28, docs/platform-capabilities.md, "Unsupported combinations"); the
 // limits were not probed.
 const CM4: Topology = Topology {
     output: Size::new(720, 1280),
@@ -271,7 +271,7 @@ fn generic_refuses_a_single_axis_scale() {
 #[test]
 fn generic_refuses_an_8191_pixel_source_scaled_to_the_output() {
     // HVS5 rejects a source wider than 8191 (source: SCALER5_POS2_WIDTH_MASK,
-    // docs/observed/vc4-hvs-source.md). A source of exactly 8191 shown on the
+    // docs/platform-capabilities.md). A source of exactly 8191 shown on the
     // output is a reduction, so Generic refuses it on SCALING, not on source
     // size: it has no max_source.
     for (name, topo) in both() {

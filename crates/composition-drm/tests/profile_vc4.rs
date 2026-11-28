@@ -6,7 +6,7 @@
 //! output, as the probe printed them. The kernels expose more: 60 planes on
 //! the CM4 and 56 on the Pi 5, of which 18 reach the connected CRTC
 //! (primary, 16 shared overlays, cursor); the cut to 16 is private to
-//! `src/lib.rs` and tested there. Nothing here reads `docs/observed`.
+//! `src/lib.rs` and tested there. Nothing here reads `docs/`.
 //!
 //! Evidence tags as in the profile: *observed* = in the recorded dumps,
 //! *source* = the vc4 source read at the profile's pin, *inferred* = derived.

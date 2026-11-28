@@ -7,8 +7,8 @@
 //! difference. Blind spots of the current planner are pinned as they are and
 //! marked `BLIND SPOT`.
 //!
-//! Fixture data, copied here so that nothing reads `docs/observed`:
-//! - `docs/observed/rk3588-topology.md` and
+//! Fixture data, copied here so that nothing reads `docs/`:
+//! - `tests/data/rk3588/topology-2026-11-28.md` and
 //!   `crates/composition-drm/tests/data/rk3588/probe-raw-2026-11-27.txt`,
 //!   observed 2026-11-27/28 (kernel 6.18.55-current-rockchip64): plane kinds,
 //!   outputs masks, zpos 0..=7. Cluster planes (33, 39, 45, 51) list 126

@@ -1,4 +1,4 @@
-# source: docs/observed/stm32mp257-topology.md
+# source: docs/platform-capabilities.md
 # commit: 20df182
 # observed: 2026-11-28
 # origin: observed

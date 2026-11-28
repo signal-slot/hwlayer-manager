@@ -1,4 +1,4 @@
-# source: docs/observed/bcm2711-cm4-topology.md
+# source: docs/platform-capabilities.md
 # commit: 472cc75
 # observed: 2026-11-28
 # origin: observed

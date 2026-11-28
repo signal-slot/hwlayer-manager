@@ -1,8 +1,8 @@
 //! Planner test on the observed BCM2711 (reTerminal CM4, vc4 / HVS5) topology:
 //! per-output plane reach, plane types, formats and the `MAX_PLANES` cut.
 //!
-//! The data below is copied from `docs/observed/bcm2711-cm4-topology.md` and
-//! `docs/observed/bcm2711-cm4.md` (observed 2026-11-28, kernel
+//! The data below is copied from `docs/platform-capabilities.md` and
+//! `docs/platform-capabilities.md` (observed 2026-11-28, kernel
 //! 6.12.47+rpt-rpi-v8, `probe /dev/dri/card0`). The tests never read those
 //! files. This is a model, not a hardware result: the fake backend has no HVS
 //! and no `TEST_ONLY`. It complements `topology_bcm2711.rs` (the two-plane

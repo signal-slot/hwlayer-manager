@@ -2,7 +2,7 @@
 //! topology, with the per-output reach and the plane cut of `composition-drm`.
 //!
 //! A MODEL, not a hardware result. Data copied from
-//! `docs/observed/bcm2712-topology.md` and `docs/observed/bcm2712.md`
+//! `docs/platform-capabilities.md` and `docs/platform-capabilities.md`
 //! (observed 2026-11-28, kernel 6.18.50+rpt-rpi-2712); nothing is read at
 //! runtime. `topology_bcm2712.rs` models the engine's old 16-plane view; this
 //! file models the kernel's 56 planes and the reachable-first cut of

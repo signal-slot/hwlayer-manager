@@ -7,7 +7,7 @@ manager or compositor running, DSI connector connected, no real commit; the
 scale runs used atomic `TEST_ONLY` only). Binaries: composition-drm examples
 built from repository commit 963eb8f. Each file starts with a comment header
 (date, kernel, board, command, commit). Tests copy values from these files
-into the test sources with a file and date comment; docs/observed is not read.
+into the test sources with a file and date comment; docs/ is not read.
 
 | File | Command |
 | --- | --- |

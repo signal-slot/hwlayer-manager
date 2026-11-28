@@ -1,6 +1,6 @@
 # xcheck v1 topology: STM32MP257F-DK (ST LTDC, driver stm), hand-written.
 #
-# Source:  docs/observed/stm32mp257-topology.md (probe block and raw plane table), observed 2026-11-28.
+# Source:  docs/platform-capabilities.md (probe block and raw plane table), observed 2026-11-28.
 #          Constraint lines come from docs/stm32mp257-ltdc-board.md, docs/stm32mp257-ltdc-source-full.md
 #          and docs/stm32mp257-ltdc-sync-source.md (read only).
 # Commit:  eab4162 (HEAD when written).

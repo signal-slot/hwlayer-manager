@@ -4,7 +4,7 @@
 //! hardware behaviour. Expected values follow the profile's table
 //! (`src/profile/rk3588.rs`): board measurement first, then mainline v6.18.
 //!
-//! Fixture data, read from the committed board dumps (never docs/observed):
+//! Fixture data, read from the committed board dumps (never docs/):
 //! - `tests/data/rk3588/probe-raw-2026-11-27.txt`, observed 2026-11-27
 //!   (kernel 6.18.55-current-rockchip64): the probe summary, loaded through
 //!   `common::recorded`. Eight planes, one output 1920x1080; plane 39 cannot

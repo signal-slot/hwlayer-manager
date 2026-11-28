@@ -9,7 +9,7 @@
 //! rule, these tests do not notice until `cut` is updated; a public hook for
 //! the parse and the cut would close that gap.
 //!
-//! The lists are copied from recorded board data; nothing reads docs/observed
+//! The lists are copied from recorded board data; nothing reads docs/
 //! at runtime. Tags: observed = measured on the board, source = read from the
 //! kernel source, synthetic = made up for the test.
 
@@ -65,7 +65,7 @@ fn has(list: &[FormatModifier], format: PixelFormat, modifier: Modifier) -> bool
 
 /// NanoPC-T6 Cluster plane 33 (same on the other Cluster planes): the 32
 /// pairs the probe printed, in order. The kernel list is longer; the probe
-/// shows the post-cut view only. Source: docs/observed/rk3588-topology.md,
+/// shows the post-cut view only. Source: tests/data/rk3588/topology-2026-11-28.md,
 /// observed 2026-11-28 (kernel 6.18.55-current-rockchip64).
 const CLUSTER_AFBC_FULL: &[&str] = &[
     "XR30", "XB30", "XR24", "AR24", "XB24", "AB24", "RG24", "BG24", "RG16", "BG16", "YU08", "YU10",
@@ -82,14 +82,14 @@ fn cluster_groups() -> Groups {
 }
 
 /// NanoPC-T6 Esmart plane 57 (same on the other Esmart planes): 21 linear
-/// pairs. Source: docs/observed/rk3588-topology.md, observed 2026-11-28.
+/// pairs. Source: tests/data/rk3588/topology-2026-11-28.md, observed 2026-11-28.
 const ESMART: &[&str] = &[
     "XR24", "AR24", "XB24", "AB24", "RG24", "BG24", "RG16", "BG16", "NV12", "NV21", "NV16", "NV61",
     "NV20", "NV24", "NV42", "NV30", "NV15", "YVYU", "VYUY", "YUYV", "UYVY",
 ];
 
 /// BCM2712 (Pi 5) full `IN_FORMATS`, identical on the five planes read.
-/// Source: docs/observed/bcm2712-topology.md ("IN_FORMATS"), observed
+/// Source: docs/platform-capabilities.md ("IN_FORMATS"), observed
 /// 2026-11-28. The first 32 linear entries are the probe's list.
 const BCM2712_LINEAR: &[&str] = &[
     "XR24", "AR24", "AB24", "XB24", "RX24", "RA24", "BX24", "BA24", "RG16", "BG16", "AR15", "XR15",
@@ -114,10 +114,10 @@ fn bcm2712_groups() -> Groups {
 }
 
 /// BCM2711 (CM4): the raw blob was not recorded. The printed first 32
-/// linear pairs are observed (docs/observed/bcm2711-cm4.md, plane 48,
+/// linear pairs are observed (docs/platform-capabilities.md, plane 48,
 /// 2026-11-28); they lack the RX24/RA24/BX24/BA24 entries of the BCM2712
 /// list. The linear tail RX12/RA12 (cut) and the five modifier groups are
-/// inferred from docs/observed/vc4-hvs-source.md, which says BCM2712 is the
+/// inferred from docs/platform-capabilities.md, which says BCM2712 is the
 /// BCM2711 list plus P010/P012/P016/S010/S012/S016.
 const BCM2711_PROBE_32: &str = "XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 \
      YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12";
