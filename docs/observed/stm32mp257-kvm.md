@@ -113,3 +113,32 @@ and `active`. Nothing was stopped, run or left on the board.
 
 The picture items (Q1, Q6, NV12, plane-34 scaling) therefore stay blocked
 until the relay path of the MCP server works again.
+
+## KVM rehearsal, 2026-11-28 09:30 UTC (second)
+
+Verdict: **capture fails.**
+
+Host UTC time of the attempt: 2026-11-28 09:29 to 09:31 (`date -u` on the
+host; the board clock is not used).
+
+Access path tried: the KVM's MCP server, registered for this task from the
+KVM lease. It failed to connect at the start of the session with the same
+error as in every earlier session:
+
+```
+HTTP 404 dialing http://<kvm relay>/p2p/v1/<id>/<id>/kvm/<id>/mcp
+```
+
+A tool search for a screenshot tool found nothing registered. The lease
+grants no other access path to the KVM (ssh is granted to the board only),
+so none was tried. No screenshot was taken, no picture was saved, and
+`scripts/camera-check.py` was not run on a frame. Host self-test only:
+`python3 scripts/camera-check.py --self-test` printed `31 checks` and `PASS`.
+
+Read only over ssh (09:29 UTC host): `systemctl is-active
+weston-graphical-session seatd-weston` printed `active` and `active`;
+`uname -r` printed `6.6.129`. Nothing was stopped, run or left on the board;
+no console or reset was used.
+
+The picture items (Q1, Q6, NV12, plane-34 scaling) stay blocked until the
+relay path of the MCP server works.
