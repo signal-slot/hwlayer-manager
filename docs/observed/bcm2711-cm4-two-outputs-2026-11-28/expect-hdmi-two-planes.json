@@ -1,0 +1,16 @@
+{
+  "_comment": "drm-harness two-planes picture on HDMI-A-1 at 1920x1080 (modeset-after step): primary 91 full screen BLUE 0x002080 with a WHITE edge, overlay 204 960x540 at 480,270 RED 0xE01010 with a YELLOW edge (colours from tools/drm-harness/src/draw.rs). KVM capture: whole screen, no rotation.",
+  "rotation": 0,
+  "panel": "full",
+  "tolerance": 50,
+  "regions": [
+    {"name": "bg_top_left",     "rect": [0.03, 0.04, 0.20, 0.20], "expect": [0, 32, 128]},
+    {"name": "bg_top_right",    "rect": [0.80, 0.04, 0.97, 0.20], "expect": [0, 32, 128]},
+    {"name": "bg_bottom_left",  "rect": [0.03, 0.80, 0.20, 0.96], "expect": [0, 32, 128]},
+    {"name": "bg_bottom_right", "rect": [0.80, 0.80, 0.97, 0.96], "expect": [0, 32, 128]},
+    {"name": "bg_left_of_top",  "rect": [0.08, 0.40, 0.22, 0.60], "expect": [0, 32, 128]},
+    {"name": "top_centre",      "rect": [0.35, 0.35, 0.65, 0.65], "expect": [224, 16, 16]},
+    {"name": "top_inner_tl",    "rect": [0.27, 0.28, 0.33, 0.34], "expect": [224, 16, 16]},
+    {"name": "top_inner_br",    "rect": [0.67, 0.66, 0.73, 0.72], "expect": [224, 16, 16]}
+  ]
+}

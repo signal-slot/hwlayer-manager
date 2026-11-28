@@ -1,0 +1,14 @@
+# Q7 phase B: overlay 237 listed in both leases (sharing test)
+[[lease]]
+name = "hdmi"
+connectors = ["HDMI-A-1"]
+
+[[lease]]
+name = "dsi"
+connectors = ["DSI-1"]
+
+[HDMI-A-1]
+planes = [91, 237]
+
+[DSI-1]
+planes = [79, 237]

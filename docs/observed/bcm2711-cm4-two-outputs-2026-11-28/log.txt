@@ -1,0 +1,1090 @@
+# Scrubbed log, CM4 two outputs (HVS Q7), 2026-11-28 (board clock UTC, agreed with the host).
+# Lines longer than 120 characters are cut; runs of commit/frame lines are condensed.
+# Format lines of the probe output are dropped. The ssh user's name in fuser output is not present (root only).
+
+===== probe.txt: probe example, master, both outputs on fbcon (10:33Z) =====
+device /dev/dri/card0, driver vc4
+output 0: crtc 102 640x480 @ 75.000 Hz
+output 1: crtc 90 720x1280 @ 60.000 Hz
+plane 79 Primary: outputs 0b10, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 91 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claime ...
+plane 127 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 138 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 149 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 160 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 171 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 182 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 193 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 204 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 215 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 226 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 237 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 248 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claim ...
+plane 677 Cursor: outputs 0b10, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claime ...
+plane 688 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+KEPT output=0 crtc=102 primary=91 overlay=127,138,149,160,171,182,193,204,215,226,237,248 cursor=688 dropped_reachable=2 ...
+KEPT output=1 crtc=90 primary=79 overlay=127,138,149,160,171,182,193,204,215,226,237,248 cursor=677 dropped_reachable=25 ...
+
+===== a-hdmi.log: phase A, HDMI-A-1 lease: drm-harness --source dlm --lease hdmi --seconds 90 modeset =====
+harness version=0.1.0 scenario=modeset args="--device /dev/dri/card0 --source dlm --lease hdmi --dlm-dir /tmp/q7/dlm --s ...
+lease route=drm-lease-manager socket=/tmp/q7/dlm/hdmi
+session scenario=modeset source=dlm device=/tmp/q7/dlm/hdmi driver=vc4 profile=generic producers=local
+output index=0 id=102 connector=HDMI-A-1 width=640 height=480 refresh_mhz=75000 mode=640x480 vrefresh=75 clock_khz=31500 ...
+plane id=91 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG ...
+plane id=204 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=215 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=226 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=237 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=248 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=259 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=270 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=281 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=292 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=688 kind=cursor zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG16 ...
+connector_modes connector=HDMI-A-1 current=640x480@75 count=20 modes=1920x1080@60,1920x1080@60,1920x1080@60,1920x1080@50 ...
+mode_candidate index=0 mode=1920x1080@60 name=1920x1080 test_only=ok
+step label=modeset-before width=640 height=480 seconds=1 expect="blue full screen with white edge, red rectangle with ye ...
+assign step=modeset-before layer=0 buffer=1 plane=91 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x480 dst=0 ...
+assign step=modeset-before layer=1 buffer=2 plane=204 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,320x240 dst= ...
+plan step=modeset-before layers=2 assigned=2 planes=91,204
+commit step=modeset-before submission=1 validate_us=173 commit_us=14859 latency_us=14864
+commit step=modeset-before submission=2 validate_us=53 commit_us=120 latency_us=11152
+commit step=modeset-before submission=3 validate_us=47 commit_us=173 latency_us=13189
+... 70 commit lines omitted ...
+commit step=modeset-before submission=74 validate_us=50 commit_us=45 latency_us=13209
+commit step=modeset-before submission=75 validate_us=44 commit_us=45 latency_us=13206
+commit step=modeset-before submission=76 validate_us=44 commit_us=44 latency_us=13227
+modeset step=switch mode=1920x1080@60 mode_name=1920x1080 commit_us=46855 result=ok crtc_mode=1920x1080@60
+replan width=1920 height=1080 refresh_mhz=60000
+step label=modeset-after width=1920 height=1080 seconds=90 expect="blue full screen with white edge, red rectangle with  ...
+assign step=modeset-after layer=0 buffer=5 plane=91 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1920x1080 dst= ...
+assign step=modeset-after layer=1 buffer=6 plane=204 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,960x540 dst=4 ...
+plan step=modeset-after layers=2 assigned=2 planes=91,204
+commit step=modeset-after submission=1 validate_us=165 commit_us=7446 latency_us=7452
+commit step=modeset-after submission=2 validate_us=44 commit_us=48 latency_us=14525
+commit step=modeset-after submission=3 validate_us=52 commit_us=51 latency_us=16433
+... 5393 commit lines omitted ...
+commit step=modeset-after submission=5397 validate_us=51 commit_us=131 latency_us=16451
+commit step=modeset-after submission=5398 validate_us=77 commit_us=53 latency_us=16359
+commit step=modeset-after submission=5399 validate_us=59 commit_us=47 latency_us=16425
+modeset step=restore mode=640x480@75 mode_name=640x480 commit_us=46992 result=ok crtc_mode=640x480@75
+modeset_result from=640x480@75 to=1920x1080@60 refused=- before_commits=76 before_latched=76 switch_us=46855 after_commi ...
+resources scenario=modeset wall_ms=91156 cpu_user_ms=520 cpu_sys_ms=2090 cpu_pct=2.9 rss_kib=956 peak_rss_kib=956
+VERDICT modeset PASS 640x480@75 -> 1920x1080@60: 76 commits latched before, 5399 after the switch; 640x480@75 restored
+
+===== a-dsi.log: phase A, DSI-1 lease: drm-harness --source dlm --lease dsi --seconds 80 two-planes =====
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --lease dsi --dlm-dir /tmp/q7/dlm - ...
+lease route=drm-lease-manager socket=/tmp/q7/dlm/dsi
+session scenario=two-planes source=dlm device=/tmp/q7/dlm/dsi driver=vc4 profile=generic producers=local
+output index=0 id=90 connector=DSI-1 width=720 height=1280 refresh_mhz=60000 mode=720x1280 vrefresh=60 clock_khz=62712 s ...
+plane id=79 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG ...
+plane id=127 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=138 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=149 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=160 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=171 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=182 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=193 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=677 kind=cursor zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG16 ...
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=79 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,720x1280 dst=0,0, ...
+assign step=two-planes layer=1 buffer=2 plane=127 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,360x640 dst=180, ...
+plan step=two-planes layers=2 assigned=2 planes=79,127
+commit step=two-planes submission=1 validate_us=175 commit_us=32045 latency_us=32050
+hold step=two-planes seconds=80
+resources scenario=two-planes wall_ms=80050 cpu_user_ms=10 cpu_sys_ms=20 cpu_pct=0.0 rss_kib=940 peak_rss_kib=940
+VERDICT two-planes PASS 2 buffers on planes 79,127 (bottom,top)
+
+===== dlm-a.log: phase A, drm-lease-manager -v -u, config dlm-a.toml (empty: no errors) =====
+
+===== b1-hdmi.log: phase B1, HDMI-A-1 lease holding overlay 237 =====
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --dlm-dir /tmp/q7/dlm --lease hdmi  ...
+lease route=drm-lease-manager socket=/tmp/q7/dlm/hdmi
+session scenario=two-planes source=dlm device=/tmp/q7/dlm/hdmi driver=vc4 profile=generic producers=local
+output index=0 id=102 connector=HDMI-A-1 width=640 height=480 refresh_mhz=75000 mode=640x480 vrefresh=75 clock_khz=31500 ...
+plane id=91 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG ...
+plane id=237 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=91 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x480 dst=0,0,6 ...
+assign step=two-planes layer=1 buffer=2 plane=237 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,320x240 dst=160, ...
+plan step=two-planes layers=2 assigned=2 planes=91,237
+commit step=two-planes submission=1 validate_us=190 commit_us=7764 latency_us=7769
+hold step=two-planes seconds=25
+resources scenario=two-planes wall_ms=25010 cpu_user_ms=0 cpu_sys_ms=10 cpu_pct=0.0 rss_kib=928 peak_rss_kib=928
+VERDICT two-planes PASS 2 buffers on planes 91,237 (bottom,top)
+
+===== b2-dsi.log: phase B2, DSI-1 lease requested while HDMI-A-1 holds 237 =====
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --dlm-dir /tmp/q7/dlm --lease dsi - ...
+error scenario=two-planes message="open /tmp/q7/dlm/dsi: lease refused: the lease manager closed the connection"
+VERDICT two-planes FAIL open /tmp/q7/dlm/dsi: lease refused: the lease manager closed the connection
+
+===== b3-dsi.log: phase B3, DSI-1 lease after the HDMI-A-1 client exited =====
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --dlm-dir /tmp/q7/dlm --lease dsi - ...
+lease route=drm-lease-manager socket=/tmp/q7/dlm/dsi
+session scenario=two-planes source=dlm device=/tmp/q7/dlm/dsi driver=vc4 profile=generic producers=local
+output index=0 id=90 connector=DSI-1 width=720 height=1280 refresh_mhz=60000 mode=720x1280 vrefresh=60 clock_khz=62712 s ...
+plane id=79 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG ...
+plane id=237 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=79 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,720x1280 dst=0,0, ...
+assign step=two-planes layer=1 buffer=2 plane=237 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,360x640 dst=180, ...
+plan step=two-planes layers=2 assigned=2 planes=79,237
+commit step=two-planes submission=1 validate_us=127 commit_us=14846 latency_us=14851
+hold step=two-planes seconds=25
+resources scenario=two-planes wall_ms=25023 cpu_user_ms=0 cpu_sys_ms=0 cpu_pct=0.0 rss_kib=932 peak_rss_kib=932
+VERDICT two-planes PASS 2 buffers on planes 79,237 (bottom,top)
+
+===== b4-hdmi.log: phase B4, HDMI-A-1 lease requested while DSI-1 holds 237 =====
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --dlm-dir /tmp/q7/dlm --lease hdmi  ...
+error scenario=two-planes message="open /tmp/q7/dlm/hdmi: lease refused: the lease manager closed the connection"
+VERDICT two-planes FAIL open /tmp/q7/dlm/hdmi: lease refused: the lease manager closed the connection
+
+===== dlm-b.log: phase B, drm-lease-manager -v -u, config dlm-b.toml =====
+ERROR: drmModeCreateLease failed on lease dsi: Device or resource busy
+ERROR: Can't fulfill lease request: lease=dsi
+ERROR: drmModeCreateLease failed on lease hdmi: Device or resource busy
+ERROR: Can't fulfill lease request: lease=hdmi
+
+===== c1-hdmi-twoplane.log: phase C1, twoplane /dev/dri/card0 --output 0 --frames 2400 (master, HDMI-A-1; DSI-1 on fbcon) =====
+DATE 2026-11-28T10:37:16Z
+KERNEL 6.12.47+rpt-rpi-v8
+DEVICE /dev/dri/card0
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+PROFILE Generic
+MODE 640x480@75.000Hz output 0 (crtc 102) of 2
+PLANE index 1 id 91 Primary zpos fixed 0 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 2 id 127 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 3 id 138 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 4 id 149 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 5 id 160 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 6 id 171 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 7 id 182 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 8 id 193 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 9 id 204 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 10 id 215 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 11 id 226 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 12 id 237 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 13 id 248 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 15 id 688 Cursor zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+BUFFERS 3 per layer: background XR24 640x480, overlay AR24 128x240
+GEOMETRY output 640x480
+GEOMETRY background layer 0 dst 0,0 640x480 format XR24 rgb #202020
+GEOMETRY block red 64,60 128x240 rgb #ff0000
+GEOMETRY block green 256,60 128x240 rgb #00ff00
+GEOMETRY block blue 448,60 128x240 rgb #0000ff
+GEOMETRY bar strip 0,384 640x72 bar 16x72 rgb #ffffff moving 5 px per frame
+GEOMETRY overlay layer 1 dst 320,120 128x240 format AR24 blend premultiplied plane-alpha 0xffff
+GEOMETRY overlay opaque 320,120 128x120 colour #ffff00 pixel-alpha 0xff
+GEOMETRY overlay translucent 320,240 128x120 colour #ff00ff pixel-alpha 0x80
+GEOMETRY overlay counter 8 squares of 5x5 from 385,121 step 6 px, most significant bit left, white #ffffff = 1, black #0 ...
+PLAN from frame 0:
+  layer 0 (background) -> plane 91 Primary zpos 0 src 0,0 640x480 dst 0,0 640x480
+  layer 1 (overlay) -> plane 127 Overlay zpos 1 src 0,0 128x240 dst 320,120 128x240
+EXPECT phase=normal "background" x=32 y=336 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=normal "red block" x=128 y=180 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=normal "blue block" x=512 y=180 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=normal "green block uncovered" x=288 y=180 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=normal "overlay opaque over green" x=352 y=180 fx=0.5500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay opaque over background" x=416 y=180 fx=0.6500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay translucent over green" x=352 y=270 fx=0.5500 fy=0.5625 rgb=#807f80
+EXPECT phase=normal "overlay translucent over background" x=416 y=300 fx=0.6500 fy=0.6250 rgb=#901090
+RESULT frames=2400 committed=2400 latched=2400 released=4798 dropped=0 late=0 period_ms=13.333 latch_interval_mean_ms=13 ...
+RELEASE after the run: released 4800 of 4800 buffer uses, 0 still on screen
+VERDICT twoplane: PASS 2400 frames on two planes, 2400 latched, 4798 released, 0 late, driver vc4 mode 640x480@75.000Hz, ...
+
+===== c2-dsi-twoplane.log: phase C2, twoplane /dev/dri/card0 --output 1 --frames 1800 (master, DSI-1; HDMI-A-1 on fbcon) =====
+DATE 2026-11-28T10:37:59Z
+KERNEL 6.12.47+rpt-rpi-v8
+DEVICE /dev/dri/card0
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+PROFILE Generic
+MODE 720x1280@60.000Hz output 1 (crtc 90) of 2
+PLANE index 0 id 79 Primary zpos fixed 0 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 2 id 127 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 3 id 138 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 4 id 149 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 5 id 160 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 6 id 171 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 7 id 182 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 8 id 193 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 9 id 204 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+PLANE index 10 id 215 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 11 id 226 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 12 id 237 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 13 id 248 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0 ...
+PLANE index 14 id 677 Cursor zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x ...
+BUFFERS 3 per layer: background XR24 720x1280, overlay AR24 144x640
+GEOMETRY output 720x1280
+GEOMETRY background layer 0 dst 0,0 720x1280 format XR24 rgb #202020
+GEOMETRY block red 72,160 144x640 rgb #ff0000
+GEOMETRY block green 288,160 144x640 rgb #00ff00
+GEOMETRY block blue 504,160 144x640 rgb #0000ff
+GEOMETRY bar strip 0,1024 720x192 bar 18x192 rgb #ffffff moving 6 px per frame
+GEOMETRY overlay layer 1 dst 360,320 144x640 format AR24 blend premultiplied plane-alpha 0xffff
+GEOMETRY overlay opaque 360,320 144x320 colour #ffff00 pixel-alpha 0xff
+GEOMETRY overlay translucent 360,640 144x320 colour #ff00ff pixel-alpha 0x80
+GEOMETRY overlay counter 8 squares of 6x6 from 433,321 step 7 px, most significant bit left, white #ffffff = 1, black #0 ...
+PLAN from frame 0:
+  layer 0 (background) -> plane 79 Primary zpos 0 src 0,0 720x1280 dst 0,0 720x1280
+  layer 1 (overlay) -> plane 127 Overlay zpos 1 src 0,0 144x640 dst 360,320 144x640
+EXPECT phase=normal "background" x=36 y=896 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=normal "red block" x=144 y=480 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=normal "blue block" x=576 y=480 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=normal "green block uncovered" x=324 y=480 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=normal "overlay opaque over green" x=396 y=480 fx=0.5500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay opaque over background" x=468 y=480 fx=0.6500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay translucent over green" x=396 y=720 fx=0.5500 fy=0.5625 rgb=#807f80
+EXPECT phase=normal "overlay translucent over background" x=468 y=800 fx=0.6500 fy=0.6250 rgb=#901090
+RESULT frames=1800 committed=1800 latched=1800 released=3598 dropped=0 late=0 period_ms=16.667 latch_interval_mean_ms=16 ...
+RELEASE after the run: released 3600 of 3600 buffer uses, 0 still on screen
+VERDICT twoplane: PASS 1800 frames on two planes, 1800 latched, 3598 released, 0 late, driver vc4 mode 720x1280@60.000Hz ...
+
+===== dumps.txt: debugfs snapshots (state extract, hvs_underrun, hvs_dlists, hvs_dlist_allocs), read with sudo =====
+===== dump idle-before 2026-11-28T10:33:55Z
+## fuser
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=4
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=8
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 55: 0x4800d804
+dlist: 56: 0x00000000
+dlist: 57: 0x4000fff0
+dlist: 58: 0x050002d0
+dlist: 59: 0x02d60000
+dlist: 60: 0xceb00000
+dlist: 61: 0xcebff3c0
+dlist: 62: 0x000005a0
+dlist: 63: 0x80000000
+HVS chan 1:
+dlist: 64: 0x4800d804
+dlist: 65: 0x00000000
+dlist: 66: 0x4000fff0
+dlist: 67: 0x01e00280
+dlist: 68: 0x00d30000
+dlist: 69: 0xceb00000
+dlist: 70: 0xceb4a2e0
+dlist: 71: 0x000005a0
+dlist: 72: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000037 + 00000009]
+node [00000040 + 00000009]
+Stale nodes:
+===== dump A-both-active 2026-11-28T10:34:28Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      30741 F.... drm-lease-manag
+                     root      30748 F.... drm-harness
+                     root      30753 F.... drm-harness
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=720x1280
+				size=3686400
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=1920x1080
+				size=8294400
+	normalized-zpos=0
+plane[127]: plane-6
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=360x640
+				size=921600
+	normalized-zpos=1
+plane[204]: plane-13
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=960x540
+				size=2076672
+	normalized-zpos=1
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=44
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=2008
+	mode: "1920x1080": 60 148500 1920 2008 2052 2200 1080 1084 1089 1125 0x48 0x5
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 133: 0x4800d807
+dlist: 134: 0x00000000
+dlist: 135: 0x4000fff0
+dlist: 136: 0x050002d0
+dlist: 137: 0x04290000
+dlist: 138: 0xd1100000
+dlist: 139: 0xd13ecd40
+dlist: 140: 0x00000b40
+dlist: 141: 0x4800d807
+dlist: 142: 0x014000b4
+dlist: 143: 0x4000fff0
+dlist: 144: 0x02800168
+dlist: 145: 0x027f0000
+dlist: 146: 0xd1500000
+dlist: 147: 0xd15e0a60
+dlist: 148: 0x000005a0
+dlist: 149: 0x80000000
+HVS chan 1:
+dlist: 88: 0x4800d807
+dlist: 89: 0x00000000
+dlist: 90: 0x4000fff0
+dlist: 91: 0x04380780
+dlist: 92: 0xc0c0c0c0
+dlist: 93: 0xcfd00000
+dlist: 94: 0xc0c0c0c0
+dlist: 95: 0x00001e00
+dlist: 96: 0x4800d807
+dlist: 97: 0x010e01e0
+dlist: 98: 0x4000fff0
+dlist: 99: 0x021c03c0
+dlist: 100: 0xc0c0c0c0
+dlist: 101: 0xd0500000
+dlist: 102: 0xc0c0c0c0
+dlist: 103: 0x00000f00
+dlist: 104: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000036 + 00000011]
+node [00000047 + 00000011]
+node [00000058 + 00000011]
+node [00000085 + 00000011]
+Stale nodes:
+===== dump A-both-active-2 2026-11-28T10:34:59Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      30741 F.... drm-lease-manag
+                     root      30748 F.... drm-harness
+                     root      30753 F.... drm-harness
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=720x1280
+				size=3686400
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=1920x1080
+				size=8294400
+	normalized-zpos=0
+plane[127]: plane-6
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=360x640
+				size=921600
+	normalized-zpos=1
+plane[204]: plane-13
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=960x540
+				size=2076672
+	normalized-zpos=1
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=44
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=2008
+	mode: "1920x1080": 60 148500 1920 2008 2052 2200 1080 1084 1089 1125 0x48 0x5
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 133: 0x4800d807
+dlist: 134: 0x00000000
+dlist: 135: 0x4000fff0
+dlist: 136: 0x050002d0
+dlist: 137: 0x00c80000
+dlist: 138: 0xd1100000
+dlist: 139: 0xd118ca00
+dlist: 140: 0x00000b40
+dlist: 141: 0x4800d807
+dlist: 142: 0x014000b4
+dlist: 143: 0x4000fff0
+dlist: 144: 0x02800168
+dlist: 145: 0x00000000
+dlist: 146: 0xd1500000
+dlist: 147: 0xd1500000
+dlist: 148: 0x000005a0
+dlist: 149: 0x80000000
+HVS chan 1:
+dlist: 54: 0x4800d807
+dlist: 55: 0x00000000
+dlist: 56: 0x4000fff0
+dlist: 57: 0x04380780
+dlist: 58: 0xc0c0c0c0
+dlist: 59: 0xd0700000
+dlist: 60: 0xc0c0c0c0
+dlist: 61: 0x00001e00
+dlist: 62: 0x4800d807
+dlist: 63: 0x010e01e0
+dlist: 64: 0x4000fff0
+dlist: 65: 0x021c03c0
+dlist: 66: 0xc0c0c0c0
+dlist: 67: 0xd0f00000
+dlist: 68: 0xc0c0c0c0
+dlist: 69: 0x00000f00
+dlist: 70: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000036 + 00000011]
+node [00000047 + 00000011]
+node [00000058 + 00000011]
+node [00000069 + 00000011]
+node [00000085 + 00000011]
+Stale nodes:
+node [00000047 + 00000011] channel 1 frcnt 27
+node [00000058 + 00000011] channel 1 frcnt 28
+===== dump A-after-clients 2026-11-28T10:35:51Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      30741 F.... drm-lease-manag
+## state (planes with a CRTC, CRTCs)
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=0
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=0
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 131: 0x80000000
+HVS chan 1:
+dlist: 54: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000036 + 00000001]
+node [00000083 + 00000001]
+Stale nodes:
+===== dump A-after-dlm-stop 2026-11-28T10:35:59Z
+## fuser
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=4
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=8
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 55: 0x4800d804
+dlist: 56: 0x00000000
+dlist: 57: 0x4000fff0
+dlist: 58: 0x050002d0
+dlist: 59: 0x00f00000
+dlist: 60: 0xceb00000
+dlist: 61: 0xceb54600
+dlist: 62: 0x000005a0
+dlist: 63: 0x80000000
+HVS chan 1:
+dlist: 64: 0x4800d804
+dlist: 65: 0x00000000
+dlist: 66: 0x4000fff0
+dlist: 67: 0x01e00280
+dlist: 68: 0x00120000
+dlist: 69: 0xceb00000
+dlist: 70: 0xceb06540
+dlist: 71: 0x000005a0
+dlist: 72: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000037 + 00000009]
+node [00000040 + 00000009]
+Stale nodes:
+===== dump B2-hdmi-holds-237 2026-11-28T10:36:14Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      30923 F.... drm-lease-manag
+                     root      30929 F.... drm-harness
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=640x480
+				size=1228800
+	normalized-zpos=0
+plane[237]: plane-16
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=320x240
+				size=307200
+	normalized-zpos=1
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=4
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=10008
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 55: 0x4800d804
+dlist: 56: 0x00000000
+dlist: 57: 0x4000fff0
+dlist: 58: 0x050002d0
+dlist: 59: 0x01580000
+dlist: 60: 0xceb00000
+dlist: 61: 0xceb78f00
+dlist: 62: 0x000005a0
+dlist: 63: 0x80000000
+HVS chan 1:
+dlist: 73: 0x4800d807
+dlist: 74: 0x00000000
+dlist: 75: 0x4000fff0
+dlist: 76: 0x01e00280
+dlist: 77: 0x01be0000
+dlist: 78: 0xcf100000
+dlist: 79: 0xcf216c00
+dlist: 80: 0x00000a00
+dlist: 81: 0x4800d807
+dlist: 82: 0x007800a0
+dlist: 83: 0x4000fff0
+dlist: 84: 0x00f00140
+dlist: 85: 0x00ef0000
+dlist: 86: 0xcea80000
+dlist: 87: 0xceacab00
+dlist: 88: 0x00000500
+dlist: 89: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000037 + 00000009]
+node [00000049 + 00000011]
+Stale nodes:
+===== dump B3-dsi-holds-237 2026-11-28T10:36:39Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      30923 F.... drm-lease-manag
+                     root      30991 F.... drm-harness
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=720x1280
+				size=3686400
+	normalized-zpos=0
+plane[237]: plane-16
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=360x640
+				size=921600
+	normalized-zpos=1
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=10004
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=0
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 64: 0x4800d807
+dlist: 65: 0x00000000
+dlist: 66: 0x4000fff0
+dlist: 67: 0x050002d0
+dlist: 68: 0x02d20000
+dlist: 69: 0xcf100000
+dlist: 70: 0xcf2fba80
+dlist: 71: 0x00000b40
+dlist: 72: 0x4800d807
+dlist: 73: 0x014000b4
+dlist: 74: 0x4000fff0
+dlist: 75: 0x02800168
+dlist: 76: 0x01920000
+dlist: 77: 0xcf500000
+dlist: 78: 0xcf58d540
+dlist: 79: 0x000005a0
+dlist: 80: 0x80000000
+HVS chan 1:
+dlist: 54: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000036 + 00000001]
+node [00000040 + 00000011]
+Stale nodes:
+===== dump C1-twoplane-hdmi-master 2026-11-28T10:37:20Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      31098 F.... twoplane
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = twoplane
+		size=640x480
+				size=1228800
+	normalized-zpos=0
+plane[127]: plane-6
+	crtc=pixelvalve-2
+		allocated by = twoplane
+		size=128x240
+				size=122880
+	normalized-zpos=1
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=4
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=48
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 55: 0x4800d804
+dlist: 56: 0x00000000
+dlist: 57: 0x4000fff0
+dlist: 58: 0x050002d0
+dlist: 59: 0x02020000
+dlist: 60: 0xceb00000
+dlist: 61: 0xcebb4b40
+dlist: 62: 0x000005a0
+dlist: 63: 0x80000000
+HVS chan 1 disabled
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000037 + 00000009]
+node [00000040 + 00000011]
+node [00000051 + 00000011]
+node [00000062 + 00000011]
+node [00000073 + 00000011]
+Stale nodes:
+node [00000051 + 00000011] channel 1 frcnt 6
+===== dump C2-twoplane-dsi-master 2026-11-28T10:38:03Z
+## fuser
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      31136 F.... twoplane
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = twoplane
+		size=720x1280
+				size=3686400
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+plane[127]: plane-6
+	crtc=pixelvalve-1
+		allocated by = twoplane
+		size=144x640
+				size=368640
+	normalized-zpos=1
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=44
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=8
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 71: 0x4800d807
+dlist: 72: 0x00000000
+dlist: 73: 0x4000fff0
+dlist: 74: 0x050002d0
+dlist: 75: 0xc0c0c0c0
+dlist: 76: 0xcf100000
+dlist: 77: 0xc0c0c0c0
+dlist: 78: 0x00000b40
+dlist: 79: 0x4800d807
+dlist: 80: 0x01400168
+dlist: 81: 0x2000fff0
+dlist: 82: 0x02800090
+dlist: 83: 0xc0c0c0c0
+dlist: 84: 0xcea80000
+dlist: 85: 0xc0c0c0c0
+dlist: 86: 0x00000240
+dlist: 87: 0x80000000
+HVS chan 1:
+dlist: 115: 0x4800d804
+dlist: 116: 0x00000000
+dlist: 117: 0x4000fff0
+dlist: 118: 0x01e00280
+dlist: 119: 0x005a0000
+dlist: 120: 0xceb00000
+dlist: 121: 0xceb1fa40
+dlist: 122: 0x000005a0
+dlist: 123: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000036 + 00000011]
+node [00000047 + 00000011]
+node [00000073 + 00000009]
+node [0000007c + 00000011]
+Stale nodes:
+node [0000007c + 00000011] channel 0 frcnt 56
+===== dump final 2026-11-28T10:39:15Z
+## fuser
+## state (planes with a CRTC, CRTCs)
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = [fbcon]
+		size=720x1280
+				size=1843200
+	normalized-zpos=0
+crtc[59]: txp
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[78]: pixelvalve-0
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=4
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=8
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+crtc[114]: pixelvalve-4
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+crtc[126]: pixelvalve-3
+	active=0
+	self_refresh_active=0
+	plane_mask=0
+	mode: "": 0 0 0 0 0 0 0 0 0 0 0x0 0x0
+## hvs_underrun
+0
+## hvs_dlists
+HVS chan 0:
+dlist: 106: 0x4800d804
+dlist: 107: 0x00000000
+dlist: 108: 0x4000fff0
+dlist: 109: 0x050002d0
+dlist: 110: 0x01120000
+dlist: 111: 0xceb00000
+dlist: 112: 0xceb60540
+dlist: 113: 0x000005a0
+dlist: 114: 0x80000000
+HVS chan 1:
+dlist: 71: 0x4800d804
+dlist: 72: 0x00000000
+dlist: 73: 0x4000fff0
+dlist: 74: 0x01e00280
+dlist: 75: 0x00bf0000
+dlist: 76: 0xceb00000
+dlist: 77: 0xceb43260
+dlist: 78: 0x000005a0
+dlist: 79: 0x80000000
+HVS chan 2 disabled
+## hvs_dlist_allocs
+Allocated nodes:
+node [00000020 + 0000000b]
+node [0000002b + 0000000b]
+node [00000047 + 00000009]
+node [0000006a + 00000009]
+Stale nodes:
+
