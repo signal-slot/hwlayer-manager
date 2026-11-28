@@ -1,13 +1,15 @@
 # Design: an engine backend for the Raspberry Pi HVS (BCM2711, BCM2712)
 
-Status: design only, written 2026-11-28. **No hardware result is claimed and no code is changed.**
+Status: design only, written 2026-11-28; the §7 status notes added 2026-11-29 only point at dated
+session files and restate nothing as new. **No hardware result is claimed and no code is changed.**
 Nothing in this file was run.
 
 ## Tags
 
 The tags of the source documents are kept on every row that is taken from them:
 
-- **observed** (with its date): measured on a board, as recorded in
+- **observed** (with its date; 2026-11-27 and 2026-11-28 on the files below): measured on a board,
+  as recorded in
   [`observed/bcm2711-cm4-topology.md`](observed/bcm2711-cm4-topology.md),
   [`observed/bcm2711-cm4.md`](observed/bcm2711-cm4.md),
   [`observed/bcm2712-topology.md`](observed/bcm2712-topology.md) and
@@ -123,7 +125,8 @@ limits are far below the HVS's 56 to 60 planes and 45 formats.
 
 ## 5. Differences between the vc4 HVS4/5 and HVS6 variants, as recorded
 
-HVS4 (BCM2835 to 2837) is out of scope in [`observed/vc4-hvs-source.md`](observed/vc4-hvs-source.md).
+HVS4 (BCM2835 to 2837) is out of scope in the source study read 2026-11-28,
+[`observed/vc4-hvs-source.md`](observed/vc4-hvs-source.md).
 
 | Item | BCM2711, HVS5 | BCM2712, HVS6 | Tag |
 | --- | --- | --- | --- |
@@ -148,7 +151,8 @@ HVS4 (BCM2835 to 2837) is out of scope in [`observed/vc4-hvs-source.md`](observe
 All of these are host tests. None needs a board and none says anything about hardware.
 — inferred
 
-1. **Fixtures.** Build `Capabilities` from the recorded probe outputs: the raw probe block in
+1. **Fixtures.** Build `Capabilities` from the recorded probe outputs (observed 2026-11-28): the
+   raw probe block in
    [`observed/bcm2712-topology.md`](observed/bcm2712-topology.md) and the DSI-1 probe block in
    [`observed/bcm2711-cm4-topology.md`](observed/bcm2711-cm4-topology.md), and from the fuller
    plane lists those files hold. The fixtures are data copied from the files, with the date.
@@ -175,35 +179,75 @@ All of these are host tests. None needs a board and none says anything about har
 
 ## 7. Open questions
 
-1. **Scaling values.** The driver imposes no minimum or maximum through the DRM helper (min 1,
-   max `INT_MAX`), and its own limit is a TPZ ratio field of 21 bits whose fixed-point meaning was
-   not worked out. What `ScaleLimits` to put in the table is open; a probe on a board
-   (`TEST_ONLY` with growing ratios) would settle it. Until then the table should claim the
-   smallest range the recorded `TEST_ONLY` runs accepted. (source; inferred)
+1. **Scaling values.** *Status (2026-11-29): measured on both generations; the downscale floor
+   below 0.5 stays open.* Measured 2026-11-27 and 2026-11-28 on the Pi 5 and the reTerminal
+   ([`vc4-hvs-session-rpi5-scale-2026-11-28.md`](vc4-hvs-session-rpi5-scale-2026-11-28.md),
+   [`vc4-hvs-session-cm4-scale-2026-11-28.md`](vc4-hvs-session-cm4-scale-2026-11-28.md)): no
+   upscale ratio was rejected on any primary or overlay plane up to the ladder's end (a one-pixel
+   source), and 0.5 downscale was accepted everywhere; the ladder does not go below 0.5, so the
+   floor is unmeasured. The table in `crates/composition-drm/src/profile/vc4.rs` (read 2026-11-29)
+   claims 32x up and 2x down, inside the measured range and the source prediction
+   ([`vc4-scale-limits-source.md`](vc4-scale-limits-source.md)). The driver imposes no minimum or
+   maximum through the DRM helper (min 1, max `INT_MAX`), and its own limit is a TPZ ratio field
+   of 21 bits whose fixed-point meaning was not worked out. (source; inferred)
 2. **Bandwidth.** The engine cannot see a limit that neither `TEST_ONLY` nor the driver
    enforces. Options: a backend-side estimate in `check` using the source's own load formula
    (`vc4_plane_calc_load`) against a threshold measured on a board; or document the limit as
-   unsupported. Needs a measurement; no threshold is known. (inferred)
+   unsupported. Needs a measurement; no threshold is known. (inferred) *Status (2026-11-29):
+   still open — no session measured one, and the recorded `hvs_underrun` reads of 0 (2026-11-28)
+   say nothing about a threshold.*
 3. **Generation detection.** Both report `vc4`. Is an explicit profile variant enough, or should
    the backend infer HVS5 vs HVS6 from the modifier set (T-tiled present or not)? The explicit
-   variant matches how profiles are chosen today. (inferred)
+   variant matches how profiles are chosen today. (inferred) *Status (2026-11-29): settled in
+   code, not measured — the profiles are the explicit `Vc4Hvs5` and `Vc4Hvs6` variants
+   (`crates/composition-drm/src/profile.rs`, read 2026-11-29); modifier-based detection is not
+   implemented.*
 4. **Plane budget.** `MAX_PLANES` = 16 and `MAX_FORMATS` = 32 drop planes and formats the
    HVS has (observed 2026-11-28: 40 of 56 planes, 13 of 45 linear formats). Is that acceptable
    as a conscious scope limit, or should a later change raise the limits? That is a core change
-   and outside this design.
-5. **BCM2712 CRTC and plane arithmetic.** The 4 CRTCs and 56 planes need the device tree and the
-   kernel source side by side to confirm which CRTC is which (§5). Also unconfirmed: whether the
-   extra per-CRTC planes are cursors. (observed 2026-11-28; inferred)
-6. **`replace_pending`.** Whether a not-yet-latched HVS commit may be replaced, and what the
-   backend then reports, is not known from the recorded evidence. The commit-ordering row in the
-   source suggests `false`; a board test would settle it. (source; inferred)
-7. **Which kernel.** The source rows are for `rpi-6.18.y` at one commit; the boards' kernels
-   (`6.18.50+rpt-rpi-2712` observed on the Pi 5, 2026-11-28) are not the same build. Plane and
-   modifier details may differ. (source; observed 2026-11-28)
-8. **Firmware KMS** (`vc4-fkms-v3d`) is out of scope; the design assumes full KMS.
+   and outside this design. *Status (2026-11-29): recorded, decision with composition-core —
+   [`rk-hvs-caps-finding.md`](rk-hvs-caps-finding.md) is the decision brief; nothing was raised
+   here.*
+5. **BCM2712 CRTC and plane arithmetic.** *Status (2026-11-29): answered on the Pi 5
+   (observed 2026-11-28, [`vc4-hvs-session-rpi5-scale-2026-11-28.md`](vc4-hvs-session-rpi5-scale-2026-11-28.md),
+   section Q5): the CRTCs are the two writeback blocks (59 `mop`, 78 `moplet`) and the two HDMI
+   pixelvalves (94 HDMI-A-1, 106 HDMI-A-2), and the 56 planes are 4 primaries, 16 overlays shared
+   by CRTCs 1 to 3, 32 overlays bound to CRTC 0 and one cursor per CRTC — the extra per-CRTC
+   planes are **not** cursors, and the 57-vs-56 doubt resolves to 4 + 16 + 32 + 4 = 56.* The
+   CRTC roles came out of KMS itself (encoder `possible_crtcs`, connector names), not the device
+   tree, and the cursor question is closed. (observed 2026-11-28; inferred)
+6. **`replace_pending`.** *Status (2026-11-29): answered on both generations (observed 2026-11-27,
+   one `kms_sweep replace` run each, recorded as `sweep-replace-2026-11-27.txt` under
+   `crates/composition-drm/tests/data/bcm2711/` and `.../bcm2712/`): the second commit before the
+   first flip event is refused with `EBUSY` and the first flip completes
+   (`REPLACE first=ok second=EBUSY events=1`); a not-yet-latched commit cannot be replaced, and
+   the kernel reports `EBUSY`, as the source predicted
+   ([`vc4-replace-pending-source.md`](vc4-replace-pending-source.md)). The run used the primary
+   flip path; an overlay-pending replacement was not separately tested.* The commit-ordering row
+   in the source suggested `false`; the board confirms it. (source; observed 2026-11-27)
+7. **Which kernel.** *Status (2026-11-29): answered, with a negative result — the row-by-row
+   comparison against the boards' running kernels is on the tip and finds the rows do **not**
+   match the running kernels where later commits touch them
+   ([`vc4-rk-kernel-compare.md`](vc4-rk-kernel-compare.md)).* The source rows are for
+   `rpi-6.18.y` at one commit; the boards' kernels (`6.18.50+rpt-rpi-2712` observed on the Pi 5,
+   2026-11-28) are not the same build. Plane and modifier details may differ, and the comparison
+   says where. (source; observed 2026-11-28)
+8. **Firmware KMS** (`vc4-fkms-v3d`) is out of scope; the design assumes full KMS. *Status
+   (2026-11-29): unchanged; not a measurement question.*
 9. **Shared resources across outputs.** `ResourceGroup` describes one output's frame. The HVS
    pool is shared between CRTCs; a second active output can exhaust it unseen by the planner.
-   `check` must have the last word, as the contract says. (inferred)
-10. **HDMI limits** on BCM2712 (600 MHz) are unverified in the source record.
+   `check` must have the last word, as the contract says. (inferred) *Status (2026-11-29):
+   still open — the two-output Pi 5 session could not run: HDMI-A-2 has no sink
+   (observed 2026-11-28,
+   [`observed/bcm2712-two-outputs-2026-11-28.md`](observed/bcm2712-two-outputs-2026-11-28.md)).*
+10. **HDMI limits** on BCM2712 (600 MHz) are unverified in the source record. *Status
+    (2026-11-29): still open — the attached sink's EDID caps at 1920x1080@60 (148.5 MHz), so no
+    4K or 600 MHz limit could be shown with it (observed 2026-11-28,
+    [`vc4-hvs-session-rpi5-scale-2026-11-28.md`](vc4-hvs-session-rpi5-scale-2026-11-28.md),
+    section Q10); the writeback's 4096x2160 bound is the writeback, not HDMI (observed
+    2026-11-28, [`observed/bcm2712-two-outputs-2026-11-28.md`](observed/bcm2712-two-outputs-2026-11-28.md)).
+    The missing measurement is a `mode_test` run (read from source,
+    `crates/composition-drm/examples/mode_test.rs`) with a 4K-capable sink.*
 
-No board was used for this document.
+No board was used for the design text above. The 2026-11-29 status notes in §7 only point at
+dated board sessions recorded in the linked files; nothing was re-measured here.
