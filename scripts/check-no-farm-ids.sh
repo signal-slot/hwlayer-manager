@@ -18,7 +18,8 @@ cd "$(git rev-parse --show-toplevel)"
 SQ="'"
 IPV4='(^|[^0-9.])([0-9]{1,3}\.){3}[0-9]{1,3}($|[^0-9])'
 TSNET='[A-Za-z0-9-]+\.ts\.net'
-SERIAL='/dev/(ttyUSB|ttyACM)[0-9]*|/dev/serial/by-(id|path)/'
+# A name directly followed by <, $ or { (/dev/ttyUSB<n>, /dev/ttyACM$N) is a placeholder.
+SERIAL='/dev/(ttyUSB|ttyACM)([0-9]+|[^0-9<${]|$)|/dev/serial/by-(id|path)/'
 SSHTGT='ssh[[:space:]]+([^[:space:]@]+[[:space:]]+)*[a-z_][a-z0-9_-]*@[A-Za-z0-9]|(^|[^A-Za-z0-9_.@/-])[a-z_][a-z0-9_-]*@[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}'
 MAC='(^|[^0-9A-Fa-f:])([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}($|[^0-9A-Fa-f:])'
 CRED='(password|passwd|token)[[:space:]]*[=:][[:space:]]*["'"$SQ"']?[^[:space:]"'"$SQ"'$<{(]{3,}'
