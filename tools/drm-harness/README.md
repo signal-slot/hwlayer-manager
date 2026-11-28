@@ -68,12 +68,38 @@ drm-harness [OPTIONS] <SCENARIO>
 | `--lease <NAME>` | | `dlm`: lease name; the socket is `<dir>/<NAME>` |
 | `--dlm-dir <DIR>` | `$DLM_RUNTIME_PATH`, else `/var/run/drm-lease-manager` | `dlm`: socket directory |
 | `--producers local\|external` | `local` | who allocates and draws the buffers, see [Producers](#producers) |
+| `--trace <FILE>` | off | write the engine's structured trace to FILE, see [Trace](#trace) |
 
 Example for a camera run on the LVDS panel:
 
 ```sh
 /tmp/drm-harness --connector LVDS --profile imx95 --seconds 10 all | tee /tmp/harness.log
 ```
+
+## Trace
+
+`--trace FILE` (any scenario) attaches the `composition-trace` sink to every
+engine of the run: FILE gets the `hdr` line (`src=linux`,
+`clock=monotonic_ns`, `at_unit=ms`) and one `CETRACE` line per engine event,
+in the format of `docs/trace-format.md`. One sink serves all sessions of the
+run (`all`, the engine reopened by `modeset`), so `seq` counts across them.
+Lines are written when 64 KiB are buffered, before each scenario, and at exit,
+also after SIGTERM or SIGINT (a stop ends the scenarios normally); SIGKILL
+loses what was not yet written. The output gains one last record,
+`trace lines=<N> failed=<M>` (lines handed to the sink; formatting or write
+failures); without `--trace` the output is unchanged and the engine prepares
+no trace entry. The file is created at start; if it cannot be, the harness
+exits 2.
+
+`drm-harness trace-check FILE` parses FILE strictly (a harness log holding
+trace lines works too: lines not starting with `CETRACE` are ignored) and
+prints `TRACE <type> <count>` lines in a fixed order, zeros included: `lines`
+(trace lines), `hdr`, `check`, `validate`, `commit` (all), `commit_ok`,
+`commit_err`, `latched`, `released`, `dropped`, `dropped_replaced`,
+`dropped_device_lost`, `latch_timeout`, `device_lost`, `caps_changed`. Exit 1
+with the line number and reason (nothing is counted around a bad line) for a
+malformed line or a file without trace lines, 2 if it cannot be read.
+`scripts/board-scenarios.sh --trace` uses both.
 
 ## Output
 

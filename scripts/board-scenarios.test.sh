@@ -24,14 +24,33 @@ trap 'exit 1' INT TERM
 cat > "$T/harness" <<'EOF'
 #!/bin/sh
 # Mock drm-harness: the scenario is the last argument.
+# `trace-check FILE` counts the lines of a trace file like the real one (the
+# strict parse itself is tested in tools/drm-harness); MOCK_TRACE chooses what
+# a --trace run writes: ok | mismatch (one latched too many) | malformed |
+# norecord (no `trace` record) | nofile.
+if [ "$1" = trace-check ]; then
+	[ -f "$2" ] || { echo "cannot read the file" >&2; exit 2; }
+	if grep -q ' t=abc' "$2"; then echo "line 3: malformed trace line: BadNumber(\"t\") at offset 30" >&2; exit 1; fi
+	awk '/^CETRACE/ { l++ }
+		/ ev=commit / && / result=ok/ { c++ }
+		/ ev=latched / { la++ } / ev=released / { r++ } / ev=dropped / { d++ }
+		/ ev=device_lost/ { dl++ }
+		END { print "TRACE lines " l + 0; print "TRACE commit_ok " c + 0
+			print "TRACE latched " la + 0; print "TRACE released " r + 0
+			print "TRACE dropped " d + 0; print "TRACE device_lost " dl + 0 }' "$2"
+	exit 0
+fi
 for a; do scen=$a; done
-src=master; secs=5
+src=master; secs=5; tf=
 prev=
 for a; do
 	[ "$prev" = --source ] && src=$a
 	[ "$prev" = --seconds ] && secs=$a
+	[ "$prev" = --trace ] && tf=$a
 	prev=$a
 done
+hdrline='CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1 at_unit=ms build="mock" board="mock"'
+body() {
 echo "harness version=0.1.0 scenario=$scen args=\"$*\""
 echo "session scenario=$scen source=$src device=/dev/dri/card0 driver=mockdrm master=yes"
 echo "output index=0 id=31 connector=${MOCK_CONN:-HDMI-A-1} width=1920 height=1080 refresh_mhz=60000 mode=1920x1080 vrefresh=60 clock_khz=148500 selected=yes"
@@ -44,7 +63,9 @@ two-planes)
 	if [ "$secs" = 600 ]; then
 		case ${MOCK_HOLD:-ok} in
 		nocommit) exec sleep 30 ;;
-		*) echo "commit step=two-planes submission=1 validate_us=100 commit_us=200 latency_us=16700" ;;
+		*)
+			[ -z "$tf" ] || printf '%s\nCETRACE v=1 ev=commit seq=1 t=2 at=0 out=0 result=ok sub=1\nCETRACE v=1 ev=latched seq=2 t=3 at=0 out=0 sub=1\n' "$hdrline" > "$tf"
+			echo "commit step=two-planes submission=1 validate_us=100 commit_us=200 latency_us=16700" ;;
 		esac
 		case ${MOCK_HOLD:-ok} in
 		ignoreterm) trap '' TERM; while :; do sleep 0.2; done ;;
@@ -170,6 +191,38 @@ recovery)
 	;;
 esac
 exit 0
+}
+if [ -z "$tf" ] || [ "$secs" = 600 ]; then body "$@"; exit $?; fi
+# A --trace run: print what the scenario prints, then write the trace the
+# real engine would have produced for those records.
+( body "$@" ) > "$tf.mock"
+rc=$?
+cat "$tf.mock"
+tm=${MOCK_TRACE:-ok}
+if [ "$tm" != nofile ]; then
+	{
+		echo "$hdrline"
+		awk '
+		function ev(s) { n++; print "CETRACE v=1 ev=" s }
+		function kv(s, k,   i, v) { for (i = 2; i <= NF; i++) if (index($i, k "=") == 1) v = substr($i, length(k) + 2); return v }
+		$1 == "commit" { ev("commit seq=" n " t=1 at=0 out=0 result=ok sub=" kv($0, "submission"))
+			if ($0 ~ /latency_us=/) ev("latched seq=" n " t=1 at=0 out=0 sub=" kv($0, "submission")) }
+		$1 == "rotate_result" { p = kv($0, "presented") + 0; dr = kv($0, "dropped") + 0; rel = kv($0, "releases") + 0
+			for (i = 0; i < p; i++) { ev("commit seq=" n " t=1 at=0 out=0 result=ok sub=1"); ev("latched seq=" n " t=1 at=0 out=0 sub=1") }
+			for (i = 0; i < dr; i++) ev("dropped seq=" n " t=1 at=0 out=0 sub=1 reason=replaced")
+			for (i = 0; i < rel; i++) ev("released seq=" n " t=1 at=0 buf=1 sub=1") }
+		$1 == "before_revoke" { f = kv($0, "frames") + 0
+			for (i = 0; i < f; i++) { ev("commit seq=" n " t=1 at=0 out=0 result=ok sub=1"); ev("latched seq=" n " t=1 at=0 out=0 sub=1") } }
+		$1 == "revoke_result" && kv($0, "device_lost_events") == 1 { ev("device_lost seq=" n " t=1 at=0") }
+		' "$tf.mock"
+		case $tm in
+		mismatch) echo "CETRACE v=1 ev=latched seq=99 t=1 at=0 out=0 sub=1" ;;
+		malformed) echo "CETRACE v=1 ev=latched seq=99 t=abc at=0 out=0 sub=1" ;;
+		esac
+	} > "$tf"
+	[ "$tm" = norecord ] || echo "trace lines=$(grep -c '^CETRACE' "$tf") failed=0"
+fi
+exit $rc
 EOF
 chmod +x "$T/harness"
 
@@ -308,6 +361,62 @@ grep -q -- '--device /dev/dri/card1 --connector DP-2 --source master --seconds 0
 	"$T/out/A6/recovery.log" && ok || bad "A6 lacks --device, --connector or --loss"
 has A6 "loss=disable made=ok"
 sh "$script" --loss unplug --rows A6 "$T/harness" > /dev/null 2>&1; [ $? -eq 2 ] && ok || bad "bad loss exit"
+
+# ---- --trace: trace files, trace-check, count comparison
+for row in A1 A2 A3 A4 A5 A6; do
+	case $row in
+	A1) nm=startup ;; A2) nm=steady-state ;; A3) nm=stop-restart ;;
+	A4) nm=lease-loss ;; A5) nm=modeset ;; A6) nm=display-recovery ;;
+	esac
+	t "trace $row pass" "$row" "SCENARIO $nm PASS" 0 --trace --frames 12
+	has "$row" "trace: commit="
+	[ "$row" != A2 ] || has A2 "trace: commit=12 latched=12 released=22 dropped=0"
+	[ "$row" != A4 ] || has A4 "device_lost=1"
+	case $row in
+	A1) tfiles="A1/master.trace A1/kernel-lease.trace" ;;
+	A2) tfiles=A2/rotate.trace ;;
+	A3) tfiles="A3/TERM.trace A3/KILL.trace A3/restart-after-TERM.trace" ;;
+	A4) tfiles=A4/revoke.trace ;;
+	A5) tfiles=A5/modeset.trace ;;
+	A6) tfiles=A6/recovery.trace ;;
+	esac
+	for f in $tfiles; do
+		[ -s "$T/out/$f" ] && grep -q '^CETRACE v=1 ev=hdr ' "$T/out/$f" && ok || bad "no trace file $f"
+	done
+	for f in "$T"/out/$row/*.log; do
+		case $f in */KILL.log | */TERM.log) continue ;; esac
+		grep -q -- "--trace ${f%.log}.trace" "$f" 2>/dev/null && ok ||
+			bad "the run of ${f##*/} lacks --trace FILE"
+	done
+done
+# Without --trace nothing is passed and no trace line is judged.
+t "no trace without the option" A1 "SCENARIO startup PASS" 0
+grep -q -- '--trace' "$T/out/A1/master.log" && bad "--trace passed without the option" || ok
+# A count that differs from the harness's own record fails the row.
+for row in A1 A2 A4 A5 A6; do
+	case $row in
+	A1) nm=startup ;; A2) nm=steady-state ;; A4) nm=lease-loss ;; A5) nm=modeset ;;
+	A6) nm=display-recovery ;;
+	esac
+	E="MOCK_TRACE=mismatch"; t "trace $row count mismatch" "$row" "SCENARIO $nm FAIL" 1 --trace --frames 12
+	[ "$row" != A1 ] || has A1 "trace: latched=2 but the harness's records say 1"
+done
+E="MOCK_TRACE=mismatch"; t "trace A2 mismatch text" A2 "SCENARIO steady-state FAIL" 1 --trace --frames 12
+has A2 "trace: latched=13 but the harness's records say 12"
+# A malformed trace line fails the row, with trace-check's reason.
+E="MOCK_TRACE=malformed"; t "trace malformed" A5 "SCENARIO modeset FAIL" 1 --trace
+has A5 "trace: trace-check exit 1: line 3: malformed trace line"
+# No trace file, or no `trace` record in the log, fails; a mismatch on a
+# TERM-stopped run only needs the file.
+E="MOCK_TRACE=nofile"; t "trace file missing" A6 "SCENARIO display-recovery FAIL" 1 --trace
+has A6 "trace: no trace file written"
+E="MOCK_TRACE=norecord"; t "trace record missing" A4 "SCENARIO lease-loss FAIL" 1 --trace
+has A4 "trace: no trace record in the log"
+# A trace run keeps the other checks: a count match does not hide a failed row.
+E="MOCK_REV=nolost"; t "trace with a failed row" A4 "SCENARIO lease-loss FAIL" 1 --trace
+# The A3 hold writes its file at once; a SIGKILL run is only parsed.
+t "trace A3 KILL parsed" A3 "SCENARIO stop-restart PASS" 0 --trace
+has A3 "TERM: exit=143"
 
 # ---- picture hooks: ROW PHASE LABEL per call; A3 has post-stop and restart
 # phases.

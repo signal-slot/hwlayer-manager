@@ -15,9 +15,10 @@ path = "src/main.rs"
 [dependencies]
 composition-core = { path = "../../crates/composition-core" }
 composition-drm = { path = "../../crates/composition-drm" }
+composition-trace = { path = "../../crates/composition-trace" }
 drm = "0.15"
 signal-hook = { version = "0.3", default-features = false }
-rustix = { version = "1", features = ["event", "fs", "net", "param"] }
+rustix = { version = "1", features = ["event", "fs", "net", "param", "time"] }
 
 [lints]
 workspace = true

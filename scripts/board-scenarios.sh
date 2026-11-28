@@ -19,6 +19,26 @@
 #                   (default: the harness's, master)
 #   --allow-drops N dropped frames A2 may report (default 0)
 #   --stop-wait N   seconds to wait for a signalled run to exit (default 10)
+#   --trace         pass `--trace FILE` (FILE next to the run's log, .trace for
+#                   .log) to every harness run, run the harness's
+#                   `trace-check FILE` on it (strict parse; a malformed line
+#                   fails the row) and compare its counts with the harness's
+#                   own records of the same run:
+#                     two-planes (A1, A3 restart): commit == `commit` records,
+#                       latched == those with latency_us, dropped == 0
+#                     modeset (A5): the same for commit and latched
+#                     recovery (A6): commit >= records, latched == records
+#                       with latency_us
+#                     revoke (A4): latched == before_revoke frames,
+#                       device_lost == device_lost_events
+#                     rotate (A2): latched == presented, dropped == dropped,
+#                       released == releases, commit >= presented
+#                     A3 stop runs: TERM compares commit and latched with the
+#                       `commit` records; KILL only parses (what the process
+#                       had not written yet is lost with it)
+#                   and, when the log has the harness's `trace lines= failed=`
+#                   record, lines == the file's line count and failed == 0.
+#                   A mismatch or a parse failure fails the row.
 #   --device PATH, --connector NAME, --profile NAME
 #                   passed to the harness unchanged when given
 #   --hook CMD      command called as `CMD ROW PHASE [LABEL]` around each
@@ -105,6 +125,7 @@ seconds=3
 allow_drops=0
 stop_wait=10
 hook=
+trace=
 common=
 seconds_given=
 loss=
@@ -120,6 +141,7 @@ while [ $# -gt 0 ]; do
 	--stop-wait) shift; stop_wait=${1:-} ;;
 	--hook) shift; hook=${1:-} ;;
 	--loss) shift; loss=${1:-} ;;
+	--trace) trace=1 ;;
 	--device) shift; common="$common --device ${1:-}" ;;
 	--connector) shift; common="$common --connector ${1:-}" ;;
 	--profile) shift; common="$common --profile ${1:-}" ;;
@@ -160,6 +182,63 @@ note() { ev="$ev$*
 "; }
 fail() { bad="$bad$*
 "; }
+
+# targ LOG: the harness arguments of --trace for the run that writes LOG.
+targ() { [ -z "$trace" ] || printf '%s\n' --trace "${1%.log}.trace"; }
+
+# tget NAME: the count of `TRACE NAME N` in the trace-check output.
+tget() { awk -v n="$1" '$1 == "TRACE" && $2 == n { print $3 }' "$tcout"; }
+
+# texpect NAME GOT WANT: a count that must equal the harness's own.
+texpect() {
+	[ "$2" = "$3" ] || fail "trace: $1=$2 but the harness's records say $3"
+}
+
+# check_trace LOG KIND: with --trace, parse LOG's trace file strictly and
+# compare its counts with the harness's records in LOG (see --trace above).
+# KIND: two-planes modeset recovery rotate revoke stop-term stop-kill.
+check_trace() {
+	[ -n "$trace" ] || return 0
+	tl=$1 tk=$2 tf=${1%.log}.trace tcout=${1%.log}.trace-check
+	if [ ! -s "$tf" ]; then fail "trace: no trace file written"; return; fi
+	"$harness" trace-check "$tf" > "$tcout" 2> "$tcout.err"
+	trc=$?
+	if [ "$trc" -ne 0 ]; then
+		fail "trace: trace-check exit $trc: $(sed -n 1p "$tcout.err")"
+		return
+	fi
+	tc=$(tget commit_ok) tla=$(tget latched) tre=$(tget released)
+	tdr=$(tget dropped) tdl=$(tget device_lost)
+	note "trace: commit=$tc latched=$tla released=$tre dropped=$tdr device_lost=$tdl lines=$(tget lines)"
+	rl=$(fld "$tl" trace lines)
+	if [ -n "$rl" ]; then
+		texpect lines "$(tget lines)" "$rl"
+		[ "$(fld "$tl" trace failed)" = 0 ] || fail "trace: the harness reports failed=$(fld "$tl" trace failed)"
+	elif [ "$tk" != stop-term ] && [ "$tk" != stop-kill ]; then
+		fail "trace: no trace record in the log"
+	fi
+	cm=$(count "$tl" commit)
+	lt=$(awk '$1 == "commit" { for (i = 2; i <= NF; i++)
+		if ($i ~ /^latency_us=[0-9]+$/) n++ } END { print n + 0 }' "$tl")
+	case $tk in
+	two-planes)
+		texpect commit "$tc" "$cm"; texpect latched "$tla" "$lt"; texpect dropped "$tdr" 0 ;;
+	stop-term | modeset)
+		texpect commit "$tc" "$cm"; texpect latched "$tla" "$lt" ;;
+	recovery)
+		[ "$tc" -ge "$cm" ] || fail "trace: commit=$tc below the harness's $cm commit records"
+		texpect latched "$tla" "$lt" ;;
+	rotate)
+		p=$(fld "$tl" rotate_result presented)
+		texpect latched "$tla" "$p"
+		texpect dropped "$tdr" "$(fld "$tl" rotate_result dropped)"
+		texpect released "$tre" "$(fld "$tl" rotate_result releases)"
+		[ "$tc" -ge "${p:-0}" ] 2>/dev/null || fail "trace: commit=$tc below presented=$p" ;;
+	revoke)
+		texpect latched "$tla" "$(fld "$tl" before_revoke frames)"
+		texpect device_lost "$tdl" "$(fld "$tl" revoke_result device_lost_events)" ;;
+	esac
+}
 
 # runhook ROW PHASE [LABEL]
 runhook() {
@@ -222,10 +301,11 @@ check_commits() {
 run_two_planes() {
 	# shellcheck disable=SC2086
 	run_held "${3:-A1}" "${4:-$2}" "${5:-hold-start}" "${6:-hold-end}" "$1" \
-		"$harness" $common --source "$2" --seconds "$seconds" two-planes
+		"$harness" $common --source "$2" --seconds "$seconds" $(targ "$1") two-planes
 	note "-- two-planes --source $2"
 	check_verdict "$1" two-planes "$rc"
 	check_commits "$1"
+	check_trace "$1" two-planes
 }
 
 finish() { # ROW NAME: write result.txt from ev/bad
@@ -252,9 +332,11 @@ row_a2() {
 	note "hold=${hold}s fps=${fps} (assumed) frames=$frames buffers=3 allow_drops=$allow_drops"
 	# shellcheck disable=SC2086
 	run_held A2 "" hold-start hold-end "$d/rotate.log" \
-		"$harness" $common --source master --frames "$frames" --buffers 3 rotate
+		"$harness" $common --source master --frames "$frames" --buffers 3 \
+		$(targ "$d/rotate.log") rotate
 	check_verdict "$d/rotate.log" rotate "$rc"
 	f=$d/rotate.log
+	check_trace "$f" rotate
 	p=$(fld "$f" rotate_result presented)
 	dr=$(fld "$f" rotate_result dropped)
 	rel=$(fld "$f" rotate_result releases)
@@ -278,8 +360,9 @@ row_a2() {
 # stop_run LOG SIGNAL: start a long hold, signal it, check the exit.
 stop_run() {
 	log=$1 sig=$2
+	ta=$(targ "$log")	# before the job starts, so that its log exists at once
 	# shellcheck disable=SC2086
-	"$harness" $common --source master --seconds 600 two-planes > "$log" 2>&1 &
+	"$harness" $common --source master --seconds 600 $ta two-planes > "$log" 2>&1 &
 	pid=$!
 	t=0
 	while [ "$(count "$log" commit)" -eq 0 ] && kill -0 "$pid" 2>/dev/null \
@@ -305,6 +388,7 @@ stop_run() {
 	wait "$pid"; rc=$?
 	note "$sig: exit=$rc after commits=$(count "$log" commit)"
 	hold_for A3 post-stop-start post-stop-end "$sig"
+	case $sig in TERM) check_trace "$log" stop-term ;; *) check_trace "$log" stop-kill ;; esac
 	case $sig:$rc in
 	TERM:0|TERM:143|KILL:137) ;;
 	*) fail "$sig: unexpected exit status $rc" ;;
@@ -326,8 +410,9 @@ row_a4() {
 	# shellcheck disable=SC2086
 	run_held A4 "" hold-start hold-end "$f" \
 		"$harness" $common --source kernel-lease --frames 60 --buffers 3 \
-		--seconds "$seconds" revoke
+		--seconds "$seconds" $(targ "$f") revoke
 	check_verdict "$f" revoke "$rc"
+	check_trace "$f" revoke
 	fa=$(fld "$f" revoke_result first_attempt)
 	lost=$(fld "$f" revoke_result device_lost_events)
 	busy=$(fld "$f" revoke_result still_busy)
@@ -354,7 +439,7 @@ row_a5() {
 	[ -z "$seconds_given" ] || s=$seconds
 	# shellcheck disable=SC2086
 	run_held A5 "" hold-start hold-end "$f" \
-		"$harness" $common --source master --seconds "$s" modeset
+		"$harness" $common --source master --seconds "$s" $(targ "$f") modeset
 	note "exit=$rc"
 	note "connector=$(fld "$f" connector_modes connector) current=$(fld "$f" connector_modes current) modes listed=$(fld "$f" connector_modes count)"
 	v=$(grep '^VERDICT modeset ' "$f" | tail -n 1)
@@ -385,6 +470,7 @@ row_a5() {
 	al=$(awk '$1 == "commit" && / step=modeset-after / { for (i = 2; i <= NF; i++)
 		if ($i ~ /^latency_us=[0-9]+$/) n++ } END { print n + 0 }' "$f")
 	note "after the switch: commits=$ac latched=$al"
+	check_trace "$f" modeset
 	[ "$al" -ge 1 ] || fail "no latch after the switch"
 	[ "$al" -eq "$ac" ] || fail "after the switch latched=$al differs from commits=$ac"
 	[ -n "$from" ] && [ "$restored" = "$from" ] ||
@@ -412,9 +498,10 @@ latched_step() {
 
 row_a6() {
 	d=$out/A6; mkdir -p "$d"; f=$d/recovery.log
+	ta=$(targ "$f")
 	# shellcheck disable=SC2086
 	"$harness" $common --source master --seconds "$seconds" ${loss:+--loss "$loss"} \
-		recovery > "$f" 2>&1 &
+		$ta recovery > "$f" 2>&1 &
 	pid=$!
 	limit=$((seconds + stop_wait))
 	wait_line "$f" "$pid" '^commit .*step=recovery-before' "$stop_wait"
@@ -427,6 +514,7 @@ row_a6() {
 	rc=$?
 	runhook A6 hold-end
 	check_verdict "$f" recovery "$rc"
+	check_trace "$f" recovery
 	rr=recovery_result
 	note "loss=$(fld "$f" loss method) made=$(fld "$f" "$rr" made) crtc_active_after_loss=$(fld "$f" loss crtc_active)"
 	note "first=$(fld "$f" "$rr" first) first_ms=$(fld "$f" "$rr" first_ms) second=$(fld "$f" "$rr" second) master_back=$(fld "$f" "$rr" master_back)"
