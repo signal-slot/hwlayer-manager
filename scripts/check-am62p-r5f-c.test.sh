@@ -16,6 +16,7 @@ root=$tmp/repo
 mkdir -p "$root/scripts"
 cp "$here/check-am62p-r5f-c.sh" "$root/scripts/"
 script=$root/scripts/check-am62p-r5f-c.sh
+chmod +x "$script"
 
 # A PATH of only the basic tools the script uses, so a real clang is never seen.
 sys=$tmp/sys
