@@ -1,8 +1,12 @@
 # i.MX95 display pipeline: SCMI clock, power-domain and reset IDs
 
 Source study, dated 2026-11-28. Scope: SoW §5.1 / §9 M2 (WP3). No board was
-accessed and nothing was built or run. Every finding carries one of two tags:
-**read from source** or **inferred**. Nothing here is observed.
+accessed for this note and nothing was built or run. Findings carry one of
+three tags: **read from source**, **inferred**, or **observed**. The only
+observed values are quoted from the dated board snapshots
+`imx95-zephyr/observed-2026-11-27.txt` and `observed-2026-11-28.txt` and are
+collected in §10 (reconciled 2026-11-28); everything else is read from source
+or inferred.
 
 This note is the ID table the other i.MX95 notes refer to. It does not repeat
 their analysis:
@@ -72,7 +76,7 @@ SCMI clock IDs are the SM's `DEV_SM_CLK_*` numbers. Linux
 | `DISP2PIX` | 81 (`:150`) | `+ 40` = 81 (`:92`) | `+ 40` = 81 (`:93`) | no node in `imx95.dtsi` names it | defined only; no reference |
 | `DISP3PIX` | 82 (`:151`) | `+ 41` = 82 (`:93`) | `+ 41` = 82 (`:94`) | no node names it | defined only |
 | `DISPAPB` | 75 (`:144`) | `+ 34` = 75 (`:86`) | `+ 34` = 75 (`:87`) | `dispmix_csr`, `lvds_csr`, `ldb0_phy`, `ldb1_phy`, `displaymix_irqsteer`, `pixel_interleaver`, `dpu` ("apb"). `dispmix_csr` also has it in `assigned-clocks`/`-parents`/`-rates` (parent `SYSPLL1_PFD1_DIV2`, 133333333 Hz) | defined only; the `dpu` node has no `clocks` |
-| `DISPAXI` | 76 (`:145`) | `+ 35` = 76 (`:87`) | `+ 35` = 76 (`:88`) | `dpu` ("axi"); `dispmix_csr` `assigned-clocks` (parent `SYSPLL1_PFD1`, 400000000 Hz) | defined only |
+| `DISPAXI` | 76 (`:145`) | `+ 35` = 76 (`:87`) | `+ 35` = 76 (`:88`) | `dpu` ("axi"); `dispmix_csr` `assigned-clocks` (parent `SYSPLL1_PFD1`, 400000000 Hz) (read from source, LX). **Open:** the board's `clk_summary` shows `dispaxi` at 800000000 Hz, not 400000000 (observed 2026-11-27, §10) | defined only |
 | `DISPOCRAM` | 78 (`:147`) | `+ 37` = 78 (`:89`) | `+ 37` = 78 (`:90`) | `dpu` ("ocram"); `dispmix_csr` `assigned-clocks` (parent `SYSPLL1_PFD1`, 400000000 Hz) | defined only |
 | (ID 77) | `DEV_SM_CLK_RESERVED77` (`:146`) | `IMX95_CLK_DISPDP` = `+ 36` (`:88`) | `IMX95_CLK_DISPDP` (`:89`) | not named by any display node read | defined only. **Name differs from the SM**, which reserves it |
 | (ID 79) | `DEV_SM_CLK_RESERVED79` (`:148`) | `IMX95_CLK_DISPUSB31` = `+ 38` (`:90`) | `IMX95_CLK_DISPUSB31` (`:91`) | not display | defined only |
@@ -119,7 +123,9 @@ PHY divider are not reachable by any SCMI request**. They need MMIO access to
 ### 2.3 What the SM says about who may use them (NXP `mx95evk`, read from source)
 
 `configs/mx95evk/config_scmi.h`, agent 0 "M7" (:57-63), agent 1 "AP-S"
-(:150-156) and agent 2 "AP-NS" (:220-226). Only AP-NS has display entries:
+(:150-156) and agent 2 "AP-NS" (:220-226). Only AP-NS has display entries. All
+line numbers in this section were checked on 2026-11-28 with `grep -n` on a
+downloaded copy of the file at the pin (read from source):
 
 | Clock | AP-NS permission | Lines | M7 agent |
 |---|---|---|---|
@@ -166,7 +172,7 @@ in [imx95-display-clocks.md](imx95-display-clocks.md) §4; they are not repeated
   agree.
 - Who may switch `DISPLAY`: under `mx95evk`, only AP-NS has `pdPerms` for
   `DEV_SM_PD_DISPLAY` and `DEV_SM_PD_CAMERA`, `SM_SCMI_PERM_ALL`
-  (`config_scmi.h:452-453`). The M7 agent has no power-domain permission for
+  (`config_scmi.h:452` CAMERA, `:453` DISPLAY). The M7 agent has no power-domain permission for
   either (read from source). `POWER_STATE_GET` needs no permission, `SET`
   needs at least `SM_SCMI_PERM_SET`; see
   [imx95-display-power.md](imx95-display-power.md) §4.
@@ -285,7 +291,7 @@ row is new code (an SoC-init step or an LDB driver, see
 | 2 | `POWER_STATE_SET` on, then `POWER_STATE_GET` until on | `DISPLAY` = 13 | `ldb`, both LVDS PHYs, `dispmix_csr`, `lvds_csr`, irqsteer and the DPU are all inside this one domain | **SET: yes**, `pdPerms[13]` at least `SM_SCMI_PERM_SET`. **GET: no**, any agent may read the state |
 | 3 | `CLOCK_RATE_SET` | `LDBPLL_VCO` = 37 (the VCO, to the panel's multiple), then `LDBPLL` = 38 (the output divider) | the LVDS serial clock and, through `÷7`, the pixel clock both come from `LDBPLL` (Linux's panel DT file asks for 2986200000 and 497700000 Hz for a 71.1 MHz pixel clock, an NXP EVK file rather than the board's overlay) | **Yes**: `EXCLUSIVE` (`ALL`) on both. Only AP-NS holds it under `mx95evk`. Two writers on one PLL are not arbitrated |
 | 4 | `CLOCK_CONFIG_SET` enable | `LDBPLL` = 38 and `LDBPLL_VCO` = 37 (Linux enables both: `dpu95-framegen.c` enables `ldb_vco`, then the `ldb` clock whose parent is `LDBPLL`) | gate the PLL outputs on | **Yes**: at least `SET` (aggregated with Linux's vote, so safe to share) |
-| 5 | `CLOCK_CONFIG_SET` enable, and possibly rate set | `DISPAPB` = 75, `DISPAXI` = 76, `DISPOCRAM` = 78 | the DPU runs on these; Linux's runtime PM enables them and `dispmix_csr` assigns 400 / 400 / 133.33 MHz | **Yes if the M7 must enable them**: at least `SET`; `EXCLUSIVE` for any rate. Under `mx95evk` no agent holds a permission on them (§2.3). Whether they are already on after boot or after `DISPLAY` powers up was not read (inferred: probably yes) |
+| 5 | `CLOCK_CONFIG_SET` enable, and possibly rate set | `DISPAPB` = 75, `DISPAXI` = 76, `DISPOCRAM` = 78 | the DPU runs on these; Linux's runtime PM enables them and `dispmix_csr` assigns 400 / 400 / 133.33 MHz | **Yes if the M7 must enable them**: at least `SET`; `EXCLUSIVE` for any rate. Under `mx95evk` no agent holds a permission on them (§2.3). On the Verdin board all three were enabled while Linux ran (observed 2026-11-27, §10), held by the DPU's own votes, so whether they would be on without Linux is not known |
 | 6 | Reads: `CLOCK_RATE_GET`, `CLOCK_CONFIG_GET`, `CLOCK_PARENT_GET`, `CLOCK_ATTRIBUTES`, `CLOCK_DESCRIBE_RATES`, `CLOCK_GET_PERMISSIONS` | the IDs above | diagnostics, and to read back the PLL rate Linux set | **No**: the SM checks no permission for these (read from source in the clocks note) |
 | 7 | none | `DISP1PIX` = 80, `DISP2PIX` = 81, `DISP3PIX` = 82, `VIDEOPLL1(_VCO)` = 19 / 18, `MIPIPHY*` / `MIPITESTBYTE` = 66-69 | DSI only. For LVDS the DPU pixel clock comes from `LDBPLL` through `÷7` and the engine mux, not from `DISP1PIX` (read from source in the clocks note, with the caveat that Linux writes the mux bits directly) | n/a: do not call them. In particular **do not run upstream's DSI `soc_init()` sequence**, which sets `VIDEOPLL1` and `DISP1PIX` and powers `CAMERA` (3) |
 | 8 | none | any SCMI reset | no SCMI reset is used by Linux or Zephyr for the display (§4) | n/a |
@@ -329,7 +335,51 @@ subject of another note and is **not established here**.
 - The numeric `PWR_MIX_SLICE_IDX_*`, `CLOCK_SRC_*` and `RST_LINE_*` constants
   were not read; values come from the SM header comments and the DT
   bindings.
-- Whether `DISPAPB`/`DISPAXI`/`DISPOCRAM` are on after boot was not read (their
-  absence from `config_scmi.h` is recorded in §2.3).
+- Whether `DISPAPB`/`DISPAXI`/`DISPOCRAM` are on without Linux was not read
+  (their absence from `config_scmi.h` is recorded in §2.3; they were on with
+  Linux running, §10).
+- The Verdin `verdin-imx95.cfg` and the Toradex kernel DT were not read in this
+  reconciliation. The LX `imx95.dtsi` nodes (`dispmix_csr` :2350, `dpu` :2604
+  with clocks :2712-2723, `ldb` :2456, `lvds_csr` :2447, `displaymix_irqsteer`
+  :2426, `pixel_interleaver` :2546) were re-read on 2026-11-28 and agree with
+  §2 and §5 (read from source).
 - The SM's answer to a request on the reserved IDs 77 and 79 was not read.
 - Nothing was built, run or measured on a board. No timing claim is made.
+  Section 10 only quotes the dated snapshots.
+
+## 10. Board observations compared with the IDs above
+
+Reconciliation added 2026-11-28. Source: the two read-only snapshots
+`imx95-zephyr/observed-2026-11-27.txt` and `observed-2026-11-28.txt` of the
+Verdin iMX95 on its Mallow carrier with the LVDS panel, Linux 6.6.157-7.8.0
+(not the NXP stand-in tag of §1). Both runs were on 2026-11-27. The snapshots
+hold decoded DT cells and `clk_summary` / `pm_genpd` text, not SCMI messages.
+
+| # | What the snapshot shows | Compared with this note | Tag |
+|---|---|---|---|
+| 1 | The `dpu` node `clocks` cells name, in order, clock-controller cells `0x50, 0x4b, 0x4c, 0x4e`, then the `ldb` fixed-factor clock, then cell `0x25`, with `clock-names` `pix apb axi ocram ldb ldb_vco` | 0x50 = 80 `DISP1PIX`, 0x4b = 75 `DISPAPB`, 0x4c = 76 `DISPAXI`, 0x4e = 78 `DISPOCRAM`, 0x25 = 37 `LDBPLL_VCO`: **agrees** with §2.1 and §5 | observed 2026-11-27 |
+| 2 | `dpu` and `dispmix_csr` `power-domains` cell `0xd` | 13 = `DISPLAY`: **agrees** with §3 | observed 2026-11-27 |
+| 3 | `clk_summary`: `ldbpll_vco` 2986200000 Hz, `ldbpll` 497700000 Hz, `ldb_pll_div7` 71100000 Hz; `ldb@4` `assigned-clock-rates` 2986200000 / 497700000 | the rates quoted from NXP's panel file in §2.1 and §8 row 3: **agree** (here as the board's own values). The kernel (AP-NS) set them, so AP-NS holds rate rights on these two PLLs on this board, as `mx95evk` gives it (§2.3) | observed 2026-11-27 |
+| 4 | `clk_summary`: `dispapb` 133333333 Hz, `dispocram` 400000000 Hz, `dispaxi` **800000000** Hz, all enabled, consumer the DPU | `DISPAPB` and `DISPOCRAM` agree with the `dispmix_csr` `assigned-clock-rates` of §2.1. **`DISPAXI` disagrees:** LX says 400000000 Hz, the board shows 800000000 Hz | observed 2026-11-27 |
+| 5 | `clk_summary`: `disp1pix` 24000000 Hz, enable count 0 | `DISP1PIX` is not driven for LVDS (§2.1, §8 row 7): **agrees** | observed 2026-11-27 |
+| 6 | `pm_genpd`: domain `display` on, with the DPU `active`; `camera` on | consistent with §3 (one display domain, no LVDS domain) | observed 2026-11-27 |
+| 7 | `firmware/scmi` has protocol nodes 0x11, 0x12, 0x13, 0x14, 0x15, 0x19, 0x81, 0x84; dmesg: SCMI protocol v2.1 `NXP:IMX`, firmware version 0x23e, "Initialized 13 performance domains" | node list: same as §4's LX list, no reset (0x16) node, **agrees**. 13 perf domains = IDs 0-12, so `IMX95_PERF_DISP` = 12 (§2.3) is the last one: **consistent** | observed 2026-11-27 |
+
+Open values (not settled; no more research done in this pass):
+
+- **`DISPAXI` rate.** Candidate A: 400000000 Hz, from `dispmix_csr`
+  `assigned-clock-rates` = `<400000000>, <400000000>, <133333333>` for
+  `DISPAXI`, `DISPOCRAM`, `DISPAPB` (LX `imx95.dtsi:2358-2364` at
+  `lf-6.6.52-2.2.2`, re-read 2026-11-28; read from source). Candidate B: 800000000 Hz,
+  the board's `clk_summary` (observed 2026-11-27). Possible causes are the
+  Toradex kernel DT, or the SM re-setting the rate; neither was read. For the
+  board, B is the value that was in effect.
+- **Verdin rights.** Every permission in §2.3 and §3 is NXP's `mx95evk`
+  (read from source). Whether the Verdin SM config matches is **open**:
+  candidate A, same as `mx95evk` (inferred; observation 3 above fits for AP-NS
+  rate rights); candidate B, anything else. The Verdin `verdin-imx95.cfg` was
+  not read here (see [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md)).
+  The M7 agent's rights on the Verdin are not observed by these snapshots.
+- **Firmware version.** The SM reports 0x23e (observed 2026-11-27). Which
+  imx-sm commit that is was not established, so the stand-in pin of §1 stays a
+  stand-in.
