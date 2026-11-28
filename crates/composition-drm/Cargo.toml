@@ -26,6 +26,10 @@ name = "plane_commit"
 test = true
 
 [[example]]
+name = "rotation_probe"
+test = true
+
+[[example]]
 name = "pending_probe"
 test = true
 
