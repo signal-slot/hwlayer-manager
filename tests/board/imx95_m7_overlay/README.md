@@ -168,6 +168,13 @@ compile without warnings and link `zephyr.elf`.
 | `IMX95_M7_OVERLAY_ENABLE_DPU=ON` | 2626616 B (mostly the 2 x 1.2 MB primary and 2 x 64 KB overlay buffers) |
 | `... PLACEMENT=POSITION` | 2626616 B |
 
+The three commands were built again (observed, 2026-11-28) in a workspace at
+the `v4.5.0` tag that [`docs/zephyr-workspace.md`](../../../docs/zephyr-workspace.md)
+pins (Zephyr `41d10b59730406bbab4ca9f1fbbe9e96aafb4966`, `hal_nxp`
+`a8b437ef366ff9a6f9bee3377dc189c4d2623f5b`, same SDK). All three link
+`zephyr.elf`; RAM used is 37928 B (default) and 2626608 B (both DPU
+configurations).
+
 The DPU-enabled build compiles `fsl_dpu.c` from `hal_nxp` and does not build
 `display_socionext_dpu.c`. None of these images was loaded anywhere.
 
