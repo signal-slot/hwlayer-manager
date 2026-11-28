@@ -125,10 +125,11 @@ md5 `17479a8e15bb81fbee46522bb25f9a33`, same package version as the running kern
 Tree and commit: `raspberrypi/linux`, branch `rpi-6.12.y`. The Debian package is dated 2025-09-16;
 the Raspberry Pi tag `stable_20250916` resolves to commit
 `359f37f0faefb712add32a39f98751aea67d5c1f` (GitHub tag page,
-https://github.com/raspberrypi/linux/releases/tag/stable_20250916). Matching that tag to this
-package, and to kernel 6.12.47, rests on the date and the name only; the header was not diffed
-against the tag, because a git or raw fetch was refused here. The commit is therefore inferred,
-the header text itself is read from source (installed package).
+https://github.com/raspberrypi/linux/releases/tag/stable_20250916). The header was fetched from
+`https://raw.githubusercontent.com/raspberrypi/linux/359f37f0faefb712add32a39f98751aea67d5c1f/include/uapi/drm/drm_fourcc.h`
+(1650 lines) and has the same md5 as the installed package's copy, so the two are byte-identical.
+That the tag is the build of this exact kernel rests on the package date and the tag name; the
+header content at that commit is read from source (commit `359f37f0`).
 
 | Define in the header | Value | Dump value | Match | Tag |
 |---|---|---|---|---|
