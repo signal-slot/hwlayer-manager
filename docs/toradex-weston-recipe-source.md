@@ -6,11 +6,12 @@ replace the board observation (`weston --version` and the installed package on
 the running image, see [weston-imx-lease.md](weston-imx-lease.md)); nothing
 here was observed on a board. No board address or credential appears here.
 
-**Result in one line:** the two Toradex layers that were read contain no
-Weston recipe and no lease setting. They only append to `weston-init`. The
-Weston version, `SRC_URI`, `SRCREV`, and meson options are defined in a layer
-that was **not read** (NXP `meta-imx`, or oe-core), so WP5-01 stays open on the
-source side.
+**Result in one line:** the two Toradex layers contain no Weston recipe and
+no lease setting; they only append to `weston-init`. The Weston recipe that
+the i.MX BSP selects is in NXP `meta-imx` (section 3): weston-imx 12.0.5, with
+no lease-related meson option set. Whether the Toradex image actually builds
+from that recipe (and not oe-core's) is inferred, not read; the board
+observation settles it.
 
 ## 1. Sources and pins
 
@@ -59,13 +60,39 @@ on the read date, not the revisions that built the image on the board.
   appears in either layer (grep over both trees, read from source,
   2026-11-28).
 
-## 3. What the build would need for lease support (not found in these layers)
+## 3. NXP meta-imx Weston recipe (read from source, 2026-11-28)
 
-Not read from Toradex sources, so not a finding here: the lease protocol
-(`wp_drm_lease_device_v1`) is in Weston's DRM backend upstream; whether a given
-Weston build exposes it depends on that Weston version's meson options and on
-its backend patches. See [weston-imx-lease.md](weston-imx-lease.md) and, when
-delivered by its item, `weston-drm-lease-source-read.md`.
+Layer: `meta-imx`, <https://github.com/nxp-imx/meta-imx> branch
+`scarthgap-6.6.52-2.2.2` at `474d2b45015f73e6b0d77729e2028b00e008f730`
+(shallow clone; branch chosen to match kernel `6.6-2.2.x`, inferred).
+
+- `meta-imx-bsp/conf/machine/include/imx-base-extend.inc` sets
+  `PREFERRED_VERSION_weston:imx-nxp-bsp ??= "12.0.5.imx"` (i.MX6/7 use 10.0.5.imx).
+  Read from source (2026-11-28).
+- Recipe `meta-imx-bsp/recipes-graphics/wayland/weston_12.0.5.imx.bb`:
+  `COMPATIBLE_MACHINE = "(imx-nxp-bsp)"`, `DEFAULT_PREFERENCE = "-1"`,
+  `SRC_URI` from `git://github.com/nxp-imx/weston-imx.git;protocol=https`,
+  `SRCBRANCH = "weston-imx-12.0.5"`,
+  `SRCREV = "a29bbd0f65e68b9beda47a94144bd9b2801c42cb"`, plus one local patch
+  (`0001-Revert-protocol-no-found-wayland-scanner-with-Yocto-.patch`). The
+  OE-core part records upstream hash `92a460b55e7290ec0006365219189761f7226f7c`.
+  Read from source (2026-11-28).
+- Default `PACKAGECONFIG`: `kms wayland egl clients` (if DISTRO_FEATURES has
+  wayland), `xwayland` (x11+wayland), `systemd`, `launcher-libseat`,
+  `image-jpeg`, `screenshare`, `shell-desktop`, `shell-fullscreen`,
+  `shell-ivi`, `shell-kiosk`; i.MX removes `wayland x11`; adds `imxg2d` only
+  for `imxgpu2d` and `mx93-nxp-bsp`. `kms` maps to `-Dbackend-drm=true`.
+  Extra meson: `-Dpipewire=false`. Read from source (2026-11-28).
+- No `lease`/`drm-lease` PACKAGECONFIG entry or meson option exists in the
+  recipe. Read from source (2026-11-28).
+- Weston's lease protocol (`wp_drm_lease_device_v1`) is part of the DRM backend
+  upstream rather than a build option; whether weston-imx 12.0.5's backend
+  carries and enables it was **not read** here (the weston-imx source was not
+  fetched). Inferred only. See [weston-imx-lease.md](weston-imx-lease.md).
+- Whether Verdin iMX95 uses the `imx-nxp-bsp` override (and so this recipe):
+  `verdin-imx95.conf` requires `conf/machine/include/imx-base.inc` and
+  `MACHINEOVERRIDES =. "tdx:mx95:"`, and has `use-nxp-bsp` kernel-devicetree
+  lines. Image-level selection is inferred, not read.
 
 ## 4. Torizon OS
 
@@ -74,10 +101,8 @@ the sources do not say here what the Torizon image uses. Not measured, not read.
 
 ## 5. Not read (needed to finish WP5-01 from source)
 
-- NXP `meta-imx`, <https://github.com/nxp-imx/meta-imx> at the BSP's
-  `scarthgap-6.6.52-2.2.x` branch (heads listed by `git ls-remote --heads`,
-  2026-11-28; clone was not approved in this session). Its weston-imx recipe
-  would give `PV`, `SRC_URI`, `SRCREV`, and meson options.
+- The weston-imx source at `a29bbd0f65e68b9beda47a94144bd9b2801c42cb` (lease
+  code and options in its DRM backend); see the weston-imx item.
 - `meta-freescale` and oe-core `weston_*.bb` at the scarthgap branch.
 - The Toradex manifest that pins layer revisions for BSP 7.8.0.
 - `meta-toradex-distro` / `meta-toradex-torizon` for Torizon.
@@ -89,4 +114,4 @@ the sources do not say here what the Torizon image uses. Not measured, not read.
 | `git ls-remote --heads https://git.toradex.com/meta-toradex-nxp.git` | read: `scarthgap-7.x.y` = `b0b9f0fd9d3e4854e3d764bcd2b383b337318f3a` |
 | `git clone --depth 1 --branch scarthgap-7.x.y` of both layers | succeeded; trees searched with `find -iname '*weston*'` and `grep -rIn -i` for weston, lease, wayland, drm, PACKAGECONFIG |
 | `git ls-remote --heads https://github.com/nxp-imx/meta-imx.git` | read: branch list only; `scarthgap-6.6.52-2.2.2` = `474d2b45015f73e6b0d77729e2028b00e008f730` |
-| `git clone` of `meta-imx` | not run: refused for approval |
+| `git clone --depth 1 --branch scarthgap-6.6.52-2.2.2` of `meta-imx` | succeeded; read `weston_12.0.5.imx.bb` and `imx-base-extend.inc` |
