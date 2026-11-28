@@ -57,26 +57,61 @@ What follows for an offer. All of it is **inferred, not legal advice**:
 
 ### 3.1 Weston
 
-**Fetch failed on 2026-11-28.** The item asked for Weston's `CONTRIBUTING.md` at a named commit. A `git clone` of `https://gitlab.freedesktop.org/wayland/weston.git` was not permitted in this session. HTTP fetches of the raw files and of the GitLab API at commits `c8d00e2` and `530ae6c` (tag `16.0.2`) returned a bot-protection page instead of the file. So nothing below is quoted from `CONTRIBUTING.md`, and nobody in this repository has read that file.
+Read from source (2026-11-28): a shallow clone of `https://gitlab.freedesktop.org/wayland/weston.git`, branch `main`, made on 2026-11-28. Its head is `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a`, committed 2026-11-27, the same commit that the gap analysis read. Files read in full: `CONTRIBUTING.md`, `LLM-USAGE.md` and `AGENTS.md`. Tag `16.0.2` was not compared. In the quotes, Weston's relative links are shown as code so that they do not point into this repository.
 
-What is recorded comes from Weston's `LLM-USAGE.md` and `AGENTS.md` at `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a`. Those files were read on 2026-11-28 by the gap analysis. The wording below is the gap analysis' summary, not a quote:
+**DCO and sign-off.** `CONTRIBUTING.md`, section "Formatting and separating commits":
 
-- "DCO sign-off by a human";
-- "AI agents must not create or edit issues or merge requests, nor post comments";
-- "AI prose is not forwarded upstream unless concise and reviewed by a human";
-- "AI-generated code is the human's responsibility".
+> Your commit messages must also include a Signed-off-by line with your name
+> (or pseudonym) and email address which indicates that you agree to the
+> [Developer's Certificate of Origin 1.1]`(DCO-1.1.txt)`.
 
-Tag: recorded ([`wp5-gap-analysis.md`](wp5-gap-analysis.md) §2 and §5, read from source at `c8d00e2` on 2026-11-28). It is not re-read here. Whether tag `16.0.2` or today's `main` has the same text is not known. Before any contact, a human should read `CONTRIBUTING.md`, `LLM-USAGE.md` and `AGENTS.md` at the then-current `main` and quote them with the commit.
+> **Agreeing to DCO 1.1 is mandatory.** Patches without a Signed-off-by cannot
+> be accepted, but using a pseudonym is fine as long as the email address is
+> yours personally.
+
+**AI contributions.** `CONTRIBUTING.md`, section "LLM-Policy", points to `LLM-USAGE.md` ("Please read it before opening a MR if you want to use any LLM or AI tools"). `LLM-USAGE.md` says, under "Upstream interaction rules":
+
+> AI agents must not use any API, CLI, or web UI automation to:
+>
+> - create, edit, or close issues ("work items"),
+> - post comments on merge requests, issues, or commits, nor
+> - open or update merge requests.
+>
+> Prose written by an AI agent must not be forwarded upstream unless it is
+> concise, and fully reviewed and copyedited by a human first.
+
+and under "Signed-off-by and Developer Certificate of Origin":
+
+> AI agents MUST NOT add Signed-off-by tags.
+>
+> Only humans can legally certify the [Developer Certificate of
+> Origin]`(DCO-1.1.txt)`.
+
+and under "Responsibility":
+
+> The human contributor is solely responsible for all code committed to Weston
+> repositories.
+
+`AGENTS.md` adds:
+
+> - Do not write documentation, commit messages, merge-request text, or code
+>   comments for the human unless they explicitly ask you to draft a rough version
+>   for review. The human must write the final commit message and any code
+>   comments they want to keep.
+
+**Licence and review.** `CONTRIBUTING.md`, section "Licensing": "New source code files should specify the MIT Expat license in their boilerplate". Section "Review" lists, among others: "The code license is the same MIT licence the project generally uses."; "Stable ABI or API additions must be justified by actual use cases, not only by speculation."; "The code does not depend on API or ABI which has no working free open source implementation.". Section "Increasing requirements" limits new or newer dependencies for the "DRM-backend" and the other foundational components.
+
+These quotes agree with the gap analysis' summary ([`wp5-gap-analysis.md`](wp5-gap-analysis.md) §2). Before any contact, a human should read the files again at the then-current `main`.
 
 ### 3.2 libliftoff
 
-Read from source (2026-11-28): `README.md` at `c4226a79b7a52f59bb51789b1eda112658609125`, in the libliftoff clone in the project's dependency directory (its `HEAD` is that commit). Under "## Contributing" it says:
+Read from source (2026-11-28): `README.md` at `c4226a79b7a52f59bb51789b1eda112658609125`, in the libliftoff clone in the project's dependency directory (its `HEAD` is that commit). The GitLab API gave the same commit as the head of `master` on 2026-11-28 (committed 2026-08-24). Under "## Contributing" the README says:
 
 > Report bugs and send pull requests on [GitLab][gitlab].
 >
 > We use the Wayland/Weston style and contribution guidelines, see [Weston's contributing document][weston-contributing].
 
-The `weston-contributing` link points at Weston's `CONTRIBUTING.md` on branch `master`. The working tree at that commit has no `CONTRIBUTING.md`, `AGENTS.md` or `LLM-USAGE.md` of its own (read from source (2026-11-28): file list). So libliftoff's own rules are Weston's, and section 3.1 applies (inferred). A separate statement on AI contributions in libliftoff: none found.
+The `weston-contributing` link points at Weston's `CONTRIBUTING.md` on branch `master`. The working tree at that commit has no `CONTRIBUTING.md`, `AGENTS.md` or `LLM-USAGE.md` of its own (read from source (2026-11-28): file list). So libliftoff's own rules are Weston's, and section 3.1 applies, including the DCO (inferred: the README names "contribution guidelines" and does not say whether `LLM-USAGE.md` is meant too). libliftoff has no separate statement on AI contributions.
 
 ### 3.3 AGL (`meta-agl`, `drm-lease-manager`)
 
@@ -85,7 +120,7 @@ The AGL contribution rules (Gerrit, sign-off) were not read. The AGL Weston leas
 ### 3.4 What this means for this repository
 
 - Most commits of this repository are written with an AI coding assistant: 486 of the 622 commits reachable from this page's parent commit name it as co-author in a trailer (read from source (2026-11-28, this repo): `git log`).
-- Under the recorded Weston rules (section 3.1), no such commit can be sent to Weston or libliftoff as it is. A human would have to write or take over the change, review it and sign it off. A human would also have to open any issue or merge request (inferred).
+- Under Weston's rules (section 3.1), no such commit can be sent to Weston or libliftoff as it is. A human would have to write or take over the change, review it and add their own `Signed-off-by`. A human would also have to open any issue or merge request. Under `AGENTS.md`, a human would have to write the final commit message and merge-request text too. Text drafted from this page counts as AI prose and would need full human review and copyediting (inferred from the quotes).
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) has no sign-off or DCO text (read from source (2026-11-28, this repo)). So this repository's history gives no DCO record to point at.
 - This page posts nothing and contacts nobody.
 
@@ -156,7 +191,7 @@ The Weston hook would have to handle these mismatches. All of them are recorded 
 ### 5.3 Licence
 
 - **Weston patch:** MIT, which needs D1 and D2, plus the human sign-off of section 3.1.
-- **`ce_advise` as an external library called from Weston:** no licence conflict (inferred). Whether Weston would accept a dependency on an external library in its DRM backend is not known. Nothing read says either way.
+- **`ce_advise` as an external library called from Weston:** no licence conflict as such (inferred). Weston's review list asks for "the same MIT licence the project generally uses", and its "Increasing requirements" rules limit new dependencies of the DRM backend (read from source (2026-11-28), §3.1). So an external Apache-2.0 library in the DRM backend is unlikely to pass review unless it is offered under MIT, or is optional (inferred). Weston has not said either way about this case.
 - **AGL recipe or documentation:** the layer's own licence, which is not read.
 - **Running `drm-lease-manager` next to this engine:** two Apache-2.0 programs, no question (inferred).
 
@@ -224,7 +259,7 @@ None of these is settled. The proposal cannot go upstream before D1-D3 and D9 ar
 | --- | --- | --- | --- |
 | D1 | Licence of anything offered as code | Keep Apache-2.0 (separate library only); MIT for the offered files; "Apache-2.0 OR MIT" for `composition-core` and `composition-ffi` | §4.2 step 2, §5.3 Weston patch |
 | D2 | Copyright holder | Name the holder in `LICENSE`/`NOTICE` (today a placeholder) | D1; any relicensing |
-| D3 | Sign-off policy | Adopt a DCO with human `Signed-off-by` in [`../CONTRIBUTING.md`](../CONTRIBUTING.md); decide who the human author and reviewer of upstream changes is, given that this repository's commits are AI-assisted and Weston's recorded rules (§3.1) bar AI agents from opening issues or merge requests | every upstream contact |
+| D3 | Sign-off policy | Adopt a DCO with human `Signed-off-by` in [`../CONTRIBUTING.md`](../CONTRIBUTING.md); decide who the human author and reviewer of upstream changes is, given that this repository's commits are AI-assisted and Weston's rules (§3.1) bar AI agents from opening issues or merge requests and from adding `Signed-off-by` | every upstream contact |
 | D4 | Whether `DriverProfile::Imx95Dpu` is offered at all (open issue WP5-09) | Project-local only; offered as data in an issue; not offered. Its resource-group values are read from source and not measured | §4.1 second row |
 | D5 | The advisory-planner-design §6 items that the implementation took, which the owner may revisit (as in open issue WP5-03) | See the list below | what O1/O2 look like when offered |
 | D6 | The items left open in advisory-planner-design §6 (as in WP5-03) | See the list below | a Weston hook (§5.4), any engine-side offer |
@@ -259,7 +294,7 @@ None of these is settled. The proposal cannot go upstream before D1-D3 and D9 ar
 
 - No upstream acceptance, and no contact with any upstream. SoW §8 WP5 gives no guarantee.
 - No measured advantage over libliftoff or Weston (§6.4).
-- No quote of Weston's `CONTRIBUTING.md`. The fetch failed on 2026-11-28 (§3.1).
+- Weston's contribution files are quoted at `main` `c8d00e2` only. Tag `16.0.2` and later `main` commits were not compared (§3.1).
 - Nothing about the Weston on a board beyond the recorded `12.0.4` version string. Lease support in the image's Weston is open issue WP5-01, and NXP's `weston-imx-12.0.5` changes were not read.
 - No coexistence result (WP5-07). No clean-checkout demo (WP5-08).
 - Fit statements on licences are inferred, not legal advice.
@@ -281,3 +316,4 @@ In this repository:
 Upstream:
 
 - libliftoff `README.md` at `c4226a79b7a52f59bb51789b1eda112658609125`, read 2026-11-28.
+- Weston `CONTRIBUTING.md`, `LLM-USAGE.md` and `AGENTS.md` at `c8d00e2a1dbc98f4a8fb6473a4b485ffce409f3a` (`main` on 2026-11-28), read 2026-11-28.
