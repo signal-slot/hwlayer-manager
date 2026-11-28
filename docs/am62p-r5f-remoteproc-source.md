@@ -188,3 +188,67 @@ Every row above is tagged. The following are requests for later items, not findi
   `carveout_memories` and `resource_table` in debugfs while the image runs, and `lsmod`/kernel version.
 - Read the Verdin R5F nodes from the Toradex tree or from the board's `/proc/device-tree` and compare them with section 4.
 - Check that the Zephyr image's link map places every `PT_LOAD` segment inside TCM, MCU SRAM or the firmware carveout, and the trace buffer in the carveout.
+
+## Gaps for the board run: name, firmware attribute, `last_trace`, restore
+
+Added after the sections above, which stay as they are. Pin: TI `ti-linux-6.6.y` `a7758da1` (same as above). The Toradex tree
+(`linux-toradex`, `toradex_ti-linux-6.6.y`, tip `9764efd3fe8e5f3fa04045919296c102acd7517e`) is still unreadable (anti-bot page);
+treat every row as a prediction to compare with the board. Line numbers are in the [line index](#line-index-ti-a7758da1).
+Tags: **source** (function, file, commit), **inferred**.
+
+### Q1. Identification, stop and start per mode
+
+| Statement | Tag |
+|---|---|
+| The class is `remoteproc`; each core is `/sys/class/remoteproc/remoteprocN` with `coredump`, `recovery`, `firmware`, `state`, `name` | source: `rproc_class`, `rproc_dev_attrs`, `remoteproc_sysfs.c`, TI `a7758da1` |
+| `name` prints `rproc->name`, copied by `rproc_alloc` from the name given. The K3 driver gives `dev_name()` of the core's device and the DT `firmware-name` as firmware. So `name` is a device name (for the MCU R5F the unit address, `79000000.r5f`, inferred from the node address), **not** a word like "mcu-r5f" | source: `name_show`, `rproc_alloc`, `k3_r5_cluster_rproc_init`, `rproc_of_parse_firmware`, TI `a7758da1`; the address is inferred |
+| `remoteprocN` follows probe order: select the core by `name` and cross-check with `firmware` (`am62p-mcu-r5f0_0-fw` for the MCU core, see section 4 above) | inferred |
+| `state` strings are `offline`, `suspended`, `running`, `crashed`, `deleted`, `attached`, `detached`, `invalid`; `state_store` accepts `start`, `stop`, `detach` | source: `state_show`, `state_store`, TI `a7758da1` |
+| Remoteproc mode (core off at probe, `configured R5F for remoteproc mode`): `start` and `stop` work. `echo stop`: `running` to `offline`; a silent firmware costs 5 s and is halted anyway; an ack without WFI within about 2 ms gives `can't stop rproc: -110` and the state stays `running` | source: `k3_r5_rproc_configure_mode`, `k3_r5_rproc_stop`, TI `a7758da1` (rows C and D above) |
+| IPC-only mode (core already running at probe, `configured R5F for IPC-only mode`): state `detached`, `ops->start` and `ops->stop` are NULL. `echo stop` from `detached` gives `-EINVAL`; after `echo start` (attach, no firmware loaded) `stop` passes the state check and fails on the NULL op (`-EINVAL`). Only `detach` works and the core keeps running | source: `k3_r5_rproc_configure_mode`, `rproc_shutdown`, `rproc_stop`, TI `a7758da1` |
+| Which mode the Verdin's R5F is in depends on Torizon's boot chain: not known. Read `state` and the `dmesg` line first | inferred |
+| `firmware` reads `unknown` while the state is `attached` | source: `firmware_show`, TI `a7758da1` |
+
+### Q2. Loading a new firmware
+
+| Statement | Tag |
+|---|---|
+| `echo name > firmware` calls `rproc_set_firmware`; it is refused (`can't change firmware while running`, `-EBUSY`) unless the state is `offline`. A trailing newline is cut; an empty name is `-EINVAL`. The attribute is read-only if `sysfs_read_only` is set | source: `firmware_store`, `rproc_set_firmware`, `rproc_is_visible`, TI `a7758da1` |
+| Order for a new image: `stop` (state `offline`), write `firmware`, write `start`; `start` runs `rproc_boot`, which fetches the file with `request_firmware` | source: `state_store`, `rproc_set_firmware`; `rproc_boot` read earlier in this page |
+| The file name is resolved by the generic firmware loader, which is not among the files read. Default search path: `/lib/firmware/updates/<uname -r>`, `/lib/firmware/updates`, `/lib/firmware/<uname -r>`, `/lib/firmware`; the module parameter `firmware_class.path` (kernel command line) adds a custom first directory. Read-only check: `cat /sys/module/firmware_class/parameters/path` (empty means unset) | inferred (general kernel knowledge; `drivers/base/firmware_loader` not read) |
+| `/lib/firmware` is likely read-only on Torizon (OSTree). If writing there fails, a custom path or a bind mount is needed: the board item's decision | inferred |
+| ELF: valid magic, ELF32 or ELF64, host endianness, at least one program header (`No loadable segments`); `e_machine` is not checked | source: `rproc_elf_sanity_check`, `remoteproc_elf_loader.c`, TI `a7758da1` |
+| A section named exactly `.resource_table` is **required** (version 1, zero reserved bytes, fits the file); without it the boot stops with `-EINVAL` before loading | source: `find_table`, `rproc_elf_load_rsc_table`, TI `a7758da1` |
+| A trace entry (`RSC_TRACE`) is **not required** to boot; without one there is no `trace0`. One file per entry, named by its index in the table | source: `rproc_handle_trace`, `rproc_handle_resources`, `remoteproc_core.c`, TI `a7758da1` |
+
+### Q3. Trace buffer, debugfs, `last_trace`
+
+| Statement | Tag |
+|---|---|
+| `<debugfs>/remoteproc/remoteprocN/trace0`, mode 0400 (root). debugfs must be mounted (`mount -t debugfs none /sys/kernel/debug` if `/sys/kernel/debug/remoteproc` is absent); the directory exists only if `debugfs_initialized()` held at init | source: `rproc_init_debugfs`, `rproc_create_debug_dir`, `rproc_create_trace_file`, TI `a7758da1`; the mount command is inferred |
+| The file exists from `start` on (created in the boot) and while the firmware runs; the text ends at the first NUL byte | source: `rproc_handle_trace`, `rproc_trace_read`, TI `a7758da1` |
+| **The trace does not survive a stop**: `rproc_shutdown` calls `rproc_resource_cleanup`, which removes every `traceN` file. Copy `trace0` out **before** `stop` | source: `rproc_resource_cleanup`, `rproc_shutdown`, TI `a7758da1` |
+| **There is no `last_trace` file** in this tree: none of the four files mentions it | source: `remoteproc_debugfs.c`, TI `a7758da1` (absence) |
+| After a crash the file stays until a stop or recovery; `recovery_disabled` is true, so the driver does not restart the core and the trace can be read then | source: `k3_r5_cluster_rproc_init`; the survival is inferred |
+| The text stays in RAM after a stop unless reused, but Linux has no file for it; reading it needs `/dev/mem` or a restart of the same image | inferred |
+
+### Q4. What to restore afterwards, and why a reboot does
+
+| Statement | Tag |
+|---|---|
+| Before touching anything record `name`, `state`, `firmware`, the `dmesg` line naming the mode, and `firmware_class.path`. That is the original | inferred (request to the board item) |
+| Restore: `stop`, write the original name back to `firmware`, and `start` only if the core was `running` at the start. `firmware` is writable only while `offline` | source: `firmware_store`, `rproc_set_firmware`, `state_store`, TI `a7758da1` |
+| In IPC-only mode (`detached` at the start) Linux cannot restore the original: the original image was never loaded by Linux | inferred from Q1 |
+| Anything else stopped or unbound for the run is restored in reverse order; `docs/remoteproc-bringup.md` is not on this tip | inferred |
+| Do not use unbind and bind as a restore step: after a stop the core is halted with its power on and the next probe can fail with `mismatched mode` (row H above) | inferred, unverified |
+| A reboot restores everything: `rproc->firmware` is a RAM string initialised from the DT `firmware-name`; the halt state, the carveout contents, debugfs and the mode decision are rebuilt at the next probe, and the boot chain starts the R5F again | source: `rproc_alloc`, `k3_r5_cluster_rproc_init`, `k3_r5_rproc_configure_mode` (decided at probe), TI `a7758da1`; the boot-chain part is inferred |
+
+### Line index (TI `a7758da1`)
+
+`ti_k3_r5_remoteproc.c`: `k3_r5_rproc_start` 742, `k3_r5_rproc_stop` 820, `k3_r5_rproc_configure_mode` 1321 (IPC-only
+branch 1388-1395, remoteproc mode 1401), `rproc_of_parse_firmware` 1442, `devm_rproc_alloc(dev_name)` 1449, `recovery_disabled`
+1465. `remoteproc_sysfs.c`: `firmware_show` 131, `firmware_store` 149, `state_store` 189, `name_show` 213, `sysfs_read_only` 229.
+`remoteproc_debugfs.c`: `rproc_trace_read` 126, `rproc_create_trace_file` 386, `rproc_create_debug_dir` 398, `rproc_init_debugfs`
+421. `remoteproc_elf_loader.c`: `No loadable segments` 101, `.resource_table` 275, `rproc_elf_load_rsc_table` 326.
+`remoteproc_core.c`: `rproc_handle_trace` 547, `rproc_resource_cleanup` 1349, `rproc_stop` 1840, `rproc_shutdown` 2122,
+`rproc_set_firmware` 2301. Counted from the files as downloaded in the earlier study; not rechecked in this one.
