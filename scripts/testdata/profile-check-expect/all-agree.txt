@@ -1,3 +1,0 @@
-AGREE profile=rk3588-vop2 frame=single planner=accept kernel=ok
-AGREE profile=rk3588-vop2 frame=two-plane planner=accept kernel=ok
-AGREE profile=rk3588-vop2 frame=scale-8x planner=reject errno=22

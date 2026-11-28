@@ -1,3 +1,0 @@
-AGREE profile=rk3588-vop2 frame=a planner=accept kernel=ok
-DISAGREE profile=rk3588-vop2 frame=b planner=reject kernel=ok
-DISAGREE profile=rk3588-vop2 frame=c planner=accept errno=22
