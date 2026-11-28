@@ -66,5 +66,29 @@ has '<redacted>'
 if sh "$here/am62p-board-info.sh" --bogus >/dev/null 2>&1; then
   echo "FAIL: bad option accepted"; fail=1
 fi
+# POSIX-only awk: busybox awk, mawk, or gawk --posix (no strtonum there)
+PA=
+if command -v busybox >/dev/null 2>&1 && busybox awk 'BEGIN{exit 0}' 2>/dev/null; then
+  PA="busybox awk"
+elif command -v mawk >/dev/null 2>&1; then
+  PA=mawk
+elif command -v original-awk >/dev/null 2>&1; then
+  PA=original-awk
+elif command -v gawk >/dev/null 2>&1; then
+  PA="gawk --posix"
+fi
+if [ -z "$PA" ]; then
+  echo "SKIP: no POSIX-only awk (busybox, mawk, original-awk, gawk) on this host"
+else
+  mkdir -p "$T/bin"
+  printf '#!/bin/sh\nexec %s "$@"\n' "$PA" > "$T/bin/awk"
+  chmod +x "$T/bin/awk"
+  PATH="$T/bin:$PATH" sh "$here/am62p-board-info.sh" --root "$R" > "$T/out2" \
+    || { echo "FAIL: exit under $PA"; fail=1; }
+  grep -F -q 'edid name: FakePanel' "$T/out2" \
+    || { echo "FAIL: panel name under $PA"; fail=1; }
+  if grep -F -q 'SN-FAKE-77' "$T/out2"; then echo "FAIL: serial under $PA"; fail=1; fi
+  echo "posix awk case ran with: $PA"
+fi
 [ $fail = 0 ] && echo "am62p-board-info.test.sh: ok"
 exit $fail
