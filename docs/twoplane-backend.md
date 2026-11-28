@@ -15,11 +15,11 @@ Both run on the host only. The tests do not compile for Arm. Done by hand once (
 
 No board run has been made from this repository. Nothing about the backend on hardware has been measured here. `tests/board/am62p_r5f/` is the board test's application for the AM62P's R5F. Its binding to the demo's driver is written, the image has not been built from this repository's `main`, and the test has run only on the host ([board-test-am62p-r5f.md](board-test-am62p-r5f.md)).
 
-A board test needs a firmware that provides the following. None of it is in this repository.
+A board test needs a firmware that provides the following. Read from source (2026-11-28; `tests/board/am62p_r5f/src/{hw_am62p.c,main.c,scenes.c}`, `backends/twoplane/src/imx95.rs`): for the AM62P, the port, the table of registered buffers (`lookup`) and the producer are in this repository as the board test's application, and `hw_am62p.c` fills `struct ce_twoplane_hw` against the demo module's DSS driver, which is not in this repository. For the i.MX 95 only data exists: `backends/twoplane/src/imx95.rs` holds the DPU's format, alignment and latch tables (host-tested, [imx95-twoplane-port.md](imx95-twoplane-port.md)); there is no `ce_twoplane_hw` binding, no `display_port_imx95.c` and no i.MX 95 use of `ce_twoplane.c` in this repository.
 
 ### The driver: `struct ce_twoplane_hw`
 
-The demo firmware fills this table for the AM62P DSS and the i.MX 95 DPU (`display_port_<soc>.c` there, Zephyr, not in this repository). Calls that write the planes each count as one commit; the writes of a commit reach the panel together at a frame start.
+The demo firmware fills this table for the AM62P DSS and the i.MX 95 DPU (`display_port_<soc>.c` there, Zephyr; not in this repository. Read from source: this repository's AM62P binding is `tests/board/am62p_r5f/src/hw_am62p.c`, and no i.MX 95 binding exists). Calls that write the planes each count as one commit; the writes of a commit reach the panel together at a frame start.
 
 | Call | What the backend expects of it |
 | --- | --- |
@@ -45,8 +45,8 @@ The demo firmware fills this table for the AM62P DSS and the i.MX 95 DPU (`displ
 
 ### Also missing
 
-- A firmware, build files and board configuration that use this copy of the backend. The demo builds its own copy of it.
-- The table of registered buffers and the producer that fills it (the demo's compositor and its link to the A53).
+- For the i.MX 95: a firmware, build files and board configuration that use this copy of the backend (none; `tests/board/imx95_m7_engine/src/main.c` links the engine with its own one-plane fake backend, not `ce_twoplane.c`). For the AM62P they exist (`tests/board/am62p_r5f/`), and the demo still builds its own copy of the backend.
+- For the i.MX 95: the table of registered buffers and the producer that fills it. For the AM62P the test's own fixed buffers and scenes (`tests/board/am62p_r5f/src/scenes.c`) stand in for the demo's compositor and its link to the A53.
 - A way to flash, run and observe a board from this repository, and a test that judges what the panel shows.
 
 ### What the host test cannot show
