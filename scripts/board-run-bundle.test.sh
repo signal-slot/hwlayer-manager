@@ -81,9 +81,20 @@ sh "$here/board-run-bundle.sh" --soc bcm2711 --kind caps --name x --out "$t/out"
 rc=$?
 [ "$rc" = 3 ] && [ -f "$t/out/caps-2026-11-28-x.txt" ] && ok cmd-fail-exit-3 || bad cmd-fail-exit-3
 
+# imx95 and the scenarios kind: accepted and scrubbed.
+sh "$here/board-run-bundle.sh" --soc imx95 --kind scenarios --name a1 --out "$t/out" \
+    -- sh "$t/fake-cmd.sh" >"$t/stdout6" 2>/dev/null
+rc=$?
+g=$t/out/scenarios-2026-11-28-a1.txt
+[ "$rc" = 0 ] && [ -f "$g" ] && ok imx95-scenarios-accepted || bad imx95-scenarios-accepted
+if [ -f "$g" ] && ! grep -Eq '10\.9\.8\.7|ttyUSB|SERIALXYZ|aa:bb:cc:dd:ee:ff|boardhost' "$g"; then ok imx95-scrubbed; else bad imx95-scrubbed; fi
+grep -q 'suggested README line: - scenarios-2026-11-28-a1.txt: scenarios run on imx95' "$t/stdout6" && ok imx95-readme-suggestion || bad imx95-readme-suggestion
+
 # Usage errors.
-sh "$here/board-run-bundle.sh" --soc imx95 --kind caps --out "$t/out" -- true >/dev/null 2>&1
+sh "$here/board-run-bundle.sh" --soc nosuchsoc --kind caps --out "$t/out" -- true >/dev/null 2>&1
 [ $? = 2 ] && ok bad-soc || bad bad-soc
+sh "$here/board-run-bundle.sh" --soc imx95 --kind nosuchkind --out "$t/out" -- true >/dev/null 2>&1
+[ $? = 2 ] && ok bad-kind || bad bad-kind
 sh "$here/board-run-bundle.sh" --soc rk3588 --kind caps --out "$t/out" >/dev/null 2>&1
 [ $? = 2 ] && ok no-cmd || bad no-cmd
 
