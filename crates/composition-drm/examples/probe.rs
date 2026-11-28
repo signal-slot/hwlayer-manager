@@ -13,7 +13,7 @@
 use std::io;
 use std::process::ExitCode;
 
-use composition_core::{BlendMode, Capabilities, DisplayBackend, Zpos};
+use composition_core::{BlendMode, Capabilities, DisplayBackend, PlaneKind, Zpos};
 use composition_drm::{Card, DrmBackend, DrmOptions};
 use drm::control::{crtc, plane, property, Device as ControlDevice, PlaneType, ResourceHandle};
 use drm::{ClientCapability, Device as BasicDevice, DriverCapability};
@@ -121,10 +121,96 @@ fn run(raw: bool, path: &str) -> io::Result<()> {
         println!("  formats ({}): {}", formats.len(), formats.join(" "));
     }
 
+    // Computed in probe: the kept set is what caps.planes holds (the backend
+    // already applied its MAX_PLANES cut); the dropped reachable planes are
+    // the card's planes missing from it that can still reach an output.
+    let all = all_plane_reach(backend.card(), &caps)?;
+    let kept: Vec<KeptPlane> = caps
+        .planes
+        .iter()
+        .map(|p| KeptPlane {
+            id: p.id.0,
+            kind: p.kind,
+            outputs: p.outputs,
+        })
+        .collect();
+    let crtcs: Vec<u32> = caps.outputs.iter().map(|o| o.id.0).collect();
+    for line in kept_lines(&crtcs, &kept, &all) {
+        println!("{line}");
+    }
+
     if raw {
         dump_raw(backend.card())?;
     }
     Ok(())
+}
+
+/// A plane the backend kept: id, kind, and the output bit set (bit `n` is
+/// output `n`).
+#[derive(Clone, Copy, Debug)]
+struct KeptPlane {
+    id: u32,
+    kind: PlaneKind,
+    outputs: u32,
+}
+
+/// Every plane the card exposes with the outputs it can reach, as
+/// `(id, outputs bit set)`.
+fn all_plane_reach(card: &Card, caps: &Capabilities) -> io::Result<Vec<(u32, u32)>> {
+    let resources = card.resource_handles()?;
+    let mut all = Vec::new();
+    for handle in card.plane_handles()? {
+        let info = card.get_plane(handle)?;
+        let chosen = resources.filter_crtcs(info.possible_crtcs());
+        let mut mask = 0u32;
+        for (index, output) in caps.outputs.iter().enumerate() {
+            if chosen.iter().any(|c| u32::from(*c) == output.id.0) {
+                mask |= 1 << index;
+            }
+        }
+        all.push((u32::from(handle), mask));
+    }
+    Ok(all)
+}
+
+fn id_list(ids: &[u32]) -> String {
+    if ids.is_empty() {
+        return "-".to_owned();
+    }
+    ids.iter().map(u32::to_string).collect::<Vec<_>>().join(",")
+}
+
+/// One machine-readable line per output:
+/// `KEPT output=<n> crtc=<id> primary=<ids> overlay=<ids> cursor=<ids>
+/// dropped_reachable=<ids>`; an empty list prints `-`. `crtcs[n]` is the CRTC
+/// of output `n`, `kept` the planes the backend kept, `all` every plane of
+/// the card with its reachable outputs.
+fn kept_lines(crtcs: &[u32], kept: &[KeptPlane], all: &[(u32, u32)]) -> Vec<String> {
+    crtcs
+        .iter()
+        .enumerate()
+        .map(|(n, crtc)| {
+            let bit = 1u32 << n;
+            let of = |kind: PlaneKind| -> Vec<u32> {
+                kept.iter()
+                    .filter(|p| p.kind == kind && p.outputs & bit != 0)
+                    .map(|p| p.id)
+                    .collect()
+            };
+            let dropped: Vec<u32> = all
+                .iter()
+                .filter(|(id, mask)| mask & bit != 0 && !kept.iter().any(|p| p.id == *id))
+                .map(|(id, _)| *id)
+                .collect();
+            format!(
+                "KEPT output={n} crtc={crtc} primary={} overlay={} cursor={} dropped_reachable={}",
+                id_list(&of(PlaneKind::Primary)),
+                id_list(&of(PlaneKind::Overlay)),
+                id_list(&of(PlaneKind::Cursor)),
+                id_list(&dropped),
+            )
+        })
+        .collect()
 }
 
 /// Refresh in millihertz, as the derived report computes it.
@@ -432,4 +518,40 @@ fn describe_property(card: &Card, info: &property::Info, value: u64) -> String {
     }
     line.push_str(&format!(" value {value}"));
     line
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn kept_plane(id: u32, kind: PlaneKind, outputs: u32) -> KeptPlane {
+        KeptPlane { id, kind, outputs }
+    }
+
+    #[test]
+    fn kept_line_lists_kept_and_dropped_reachable_planes() {
+        // 21 planes, ids 1..=21, on two outputs. Output 0 reaches all of
+        // them, output 1 only 15..=20.
+        let mut all: Vec<(u32, u32)> = (1..=21).map(|id| (id, 0b01)).collect();
+        for entry in all.iter_mut().filter(|(id, _)| (15..=20).contains(id)) {
+            entry.1 = 0b11;
+        }
+        assert!(all.len() > 16);
+        // The backend kept 16: primary 1, overlays 2..=15, cursor 21.
+        let mut kept = vec![kept_plane(1, PlaneKind::Primary, 0b01)];
+        kept.extend((2..=15).map(|id| kept_plane(id, PlaneKind::Overlay, 0b01)));
+        kept.push(kept_plane(21, PlaneKind::Cursor, 0b01));
+        assert_eq!(kept.len(), 16);
+        let lines = kept_lines(&[100, 101], &kept, &all);
+        assert_eq!(
+            lines[0],
+            "KEPT output=0 crtc=100 primary=1 overlay=2,3,4,5,6,7,8,9,10,11,12,13,14,15 \
+             cursor=21 dropped_reachable=16,17,18,19,20"
+        );
+        assert_eq!(
+            lines[1],
+            "KEPT output=1 crtc=101 primary=- overlay=- cursor=- \
+             dropped_reachable=16,17,18,19,20"
+        );
+    }
 }
