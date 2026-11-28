@@ -1,0 +1,3 @@
+# not-a-snapshot (synthetic fixture: wrong first line, no addresses, host names or device paths)
+### remoteproc
+### device tree

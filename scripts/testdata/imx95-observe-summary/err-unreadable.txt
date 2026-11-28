@@ -1,0 +1,15 @@
+# imx95-observe: read-only snapshot
+# synthetic fixture: no addresses, host names or device paths
+### remoteproc
+/sys/class/remoteproc/remoteproc0
+  name: imx-rproc
+  state: offline
+  firmware: example-m7.elf
+### device tree
+/soc/display-controller@0
+  compatible: example,dpu
+  status: okay
+### debugfs clk_summary
+not readable
+### debugfs pm_genpd summary
+not readable
