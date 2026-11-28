@@ -1,0 +1,12 @@
+PASS  primary_tl       measured (221.0,  0.0, 15.0) expected (255.0,  0.0,  0.0) distance   37.2 tol  40.0
+PASS  primary_tr       measured ( 29.0,255.0, 21.0) expected (  0.0,255.0,  0.0) distance   35.8 tol  40.0
+PASS  primary_bl       measured ( 18.0,  1.0,230.0) expected (  0.0,  0.0,255.0) distance   30.8 tol  40.0
+PASS  primary_br       measured (235.0,235.0,235.0) expected (255.0,255.0,255.0) distance   34.6 tol  40.0
+PASS  A_tl_127         measured (221.0,  0.0, 15.0) expected (255.0,  0.0,  0.0) distance   37.2 tol  40.0
+PASS  A_tr_127         measured ( 29.0,255.0, 21.0) expected (  0.0,255.0,  0.0) distance   35.8 tol  40.0
+PASS  A_bl_127         measured ( 18.0,  1.0,230.0) expected (  0.0,  0.0,255.0) distance   30.8 tol  40.0
+PASS  B_tr_138         measured ( 29.0,255.0, 21.0) expected (  0.0,255.0,  0.0) distance   35.8 tol  40.0
+PASS  B_bl_138         measured ( 18.0,  1.0,230.0) expected (  0.0,  0.0,255.0) distance   30.8 tol  40.0
+PASS  B_br_138         measured (235.0,235.0,235.0) expected (255.0,255.0,255.0) distance   34.6 tol  40.0
+FAIL  overlap: B_tl_138 (zpos 3) over A_br_127 (zpos 2) measured (235.0,235.0,235.0) expected (255.0,  0.0,  0.0) distance  332.9 tol  40.0
+VERDICT: FAIL

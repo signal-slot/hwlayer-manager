@@ -1,0 +1,20 @@
+HVS chan 0 disabled
+HVS chan 1:
+dlist: 55: 0x4800d807
+dlist: 56: 0x00000000
+dlist: 57: 0x4000fff0
+dlist: 58: 0x04380780
+dlist: 59: 0xc0c0c0c0
+dlist: 60: 0xcf100000
+dlist: 61: 0xc0c0c0c0
+dlist: 62: 0x00001e00
+dlist: 63: 0x4800d807
+dlist: 64: 0x010e03c0
+dlist: 65: 0x10008000
+dlist: 66: 0x021c0180
+dlist: 67: 0xc0c0c0c0
+dlist: 68: 0xcf900000
+dlist: 69: 0xc0c0c0c0
+dlist: 70: 0x00000600
+dlist: 71: 0x80000000
+HVS chan 2 disabled
