@@ -84,9 +84,10 @@ BUILD_ASSERT(RING_LEN >= 3 * FRAMES + 1,
 
 /*
  * FrameGen FGTIMESTAMP. The HAL has no accessor; its private
- * DPU_FRAMEGEN_Type (fsl_dpu.c) puts FGTIMESTAMP at offset 0x98, and the NXP
- * Linux dpu95 driver reads the frame index above bit 14 and the line index
- * in the low 14 bits (docs/imx95-m7-overlay-design.md, read from source).
+ * DPU_FRAMEGEN_Type (fsl_dpu.c) puts FGTIMESTAMP at offset 0x98. The NXP
+ * Linux dpu95 driver (linux-imx 5a0a5e71d2bd, dpu95-framegen.c and dpu95.h)
+ * uses the same offset, FRAMEINDEX_SHIFT 14, LINEINDEX_MASK 0x3fff and a
+ * frame index maximum of 0x3ffff (18 bits).
  * The raw value is logged as well, so the host can decode it differently.
  */
 #define FG_TIMESTAMP_OFFSET 0x98U
