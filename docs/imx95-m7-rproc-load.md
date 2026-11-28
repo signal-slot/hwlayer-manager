@@ -18,8 +18,8 @@ Already covered elsewhere, linked rather than repeated:
 
 - Who may start and stop the M7 under the System Manager (TF-A SiP →
   SCMI CPU protocol, `mx95evk` vs `mx95evkrpmsg`), and the remoteproc gate:
-  [`imx95-zephyr-feasibility.md`](imx95-zephyr-feasibility.md#how-the-m7-is-started)
-  and its [gate section](imx95-zephyr-feasibility.md#gate-can-an-m7-image-be-started-from-linux-remoteproc-with-files-only-under-tmp).
+  [`imx95-zephyr-feasibility.md`](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board)
+  and its [gate section](imx95-zephyr-feasibility.md#8-gate-can-an-m7-image-be-started-from-linux-remoteproc-with-files-only-under-tmp).
 - The Verdin reserved-memory map, the `remoteproc-cm7` node, Toradex's own
   remoteproc instructions and user reports:
   [`imx95-m7-verdin-bsp.md`](imx95-m7-verdin-bsp.md) sections 2 and 3.
@@ -91,7 +91,7 @@ the v6 patch quoted in
 | Stop: `arm_smccc_smc(IMX_SIP_RPROC, IMX_SIP_RPROC_STOP, …)`; `res.a1` set means "Not in wfi, force stopped" | `imx_rproc.c:440-483`, SMC at `:463-469` | read from source |
 | `IMX_SIP_RPROC` = `0xC2000005`, `START` 0, `STARTED` 1, `STOP` 2 | `imx_rproc.c:71-74` | read from source |
 | Probe asks `IMX_SIP_RPROC_STARTED`; non-zero → `RPROC_DETACHED` (Linux attaches, loads nothing) | `imx_rproc.c:1034-1053` | read from source |
-| What TF-A does with the SiP call (SCMI CPU protocol `set_reset_addr`/`start`/`stop` on M7P, as the secure AP agent) and which SM configs allow it | [feasibility, "How the M7 is started"](imx95-zephyr-feasibility.md#how-the-m7-is-started) | read from source there (imx-atf), not re-read |
+| What TF-A does with the SiP call (SCMI CPU protocol `set_reset_addr`/`start`/`stop` on M7P, as the secure AP agent) and which SM configs allow it | [feasibility, "2. How M7 firmware is loaded on this board"](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board) | read from source there (imx-atf), not re-read |
 | `fsl,startup-delay-ms` is `0x32` (50 ms) and `power-domains` is `<0x5c 0x11>` on the board's `remoteproc-cm7` node | snapshot (b2) | observed 2026-11-27 |
 | Domain `0x11` = 17 = `IMX95_PD_M7` in Zephyr's ID table (Z1 `include/zephyr/dt-bindings/power/imx95_power.h:27`); that Linux uses the same SM domain number, so the node holds the M7 power domain on while the device is bound (runtime PM "unsupported" in the snapshot), is | | inferred |
 
