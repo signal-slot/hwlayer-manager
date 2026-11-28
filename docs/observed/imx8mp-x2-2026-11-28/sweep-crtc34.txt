@@ -1,0 +1,7 @@
+# kms_sweep combos /dev/dri/card1 --connector 39   (LVDS-1, disconnected; CRTC 34 = LCDIF2)
+DATE 2026-11-28T09:24:57Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+VERDICT kms_sweep: FAIL no connected connector with modes
+lvds rc=2

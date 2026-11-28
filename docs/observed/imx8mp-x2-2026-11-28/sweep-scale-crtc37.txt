@@ -1,0 +1,79 @@
+# scale_probe /dev/dri/card1   (default --dst: half the output at 0,0)
+DATE 2026-11-28T09:25:05Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+MODE 1920x1080@60Hz connector 41 crtc 37
+PLANE id 32 Primary possible_on_crtc false formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+PLANE id 35 Primary possible_on_crtc true formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+SCALE plane=35 axis=h src=960.0000x540.0000 dst=960x540 factor=1.0000 test_only=rejected errno=22
+SCALE plane=35 axis=v src=960.0000x540.0000 dst=960x540 factor=1.0000 test_only=rejected errno=22
+SCALE plane=35 axis=both src=960.0000x540.0000 dst=960x540 factor=1.0000 test_only=rejected errno=22
+SCALE plane=35 axis=h src=1920.0000x540.0000 dst=960x540 factor=0.5000 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1280.0000x540.0000 dst=960x540 factor=0.7500 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1066.6739x540.0000 dst=960x540 factor=0.9000 test_only=rejected errno=34
+SCALE plane=35 axis=v src=960.0000x1080.0000 dst=960x540 factor=0.5000 test_only=rejected errno=34
+SCALE plane=35 axis=v src=960.0000x720.0000 dst=960x540 factor=0.7500 test_only=rejected errno=34
+SCALE plane=35 axis=v src=960.0000x600.0041 dst=960x540 factor=0.9000 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1920.0000x1080.0000 dst=960x540 factor=0.5000 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1280.0000x720.0000 dst=960x540 factor=0.7500 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1066.6739x600.0041 dst=960x540 factor=0.9000 test_only=rejected errno=34
+RESULT plane=35 kind=Primary format=XR24 max_upscale_h=none max_upscale_v=none max_upscale_both=none downscale=rejected min_downscale=none
+VERDICT scale_probe: FAIL some plane rejects factor 1 or the baseline: 1 plane(s) probed at dst 960x540, resolution 256/65536
+scale_probe(default dst) rc=1
+
+# scale_probe /dev/dri/card1 --dst 1920x1080
+DATE 2026-11-28T09:25:05Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+MODE 1920x1080@60Hz connector 41 crtc 37
+PLANE id 32 Primary possible_on_crtc false formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+PLANE id 35 Primary possible_on_crtc true formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+SCALE plane=35 axis=h src=1920.0000x1080.0000 dst=1920x1080 factor=1.0000 test_only=accepted errno=0
+SCALE plane=35 axis=h src=1536.0000x1080.0000 dst=1920x1080 factor=1.2500 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1706.6667x1080.0000 dst=1920x1080 factor=1.1250 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1807.0588x1080.0000 dst=1920x1080 factor=1.0625 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1861.8182x1080.0000 dst=1920x1080 factor=1.0312 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1890.4615x1080.0000 dst=1920x1080 factor=1.0156 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1905.1163x1080.0000 dst=1920x1080 factor=1.0078 test_only=rejected errno=34
+SCALE plane=35 axis=h src=1912.5292x1080.0000 dst=1920x1080 factor=1.0039 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1080.0000 dst=1920x1080 factor=1.0000 test_only=accepted errno=0
+SCALE plane=35 axis=v src=1920.0000x864.0000 dst=1920x1080 factor=1.2500 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x960.0000 dst=1920x1080 factor=1.1250 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1016.4706 dst=1920x1080 factor=1.0625 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1047.2727 dst=1920x1080 factor=1.0312 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1063.3846 dst=1920x1080 factor=1.0156 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1071.6279 dst=1920x1080 factor=1.0078 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1075.7977 dst=1920x1080 factor=1.0039 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1920.0000x1080.0000 dst=1920x1080 factor=1.0000 test_only=accepted errno=0
+SCALE plane=35 axis=both src=1536.0000x864.0000 dst=1920x1080 factor=1.2500 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1706.6667x960.0000 dst=1920x1080 factor=1.1250 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1807.0588x1016.4706 dst=1920x1080 factor=1.0625 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1861.8182x1047.2727 dst=1920x1080 factor=1.0312 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1890.4615x1063.3846 dst=1920x1080 factor=1.0156 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1905.1163x1071.6279 dst=1920x1080 factor=1.0078 test_only=rejected errno=34
+SCALE plane=35 axis=both src=1912.5292x1075.7977 dst=1920x1080 factor=1.0039 test_only=rejected errno=34
+SCALE plane=35 axis=h src=3840.0000x1080.0000 dst=1920x1080 factor=0.5000 test_only=rejected errno=34
+SCALE plane=35 axis=h src=2560.0000x1080.0000 dst=1920x1080 factor=0.7500 test_only=rejected errno=34
+SCALE plane=35 axis=h src=2133.3478x1080.0000 dst=1920x1080 factor=0.9000 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x2160.0000 dst=1920x1080 factor=0.5000 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1440.0000 dst=1920x1080 factor=0.7500 test_only=rejected errno=34
+SCALE plane=35 axis=v src=1920.0000x1200.0081 dst=1920x1080 factor=0.9000 test_only=rejected errno=34
+SCALE plane=35 axis=both src=3840.0000x2160.0000 dst=1920x1080 factor=0.5000 test_only=rejected errno=34
+SCALE plane=35 axis=both src=2560.0000x1440.0000 dst=1920x1080 factor=0.7500 test_only=rejected errno=34
+SCALE plane=35 axis=both src=2133.3478x1200.0081 dst=1920x1080 factor=0.9000 test_only=rejected errno=34
+RESULT plane=35 kind=Primary format=XR24 max_upscale_h=1.0000 max_upscale_v=1.0000 max_upscale_both=1.0000 downscale=rejected min_downscale=none
+VERDICT scale_probe: OK 1 plane(s) probed at dst 1920x1080, resolution 256/65536
+scale_probe(--dst 1920x1080) rc=0
+
+# scale_probe /dev/dri/card1 --plane 32   (plane 32 can only drive CRTC 34)
+DATE 2026-11-28T09:25:05Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+MODE 1920x1080@60Hz connector 41 crtc 37
+PLANE id 32 Primary possible_on_crtc false formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+PLANE id 35 Primary possible_on_crtc true formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+VERDICT scale_probe: FAIL no plane to test
+scale_probe(--plane 32) rc=2

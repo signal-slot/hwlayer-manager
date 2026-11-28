@@ -1,0 +1,23 @@
+# plane_commit /dev/dri/card1 --hold-ms 30000 --layer plane=35,format=XR24,src=1920x1080,dst=0,0,1920x1080,pattern=quadrants
+DATE 2026-11-28T09:25:35Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+MODE 1920x1080@60Hz connector 41 crtc 37 (running mode, no modeset)
+PLANE id 32 Primary possible_on_crtc false zpos 0 rotation none alpha none formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+PLANE id 35 Primary possible_on_crtc true zpos 0 rotation none alpha none formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+START crtc_active=1 primary=35 primary_fb=44
+LAYER plane=35 format=XR24 src=1920x1080 dst=0,0,1920x1080 zpos=none rotation=none alpha=none pattern=quadrants
+TEST_ONLY ok
+COMMIT ok
+EXPECT phase=commit "35-tl" x=480 y=270 fx=0.2500 fy=0.2500 rgb=#ff0000
+EXPECT phase=commit "35-tr" x=1440 y=270 fx=0.7500 fy=0.2500 rgb=#00ff00
+EXPECT phase=commit "35-bl" x=480 y=810 fx=0.2500 fy=0.7500 rgb=#0000ff
+EXPECT phase=commit "35-br" x=1440 y=810 fx=0.7500 fy=0.7500 rgb=#ffffff
+HOLD ms=30000
+STATE plane=35 fb=47 zpos=0
+CRTC active=1
+RECOVER ok
+RESTORE ok
+VERDICT plane_commit: DONE
+rc=0
