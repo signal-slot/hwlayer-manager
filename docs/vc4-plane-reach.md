@@ -206,21 +206,61 @@ VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 l
 
 The first line is one of eight swapped lines; the other seven (and the eight `normal` lines) are in the original report. The four overlay lines read `rgb=#00ff00` / `#202020` / `#00ff00` / `#202020` (opaque over green, opaque over background, translucent over green, translucent over background). `RESULT frames=600 committed=600 latched=600 released=1198 dropped=0 late=0` (observed 2026-11-27). Camera-check: not observed.
 
-### After (post-fix tip)
+### After (post-fix tip, commit 62086e2)
 
-Date: the notes carry no run date; the item finished on 2026-11-28 (observed 2026-11-28 as the date of the run's completion, the board clock was not recorded). Commit: not recorded (not measured). The board's `/tmp` was clean afterwards and no display manager was running.
-
-**Only the verdict line survived from this run's report**, so the post-fix plane set and the swapped-`EXPECT` line are **not recorded here (not measured in this document)**:
+Date: 2026-11-28, board clock 08:40:25Z to 08:40:35Z (observed 2026-11-28). Commit 62086e2 (observed 2026-11-28, the integration tip the binaries were built from, `scripts/cross-aarch64.sh -p composition-drm --example probe --example twoplane`). Kernel 6.12.62+rpt-rpi-v8 (observed 2026-11-28). The binaries were copied to the board's `/tmp`, run as an unprivileged user in the `video` group and removed afterwards; `/tmp` held no files of the run afterwards (observed 2026-11-28). No display manager or compositor ran before or after (observed 2026-11-28: `display-manager`, `lightdm`, `gdm`, `sddm` inactive, no weston, labwc, wayfire, cage or Xorg process), so nothing was stopped or restored. Commands (observed 2026-11-28):
 
 ```
-VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 1080x1080@60.069Hz
+probe /dev/dri/card1
+twoplane /dev/dri/card1 --swap-z --output 0
 ```
 
-(observed 2026-11-28). The plan before the fix was plane 89 for layer 0 and plane 125 for layer 1; a like-for-like run is expected (inferred, not checked) to show the same plan, with the cursor 686 and further overlays kept and the dead primaries dropped. Camera-check: not observed.
+Output 0 (CRTC 100) kept planes (observed 2026-11-28, from the `KEPT` line of `probe`):
+
+| Output 0 (CRTC 100) | Kept planes |
+| --- | --- |
+| Primary | 89 |
+| Overlays | 125, 136, 147, 158, 169, 180, 191, 202, 213, 224, 235, 246, 257, 268 (14, all reach) |
+| Cursor | 686 |
+| Reachable but dropped | overlays 279, 290 |
+
+Verbatim `probe` line (observed 2026-11-28):
+
+```
+KEPT output=0 crtc=100 primary=89 overlay=125,136,147,158,169,180,191,202,213,224,235,246,257,268 cursor=686 dropped_reachable=279,290
+```
+
+Verbatim `twoplane` lines (observed 2026-11-28):
+
+```
+PLAN from frame 0:
+  layer 0 (background) -> plane 89 Primary zpos 0 src 0,0 1080x1080 dst 0,0 1080x1080
+  layer 1 (overlay) -> plane 125 Overlay zpos 1 src 0,0 216x540 dst 540,270 216x540
+SWAPZ skipped: a plane of the plan has a fixed zpos
+EXPECT phase=swapped skipped reason=fixed-zpos
+RESULT frames=600 committed=600 latched=600 released=1198 dropped=0 late=0 period_ms=16.648 latch_interval_mean_ms=16.646 latch_interval_max_ms=16.822 elapsed_s=9.986
+VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 1080x1080@60.069Hz, swapz=skipped(fixed-zpos)
+```
+
+Before/after (observed 2026-11-27 before, 2026-11-28 after):
+
+| | Before (82a0355) | After (62086e2) |
+| --- | --- | --- |
+| Kept planes | 16 | 16 |
+| Primaries kept | 6 (5 dead, 1 reaches) | 1 (reaches) |
+| Overlays kept | 10 (all reach) | 14 (all reach) |
+| Cursor kept | none | 686 |
+| Kept planes that reach output 0 | 11 of 16 | 16 of 16 |
+| Plan | layer 0 on 89, layer 1 on 125 | layer 0 on 89, layer 1 on 125 (same) |
+| Swapped EXPECT | 8 lines printed, then the swap was skipped | one line, `skipped reason=fixed-zpos` |
+| VERDICT | PASS, 600 latched, 1198 released, 0 late | PASS, 600 latched, 1198 released, 0 late, `swapz=skipped(fixed-zpos)` |
+
+The earlier statement that the plan would stay the same, with cursor 686 kept and the dead primaries dropped, is confirmed by this run (observed 2026-11-28). Dropped though reachable: before, 38 overlays and cursor 686 (observed 2026-11-27); after, 2 overlays, 279 and 290 (observed 2026-11-28). An earlier post-fix run of this board (observed 2026-11-28, no commit recorded) had the same verdict except for the `swapz=skipped` suffix. Camera-check: not observed (no KVM or camera on this board).
+
 
 ## Open points
 
-- The CM4 and RPi4 notes do not give the post-fix commit hash; only the RPi5 does (e3c6f68).
-- RPi5 pre-fix notes and RPi4 post-fix notes are incomplete, as stated above: those cells are "not recorded", not zero.
+- Post-fix commits: CM4 0ba62fc, RPi4 62086e2, RPi5 e3c6f68.
+- RPi5 pre-fix notes are incomplete, as stated above: those cells are "not recorded", not zero.
 - Planner suggestion carried from the CM4 run: say in the VERDICT line when `--swap-z` was requested but skipped (change belongs in `twoplane.rs`).
 - Folding this file into `platform-capabilities.md` and updating X-08 / X-09 in `open-issues.md` is left to the plan's later step; this file edits neither.
