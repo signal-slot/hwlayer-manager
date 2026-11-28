@@ -16,6 +16,21 @@ defined from outside knowledge (search of 2026-11-28).
 repository contrasts them with the M7 when asking who owns the display. First
 used: `README.md`; the ownership question is in `docs/platform-capabilities.md`.
 
+**Advice**: The result of the advisory planner (`composition_core::Advice`): per
+layer, whether it sits on a plane or is composed, and why not. It is not a
+`Plan` and has no way to commit. Defined in
+[advisory-planner-design.md](advisory-planner-design.md); implemented
+stateless in `crates/composition-core/src/advise.rs` (read from source,
+2026-11-28).
+
+**advisory planner (advise / ce_advise)**: The proposed question "which layers can
+be promoted to planes, and what blocks the rest?", for a compositor that
+composes the remainder itself. Rust form `composition_core::advise`, C form
+`ce_advise` in `crates/composition-ffi`; an `Engine::advise` form does not
+exist. Design and status:
+[advisory-planner-design.md](advisory-planner-design.md); the gap it answers is
+in [wp5-gap-analysis.md](wp5-gap-analysis.md).
+
 **AFBC**: A compressed buffer modifier (Arm Frame Buffer Compression). The
 repository mentions it only in the RK3588 notes; the engine's own model is
 `FormatModifier`. On the NanoPC-T6, Cluster planes list AFBC modifiers and
@@ -42,6 +57,11 @@ display: Linux DRM/KMS, an MCU display controller, or a fake. First used:
 device lost, capabilities changed). First defined:
 `crates/composition-core/src/backend.rs`.
 
+**Blocker**: The reason a layer is not placed on a plane in `Advice` (for
+example a static plane limit, a clip, or an exhausted search budget). First
+defined: [advisory-planner-design.md](advisory-planner-design.md); the type is
+`composition_core::Blocker`.
+
 **bootaux**: The U-Boot command that starts a Cortex-M core from a loaded
 image. The repository records it from a Toradex M7 note, not from running it.
 First used: [imx95-m7-verdin-bsp.md](imx95-m7-verdin-bsp.md); the MCUXpresso
@@ -67,6 +87,12 @@ scaling. Read from source (2026-11-28) in
 **CM4**: The Raspberry Pi Compute Module 4 (BCM2711), not a Cortex-M4. First
 used: `README.md`; its probe is in `docs/observed/bcm2711-cm4.md`.
 
+**coexistence (WP5-07)**: The case where a compositor owns one connector while a
+leased output on another is driven by a separate client. It is open issue
+WP5-07 and gap W5-10; this glossary records the term only, not a result. See
+[wp5-gap-analysis.md](wp5-gap-analysis.md) and the survey of idle boards in
+[wp5-coexistence-survey.md](wp5-coexistence-survey.md) (not the trial).
+
 **commit**: Two meanings that the repository keeps apart. `Engine::commit(plan)`
 submits an accepted plan to a backend and returns a `SubmissionId`
 (`SoW.md` §4); a DRM atomic commit is what the DRM backend issues to do it. A
@@ -79,6 +105,13 @@ mapping out in one place. First used: `SoW.md` §4.1; used in
 `crates/composition-drm/src/lib.rs`.
 
 ## D
+
+**DCO**: The Developer Certificate of Origin, a sign-off line by which a human
+certifies the right to submit a change. The repository records that Weston
+requires a human DCO sign-off and restricts AI-authored contributions (read
+from source at a pinned commit); this repository's `CONTRIBUTING.md` has no
+sign-off text yet. Source record: [wp5-gap-analysis.md](wp5-gap-analysis.md)
+(W5-07; WP5-05 in [open-issues.md](open-issues.md)).
 
 **DeviceLost**: The event that the backend lost its display resources (reset,
 lease revoked); everything pending is dropped and all buffers are released.
@@ -222,6 +255,11 @@ source (2026-11-28) in
 (`ldb`, `ldb_vco`) and a device-tree node only. First used:
 `docs/imx95-dpu-source-6.6.md`.
 
+**libdlmclient**: The client library of AGL's `drm-lease-manager`; its API is
+`dlm_get_lease`, `dlm_lease_fd` and `dlm_release_lease`, over a Unix
+`SOCK_SEQPACKET` socket per lease name. Read from source and built for aarch64
+as a static archive, not run on a board: [dlm-aarch64.md](dlm-aarch64.md).
+
 **libliftoff**: A library that assigns layers to planes in some compositors. The
 repository studies it as a comparison target and a possible cross-check. First
 used: `SoW.md`; `docs/wp5-gap-analysis.md`.
@@ -250,6 +288,12 @@ milestone M2. Whether it can own the display is an open question. First used:
 [imx95-board.md](imx95-board.md).
 
 **MCU R5F / DM R5F**: The AM62P has an R5F in the MCU domain, which the M3 board test targets and which is "the R5F" in this glossary, and a separate R5F in the wakeup domain that runs the DM firmware, per the TI AM62Px TRM. They are different cores with different roles; see `DM firmware` and `R5F`. See `docs/am62p-imx95-matrix.md`.
+
+**meta-agl-drm-lease**: The AGL layer whose Weston `bbappend` patches an
+upstream-based Weston 13.0.x to take a lease from `drm-lease-manager` through
+`libdlmclient` (`--drm-lease=<name>`). It is a lease client route, not
+`wp_drm_lease_device_v1`; read from source at tag `unagi_20.92.0`, not run
+here: [weston-imx-lease.md](weston-imx-lease.md) (S7 to S9).
 
 **modifier**: A buffer layout descriptor (for example linear). First defined:
 `crates/composition-core/src/types.rs` (`Modifier`).
@@ -288,6 +332,12 @@ frame and capabilities it was made from. First defined:
 cursor. First used: `SoW.md`; model in `crates/composition-core/src/caps.rs`
 (`PlaneCaps`, `PlaneKind`).
 
+**Placement::Compose**: The placement an advice gives a layer that is not put on
+a plane but drawn by the caller into one composition buffer; the composed
+layers become one synthetic layer. Proposed in
+[advisory-planner-design.md](advisory-planner-design.md); the C value is
+`CE_PLACE_COMPOSE`.
+
 **port_mux / layer select**: The VOP2 registers that choose which video port
 each window feeds and in what mixer order. The mainline driver reads the old
 layer select register to find a port's start mixer. Read from source
@@ -318,6 +368,12 @@ imply it. First used: `SoW.md` §4; `crates/composition-core/src/presentation.rs
 starts and stops it. For the i.MX95 M7 the repository has a load script and a
 read-only observation. First used: `docs/imx95-zephyr/README.md`; script
 `scripts/imx95-m7-rproc.sh`.
+
+**reproducible demo (WP5-08)**: The SoW §8 WP5 deliverable of a demo that a
+reviewer can rebuild and run from a clean checkout with pinned versions. Open
+issue WP5-08; the plan, with nothing measured, is
+[wp5-evidence-plan.md](wp5-evidence-plan.md); the cross-build recipe is
+[dlm-aarch64.md](dlm-aarch64.md).
 
 **resource group**: A shared hardware resource with a capacity (for example the
 DPU's scalers or fetch units) that layers consume by trait. First defined:
@@ -430,6 +486,13 @@ report it. First used: `SoW.md`; the gap is in `docs/open-issues.md`.
 display unless a test has it. The repository reads its plane assignment
 (`docs/wp5-gap-analysis.md`) and sets board rules about it
 (`docs/imx95-board.md`). First used: `SoW.md`.
+
+**wp_drm_lease_device_v1**: The Wayland DRM lease protocol (`drm-lease-v1`
+staging) by which a compositor leases connectors to clients. The repository
+records that Weston at the pinned commit has no such code and that the AGL
+route does not use it; the protocol itself is recalled, not read. See
+[wp5-gap-analysis.md](wp5-gap-analysis.md) and
+[weston-imx-lease.md](weston-imx-lease.md).
 
 ## Not defined: terms the repository does not use
 
