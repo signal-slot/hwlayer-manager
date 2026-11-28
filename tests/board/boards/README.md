@@ -121,7 +121,10 @@ Memory region         Used Size  Region Size  %age Used
 So the board files also build at the `v4.5.0` release that
 [docs/zephyr-workspace.md](../../../docs/zephyr-workspace.md) pins. The size
 difference (344 B ITCM, 8 B DTCM) comes from the Zephyr revision; nobody
-compared the two builds further.
+compared the two builds further. A third x86_64 host, also 2026-11-28, with
+a fresh workspace from `scripts/prepare-zephyr.sh` (`v4.5.0`, SDK 1.0.1) and
+the same command, gave the same `v4.5.0` numbers (FLASH 26380 B, RAM 8316 B),
+no compiler or devicetree warnings.
 
 For comparison, `tests/board/imx95_m7/README.md` records 27,180 B ITCM and
 8,364 B DTCM for the EVK target with `CONFIG_HWLM_RPMSG=n`.
