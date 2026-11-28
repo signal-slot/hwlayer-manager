@@ -176,6 +176,7 @@ Every remaining file and directory under `docs/`, grouped by topic. Descriptions
 - [`docs/m2-linux-zephyr-comparison.md`](docs/m2-linux-zephyr-comparison.md): how the Linux vs Zephyr comparison will be run.
 - [`docs/wp4-difference-matrix.md`](docs/wp4-difference-matrix.md): WP4 draft AM62P vs i.MX95 difference matrix.
 - [`docs/m1-imx95/`](docs/m1-imx95/): M1 run material for the i.MX95 (logs, pictures, checks).
+- [`docs/m2-status.md`](docs/m2-status.md): M2 status, one row per proposed item.
 
 #### AM62P
 
@@ -186,6 +187,14 @@ Every remaining file and directory under `docs/`, grouped by topic. Descriptions
 - [`docs/board-test-am62p-r5f.md`](docs/board-test-am62p-r5f.md): board test: the engine on the MCU R5F.
 - [`docs/m3-am62p-test-plan.md`](docs/m3-am62p-test-plan.md): M3 test plan, AM62P portability regression.
 - [`docs/m3-03-board-test-design.md`](docs/m3-03-board-test-design.md): M3-03 design of the safety-flip and producer-failure board tests.
+- [`docs/am62p-dss-gobit-source.md`](docs/am62p-dss-gobit-source.md): DSS GO bit, shadow registers and the latch at VSYNC (source study).
+- [`docs/am62p-dss-sharing-source.md`](docs/am62p-dss-sharing-source.md): sharing the DSS between Linux and a remote core (source study).
+- [`docs/am62p-zephyr-upstream-source.md`](docs/am62p-zephyr-upstream-source.md): upstream Zephyr support for the MCU R5F (source study).
+- [`docs/m3-03-test-plan.md`](docs/m3-03-test-plan.md): M3-03 test plan, safety flip and producer failure.
+- [`docs/m3-05-firmware-link-plan.md`](docs/m3-05-firmware-link-plan.md): M3-05 plan, the engine linked into a real firmware build.
+- [`docs/m3-06-third-target-options.md`](docs/m3-06-third-target-options.md): M3-06 optional third target, decision inputs.
+- [`docs/m3-am62p-report-template.md`](docs/m3-am62p-report-template.md): M3 AM62P report template.
+- [`docs/m3-am62p-risks.md`](docs/m3-am62p-risks.md): M3 AM62P board session risk and fallback register.
 
 #### RK3588
 
@@ -199,6 +208,11 @@ Every remaining file and directory under `docs/`, grouped by topic. Descriptions
 - [`docs/rk3588-vop2-scale-source.md`](docs/rk3588-vop2-scale-source.md): scaling per window class.
 - [`docs/rk3588-vc4-profiles.md`](docs/rk3588-vc4-profiles.md): `DriverProfile` variants for RK3588 and Raspberry Pi.
 - [`docs/rk3588-vc4-board-procedure.md`](docs/rk3588-vc4-board-procedure.md): board session procedure for NanoPC-T6, Raspberry Pi 5 and reTerminal.
+- [`docs/rk3588-kernel-compare.md`](docs/rk3588-kernel-compare.md): VOP2 source rows against the NanoPC-T6 running kernel.
+- [`docs/rk3588-vop2-flip-source.md`](docs/rk3588-vop2-flip-source.md): VOP2 flip, vblank event and pending-commit semantics (mainline 6.18).
+- [`docs/rk3588-vop2-scale-transform-source.md`](docs/rk3588-vop2-scale-transform-source.md): VOP2 scale limits and rotation/reflection per window class.
+- [`docs/rk3588-vop2-session-2026-11-28.md`](docs/rk3588-vop2-session-2026-11-28.md): RK3588 VOP2 topology session, NanoPC-T6, 2026-11-28.
+- [`docs/rk-hvs-session-checklist.md`](docs/rk-hvs-session-checklist.md): board-session checklist for RK3588 VOP2 and Raspberry Pi HVS.
 
 #### BCM27xx / HVS
 
@@ -211,6 +225,14 @@ Every remaining file and directory under `docs/`, grouped by topic. Descriptions
 - [`docs/vc4-hvs-load-source.md`](docs/vc4-hvs-load-source.md): load and core-clock computation.
 - [`docs/vc4-hvs-props-source.md`](docs/vc4-hvs-props-source.md): plane properties (zpos, alpha, blend, rotation, colour).
 - [`docs/vc4-hvs-scaling-source.md`](docs/vc4-hvs-scaling-source.md): scaling ratios, LBM/UPM sizing, modifier checks and dlist words.
+- [`docs/bcm2712-plane-count-source.md`](docs/bcm2712-plane-count-source.md): BCM2712 CRTC and plane arithmetic from the vc4 source.
+- [`docs/vc4-formats-source.md`](docs/vc4-formats-source.md): formats x modifiers per plane against the observed blobs and `profile.rs`.
+- [`docs/vc4-hvs-session-cm4-scale-2026-11-28.md`](docs/vc4-hvs-session-cm4-scale-2026-11-28.md): reTerminal (CM4, BCM2711) scale limits, session A.
+- [`docs/vc4-hvs-session-rpi5-scale-2026-11-28.md`](docs/vc4-hvs-session-rpi5-scale-2026-11-28.md): Raspberry Pi 5 session A, scale limits and CRTC/plane arithmetic.
+- [`docs/vc4-plane-reach.md`](docs/vc4-plane-reach.md): vc4 plane reach before and after X-08 / X-09.
+- [`docs/vc4-replace-pending-source.md`](docs/vc4-replace-pending-source.md): a second commit while the first is pending, from source.
+- [`docs/vc4-scale-limits-source.md`](docs/vc4-scale-limits-source.md): scaler limits from source and what board sweeps should try.
+- [`docs/vc4-transform-source.md`](docs/vc4-transform-source.md): rotation and reflection, read from source.
 
 #### STM32MP257
 
@@ -231,12 +253,16 @@ Every remaining file and directory under `docs/`, grouped by topic. Descriptions
 - [`docs/imx8mp-lcdif-source.md`](docs/imx8mp-lcdif-source.md): LCDIFv3 display path, read from source (SoW §5.3).
 - [`docs/imx8mp-route3-precomposition.md`](docs/imx8mp-route3-precomposition.md): Route 3 pre-composition and buffer ownership (design note).
 - [`docs/imx8mp-x2-board.md`](docs/imx8mp-x2-board.md): Armadillo-X2, DRM/KMS as the kernel exposes it.
+- [`docs/ra8p1-glcdc-source.md`](docs/ra8p1-glcdc-source.md): Renesas RA8P1 / RA8D1 GLCDC display path, read from source.
+- [`docs/rt1170-lcdifv2-source.md`](docs/rt1170-lcdifv2-source.md): i.MX RT1170 display path (eLCDIF, LCDIFv2, PXP), read from source.
+- [`docs/stm32h7-ltdc-source.md`](docs/stm32h7-ltdc-source.md): STM32H7 LTDC and DMA2D desk evaluation from source.
 
 #### Cross-cutting
 
 - [`docs/drm-lease-source.md`](docs/drm-lease-source.md): what a DRM lessee can see and `TEST_ONLY` (mainline 6.18).
 - [`docs/drm-pending-commit-source.md`](docs/drm-pending-commit-source.md): pending-commit replacement and flip events in DRM core, vc4 and VOP2.
 - [`docs/linux-board-scenarios.md`](docs/linux-board-scenarios.md): Linux board scenarios A1-A5 on boards other than the i.MX95.
+- [`docs/linux-board-scenarios-2026-11-28.md`](docs/linux-board-scenarios-2026-11-28.md): Linux board scenarios A1-A6 on three DRM boards, 2026-11-28.
 
 #### WP5
 
@@ -245,6 +271,7 @@ Every remaining file and directory under `docs/`, grouped by topic. Descriptions
 - [`docs/weston-release-read.md`](docs/weston-release-read.md): released Weston DRM backend plane assignment, from source.
 - [`docs/liftoff-crosscheck-report.md`](docs/liftoff-crosscheck-report.md): cross-check of the planner against libliftoff (WP5-04).
 - [`docs/host-demo.md`](docs/host-demo.md): host demo.
+- [`docs/wp5-demo.md`](docs/wp5-demo.md): WP5 reproducible demo, clean checkout to the M1 demo on the Verdin iMX95.
 
 ## Status
 
