@@ -799,6 +799,8 @@ capture of the idle Weston screen, with the rule to stop if that failed.
 |---|---|---|---|
 | 2026-11-28T01:41:22Z | KVM capture of the idle Weston screen | **Failed.** The NanoKVM's MCP server (`kvm_kvm-stm32mp257f-dk`) did not connect when the session started; its relay answered HTTP 404, as in sessions A and B. No screenshot tool was available, so no picture was taken | observed 2026-11-28 |
 | 2026-11-28T01:41:34Z | Board check over ssh, no change made | `systemctl is-active weston-graphical-session seatd-weston` printed `active` twice; plane 34 `allocated by = weston`; `transfer_error=0 fifo_underrun_error=0` | observed 2026-11-28 |
+| 2026-11-28T02:03:10Z | Retry of the KVM capture, from another host | **Failed again.** The same MCP server did not connect (HTTP 404 from its relay), so no screenshot tool was available | observed 2026-11-28 |
+| 2026-11-28T02:03:16Z | Board check over ssh, no change made | `systemctl is-active weston-graphical-session seatd-weston` printed `active` twice; plane 34 `allocated by = weston` | observed 2026-11-28 |
 
 Because the capture failed, session C stopped there. It ran no example,
 stopped no service, copied nothing to the board and committed nothing to
