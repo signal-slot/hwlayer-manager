@@ -24,8 +24,9 @@ Already covered elsewhere, linked rather than repeated:
 - What the board's System Manager image is: Toradex builds its own fork
   `imx-sm-toradex` with a `verdin-imx95` config that could not be read, so
   the LM and rights tables in these docs come from NXP's `mx95evk.cfg` at
-  `af1e3702` and every Verdin statement from them is **inferred for
-  Verdin**: [`imx95-verdin-sm-config.md`](imx95-verdin-sm-config.md#5-verdict).
+  `af1e3702` (`rel_imx_sm_2025q3`; [`imx95-verdin-bsp-src.md`](imx95-verdin-bsp-src.md)
+  pins `rel_imx_sm_2026q3` instead, and neither is shown to match the board's
+  SM) and every Verdin statement from them is **inferred for Verdin**: [`imx95-verdin-sm-config.md`](imx95-verdin-sm-config.md#5-verdict).
 - The Verdin reserved-memory map, the `remoteproc-cm7` node, Toradex's own
   remoteproc instructions and user reports:
   [`imx95-m7-verdin-bsp.md`](imx95-m7-verdin-bsp.md) sections 2 and 3.
@@ -59,7 +60,8 @@ revision as S6 of the feasibility doc. I found no NXP tag named after 6.6.157
 or 7.8.0. The inference it is consistent with two observed facts: the
 remoteproc is called `imx-rproc` (L1 passes that fixed name to `rproc_alloc`;
 L3 uses the DT node name, which would be `remoteproc-cm7`) and dmesg shows no
-"Using CPU/LMM Protocol OPS" line (L3 prints one at probe).
+"Using CPU/LMM Protocol OPS" line (L3 prints one at probe; observed
+2026-11-27, the `imx-rproc is available` line is present and no LMM line).
 
 **Line numbers for L1-L3** were counted by the fetch helper from raw text
 without numbering; they may be off by a few lines. The function names are the
