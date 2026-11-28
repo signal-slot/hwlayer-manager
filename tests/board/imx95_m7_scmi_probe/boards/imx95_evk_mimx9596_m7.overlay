@@ -1,0 +1,119 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Overlay for imx95_evk/mimx9596/m7: keep only the console UART.
+ *
+ * Upstream soc_init() sets clocks over SCMI for every enabled FlexCAN and
+ * SAI node (and NETC, when networking is built), and the drivers of other
+ * enabled nodes would claim pins and clocks Linux may own. Disabling every
+ * EVK peripheral this program does not use keeps the SoC init from sending
+ * any SCMI clock or power request. The node list is the same as in
+ * tests/board/imx95_m7, without the rpmsg nodes.
+ */
+
+/ {
+	chosen {
+		/delete-property/ zephyr,canbus;
+		/delete-property/ zephyr,flash-controller;
+	};
+};
+
+&can_phy1 {
+	status = "disabled";
+};
+
+&flexcan1 {
+	status = "disabled";
+};
+
+&emdio {
+	status = "disabled";
+};
+
+&enetc_psi0 {
+	status = "disabled";
+};
+
+&enetc_ptp_clock {
+	status = "disabled";
+};
+
+&flexspi {
+	status = "disabled";
+};
+
+&lpi2c2 {
+	status = "disabled";
+};
+
+&lpi2c4 {
+	status = "disabled";
+};
+
+&lpi2c5 {
+	status = "disabled";
+};
+
+&lpi2c6 {
+	status = "disabled";
+};
+
+&lpi2c7 {
+	status = "disabled";
+};
+
+&lpspi1 {
+	status = "disabled";
+};
+
+&lpuart5 {
+	status = "disabled";
+};
+
+&sai3_2 {
+	status = "disabled";
+};
+
+&tpm2 {
+	status = "disabled";
+};
+
+&lptmr1 {
+	status = "disabled";
+};
+
+&tstmr2 {
+	status = "disabled";
+};
+
+&edma1 {
+	status = "disabled";
+};
+
+&edma2 {
+	status = "disabled";
+};
+
+&gpio2 {
+	status = "disabled";
+};
+
+&gpio3 {
+	status = "disabled";
+};
+
+&gpio4 {
+	status = "disabled";
+};
+
+&gpio5 {
+	status = "disabled";
+};
+
+&sar_adc {
+	status = "disabled";
+};
+
+&wdog5 {
+	status = "disabled";
+};
