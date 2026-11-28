@@ -149,3 +149,40 @@ command and commit. All but `replace` are TEST_ONLY.
 
 These runs are portability evidence for the HVS5 profile work. They never
 count toward M1, M2 or M3.
+
+## Profile check (observed 2026-11-28)
+
+Files: `verify-probe-2026-11-28.txt`, `verify-profile-check-2026-11-28.txt`,
+`verify-twoplane-2026-11-28.txt`. Repository commit 8136775, kernel
+6.12.47+rpt-rpi-v8, card0 (vc4), DSI output 0 (720x1280 @ 60 Hz), cross-built
+aarch64 musl binaries run from /tmp (removed afterwards). No display manager
+or compositor was running (the launcher is disabled for this lease), so none
+was stopped or restarted. **There is no KVM or camera for this board: no
+picture was judged.** The `--show 10` run counts by its TEST_ONLY and commit
+results only (`SHOW on screen for 10 s`, `SHOW done: blanked`).
+
+| profile (`profile_check`) | total | agree | planner-stricter | planner-looser | VERDICT |
+|---|---|---|---|---|---|
+| generic | 27 | 18 | 7 | 0 | PASS |
+| hvs5 | 27 | 24 | 1 | 0 | PASS |
+| hvs6 (negative control, BCM2712 profile) | 27 | 24 | 1 | 0 | PASS |
+| hvs5 `--show 10` | 27 | 24 | 1 | 0 | PASS |
+
+- Generic refuses every scaled layer (the probe claims no scaling), although
+  TEST_ONLY accepts all six ratios 0.5 to 8: 6 of its 7 planner-stricter
+  cases. The seventh is `wide-source`, which Hvs5 also refuses.
+- Hvs5 and Hvs6 plan all six scale ratios and TEST_ONLY accepts them. Their
+  only stricter case is `wide-source`, planned with forced caps; TEST_ONLY
+  accepted it (observed: accepted; the planner's limit comes from the profile).
+- `rotate-90` and `reflect-y` are refused by the planner (the example does not
+  program the rotation property) and TEST_ONLY is not reached; they print
+  `agree=no` and are not planner-looser.
+- Hvs6 gives the same counts as Hvs5 on this BCM2711 board. The negative
+  control did not disagree, so these 27 requests do not tell the two profiles
+  apart here.
+- `twoplane --frames 600`: `VERDICT twoplane: PASS 600 frames on two planes,
+  600 latched, 1198 released, 0 late`, driver vc4, 720x1280@60.000Hz.
+- No planner-looser case in any run.
+
+These runs are portability evidence for the HVS5 profile work. They never
+count toward M1, M2 or M3.
