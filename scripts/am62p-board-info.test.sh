@@ -52,7 +52,7 @@ hasnt() { if grep -F -q -- "$1" "$out"; then echo "FAIL: leaked '$1'"; fail=1; f
 has '| Fake OS 1.2.3 |'
 has '9.9.9-fake'
 has 'Fake Board Model'
-has 'fake,board, fake,soc'
+has 'fake,board; fake,soc'
 has 'FakePanel'
 has 'status: connected; modes: 800x480 640x480'
 has 'name: r5f-fake; state: offline'
