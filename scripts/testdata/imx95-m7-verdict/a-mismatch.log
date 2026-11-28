@@ -1,0 +1,4 @@
+# SYNTHETIC fixture for scripts/imx95-m7-verdict.test.sh: not a board capture.
+M7P: reg DPU_ID 0x00000002
+M7P: reg DPU_CTRL 0x00000000
+M7P: verdict A READABLE
