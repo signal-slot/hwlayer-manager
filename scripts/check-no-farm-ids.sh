@@ -34,6 +34,7 @@ ALLOW=(
   'modprobe@drm\.service|systemd unit instance name in a quoted boot log, not a mail or ssh target'
   '@lists\.freedesktop\.org|public upstream mailing-list address in kernel patch-series URLs'
   'git@(github|gitlab)\.com|public git remote user, not a farm host'
+  'tty(USB|ACM)(<[A-Za-z_]+>|\$\{?[A-Za-z_]+\}?)|UART placeholder (ttyUSB<n>, ttyACM$N), as in check-no-board-secrets.sh'
   '(password|passwd|token)[[:space:]]*:[[:space:]]*&[[:space:]]*(mut[[:space:]]+)?[A-Za-z_]+|Rust parameter or field typed as a reference, not a credential value'
   '(password|passwd|token)[[:space:]]*[=:][[:space:]]*.?(none|null|true|false|xxx+|redacted|changeme)|placeholder value'
 )
