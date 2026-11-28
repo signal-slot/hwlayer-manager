@@ -1,0 +1,151 @@
+# Scrubbed log, CM4 coexistence trial, 2026-11-28 (board clock UTC).
+# run.sh output, then the full logs of the order-2 lease clients and of drm-lease-manager.
+# Long format lists are cut at 120 characters; runs of commit lines are condensed.
+
+===== run.sh output =====
+### order 1: compositor first (2026-11-28T08:49:34Z)
+## launcher running: yes
+## fuser:
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      <user>        29178 F.... launcher
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = launcher
+		size=720x1280
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = [fbcon]
+		size=720x1280
+plane[127]: plane-6
+	crtc=(null)
+plane[237]: plane-16
+	crtc=(null)
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=4
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=8
+	mode: "640x480": 75 31500 640 656 720 840 480 481 484 500 0x40 0xa
+## sockets: hdmi hdmi.lock 
+## harness1 exit 1
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --lease hdmi --dlm-dir /tmp/cx/dlm --seconds 3 two-planes"
+error scenario=two-planes message="open /tmp/cx/dlm/hdmi: lease refused: the lease manager closed the connection"
+VERDICT two-planes FAIL open /tmp/cx/dlm/hdmi: lease refused: the lease manager closed the connection
+## dlm1.log:
+ERROR: drmModeCreateLease failed on lease hdmi: Permission denied
+ERROR: Can't fulfill lease request: lease=hdmi
+## launcher1.log:
+Using Skia OpenGL renderer
+Rendering at 720x1280 with 90 rotation_degrees rotation
+Clients can use GPU buffers
+## after order 1: 0 processes left
+### order 2: lease manager first (2026-11-28T08:49:46Z)
+## sockets: dsi dsi.lock hdmi hdmi.lock 
+## fuser:
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      29225 F.... drm-lease-manag
+## launcher running while lease manager is master: no
+## launcher2.log:
+Using Skia OpenGL renderer
+Rendering at 720x1280 with 90 rotation_degrees rotation
+Error: Error presenting framebuffer on screen: Permission denied (os error 13)
+## both lease clients running (2026-11-28T08:50:04Z):
+/tmp/cx/drm-harness --device /dev/dri/card0 --source dlm --lease hdmi --dlm-dir /tmp/cx/dlm --seconds 40 modeset
+/tmp/cx/drm-harness --device /dev/dri/card0 --source dlm --lease dsi --dlm-dir /tmp/cx/dlm --seconds 20 two-planes
+## fuser:
+                     USER        PID ACCESS COMMAND
+/dev/dri/card0:      root      29225 F.... drm-lease-manag
+                     root      29235 F.... drm-harness
+                     root      29247 F.... drm-harness
+plane[79]: plane-2
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=720x1280
+plane[91]: plane-3
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=1920x1080
+plane[127]: plane-6
+	crtc=pixelvalve-1
+		allocated by = drm-harness
+		size=360x640
+plane[237]: plane-16
+	crtc=pixelvalve-2
+		allocated by = drm-harness
+		size=960x540
+crtc[90]: pixelvalve-1
+	active=1
+	self_refresh_active=0
+	plane_mask=44
+	mode: "720x1280": 60 62712 720 730 750 780 1280 1290 1310 1340 0x48 0x0
+crtc[102]: pixelvalve-2
+	active=1
+	self_refresh_active=0
+	plane_mask=10008
+	mode: "1920x1080": 60 148500 1920 2008 2052 2200 1080 1084 1089 1125 0x48 0x5
+## READY_FOR_CAPTURE
+### after stop (2026-11-28T08:50:33Z)
+0
+
+===== harness2-hdmi.log =====
+harness version=0.1.0 scenario=modeset args="--device /dev/dri/card0 --source dlm --lease hdmi --dlm-dir /tmp/cx/dlm --seconds 40 modeset"
+lease route=drm-lease-manager socket=/tmp/cx/dlm/hdmi
+session scenario=modeset source=dlm device=/tmp/cx/dlm/hdmi driver=vc4 profile=generic producers=local
+output index=0 id=102 connector=HDMI-A-1 width=640 height=480 refresh_mhz=75000 mode=640x480 vrefresh=75 clock_khz=31500 selected=yes
+plane id=91 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG ...
+plane id=237 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=248 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+connector_modes connector=HDMI-A-1 current=640x480@75 count=20 modes=1920x1080@60,1920x1080@60,1920x1080@60,1920x1080@50 ...
+mode_candidate index=0 mode=1920x1080@60 name=1920x1080 test_only=ok
+step label=modeset-before width=640 height=480 seconds=1 expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=modeset-before layer=0 buffer=1 plane=91 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,640x480 dst=0,0,640x480
+assign step=modeset-before layer=1 buffer=2 plane=237 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,320x240 dst=160,120,320x240
+plan step=modeset-before layers=2 assigned=2 planes=91,237
+commit step=modeset-before submission=1 validate_us=164 commit_us=2650 latency_us=2656
+commit step=modeset-before submission=2 validate_us=43 commit_us=49 latency_us=11203
+commit step=modeset-before submission=3 validate_us=45 commit_us=48 latency_us=13200
+... 70 commit lines omitted (all latched, see modeset_result) ...
+commit step=modeset-before submission=74 validate_us=39 commit_us=42 latency_us=13245
+commit step=modeset-before submission=75 validate_us=69 commit_us=50 latency_us=13134
+commit step=modeset-before submission=76 validate_us=41 commit_us=42 latency_us=13218
+modeset step=switch mode=1920x1080@60 mode_name=1920x1080 commit_us=49001 result=ok crtc_mode=1920x1080@60
+replan width=1920 height=1080 refresh_mhz=60000
+step label=modeset-after width=1920 height=1080 seconds=40 expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=modeset-after layer=0 buffer=5 plane=91 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,1920x1080 dst=0,0,1920x1080
+assign step=modeset-after layer=1 buffer=6 plane=237 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,960x540 dst=480,270,960x540
+plan step=modeset-after layers=2 assigned=2 planes=91,237
+commit step=modeset-after submission=1 validate_us=159 commit_us=7934 latency_us=7940
+commit step=modeset-after submission=2 validate_us=43 commit_us=50 latency_us=14533
+commit step=modeset-after submission=3 validate_us=50 commit_us=47 latency_us=16442
+... 2392 commit lines omitted (all latched, see modeset_result) ...
+commit step=modeset-after submission=2396 validate_us=56 commit_us=45 latency_us=16408
+commit step=modeset-after submission=2397 validate_us=43 commit_us=44 latency_us=16458
+commit step=modeset-after submission=2398 validate_us=44 commit_us=43 latency_us=16467
+modeset step=restore mode=640x480@75 mode_name=640x480 commit_us=46566 result=ok crtc_mode=640x480@75
+modeset_result from=640x480@75 to=1920x1080@60 refused=- before_commits=76 before_latched=76 switch_us=49001 after_commits=2398 after_latched=2398 restored=640x480@75
+resources scenario=modeset wall_ms=41146 cpu_user_ms=140 cpu_sys_ms=850 cpu_pct=2.4 rss_kib=944 peak_rss_kib=944
+VERDICT modeset PASS 640x480@75 -> 1920x1080@60: 76 commits latched before, 2398 after the switch; 640x480@75 restored
+
+===== harness2-dsi.log =====
+harness version=0.1.0 scenario=two-planes args="--device /dev/dri/card0 --source dlm --lease dsi --dlm-dir /tmp/cx/dlm --seconds 20 two-planes"
+lease route=drm-lease-manager socket=/tmp/cx/dlm/dsi
+session scenario=two-planes source=dlm device=/tmp/cx/dlm/dsi driver=vc4 profile=generic producers=local
+output index=0 id=90 connector=DSI-1 width=720 height=1280 refresh_mhz=60000 mode=720x1280 vrefresh=60 clock_khz=62712 selected=yes
+plane id=79 kind=primary zpos=fixed:0 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG ...
+plane id=127 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+plane id=138 kind=overlay zpos=1..17 on_output=yes alpha=true blend_mask=7 scaling=false formats=XR24,AR24,AB24,XB24,RG1 ...
+step label=two-planes expect="blue full screen with white edge, red rectangle with yellow edge on top in the middle"
+assign step=two-planes layer=0 buffer=1 plane=79 kind=primary zpos=0 alpha=0xffff blend=Opaque src=0,0,720x1280 dst=0,0,720x1280
+assign step=two-planes layer=1 buffer=2 plane=127 kind=overlay zpos=1 alpha=0xffff blend=Opaque src=0,0,360x640 dst=180,320,360x640
+plan step=two-planes layers=2 assigned=2 planes=79,127
+commit step=two-planes submission=1 validate_us=126 commit_us=23853 latency_us=23860
+hold step=two-planes seconds=20
+resources scenario=two-planes wall_ms=20033 cpu_user_ms=10 cpu_sys_ms=0 cpu_pct=0.0 rss_kib=928 peak_rss_kib=928
+VERDICT two-planes PASS 2 buffers on planes 79,127 (bottom,top)
+
+===== dlm2.log =====
+(empty)
