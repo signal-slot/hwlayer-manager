@@ -48,6 +48,9 @@ dest() {
 
 # remote <shell script text>: run on the board (stdout passed through).
 remote() {
+    # dest dies inside $(...), which only ends that subshell: check here, in
+    # the main shell, so ssh is never started with an empty destination.
+    [ "$dry" = 1 ] || [ -n "${IMX95_SSH:-}" ] || dest
     if [ "$dry" = 1 ]; then
         echo "DRY ssh ${ssh_opts[*]} $(dest) $(sq "$1")"
     else
@@ -144,12 +147,15 @@ cmd_display_owner() {
 cmd_deploy() {
     local f p i=0
     local paths=()
+    # The manifest entry goes in before the copy, so a copy that fails half
+    # way still leaves a file that cleanup knows about.
     if [ "$dry" = 1 ]; then
         echo "DRY $root/scripts/cross-aarch64.sh -p composition-drm --example probe"
         echo "DRY $root/scripts/cross-aarch64.sh -p composition-drm-harness --bin drm-harness"
         for f in "${DEPLOY_TARGETS[@]}"; do
+            remote "grep -qxF /tmp/$f $MANIFEST 2>/dev/null || echo /tmp/$f >> $MANIFEST"
             echo "DRY scp ${ssh_opts[*]} <built $f> $(dest):/tmp/$f"
-            remote "chmod 755 /tmp/$f; grep -qxF /tmp/$f $MANIFEST 2>/dev/null || echo /tmp/$f >> $MANIFEST"
+            remote "chmod 755 /tmp/$f"
         done
         return 0
     fi
@@ -160,8 +166,9 @@ cmd_deploy() {
     paths+=("$(printf '%s\n' "$p" | grep '/drm-harness$' | tail -n1)")
     for p in "${paths[@]}"; do [ -x "$p" ] || die "build output missing: '$p'"; done
     for f in "${DEPLOY_TARGETS[@]}"; do
+        remote "grep -qxF /tmp/$f $MANIFEST 2>/dev/null || echo /tmp/$f >> $MANIFEST"
         scp "${ssh_opts[@]}" "${paths[$i]}" "$(dest):/tmp/$f"
-        remote "chmod 755 /tmp/$f; grep -qxF /tmp/$f $MANIFEST 2>/dev/null || echo /tmp/$f >> $MANIFEST"
+        remote "chmod 755 /tmp/$f"
         i=$((i + 1))
     done
     log "deployed: ${DEPLOY_TARGETS[*]} (in /tmp on the board)"
