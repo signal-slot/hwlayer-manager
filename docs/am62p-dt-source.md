@@ -266,7 +266,13 @@ running the shared-display firmware) drives `vp1`; the remote core's
 framebuffer pool is the 128 MiB region at `0x93500000`. Nothing in the Verdin
 files uses any `ti,dss-shared-mode*` property or this region (source:
 `grep` of the Verdin files above). So on Verdin, Linux owns the whole DSS
-unless a Toradex overlay says otherwise (**inferred**; overlays unread).
+unless a Toradex overlay says otherwise (**inferred**). The Verdin overlays
+listed in section (b) were read for display wiring only: their descriptions
+there (`&dss0`/`&dss1` okay, ports, panels) mention no remote core, but a
+`grep` for `ti,dss-shared-mode`, `r5f` or `reserved-memory` over
+`verdin-am62p_*` was **not run** (no network access in the follow-up session),
+so "no Toradex overlay marks DSS as remote-owned" is **inferred**, not checked.
+The three `-lvds-v2` overlays remain unread.
 
 For the M3 test: the MCU R5F in `docs/board-test-am62p-r5f.md` scenes writes
 DSS planes through its own driver while Linux's tidss is stopped or unbound;
