@@ -13,7 +13,7 @@ How to read the tags. Every statement ends with one of:
   not stated by a source. The board run must check it.
 
 Limits of this study: the Toradex layers `meta-toradex-ti` and
-`meta-toradex-torizon` could not be cloned or browsed in this session, so no
+`meta-toradex-torizon` could not be read in this session (the `meta-toradex-ti` clone returned "Repository not found"), so no
 recipe or commit was read. Statements about them are `inferred` or rest on the
 Toradex developer pages and community threads listed in "Sources". Community
 threads (some answers there come from Toradex's AI assistant) are weaker than
@@ -143,19 +143,23 @@ cores are Cortex-A53, so treat the label as inferred to be a naming quirk.
   https://community.toradex.com/t/verdin-am62-remoteproc-bad-phdr/25489/2,
   search summary; the answer came from Toradex's AI assistant, weak source).
 - **Route 1, remoteproc `firmware` attribute** (**inferred** from the Linux
-  remoteproc ABI, https://docs.kernel.org/staging/remoteproc.html, not opened
-  in this session): the kernel resolves the string written to
+  remoteproc sysfs ABI; https://docs.kernel.org/staging/remoteproc.html was
+  fetched 2026-11-28 but covers only the in-kernel API: firmware is identified
+  by name and is ELF with a resource table (**source**). The sysfs ABI file
+  `Documentation/ABI/testing/sysfs-class-remoteproc` was not read): the kernel resolves the string written to
   `/sys/class/remoteproc/remoteprocN/firmware` through the firmware loader, so
   it is a name relative to the firmware search path, not an absolute path. The
   attribute can only be written while the core is stopped (`offline`).
-- **Route 2, firmware search path** (**inferred** from
-  https://docs.kernel.org/driver-api/firmware/fw_search_path.html, not opened
-  in this session): the loader tries `/lib/firmware/updates/<kver>`,
-  `/lib/firmware/updates`, `/lib/firmware/<kver>`, `/lib/firmware`, preceded by
-  the custom path set by `firmware_class.path=` on the kernel command line or by
-  writing `/sys/module/firmware_class/parameters/path` at run time. Pointing that
-  parameter at a directory under `/tmp` and putting the image there lets a name
-  such as `am62p-mcu-r5f0_0-fw` resolve there with no rootfs write.
+- **Route 2, firmware search path** (**source**:
+  https://docs.kernel.org/driver-api/firmware/fw_search_path.html, fetched
+  2026-11-28): first match wins in the order custom path (`firmware_class.path`,
+  empty by default), `/lib/firmware/updates/<UTS_RELEASE>/`,
+  `/lib/firmware/updates/`, `/lib/firmware/<UTS_RELEASE>/`, `/lib/firmware/`.
+  The custom path is set on the kernel command line or at run time by writing
+  `/sys/module/firmware_class/parameters/path` (at most 256 characters; use
+  `echo -n`, since a newline is taken literally). Pointing it at a directory
+  under `/tmp` with the image there lets a name such as `am62p-mcu-r5f0_0-fw`
+  resolve with no rootfs write (**inferred** application to this board).
 - Combination (**inferred**): copy the image to a directory under `/tmp`, set
   the custom path to that directory, write the file name to the `firmware`
   attribute, then write `start` to `state`. After the run, write `stop`, put the
@@ -248,5 +252,5 @@ entries, which this project does not do).
 - TI AM62x IPC: https://software-dl.ti.com/processor-sdk-linux/esd/AM62X/09_02_01_10/exports/docs/linux/Foundational_Components_IPC62x.html
 - TI E2E, AM62P eMMC boot: https://e2e.ti.com/support/processors-group/processors/f/processors-forum/1427329/am62p-q1-how-to-boot-from-emmc
 - Toradex community threads cited inline (community.toradex.com, topics 20672, 19957, 28978, 25454, 25489)
-- Linux kernel docs (not opened; inferred rows only): https://docs.kernel.org/staging/remoteproc.html, https://docs.kernel.org/driver-api/firmware/fw_search_path.html
-- Repositories not read: `toradex/meta-toradex-ti`, `toradex/meta-toradex-torizon` (no commit pinned)
+- Linux kernel docs (fetched 2026-11-28): https://docs.kernel.org/staging/remoteproc.html, https://docs.kernel.org/driver-api/firmware/fw_search_path.html
+- Repositories not read: `toradex/meta-toradex-ti` (the clone at that GitHub path returned "Repository not found" on 2026-11-28; the real location or name must be found) and `toradex/meta-toradex-torizon` (no commit pinned)
