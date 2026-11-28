@@ -1,0 +1,54 @@
+device /dev/dri/card1, driver imx-drm 1.0.0 (i.MX DRM graphics), date 0
+crtc 34 (index 0): no mode
+    ACTIVE (id 22): bool [atomic] = 0
+    MODE_ID (id 23): blob [atomic] = 0
+    OUT_FENCE_PTR (id 19): range 0..=18446744073709551615 [atomic] = 0
+    VRR_ENABLED (id 24): bool = 0
+crtc 37 (index 1): 1920x1080@60
+    ACTIVE (id 22): bool [atomic] = 1
+    MODE_ID (id 23): blob [atomic] = 45
+    OUT_FENCE_PTR (id 19): range 0..=18446744073709551615 [atomic] = 0
+    VRR_ENABLED (id 24): bool = 0
+connector 39 LVDS-1: Disconnected, 0 modes
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    DPMS (id 2): enum {On=0, Standby=1, Suspend=2, Off=3} = 0 (On)
+    EDID (id 1): blob [immutable] = 0
+    TILE (id 4): blob [immutable] = 0
+    link-status (id 5): enum {Good=0, Bad=1} = 0 (Good)
+    non-desktop (id 6): bool [immutable] = 0
+connector 41 HDMIA-1: Connected, 15 modes
+    CRTC_ID (id 20): object crtc [atomic] = 37
+    DPMS (id 2): enum {On=0, Standby=1, Suspend=2, Off=3} = 0 (On)
+    EDID (id 1): blob [immutable] = 43
+    TILE (id 4): blob [immutable] = 0
+    link-status (id 5): enum {Good=0, Bad=1} = 0 (Good)
+    max bpc (id 42): range 8..=16 = 0
+    non-desktop (id 6): bool [immutable] = 0
+plane 32: possible_crtcs 0b1 (crtc indices [0]), current crtc None, fb None
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 0
+    CRTC_ID (id 20): object crtc [atomic] = 0
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 0
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 0
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 0
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 0
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 33): range 0..=0 [immutable] = 0
+plane 35: possible_crtcs 0b10 (crtc indices [1]), current crtc Some(37), fb Some(44)
+    CRTC_H (id 16): range 0..=2147483647 [atomic] = 1080
+    CRTC_ID (id 20): object crtc [atomic] = 37
+    CRTC_W (id 15): range 0..=2147483647 [atomic] = 1920
+    CRTC_X (id 13): signed range -2147483648..=2147483647 [atomic] = 0
+    CRTC_Y (id 14): signed range -2147483648..=2147483647 [atomic] = 0
+    FB_ID (id 17): object framebuffer [atomic] = 44
+    IN_FENCE_FD (id 18): signed range -1..=2147483647 [atomic] = 18446744073709551615
+    SRC_H (id 12): range 0..=4294967295 [atomic] = 70778880
+    SRC_W (id 11): range 0..=4294967295 [atomic] = 125829120
+    SRC_X (id 9): range 0..=4294967295 [atomic] = 0
+    SRC_Y (id 10): range 0..=4294967295 [atomic] = 0
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 36): range 0..=0 [immutable] = 0

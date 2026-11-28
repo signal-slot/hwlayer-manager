@@ -1,0 +1,1 @@
+probe: /dev/dri/card0: Not supported (os error 95)
