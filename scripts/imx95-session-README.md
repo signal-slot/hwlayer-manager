@@ -28,7 +28,7 @@ quoted) and runs nothing, builds nothing, needs no `IMX95_SSH`.
 
 | Subcommand | What it does |
 |---|---|
-| `deploy` | `scripts/cross-aarch64.sh -p composition-drm --example probe` and `-p composition-drm-harness --bin drm-harness`, then `scp` to `/tmp/probe` and `/tmp/drm-harness`, `chmod 755`. The paths are recorded in `/tmp/imx95-session.files` on the board. Both builds run first; a build failure touches nothing on the board. |
+| `deploy` | `scripts/cross-aarch64.sh -p composition-drm --example probe` and `-p composition-drm-harness --bin drm-harness`, then `scp` to `/tmp/probe` and `/tmp/drm-harness`, `chmod 755`. Each path is recorded in `/tmp/imx95-session.files` on the board before it is copied, so a copy that fails half way is still removed by `cleanup`. Both builds run first; a build failure touches nothing on the board. |
 | `display-owner status` | Prints the Weston unit, whether it is active, and whether a stop of this script is pending. |
 | `display-owner stop` | Finds the unit (`IMX95_DISPLAY_UNIT`, else `weston.service`, else the first `weston*.service` systemd knows). Records `unit=` and `was=<is-active output>` in `/tmp/imx95-session.display`, then stops it. If that record already exists (an earlier stop was never undone) it is kept, so "was active" is not overwritten by the now-inactive state. Lists holders of `/dev/dri/card*` if `fuser` exists. |
 | `display-owner start` | Reads the record. Starts the unit **only if it was active** before the stop, waits up to 30 s until `systemctl is-active` says active, prints the result, removes the record. Exits 1 if the unit did not come back. Without a record it does nothing. |
