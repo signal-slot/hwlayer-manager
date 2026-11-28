@@ -166,7 +166,7 @@ TI 6.6, SoC dtsi plus the AM62P SK board file (the SK file is the only reserved-
 | The SK board file's comment on `wkup_uart0` says it "is used by DM firmware"; `main_uart1` is "used by TIFS firmware". The WKUP R5F node `wkup_r5fss0_core0` (`0x78000000`, firmware name `am62-wkup-r5f0_0-fw`) is enabled in the SK file | read from source: `k3-am62p5-sk.dts`, `k3-am62p-wakeup.dtsi`, TI `a7758da1` |
 | The MCU R5F (`0x79000000`, `ti,sci-proc-ids = <0x03 0xff>`, firmware name `am62p-mcu-r5f0_0-fw`) is a separate core and has `mcu_gpio0` and `mcu_gpio_intr` marked "reserved for mcu firmware usage" | read from source: `k3-am62p-mcu.dtsi`, `k3-am62p5-sk.dts`, TI `a7758da1` |
 | So the DM firmware shares the WKUP R5F, not the MCU R5F, and the board test does not take the DM's core | inferred from the two rows; the AM62x binding text says the single AM62 R5F "runs Device Manager firmware" (read from source: `ti,k3-r5f-rproc.yaml`, TI `a7758da1`), which describes the AM62x layout and is not contradicted by the AM62P files |
-| The same SoC dtsi names the firmware `am62p-mcu-r5f0_0-fw`. TI documentation on IPC-only mode, early boot and the firmware layout was not read (web access to TI's documentation site was refused) | not read |
+| The same SoC dtsi names the firmware `am62p-mcu-r5f0_0-fw`. TI documentation on IPC-only mode, early boot and the firmware layout was not read (the guessed `software-dl.ti.com` Remoteproc and IPC page URLs for AM62PX and AM62X answered HTTP 404; no working page URL was found) | not read |
 
 ## What was not read
 
@@ -178,7 +178,7 @@ TI 6.6, SoC dtsi plus the AM62P SK board file (the SK file is the only reserved-
 | Per-commit history of the driver in the TI tree and in the Toradex tree | The GitHub API refused the list (HTTP 500). The commit that introduced the shutdown mailbox handshake is therefore not named |
 | `drivers/base/firmware_loader` (the `firmware_class.path` search path), `rproc_attach`, `__rproc_detach`, `ti_sci` device ops | The firmware search path rules and the exact attach/detach bodies are not read here |
 | The Zephyr side: `ram_console` format, the resource table the board image links, its linker script and whether it handles the mailbox | These decide rows C, D, F and the trace buffer's format |
-| TI documentation (IPC-only, early boot, DM sharing, memory map) | Web access to the documentation site was refused |
+| TI documentation (IPC-only, early boot, DM sharing, memory map) | The guessed page URLs gave HTTP 404; a working URL is needed |
 
 ## Source of a statement versus a request
 
