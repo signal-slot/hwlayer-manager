@@ -120,8 +120,8 @@ currently equivalent to" `EXCLUSIVE`.
 | Pixel clocks `CLOCK_DISP1PIX`, `CLOCK_DISP2PIX`, `CLOCK_DISP3PIX` (`ALL`) | 572-574 | AP-NS API | read from source; inferred for Verdin |
 | LDB PLL `LDB_PLL ALL` | 586 | AP-NS API | read from source; inferred for Verdin |
 | Video PLL `VIDEO_PLL1 OWNER` | 878 | AP-NS | read from source; inferred for Verdin |
-| Display bus clocks `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` (`ALL`); `GPV_DISPLAY OWNER` | 159-161; 227 | LM0 (SM) | read from source; inferred for Verdin |
-| Power domain `PD_DISPLAY`, perf `PERF_DISP` | none in `mx95evk.cfg`; `displaymix.cfg` l. 39-66 attaches `PD_DISPLAY` to every display resource, and `DC` (l. 39) also `PD_CAMERA, PERF_DISP` | AP-NS, through the resources it owns | read from source (both files); "follows the resources" inferred |
+| Display bus clocks `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` (`ALL`); `GPV_DISPLAY OWNER` | 159-161; 227 | LM0 (SM) | read from source; inferred for Verdin. SCMI clock IDs 75 / 76 / 78 and the Linux-held state are **observed 2026-11-27** in [imx95-zephyr/observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt): `dispapb` 133.333 MHz, `dispocram` 400 MHz, `dispaxi` **800 MHz** (not the 400 MHz that Linux's dtsi `assigned-clocks` asks for; the observation wins). The DPU node's other clock IDs are 80 (`DISP1PIX`) and 37 (`LDBPLL_VCO`) (observed 2026-11-27; names in [imx95-dpu-scmi-ids.md](imx95-dpu-scmi-ids.md)). `mx95evk` `config_scmi.h` has no `clkPerms` entry for 75/76/78 for any agent (read from source, same doc) |
+| Power domain `PD_DISPLAY`, perf `PERF_DISP` | none in `mx95evk.cfg`; `displaymix.cfg` l. 39-66 attaches `PD_DISPLAY` to every display resource, and `DC` (l. 39) also `PD_CAMERA, PERF_DISP` | AP-NS, through the resources it owns | read from source (both files); "follows the resources" inferred. SCMI power domain ID **13** (`DISPLAY`): the DPU, `dispmix_csr`, LVDS CSR and PHY nodes list domain 13 in the live device tree and `pm_genpd` shows `display` on (observed 2026-11-27) |
 | Display interrupt routing | none for the display irqsteer; the only `IRQSTEER` entry is `IRQSTEER_M7 OWNER` (389) | `IRQSTEER_M7`: LM1; display irqsteer: no line | read from source (the absence); that the display irqsteer is covered by the DC/DISPLAYMIX TRDC regions is inferred |
 | Any display, pixel, LDB, DSI or PD entry in LM1 | none in 330-424 | — | read from source; inferred for Verdin |
 | M7 memory: `M7MIX DATA 0x020380000-0x02047FFFF`, `M7MIX DATA 0x04A060000-0x04A09FFFF`, `DDR EXEC 0x080000000-0x089FFFFFF` | 414, 415, 416 | LM1 | read from source; inferred for Verdin |
@@ -129,6 +129,7 @@ currently equivalent to" `EXCLUSIVE`.
 | M7 boot at reset | LM1 `boot=2, skip=1` (330) | SM boots the M7 if the container has an M7 image, else ignores its absence | read from source; inferred for Verdin |
 | LMM rights over the M7 LM | AP-NS `LMM_1 NOTIFY` (587); AP-S API (488-508) has no `LMM_` line | Linux may only be notified about LM1, not boot or stop it | read from source; inferred for Verdin |
 | CPU protocol rights over `CPU_M7P` | no `CPU_M7P` line in the AP-S or AP-NS API blocks (the only `CPU_M7P` lines are LM1's own, 342-354) | neither A55 agent can start or stop the M7 core | read from source (the absence); inferred for Verdin |
+| Whether AP-S or AP-NS holds the `CPU_M7P` rights on the Verdin | **open**. LM1's `start=2, stop=1` lines (342-354) say which LM boots and stops the M7 in the LM's own boot list; they do not say which agent may call the SCMI CPU protocol. The row above is `mx95evk`'s, not the Verdin's. What would decide it: `configs/verdin-imx95.cfg` in the Toradex fork (any `CPU_M7P` or `LMM_1` line in the AP-S or AP-NS block), or the live SM's reply to a permission query from Linux | open (not decided by source read or observation) |
 | M7's own rights | `LMM_2 ALL` (379), `SYS ALL` (382) in the M7 agent; AP-NS has `SYS NOTIFY` (593) | the M7 may boot/reset the AP LM, not the other way round | read from source; inferred for Verdin |
 
 ## 5. Verdict
@@ -163,7 +164,7 @@ Toradex edit to the display or M7 sections would change it.
    the M7 through TF-A's SiP call, which uses the SCMI CPU protocol on
    `CPU_M7P` as the AP-S agent ([imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md) §2).
    `mx95evk` grants AP-S no `CPU_M7P` right, and AP-NS has only
-   `LMM_1 NOTIFY`, so the SM should refuse start and stop (inferred; the SM's
+   `LMM_1 NOTIFY`, so the SM would refuse start and stop **if** the Verdin file matches `mx95evk` (inferred, and open: see the `CPU_M7P` rows in §4; the SM's
    permission check was not read). Two Toradex facts are read from source:
    `IMXBOOT_TARGETS = "flash_a55"`, and no M7 firmware is configured in the
    machine. So the M7 is not started from the container either (inferred).

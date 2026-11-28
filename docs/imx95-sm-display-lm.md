@@ -46,7 +46,7 @@ All in `configs/mx95evk.cfg` unless noted (read from source, imx-sm@af1e3702).
 | Item | Stock owner | Line (imx-sm@af1e3702) |
 |---|---|---|
 | LM0 `SM` (rpc=none, did=2), LM1 `M7` (rpc=scmi, boot=2, did=4), LM2 `AP` (boot=3, did=3, default); `SCMI_AGENT0 "M7"`, `SCMI_AGENT1 "AP-S"`, `SCMI_AGENT2 "AP-NS"` | 106, 330, 430; 358, 483, 552 |
-| `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` | LM0 `SM`, `ALL` | 159–161 |
+| `CLK_DISPAPB`, `CLK_DISPAXI`, `CLK_DISPOCRAM` | LM0 `SM`, `ALL` | 159–161; SCMI clock IDs 75 / 76 / 78, rates observed 2026-11-27 with Linux running: 133.333 MHz, **800 MHz**, 400 MHz ([observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt)) |
 | `GPV_DISPLAY` | LM0 `SM`, `OWNER` | 227 |
 | `CLOCK_DISP1PIX`, `CLOCK_DISP2PIX`, `CLOCK_DISP3PIX`, `LDB_PLL` (SCMI clock API entries) | AP-NS agent (`SCMI_AGENT2 "AP-NS"`), `ALL` | 572–574, 586 |
 | `BLK_CTRL_DISPLAYMIX`, `DC`(`, test`), `DC0`, `DC1`, `DC_2DBLIT`, `DC_BLITINT`, `DC_CMDSEQ`, `DC_DISPENG`, `DC_DISPENG_INT`, `DC_FL0`, `DC_FL1`, `DC_INT_CTL`, `DC_PIXENGINE`, `DC_XPC`, `DC_YUV0..3`, `LVDS`, `MIPI_DSI`, `MIPI_PHY`, `VIDEO_PLL1` | AP-NS agent, `OWNER` | 599, 616–632 (`DC` at 616 is `OWNER, test`), 790, 793–794, 878 |
@@ -147,7 +147,7 @@ Reasoning, all **inferred** from the cfg semantics above:
   SM tolerates shared use of `PD_CAMERA` was not checked.
 - Keep `MIPI_DSI`/`MIPI_PHY` with AP-NS unless the panel path used by the M7
   is DSI. The target panel here is LVDS, so the diff leaves them in place.
-- `CLK_DISPAPB/AXI/OCRAM` stay with LM0 (`ALL`): the SM sets them for any LM.
+- `CLK_DISPAPB/AXI/OCRAM` (SCMI clock IDs 75/76/78) stay with LM0 (`ALL`): the SM sets them for any LM (read from source). Observed 2026-11-27 on the running Linux: 133.333 / 800 / 400 MHz, so DISPAXI is at 800 MHz, not the 400 MHz of the dtsi `assigned-clocks`. Linux's DPU node also lists clock 80 (`DISP1PIX`) and 37 (`LDBPLL_VCO`); power domain `DISPLAY` is 13 (observed 2026-11-27).
 - `IRQSTEER_M7` is already owned by the M7 LM; it is the route a DC interrupt
   would take to the M7 NVIC. Which IRQSTEER channel the DC vblank uses was
   **not read** and the DT/RM mapping must be confirmed.
@@ -232,3 +232,7 @@ What a dedicated board would need (inferred, none of it exists on this farm):
 - The no-reconfiguration alternative, the DC owned by AP-NS and driven from
   the M7 over RPMsg/shared memory, needs no SM change and is the remaining
   path on the shared board; it is not evaluated here.
+
+## Open: who holds the `CPU_M7P` rights
+
+LM1's `CPU_M7P start=2, stop=1` lines (imx-sm@af1e3702, `mx95evk.cfg:342-354`) say which LM boots and stops the M7. They do **not** say whether AP-S or AP-NS may call the SCMI CPU protocol on `CPU_M7P`: `mx95evk` has no `CPU_M7P` line in either A55 agent block (read from source; record kept in [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md), line 131). For the Verdin this is **open**. It would be decided by Toradex's `verdin-imx95.cfg` or by an SM reply on the live board; neither was read. Nothing here says the M7 can or cannot be started.
