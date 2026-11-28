@@ -29,7 +29,8 @@ jobs:
         uses: actions/checkout@v5
 
       # CI builds with the latest stable. The oldest Rust the code supports
-      # is the rust-version of Cargo.toml (1.82); CI does not test that floor.
+      # is the rust-version of Cargo.toml (1.83, see docs/msrv.md); the
+      # `msrv` job below builds and tests on exactly that version.
       # The versions are printed so a failure can be matched to a toolchain.
       - name: Install Rust (stable, rustfmt, clippy, thumbv7em-none-eabihf)
         run: |
@@ -95,3 +96,33 @@ jobs:
       # undefined in an image.
       - name: compile and link the twoplane C backend (Cortex-M7, Cortex-R5)
         run: CC_KIND=clang scripts/check-arm-link.sh
+
+  # Builds and tests on the measured floor (docs/msrv.md). Keep the version
+  # here equal to rust-version in Cargo.toml. Host only; not a board result.
+  msrv:
+    name: msrv
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      - name: Install Rust (1.83.0, thumbv7em-none-eabihf)
+        run: |
+          rustup toolchain install 1.83.0 --profile minimal --target thumbv7em-none-eabihf
+          rustup default 1.83.0
+          rustc --version
+          cargo --version
+          cc --version
+          nm --version
+
+      - name: cargo build
+        run: cargo build --workspace --locked
+
+      - name: cargo test
+        run: cargo test --workspace --locked
+
+      - name: cargo build composition-core (thumbv7em-none-eabihf)
+        run: cargo build -p composition-core --target thumbv7em-none-eabihf --locked
+
+      - name: cargo build composition-ffi-staticlib (thumbv7em-none-eabihf, no std, release)
+        run: cargo build -p composition-ffi-staticlib --no-default-features --features panic-handler --target thumbv7em-none-eabihf --release --locked

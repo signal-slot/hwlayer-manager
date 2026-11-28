@@ -8,7 +8,7 @@ Toolchains were installed with `rustup toolchain install <version> --profile min
 
 ## What is declared
 
-`Cargo.toml` sets `rust-version = "1.83"` for the workspace, and every crate inherits it (read from source, 2026-11-28). Before this measurement the value was `1.82`; the bisect below shows 1.82 is wrong, so it was raised to 1.83. `docs/ci.md` records that CI runs only the latest stable and does not test this floor (read from source, 2026-11-28).
+`Cargo.toml` sets `rust-version = "1.83"` for the workspace, and every crate inherits it (read from source, 2026-11-28). Before this measurement the value was `1.82`; the bisect below shows 1.82 is wrong, so it was raised to 1.83. The `msrv` job of `.github/workflows/ci.yml` tests this floor (read from source, 2026-11-28; not yet run on a pull request).
 
 ## Result per toolchain
 
@@ -79,4 +79,4 @@ Not done:
 
 - **Per-crate error list past `composition-core`** on 1.79 to 1.81: the first error in `advise.rs` masks later ones in `composition-fake` and `composition-ffi`, which are listed above from source only.
 - **Stable 1.99.0 and newer** were not re-run with this commit; the earlier run at `4812c86` passed on stable. The project checks on stable are run in the item's acceptance step.
-- **CI.** CI does not yet run the floor; an `msrv` job installing 1.83.0 belongs to a separate item, and `.github/workflows/ci.yml` still says the floor is 1.82.
+- **CI.** The `msrv` job in `.github/workflows/ci.yml` installs 1.83.0 and runs these builds; it was added 2026-11-28 and has not yet run on a pull request (see `docs/ci.md`).
