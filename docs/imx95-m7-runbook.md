@@ -70,6 +70,14 @@ and genpd summary). A section whose source cannot be read prints
 number before printing. Still run the secrets check (below) before committing
 anything derived from it.
 
+To summarise a snapshot as a short ownership table (read from source:
+[scripts/imx95-observe-summary.py](../scripts/imx95-observe-summary.py)), pipe
+it straight through on the host:
+
+```sh
+ssh <board> sh -s < scripts/imx95-observe.sh | python3 -I scripts/imx95-observe-summary.py
+```
+
 Check in the "before" output that a remoteproc entry for the M7 exists, its
 `state:` is `offline`, and note its `firmware:` value.
 
