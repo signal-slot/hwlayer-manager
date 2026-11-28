@@ -24,9 +24,10 @@ hal_nxp carries the same driver sources, and one tree is enough for a desk
 study.
 
 **Not available.** The i.MX RT1170 Reference Manual (`IMXRT1170RM`) and the
-related application notes were not fetched: the one attempt to reach the NXP
-document host was refused by the session, and NXP's manuals are in any case
-behind a login. So no register-level fact (shadow-load timing, layer stacking
+related application notes were not fetched: the one attempt, a HEAD request for
+the guessed public path `/docs/en/reference-manual/IMXRT1170RM.pdf` on the NXP
+host, returned HTTP 404, and NXP serves its manuals from a login-gated
+download page. So no register-level fact (shadow-load timing, layer stacking
 order, scaler presence, bus masters, cache attributes of OCRAM) is read from a
 manual. Where a claim needs it, it is tagged `inferred` and appears again in
 "Open questions". The HAL headers' own doc comments are used as the nearest
