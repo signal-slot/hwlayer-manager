@@ -8,33 +8,42 @@ The driver is `drivers/gpu/drm/stm/ltdc.c` of `STMicroelectronics/linux`, branch
 (<https://raw.githubusercontent.com/STMicroelectronics/linux/548f960c059bc4b9165cb69895fd67551f6061ca/drivers/gpu/drm/stm/ltdc.c>).
 That is the commit the other LTDC source notes pin ([`stm32mp257-ltdc-source-full.md`](stm32mp257-ltdc-source-full.md), [`stm32mp257-ltdc-transform-source.md`](stm32mp257-ltdc-transform-source.md)). Line numbers are the lines of that file. The v6.18-stm32mp tree has the same plane path and its numbers are a few lines higher in the regions compared ([`stm32mp257-ltdc-source-diff-6.6.md`](stm32mp257-ltdc-source-diff-6.6.md)); no separate v6.18 reading was done for the CRC.
 
-**Honest limit.** In the session that wrote this note the raw file could not be downloaded (the sandbox refused network commands, and a fetch through a helper returned HTTP 429). So the CRC rows below are **read from source in the earlier readings, carried over with their line numbers** from the notes named in the "Where" column, not re-read here. The bodies of `set_crc_source` and `verify_crc_source` were **not** re-read; rows that depend on them say so. A later session with network access should check the rows marked "to re-read" against the file.
+**Honest limit.** The first version of this note could not download the raw file and carried its CRC rows over from earlier notes. This revision (2026-11-28, host only, no board touched) re-read the bodies of `ltdc_crtc_set_crc_source`, `ltdc_crtc_verify_crc_source`, `ltdc_crtc_init`, `ltdc_irq`, `ltdc_irq_thread` and `ltdc_crtc_disable_vblank` in `ltdc.c` at the pinned commit, and the CRC debugfs code of **mainline v6.6** `drivers/gpu/drm/drm_debugfs_crc.c`. The limits of that reading:
+
+- The raw files were read through a web-fetch helper that returns text **without line numbers**, and that truncated the `ltdc.c` text after about 78,700 of 90,400 characters. Direct `curl` from the sandbox was refused. So the re-read rows are located by **function name**, not by line number. The line numbers in the carried-over rows are unchanged and were not re-checked. Exact numbers need `grep -n -i crc drivers/gpu/drm/stm/ltdc.c` on a checkout of the commit; that is still open.
+- The tail of `ltdc_get_caps()` (the per-hardware-version `caps.crc` values and the `is_layer_secured` clearing) and the `crc_active = false` line in `ltdc_load()` lie in the truncated part. The helper only summarised them, so those rows stay as in the earlier notes and are marked still open.
+- `drm_debugfs_crc.c` was read from mainline `v6.6`, not from the ST tree's copy. The ST branch is `v6.6-stm32mp`, so the two should match, but the ST copy was not read.
+
+"Read from source" below means read in that text; "inferred" is a conclusion from it.
 
 ## 1. What the driver implements
 
 | Claim | Where | Tag |
 | --- | --- | --- |
 | `struct ltdc_caps` has a `crc` capability flag | `ltdc.h:19-42` (via `stm32mp257-ltdc-source-full.md` row 48) | read from source |
-| The driver has a CRTC `set_crc_source` hook; with the source `"auto"` it sets `IER_LIE` and `GCR_CRCEN` and nothing else. There is no CRC region: the value is the controller's `LTDC_CCRCR` for the whole output | `ltdc.c:1488-1491` (via the transform note, section 4) | read from source |
+| The driver has a CRTC `set_crc_source` hook, `ltdc_crtc_set_crc_source`. With the source `"auto"` it sets `ldev->crc_active`, sets `IER_LIE` and sets `GCR_CRCEN`. No CRC region is programmed: the value is the controller's `LTDC_CCRCR` for the whole output. Every path ends with `ldev->crc_skip_count = 0` | `ltdc.c`, function `ltdc_crtc_set_crc_source` (re-read; line number open) | read from source |
 | The LTDC CRC register is `LTDC_CCRCR` (computed CRC register); the driver reads it as a single register value | `ltdc.c:1041-1056` (via the transform note) | read from source |
-| Sources accepted: `"auto"` is the one the earlier note names. Whether any other string is accepted, and what a `NULL` source does (switch the CRC off), is in the hook body | `ltdc.c:1488-1491`, body to re-read | inferred (that `"auto"` is the only name); to re-read |
-| `verify_crc_source`: whether `ltdc.c` implements its own hook or leaves it to the DRM core is not in the notes this reading used | to re-read | inferred (open) |
-| Readout is in the interrupt path: `ltdc_irq` reads `LTDC_CCRCR` in the hard interrupt for every interrupt while the CRC is active; the threaded handler reports it with `drm_crtc_add_crc_entry` only for a line interrupt, after skipping 2 frames. Fifo and transfer interrupts also re-read `ldev->crc` | `ltdc.c:1041-1056`, `1005-1025`, `1209` (via the transform note) | read from source |
+| Sources accepted by `set_crc_source`: only `"auto"`. A `NULL` source clears `crc_active`, clears `IER_LIE` only if `vblank_active` is also false, and clears `GCR_CRCEN`. Any other string returns `-EINVAL`. A NULL `crtc` returns `-ENODEV` | `ltdc.c`, `ltdc_crtc_set_crc_source` (re-read; line number open) | read from source |
+| `verify_crc_source`: `ltdc.c` implements its own, `ltdc_crtc_verify_crc_source`. A non-NULL source other than `"auto"` returns `-EINVAL`; `"auto"` and `NULL` both pass, and it sets `*values_cnt = 1` | `ltdc.c`, `ltdc_crtc_verify_crc_source` (re-read; line number open) | read from source |
+| Both hooks are set only in `ltdc_crtc_with_crc_support_funcs`; the plain `ltdc_crtc_funcs` has neither. `ltdc_crtc_init` uses the first when `ldev->caps.crc` is true, the second otherwise | `ltdc.c`, the two funcs structs and `ltdc_crtc_init` (re-read; line numbers open) | read from source |
+| `IER_CRCIE` and `ISR_CRCIF` are defined, but nothing in the text read sets `IER_CRCIE`; the CRC path uses only the line interrupt (`IER_LIE`, `ISR_LIF`) | `ltdc.c`, defines and the functions read | read from source (an absence in the text read; the truncated tail was not seen) |
+| `ltdc_crtc_atomic_enable` and `ltdc_crtc_atomic_disable` do not touch `GCR_CRCEN` or `crc_active`, and `atomic_disable` does not clear `IER_LIE`, so a modeset while `crc/data` is open leaves the CRC on | `ltdc.c`, those functions (re-read for CRC use) | read from source |
+| Readout is in the interrupt path: `ltdc_irq` reads `LTDC_CCRCR` with `readl_relaxed` (not regmap) into `ldev->crc` on every interrupt while `crc_active` is set. `ltdc_irq_thread`, only for `ISR_LIF`, skips the first `CRC_SKIP_FRAMES` (2) entries after each `set_crc_source`, then calls `drm_crtc_add_crc_entry(crtc, true, drm_crtc_accurate_vblank_count(crtc), &ldev->crc)` | `ltdc.c`, `ltdc_irq`, `ltdc_irq_thread`, `CRC_SKIP_FRAMES` (re-read); earlier numbers `1041-1056`, `1005-1025`, `1209` via the transform note | read from source |
 | The line interrupt is placed at `accum_act_h + 1`, one line after the end of the active area, so the value read belongs to the frame just shown | `ltdc.c:1041-1056` (via the transform note) | read from source |
-| `disable_vblank` clears `IER_LIE` unless the CRC source is active, so the line interrupt keeps running while the CRC is on | `ltdc.c:1463-1473` (via [`stm32mp257-ltdc-sync-source.md`](stm32mp257-ltdc-sync-source.md) row at line 38) | read from source |
-| The driver reports one 32-bit value per frame, so an entry has one value, not one per colour channel | derived from the single `LTDC_CCRCR` read above | inferred |
+| `ltdc_crtc_disable_vblank` clears `vblank_active` and clears `IER_LIE` unless `crc_active`, so the line interrupt keeps running while the CRC is on | `ltdc.c`, that function (re-read); earlier `1463-1473` via [`stm32mp257-ltdc-sync-source.md`](stm32mp257-ltdc-sync-source.md) | read from source |
+| An entry has one 32-bit value, not one per colour channel (`values_cnt = 1` in `verify_crc_source`, one `&ldev->crc` passed to the core) | the functions above | read from source |
 
 ## 2. How user space would read it
 
-The debugfs files come from the DRM core (`drivers/gpu/drm/drm_debugfs_crc.c`), not from `ltdc.c`. This part is **inferred** from the generic DRM interface, not read in the ST tree in this session.
+The debugfs files come from the DRM core (`drivers/gpu/drm/drm_debugfs_crc.c`), not from `ltdc.c`. This part was **read from mainline v6.6** of that file (the ST tree's copy was not read; see the limit above) and is located by function name, not line number.
 
 | Step | What | Tag |
 | --- | --- | --- |
-| 1 | The core creates `/sys/kernel/debug/dri/<n>/crtc-<m>/crc/control` and `crc/data` for a CRTC whose funcs have `set_crc_source` | inferred |
-| 2 | Write the source name (`auto`) to `crc/control`; the core asks the driver to check it (`verify_crc_source`) | inferred |
-| 3 | Open `crc/data`. The core calls `set_crc_source` when the file is opened, and the driver turns the CRC on. Each line read is a frame counter followed by the CRC value(s) | inferred |
-| 4 | Read blocks until the next entry; the first entries after a change may belong to the old picture, so skip a few (the driver itself skips 2 frames) | inferred, with the skip count read from source (`ltdc.c:1041-1056`) |
-| 5 | Closing `crc/data` turns the CRC off in the driver | inferred |
+| 1 | `drm_debugfs_crtc_crc_add` creates `crc/control` and `crc/data` under `/sys/kernel/debug/dri/<n>/crtc-<m>/` only when **both** `set_crc_source` and `verify_crc_source` are set | read from source (mainline v6.6) |
+| 2 | Writing the source name to `crc/control` calls `verify_crc_source`; on error the write returns its error and the stored source is unchanged; while `crc/data` is open it returns `-EBUSY`. A trailing newline is stripped. `set_crc_source` is not called from the control write | read from source (mainline v6.6) |
+| 3 | Opening `crc/data` returns `-EIO` if the CRTC is not active, calls `verify_crc_source` again with the stored source (a NULL source passes in this driver), allows one opener (`-EBUSY` otherwise), then calls `set_crc_source`. A line read is `0x%08x` (frame counter, or `XXXXXXXXXX`) then ` 0x%08x` per value, then a newline | read from source (mainline v6.6) |
+| 4 | Read blocks until the next entry (`-EAGAIN` if non-blocking; 0 bytes if no source is stored; `-EINVAL` if the buffer is shorter than a line). The core drops entries with a one-time error if user space reads too slowly. The driver skips 2 entries after each `set_crc_source` | read from source (core v6.6; `CRC_SKIP_FRAMES` in `ltdc.c`); the advice to skip a few more is inferred |
+| 5 | Closing `crc/data` calls `set_crc_source(crtc, NULL)` (return value ignored), which turns the CRC off in this driver | read from source (core v6.6 and `ltdc.c`) |
 
 The earlier board sessions already used this path ([`stm32mp257-ltdc-session-2026-11-28.md`](stm32mp257-ltdc-session-2026-11-28.md), Q2: `auto` written to `crtc-0/crc/control`, `crc/data` opened, three entries skipped, two read). This note only points at that record; it does not repeat it as evidence.
 
@@ -52,11 +61,11 @@ The earlier board sessions already used this path ([`stm32mp257-ltdc-session-202
 
 | Claim | Where | Tag |
 | --- | --- | --- |
-| `ltdc_get_caps()` asks the firewall for `l3`; when access is refused it decrements `nb_layers` (layer 3 is not exposed) **and clears `caps.crc`**. A refusal of `cmn`, `l1l2` or `rot` fails the probe | `ltdc.c` caps code (via [`stm32mp257-ltdc-session-c-outputs-2026-11-28.md`](stm32mp257-ltdc-session-c-outputs-2026-11-28.md), Q4 table, row "layer count"); lines to re-read | read from source |
+| `ltdc_get_caps()` asks the firewall for `l3`; when access is refused it decrements `nb_layers` (layer 3 is not exposed) **and clears `caps.crc`**. A refusal of `cmn`, `l1l2` or `rot` fails the probe | `ltdc.c` caps code (via [`stm32mp257-ltdc-session-c-outputs-2026-11-28.md`](stm32mp257-ltdc-session-c-outputs-2026-11-28.md), Q4 table, row "layer count"); only in part re-read: the helper saw that `is_layer_secured` is set when the firewall denies `l3` (for `st,stm32mp21-ltdc` and `st,stm32mp25-ltdc`) and that `caps.crc` is cleared for a secured third layer, but that text lay in the truncated tail | read from source (earlier reading); still open: line numbers and a direct re-read of the tail |
 | The CRC enable for MP251 and MP255 is the last statement of the 4.x hardware-version case | `ltdc.c:2595-2600` (via the sync note) | read from source |
 | The compatible string for that test differs between the 6.6 and 6.18 branches (`st,stm32mp251-ltdc`, `st,stm32mp255-ltdc` against `st,stm32mp21-ltdc`, `st,stm32mp25-ltdc`); same effect on an MP25 | `ltdc.c:2595-2596` and the diff note, row 26 | read from source |
 | So a boot chain that denies `l3` removes both layer 3 (plane 49) and the CRC. The board's three planes (34, 42, 49) mean `l3` was granted when the Q4 note was written, so the CRC capability is on in that configuration | Q4 note, firewall rows | inferred (the grant is from that note's reading of the plane list) |
-| Without `caps.crc` the driver would not register `set_crc_source` for the CRTC, so `crc/control` would be missing. The check "does `crc/control` exist" therefore shows whether the firewall left the CRC on | the use of `caps.crc` to register the hook is not in the rows read | inferred (to re-read) |
+| Without `caps.crc` the driver registers `ltdc_crtc_funcs` with neither hook, and the core then creates no `crc/` files. The check "does `crc/control` exist" therefore shows whether `caps.crc` is set (hardware version and firewall together) | `ltdc.c` `ltdc_crtc_init`; core `drm_debugfs_crtc_crc_add` | read from source |
 | A different boot chain or another board variant can have a different RIF setting for `l3`; the device tree is the same for every variant | Q4 note | inferred |
 
 ## 5. Can a CRC tell the expected pictures apart?
