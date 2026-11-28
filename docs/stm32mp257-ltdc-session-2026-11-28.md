@@ -877,6 +877,21 @@ active
 active
 ```
 
+Final check, host 2026-11-28T08:25:32Z (observed 2026-11-28), over ssh only,
+nothing stopped or started. On the board:
+
+```text
+$ systemctl is-active weston-graphical-session seatd-weston
+active
+active
+```
+
+The six scaled-commit cases stay not re-run, with the original range
+2026-11-27T22:46:00Z to 22:47:24Z. Observed 2026-11-28: `crcprobe` is not in
+`/tmp` or anywhere on the board, and no file or commit of this repository
+contains it (`git log --all -S crcprobe` finds only this note). Writing a new
+probe would be a new experiment, which this re-run does not do.
+
 ## Summary of sessions A and B
 
 | Question | Answer | Tag |
