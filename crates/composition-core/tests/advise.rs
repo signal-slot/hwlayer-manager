@@ -1246,6 +1246,34 @@ fn backend_refusal_and_give_up() {
     assert!(none.layers().iter().all(|l| l.blocker == Blocker::Backend));
 }
 
+/// Test 7: a check that refuses every candidate with no composition target
+/// is `Ok` (design §6, decision 13): every shown layer is `Compose` with
+/// `Blocker::Backend`, there is no target and no run, and the call is not
+/// an error. Pinned so a change to `Blocker` or an error is deliberate.
+#[test]
+fn refused_frame_without_target_is_ok_and_all_composed() {
+    let case = two_full_layers_on_am62p();
+    let advice = advise(
+        &case.frame(),
+        &case.caps,
+        &case,
+        &AdviseOptions::default(),
+        |_, _| Verdict::TryNext,
+    )
+    .expect("a refused frame with no target is Ok, not an error");
+    assert_eq!(advice.layers().len(), 2);
+    for l in advice.layers() {
+        assert_eq!(l.placement, Placement::Compose);
+        assert_eq!(l.blocker, Blocker::Backend);
+    }
+    assert!(advice.compose().is_none());
+    assert_eq!(advice.promoted(), 0);
+    assert!(!advice.is_direct());
+    // The per-layer placements carry the answer; there is no run to name.
+    assert_eq!(advice.compose_run(), None);
+    assert_eq!(advice.candidates(), 1);
+}
+
 /// Test 7: the check is never called more than `backend_checks` times over
 /// the whole call, whatever it answers.
 #[test]
