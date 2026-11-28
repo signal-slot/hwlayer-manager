@@ -159,6 +159,93 @@ Writing and running one: [`docs/board-tests.md`](docs/board-tests.md).
   - [`rk3588-source.md`](docs/observed/rk3588-source.md), [`rk3588-topology.md`](docs/observed/rk3588-topology.md): RK3588 VOP2.
   - [`stm32mp257.md`](docs/observed/stm32mp257.md), [`stm32mp257-source.md`](docs/observed/stm32mp257-source.md), [`stm32mp257-topology.md`](docs/observed/stm32mp257-topology.md): STM32MP257F-DK.
 
+### Index by topic
+
+Every remaining file and directory under `docs/`, grouped by topic. Descriptions are the documents' own titles; the evidence tags inside each document apply.
+
+#### i.MX95 M2 (additional)
+
+- [`docs/imx95-m7-runbook.md`](docs/imx95-m7-runbook.md): M7 board runbook (observe and remoteproc start/stop).
+- [`docs/imx95-m7-memory-map.md`](docs/imx95-m7-memory-map.md): Cortex-M7 memory map and where a Zephyr scanout buffer can live (source study).
+- [`docs/imx95-m7-ldb-driver.md`](docs/imx95-m7-ldb-driver.md): LDB / LVDS driver for Zephyr on the M7 (design note, M2-10).
+- [`docs/imx95-dpu-scmi-ids.md`](docs/imx95-dpu-scmi-ids.md): SCMI clock, power-domain and reset IDs of the display pipeline.
+- [`docs/imx95-verdin-sm-config.md`](docs/imx95-verdin-sm-config.md): the Verdin System Manager configuration, pinned.
+- [`docs/imx95-sm-linux-interfaces.md`](docs/imx95-sm-linux-interfaces.md): what NXP's 6.6 kernel shows userspace about the System Manager.
+- [`docs/imx95-verdin-lvds-panel.md`](docs/imx95-verdin-lvds-panel.md): 10.1" LVDS panel overlay, timings and LDB setup (source study).
+- [`docs/m2-linux-scene.md`](docs/m2-linux-scene.md): the M2 scene on Linux, the `m2scene` example.
+- [`docs/m2-linux-zephyr-comparison.md`](docs/m2-linux-zephyr-comparison.md): how the Linux vs Zephyr comparison will be run.
+- [`docs/wp4-difference-matrix.md`](docs/wp4-difference-matrix.md): WP4 draft AM62P vs i.MX95 difference matrix.
+- [`docs/m1-imx95/`](docs/m1-imx95/): M1 run material for the i.MX95 (logs, pictures, checks).
+
+#### AM62P
+
+- [`docs/am62p-dss-source.md`](docs/am62p-dss-source.md): display subsystem (DSS), Linux tidss, source reading.
+- [`docs/am62p-dt-source.md`](docs/am62p-dt-source.md): Verdin AM62P device tree: DSS, panels and R5F carve-outs, read from source.
+- [`docs/am62p-r5f-remoteproc-source.md`](docs/am62p-r5f-remoteproc-source.md): MCU R5F under Linux remoteproc, from source.
+- [`docs/am62p-torizon-boot-source.md`](docs/am62p-torizon-boot-source.md): Torizon OS boot chain and R5F firmware loading (source study).
+- [`docs/board-test-am62p-r5f.md`](docs/board-test-am62p-r5f.md): board test: the engine on the MCU R5F.
+- [`docs/m3-am62p-test-plan.md`](docs/m3-am62p-test-plan.md): M3 test plan, AM62P portability regression.
+- [`docs/m3-03-board-test-design.md`](docs/m3-03-board-test-design.md): M3-03 design of the safety-flip and producer-failure board tests.
+
+#### RK3588
+
+- [`docs/rk3588-backend-design.md`](docs/rk3588-backend-design.md): RK3588 (VOP2) backend design.
+- [`docs/design/`](docs/design/): per-SoC backend design notes (`hvs-backend.md`, `rk3588-backend.md`, `stm32mp257-backend.md`).
+- [`docs/rk3588-dt-source.md`](docs/rk3588-dt-source.md): per-port plane reach, from the mainline driver.
+- [`docs/rk3588-mainline-source.md`](docs/rk3588-mainline-source.md): VOP2 in mainline Linux 6.18, from source.
+- [`docs/rk3588-vendor-vop2-source.md`](docs/rk3588-vendor-vop2-source.md): Rockchip vendor kernel 6.1 compared with mainline 6.18.
+- [`docs/rk3588-vop2-formats-source.md`](docs/rk3588-vop2-formats-source.md): per-window-class formats, modifiers and transforms.
+- [`docs/rk3588-vop2-limits-source.md`](docs/rk3588-vop2-limits-source.md): input, line-buffer and scaling limits.
+- [`docs/rk3588-vop2-scale-source.md`](docs/rk3588-vop2-scale-source.md): scaling per window class.
+- [`docs/rk3588-vc4-profiles.md`](docs/rk3588-vc4-profiles.md): `DriverProfile` variants for RK3588 and Raspberry Pi.
+- [`docs/rk3588-vc4-board-procedure.md`](docs/rk3588-vc4-board-procedure.md): board session procedure for NanoPC-T6, Raspberry Pi 5 and reTerminal.
+
+#### BCM27xx / HVS
+
+- [`docs/hvs-backend-design.md`](docs/hvs-backend-design.md): engine backend for the Raspberry Pi HVS (BCM2711, BCM2712).
+- [`docs/bcm2712-dt-source.md`](docs/bcm2712-dt-source.md): BCM2712 and BCM2711 CRTC and plane arithmetic from the device tree and vc4 source.
+- [`docs/vc4-mainline-source.md`](docs/vc4-mainline-source.md): HVS5/HVS6 plane code, mainline v6.18 against rpi-6.18.y.
+- [`docs/vc4-hvs-dlist-source.md`](docs/vc4-hvs-dlist-source.md): dlist memory and per-plane dlist size.
+- [`docs/vc4-hvs-format-source.md`](docs/vc4-hvs-format-source.md): format and modifier acceptance.
+- [`docs/vc4-hvs-lbm-upm-source.md`](docs/vc4-hvs-lbm-upm-source.md): LBM and UPM pools, per-plane cost and plane counts.
+- [`docs/vc4-hvs-load-source.md`](docs/vc4-hvs-load-source.md): load and core-clock computation.
+- [`docs/vc4-hvs-props-source.md`](docs/vc4-hvs-props-source.md): plane properties (zpos, alpha, blend, rotation, colour).
+- [`docs/vc4-hvs-scaling-source.md`](docs/vc4-hvs-scaling-source.md): scaling ratios, LBM/UPM sizing, modifier checks and dlist words.
+
+#### STM32MP257
+
+- [`docs/stm32mp257-ltdc-board.md`](docs/stm32mp257-ltdc-board.md): LTDC z-order and alpha through the KVM, and scaling bounds.
+- [`docs/stm32mp257-board-scenarios.md`](docs/stm32mp257-board-scenarios.md): board scenarios A1-A5.
+- [`docs/stm32mp257-ltdc-session-2026-11-28.md`](docs/stm32mp257-ltdc-session-2026-11-28.md): board sessions A and B, 2026-11-28.
+- [`docs/stm32mp257-ltdc-session-c-2026-11-28.md`](docs/stm32mp257-ltdc-session-c-2026-11-28.md): board session C, 2026-11-28.
+- [`docs/stm32mp257-ltdc-session-c-outputs-2026-11-28.md`](docs/stm32mp257-ltdc-session-c-outputs-2026-11-28.md): session C, other outputs and scaler layers per variant.
+- [`docs/stm32mp257-session-c-runbook.md`](docs/stm32mp257-session-c-runbook.md): session C runbook for the picture sessions.
+- [`docs/stm32mp257-ltdc-source-full.md`](docs/stm32mp257-ltdc-source-full.md): full LTDC source read.
+- [`docs/stm32mp257-ltdc-source-diff-6.6.md`](docs/stm32mp257-ltdc-source-diff-6.6.md): ST v6.18 source rows against ST's 6.6 kernel.
+- [`docs/stm32mp257-ltdc-sync-source.md`](docs/stm32mp257-ltdc-sync-source.md): sync semantics, from source.
+- [`docs/stm32mp257-ltdc-transform-source.md`](docs/stm32mp257-ltdc-transform-source.md): reflect and rotation programming, with predicted pictures.
+- [`docs/stm32mp257-ltdc-yuv-source.md`](docs/stm32mp257-ltdc-yuv-source.md): YCbCr-to-RGB conversion, from source.
+
+#### i.MX8MP
+
+- [`docs/imx8mp-lcdif-source.md`](docs/imx8mp-lcdif-source.md): LCDIFv3 display path, read from source (SoW §5.3).
+- [`docs/imx8mp-route3-precomposition.md`](docs/imx8mp-route3-precomposition.md): Route 3 pre-composition and buffer ownership (design note).
+- [`docs/imx8mp-x2-board.md`](docs/imx8mp-x2-board.md): Armadillo-X2, DRM/KMS as the kernel exposes it.
+
+#### Cross-cutting
+
+- [`docs/drm-lease-source.md`](docs/drm-lease-source.md): what a DRM lessee can see and `TEST_ONLY` (mainline 6.18).
+- [`docs/drm-pending-commit-source.md`](docs/drm-pending-commit-source.md): pending-commit replacement and flip events in DRM core, vc4 and VOP2.
+- [`docs/linux-board-scenarios.md`](docs/linux-board-scenarios.md): Linux board scenarios A1-A5 on boards other than the i.MX95.
+
+#### WP5
+
+- [`docs/wp5-evidence.md`](docs/wp5-evidence.md): evidence checklist, what the SoW asks for and what exists.
+- [`docs/wp5-coexistence-survey.md`](docs/wp5-coexistence-survey.md): coexistence survey of three Linux DRM boards.
+- [`docs/weston-release-read.md`](docs/weston-release-read.md): released Weston DRM backend plane assignment, from source.
+- [`docs/liftoff-crosscheck-report.md`](docs/liftoff-crosscheck-report.md): cross-check of the planner against libliftoff (WP5-04).
+- [`docs/host-demo.md`](docs/host-demo.md): host demo.
+
 ## Status
 
 Taken from the documents above; nothing is claimed beyond them. Tags: observed
