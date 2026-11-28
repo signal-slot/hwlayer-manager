@@ -31,9 +31,10 @@ This doc states facts only. It draws no licensing conclusion; the owner decides.
 ## Weston and Toradex layers: read from source (2026-11-28)
 
 - Tree: `weston-imx-nxp` in the dependency cache. Its `meson.build` says
-  `version: '12.0.5'` (read from source, 2026-11-28). Its commit id was not
-  recorded here because `git` against the cache needed approval; the pin is
-  in `docs/weston-imx-lease.md` and the item that reads NXP's changes.
+  `version: '12.0.5'` and the checked-out commit is
+  `a29bbd0f65e68b9beda47a94144bd9b2801c42cb`, committed 2025-09-23 (read from
+  source, 2026-11-28). The `meta-toradex-nxp` commit id was not recorded
+  (`git log` on it was refused).
 - A recursive, case-insensitive search for `liftoff` over the whole
   `weston-imx-nxp` tree gave **no match** (read from source, 2026-11-28).
   That Weston 12.0.5 NXP tree neither builds against nor mentions libliftoff.
