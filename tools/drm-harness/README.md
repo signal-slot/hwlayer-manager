@@ -51,14 +51,16 @@ drm-harness [OPTIONS] <SCENARIO>
 | `rotate`       | `--buffers` buffers per plane on two planes for `--frames` frames. A buffer is redrawn only once the engine reported it `Released`; the harness checks Submitted → Latched → Released for every buffer and counts dropped frames, missed vblanks and violations. Measures submit → latch latency, frame interval, validate and commit time, CPU and memory. |
 | `revoke`       | `--source kernel-lease` only. Rotates `--buffers` buffers per plane on two planes for `--frames` frames (default 60), then the in-process lessor revokes the lease between two frames. Checks that the next frame fails with `DeviceLost`, that a second one fails with `UnknownOutput` for the lost output (the backend reports no outputs once the loss is applied), that `DeviceLost` is reported exactly once, that the two buffers on screen are released exactly once and nothing else, that no buffer stays submitted or scanning, and that no output or plane is reported afterwards (as `leased_output_exposes_only_leased_planes_and_reports_revocation` in `crates/composition-drm/tests/vkms.rs`). |
 | `modeset`      | Commits the `two-planes` picture on the connector's current mode for 1 s, then switches to the first other mode of the connector's list (differing in size or refresh, progressive, each size and refresh once) that atomic `TEST_ONLY` accepts. The switch is the harness's own blocking `ALLOW_MODESET` commit on the same descriptor: the new mode, a black buffer of the new size on the primary plane, the CRTC's other planes off. A new engine on that descriptor then finds the new size, plans for it and commits for `--seconds`. Then the same kind of commit puts the original mode back, and the CRTC's mode is read to check it. BLOCKED when the connector offers only one mode (no other progressive one). Not run by `all`. |
-| `all`          | All of the above but `modeset`, in that order; `revoke` only with `--source kernel-lease`. |
+| `recovery`     | Display recovery without a lease (row A6). Commits the `two-planes` picture for `--seconds`, then loses the display while the engine commits (`--loss`). `master` (default): the engine's descriptor drops DRM master, and a second descriptor on the same node takes master and turns the CRTC off (`ACTIVE=0`), as a compositor taking the display would. `disable`: the CRTC is turned off with a commit on the engine's own descriptor, which stays master. Then one frame is offered; the engine must report the loss within 2 s: an error from `validate` or `commit`, or a `DeviceLost`, `LatchTimeout` (the engine's latch timeout is set to 500 ms and the harness passes the time with `advance_time`) or `Dropped` event. A latch, or nothing, fails. With `master`, the second descriptor is closed, master is taken back and a second frame is offered on the same engine (the CRTC is still off); only a silent stall fails there. Every buffer of the old engine must then be idle (no buffer `Submitted` or `Scanning`). The old engine and its descriptor are dropped, a new engine run opens the device again (its first commit is a modeset, which turns the CRTC on) and commits a different picture (green, yellow rectangle) for `--seconds`; at least one commit must latch, and the CRTC must be on at the end (if it is not, the harness turns it back on with the original mode). `--loss master` needs `--source master`. Not run by `all`. |
+| `all`          | All of the above but `modeset` and `recovery`, in that order; `revoke` only with `--source kernel-lease`. |
 
 | Option | Default | |
 |--------|---------|---|
 | `--device <PATH>` | `/dev/dri/card0` | device node to open |
 | `--connector <NAME>` | first connected | connector name or prefix, e.g. `LVDS` |
 | `--profile generic\|imx95` | `generic` | `DriverProfile` handed to the backend |
-| `--seconds <N>` | 5 | how long each picture is held for a camera (in `revoke`: the screen after the revocation; in `modeset`: the commits after the switch); at most 86400 |
+| `--seconds <N>` | 5 | how long each picture is held for a camera (in `revoke`: the screen after the revocation; in `modeset`: the commits after the switch; in `recovery`: the commits before the loss, and again those of the new run); at most 86400 |
+| `--loss master\|disable` | `master` | how `recovery` loses the display, see the table above |
 | `--frames <N>` | 240 (`move`), 600 (`rotate`) | frame count |
 | `--buffers <K>` | 3 | buffers per plane in `rotate` and `revoke` (3 to 16) |
 | `--source master\|kernel-lease\|dlm` | `master` | where the descriptor comes from, see [Sources](#sources) |
@@ -94,6 +96,15 @@ The main kinds:
   afterwards), `replan` (the size the new engine reports), `commit` records
   with `step=modeset-before` and `step=modeset-after`, and `modeset_result`
   (`from`, `to`, commits and latches before and after, `restored`).
+- `recovery`: `hold` and `commit` records with `step=recovery-before` and
+  `step=recovery-after`, `before_loss` (the buffers on screen), `loss`
+  (`method`, `result`, whether the CRTC is still active), `loss_attempt`
+  per frame offered after the loss (`report` is `error:<text>`,
+  `event:<name>`, `latched` or `silent`; `after_ms`; the backend's failure
+  log, `device_lost`, `pending_latch`, the events), `master_back`,
+  `buffers_after_loss` (each buffer's state, `busy`), and `recovery_result`
+  (`first`, `first_ms`, `reported`, `second`, `still_busy`, `master_back`,
+  `relatched`, `crtc_active_end`).
 - `resources`: wall time, user and system CPU time, CPU %, RSS and peak RSS
   (`VmHWM`) for the scenario.
 - `VERDICT <scenario> PASS|FAIL|BLOCKED <reason>` ends every scenario; `all`
@@ -105,6 +116,10 @@ The main kinds:
   prints `resources` and `VERDICT` (the session ends, so the buffers are
   released). A stop never turns a failure into a pass:
   - `modeset` puts the original mode back before it ends, also on a stop.
+  - `recovery` stopped before the loss is a cut-off. Once the display is
+    lost, the CRTC is on again before the run ends: turned on by the new
+    run, or, if a stop came before its first commit (also a cut-off), by
+    the harness.
   - A stop during a hold (`two-planes`, `zorder-alpha`, `revoke`, after their
     checks; `modeset` once a commit latched on the second mode) ends the hold; the verdict is what the checks found, with
     `stopped by SIGTERM or SIGINT during the hold, buffers released` added
@@ -198,7 +213,8 @@ non-32-bit buffers of `combos` stay with the harness. The wire format is in
 the module documentation of `src/producer.rs`.
 
 Every scenario runs with every source and both producer modes, except
-`revoke`, which needs `--source kernel-lease`.
+`revoke`, which needs `--source kernel-lease`, and `recovery --loss master`,
+which needs `--source master`.
 
 ## On vkms
 
