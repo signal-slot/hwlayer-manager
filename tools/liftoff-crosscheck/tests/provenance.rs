@@ -50,10 +50,16 @@ fn fixture(name: &str) -> PathBuf {
 
 #[test]
 fn probe_fixtures_name_source_commit_and_date() {
-    for board in ["bcm2711-cm4", "bcm2712", "rk3588", "stm32mp257"] {
+    // Sources after the provenance cleanup (a8e92dd and the platform-capabilities move).
+    let sources = [
+        ("bcm2711-cm4", "docs/platform-capabilities.md"),
+        ("bcm2712", "docs/platform-capabilities.md"),
+        ("rk3588", "tests/data/rk3588/topology-2026-11-28.md"),
+        ("stm32mp257", "docs/platform-capabilities.md"),
+    ];
+    for (board, want) in sources {
         let h = header(&fixture(&format!("{board}.probe.txt")));
         let source = field(&h, "source").unwrap_or_else(|| panic!("{board}: no source"));
-        let want = format!("{}{}-topology.md", ["docs/", "observed/"].concat(), board);
         assert_eq!(source, want, "{board}: source");
         let commit = field(&h, "commit").unwrap_or_else(|| panic!("{board}: no commit"));
         assert!(is_commit(commit), "{board}: bad commit {commit:?}");

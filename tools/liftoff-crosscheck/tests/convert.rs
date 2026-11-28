@@ -59,7 +59,7 @@ fn rk3588_expands_identical_planes_and_marks_truncation() {
     let x = &c.xcheck;
     assert_eq!(x.origin.kind, OriginKind::Observed);
     assert_eq!(x.origin.date, "2026-11-28");
-    assert!(x.origin.text.contains("rk3588-topology.md"));
+    assert!(x.origin.text.contains("topology-2026-11-28.md"));
     assert!(x.origin.text.contains("db71077"));
     assert!(x.origin.text.contains("format lists truncated"));
     assert!(!c.formats_incomplete);
