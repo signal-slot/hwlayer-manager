@@ -19,18 +19,17 @@ board fact; none is produced here).
   `drivers/gpu/drm/drm_atomic_helper.c`, `FB` =
   `drivers/gpu/drm/rockchip/rockchip_drm_fb.c`, `V2C` =
   `rockchip/rockchip_drm_vop2.c`, `REG` = `rockchip/rockchip_vop2_reg.c`.
-- How read: `git clone` and shell downloads were not available on this node, so
-  each file was fetched as raw text at the pinned commit by a page-reading
-  tool that returns text without line numbers. **Line numbers are therefore
-  hand-counted** from the fetched text. `BLEND` and `FB` numbers are exact to
-  the counter's care; `REG` numbers are approximate (about two lines,
-  counted back from the end of the file) and are marked `~`. Where I have no
-  trustworthy number I give the function name. `V2C` numbers are copied from
-  `docs/rk3588-mainline-source.md` (its `V2C` numbering), not recounted.
-- `v6.18.55` was **not** re-read file by file here. For it I rely on the diff
-  recorded in `docs/rk3588-mainline-source.md` §1 (read from source,
-  2026-11-28): `BLEND`, `HLP` and `FB` are outside that diff; `V2C` changed
-  only at two output-format hunks; `REG` changed from `REG:1372` on (below).
+- How read: `BLEND`, `HLP`, `V2C` and `REG` were downloaded as raw files at
+  both pins into the dependency cache and numbered with `grep -n`
+  (2026-11-28), so their line numbers are exact for `v6.18`. `FB` was read
+  through a page-reading tool without line numbers, so `FB:62-66` and
+  `FB:84` are **hand-counted**.
+- `v6.18.55` (read from source, 2026-11-28, by `diff` against `v6.18`):
+  `drm_blend.c` is identical; `drm_atomic_helper.c` has no `normalize_zpos`
+  hunk; `rockchip_drm_vop2.c` and `REG` differ as recorded in
+  `docs/rk3588-mainline-source.md` §1. In `REG`, the first hunk is at
+  `v6.18` line 1371 and the last in the layer-mixer code at `v6.18` lines
+  2255-2267 (`v6.18.55` 2292-2312); the rest are listed in §4.
 
 ## 1. Is normalisation per CRTC? Yes
 
@@ -38,7 +37,7 @@ All rows read from source at `v6.18` unless stated.
 
 | Fact | Where |
 |---|---|
-| The core calls `drm_atomic_normalize_zpos()` from `drm_atomic_helper_check()` only when `dev->mode_config.normalize_zpos` is true, after `drm_atomic_helper_check_modeset()` and before `drm_atomic_helper_check_planes()` | `HLP`, function `drm_atomic_helper_check` (no line number) |
+| The core calls `drm_atomic_normalize_zpos()` from `drm_atomic_helper_check()` only when `dev->mode_config.normalize_zpos` is true, after `drm_atomic_helper_check_modeset()` and before `drm_atomic_helper_check_planes()` | `HLP:1115-1116` |
 | Rockchip sets that flag: `dev->mode_config.normalize_zpos = true;` last statement of `rockchip_drm_mode_config_init` | `FB:84` (hand-counted) |
 | Rockchip's `atomic_check` is the plain `drm_atomic_helper_check` | `FB:62-66` |
 | `rockchip_drm_vop2.c` does not call `drm_atomic_normalize_zpos` and does not sort by zpos; it only creates the property and prints `normalized_zpos` in a debugfs dump | `V2C:2301-2302` (create), function `vop2_plane_state_dump` |
@@ -80,23 +79,26 @@ Inferred:
 
 ## 3. Layer-select registers are shared between video ports
 
-Read from source, `REG` (`~` = approximate), function
-`rk3568_vop2_setup_layer_mixer`, used for RK3588 through
-`rk3588_vop_ops.setup_overlay = rk3568_vop2_setup_overlay` (`REG:~2459-2463`):
+Read from source, `REG`, function `rk3568_vop2_setup_layer_mixer`, used for
+RK3588 through `rk3588_vop_ops.setup_overlay = rk3568_vop2_setup_overlay`
+(`REG:2457-2461`):
 
 - A comment in the function says `RK3568_OVL_LAYER_SEL` and
   `RK3568_OVL_PORT_SEL` "are shared by all Video Ports, and the configuration
-  take effect by one Video Port's vsync" (`REG:~2244-2257`). There is one
-  `RK3568_OVL_CTRL`, one `RK3568_OVL_PORT_SEL`, one `RK3568_OVL_LAYER_SEL`
-  for the whole VOP (`REG:~2121`, `~2156`, `~2263-2271`); only a
-  `YUV_MODE(vp->id)` bit in `OVL_CTRL` is per port (`REG:~2125-2128`).
+  take effect by one Video Port's vsync", and that when zpos changes "the
+  change for the previous VP takes effect before we proceed to change the next
+  VP" (`REG:2243-2255`). There is one `RK3568_OVL_CTRL`, one
+  `RK3568_OVL_PORT_SEL`, one `RK3568_OVL_LAYER_SEL` for the whole VOP
+  (`REG:2119`, `2154`, `2261-2269`); only a `YUV_MODE(vp->id)` bit in
+  `OVL_CTRL` is per port (`REG:2123-2126`). The function runs under one
+  `vop2->ovl_lock` mutex shared by all ports (`REG:2118`, `2270`).
 - Each window's `layer_sel_id` is the same value in all four VP slots on RK3588
-  (`REG:1123-1266`, e.g. Cluster0 `{0,0,0,0}`, Esmart3 `{7,7,7,7}`), unlike
-  RK3568 (`{3,3,3,0xf}`) and RK3576 (per VP, with its own per-VP
-  `RK3576_OVL_LAYER_SEL(vp->id)`, `REG:~2345-2371`).
+  (`REG:1130-1257`, e.g. Cluster0 `{0,0,0,0}`, Esmart3 `{7,7,7,7}`), unlike
+  RK3568 (`{3,3,3,0xf}`, `REG:606`) and RK3576 (per VP, with its own per-VP
+  `RK3576_OVL_LAYER_SEL(vp->id)`, `REG:2368`).
 - Which port a window feeds is a field in the shared `OVL_PORT_SEL`, written
   with `vp->id` per window in a `switch (win->data->phys_id)`
-  (`REG:~2189-2228`).
+  (`REG:2186-2227`).
 
 ## 4. How the per-VP layer count and `port_mux` are derived
 
@@ -106,7 +108,7 @@ Read from source:
   at the end of `vop2_create_crtcs` (`V2C:2476-2484`, expression `V2C:2483`);
   comment: layers are distributed equally because changing the count at run
   time is very hard. `nvps` counts ports with a DT endpoint. `win_size` is
-  `ARRAY_SIZE(rk3588_vop_win_data)` = 8 (`REG:~2531`).
+  `ARRAY_SIZE(rk3588_vop_win_data)` = 8 (`REG:2529`).
 - `vop2_crtc_atomic_check` returns `-EINVAL` when the number of planes in
   the CRTC state exceeds `vp->nlayers`; it counts planes with
   `drm_atomic_crtc_state_for_each_plane` and never reads zpos
@@ -115,21 +117,30 @@ Read from source:
   `PORT1_MUX = vp0->nlayers + vp1->nlayers - 1`,
   `PORT2_MUX = vp0 + vp1 + vp2 nlayers - 1`; a port with `nlayers == 0` gets
   the value 8; `PORT3_MUX` is the fixed value 7 on RK3588 with the comment
-  "Fixed value for rk3588" (`REG:~2134-2154`).
+  "Fixed value for rk3588" (`REG:2130-2152`).
 - Layer slot of a plane: `ofs = sum of nlayers of the lower-numbered ports`
-  (`REG:~2160-2162`); `layer_id = (u8)(plane->state->normalized_zpos + ofs)`
-  (`REG:~2168`). The slot is then written into `OVL_LAYER_SEL` together with
-  the window's `layer_sel_id[vp->id]` (`REG:~2231-2239`); the previous window
+  (`REG:2158-2160`); `layer_id = (u8)(plane->state->normalized_zpos + ofs)`
+  (`REG:2166`). The slot is then written into `OVL_LAYER_SEL` together with
+  the window's `layer_sel_id[vp->id]` (`REG:2229-2236`); the previous window
   of the slot is cleared the same way.
-- Write order: `OVL_CTRL`, `OVL_PORT_SEL`, `vop2_cfg_done(vp)`, a wait until
-  the port-mux register reads back the written value, then `OVL_LAYER_SEL`
-  (`REG:~2258-2271`; wait helpers `REG:~2060-2090`).
+- Write order: `OVL_CTRL`, then (only if the port select changed)
+  `OVL_PORT_SEL`, `vop2_cfg_done(vp)` and a wait until the port-mux register
+  reads back the written value, then a wait for the previous layer config when
+  it changed, then `OVL_LAYER_SEL` (`REG:2258-2269`; helpers `REG:2060-2090`).
+- The mixer start id used for alpha counts windows of lower-numbered ports
+  (`vop2_find_start_mixer_id_for_vp`, `REG:1845-1857`, `hweight32(vp->win_mask)`),
+  and `vop2_setup_alpha` reads `normalized_zpos` (`REG:1947`, `1974`).
 
-Stable `v6.18.55` difference (read from source in
-`docs/rk3588-mainline-source.md` §1, not re-read here): the mixer start id used
-for alpha is now derived from the old `LAYER_SEL` register instead of counting
-windows of lower ports, and an extra wait for the other ports' `CFG_DONE`
-precedes layer-select writes (`REG:1372` onward).
+Stable `v6.18.55` (read from source, `diff` of `REG`, 2026-11-28): the same
+functions change. `vop2_find_start_mixer_id_for_vp` and its caller are
+rewritten (`v6.18` 1845-1853, 1938), the port-mux wait polls with a delay of 10
+instead of 0 (`v6.18` 2072, 2092), and the layer-mixer function gains code at
+`v6.18` 2111 and 2255 (`v6.18.55` 2292-2303), and loses lines at `v6.18`
+2265-2267. The stable function reads `vop2->old_layer_sel` to find which slot
+holds each window (`REG` of `v6.18.55`: 2191-2218) and waits for other ports'
+`CFG_DONE` before layer-select writes. The `normalized_zpos + ofs` rule
+(`v6.18.55` `REG:2202`), the shared-register comment (`2279`) and the
+`layer_sel_id` tables are unchanged in substance.
 
 Inferred:
 
