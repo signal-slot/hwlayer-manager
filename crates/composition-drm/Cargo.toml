@@ -29,5 +29,9 @@ test = true
 name = "profile_check"
 test = true
 
+[[example]]
+name = "mode_test"
+test = true
+
 [lints]
 workspace = true
