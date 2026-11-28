@@ -75,6 +75,12 @@ frun env-cred 0 a.txt 'token=$TOKEN password=<secret>'
 frun rpmsg-tty 0 a.txt "cat /dev/ttyRPMSG0"
 frun rust-ref-param 0 a.rs 'fn parse(token: &str) -> u8 {'
 frun rust-ref-mut-param 0 a.rs 'fn parse(token: &mut Tok) {'
+frun tty-placeholder-angle 0 a.txt "console /dev/ttyUSB<n> or /dev/ttyACM<n>"
+frun tty-placeholder-var 0 a.txt 'console /dev/ttyACM$N and /dev/ttyUSB${N}'
+frun tty-placeholder-not-hiding 1 a.txt "/dev/ttyUSB<n> and $tty" "== serial/UART path =="
+frun tty-bare-name 1 a.txt "console /dev/tty""USB"
+frun usage-name-hz 0 a.txt 'usage: --mode NAME@HZ'
+frun lowercase-user-hz-flagged 1 a.txt "ssh root@""hz.corp"
 # ... but never hides another identifier on the same line.
 frun allow-not-hiding-ip 1 a.txt "bind 127.0.0.1 then $ip"
 frun allow-not-hiding-ssh 1 a.txt "dri-devel@lists.freedesktop.org $sshuh"
