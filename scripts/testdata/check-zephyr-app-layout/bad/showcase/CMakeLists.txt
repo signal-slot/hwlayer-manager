@@ -1,0 +1,1 @@
+set(X $ENV{MCUI_SHOWCASE_DIR})
