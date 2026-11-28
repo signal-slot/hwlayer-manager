@@ -328,11 +328,12 @@ output. Observed 2026-11-28
   ([`sweep-picture-verdict.txt`](observed/imx8mp-x2-2026-11-28/sweep-picture-verdict.txt)).
   This shows one primary plane on screen. It is not a composition test,
   since there is only one plane.
-- `scripts/picture-hook.sh` was not run: the KVM capture here is an MCP
-  tool and not the shell command the hook's `PICTURE_CAPTURE` needs, and
-  running the hook with a copy command was refused in this session.
-  camera-check (the hook's judge) was run directly instead (observed
-  2026-11-28).
+- `scripts/picture-hook.sh x2-quadrants commit` judged the same picture
+  with the same four PASS lines, exit 0, `pictures.log` verdict `PASS`
+  (observed 2026-11-28). The KVM capture here is an MCP tool, not the shell
+  command the hook's `PICTURE_CAPTURE` expects. So the hook's capture was a
+  copy of the picture saved during the hold, and it ran after the board
+  session (12:31Z), not during the hold.
 - The KVM picture lagged the board by several seconds. One capture 4 s
   into the hold still showed the console, and one about 12 s after
   `RESTORE ok` still showed the quadrants (observed 2026-11-28, times
