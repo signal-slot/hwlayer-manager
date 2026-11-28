@@ -1,0 +1,25 @@
+# plane_commit picture check, Armadillo-X2, observed 2026-11-28 (UTC)
+#
+# Commit: sweep-plane-commit-crtc37.txt (plane 35, XR24 1920x1080 at 0,0,
+# pattern=quadrants, no modeset, hold 30000 ms; COMMIT ok, RECOVER ok,
+# RESTORE ok, VERDICT plane_commit: DONE).
+# Picture: sweep-picture-quadrants.jpg, a NanoKVM Lite HDMI capture
+# (1920x1080 JPEG) taken about 8 s into the hold, metadata stripped with
+# scripts/check-photo-metadata.py strip.
+# A capture taken about 4 s into the hold still showed the fbdev console,
+# one taken about 12 s after the hold ended (after RESTORE ok) still showed
+# the quadrants, and one about 23 s after it showed the console again. So
+# the KVM picture lagged the board by several seconds (times are host-side
+# estimates, about +-2 s). Those three captures show the console's
+# boot log (host name, filesystem UUIDs) or repeat this one, and are not
+# committed.
+# Judged by: python3 -I scripts/camera-check.py sweep-picture-quadrants.jpg sweep-picture-expect.json
+# scripts/picture-hook.sh was not run: its PICTURE_CAPTURE must be a shell
+# command, the KVM capture is an MCP tool here, and running the hook with a
+# copy command was refused in this session. camera-check (the hook's judge)
+# was run directly on the same picture.
+PASS  35-tl            measured (221.0,  0.0, 15.0) expected (255.0,  0.0,  0.0) distance   37.2 tol  60.0
+PASS  35-tr            measured ( 29.0,255.0, 21.0) expected (  0.0,255.0,  0.0) distance   35.8 tol  60.0
+PASS  35-bl            measured ( 18.0,  1.0,230.0) expected (  0.0,  0.0,255.0) distance   30.8 tol  60.0
+PASS  35-br            measured (235.0,235.0,235.0) expected (255.0,255.0,255.0) distance   34.6 tol  60.0
+VERDICT: PASS

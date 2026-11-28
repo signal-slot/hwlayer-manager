@@ -188,6 +188,189 @@ no connector.
   x2-lcdif-profile.
 - debugfs (`/sys/kernel/debug/dri` is not mounted).
 
+## TEST_ONLY results
+
+**Scope: SoW §5.3 evidence only. It counts toward none of M1, M2 or M3.
+A `TEST_ONLY` acceptance shows what the kernel's atomic check allows. It is
+not proof of on-screen composition.** This is item x2-testonly of plan 463,
+run on 2026-11-28 (UTC, host and board clock agree to within a minute,
+09:24-09:28Z). `kms_sweep`, `scale_probe` and `plane_commit` were built with
+`scripts/cross-aarch64.sh -p composition-drm --example kms_sweep --example
+scale_probe --example plane_commit` at commit bbe4967 (unchanged examples),
+copied to `/tmp` on the board, run as root over ssh on `/dev/dri/card1`, and
+removed afterwards. Raw outputs went through `scripts/scrub-kms-dump.py`
+(0 replacements in each) and were read by hand.
+
+Tags: **observed 2026-11-28** = printed on the board, or seen on the KVM, in
+this session. **inferred** = reasoned, not read. **not measured** = not
+tried.
+
+### Answer: overlay on the LCDIFv3 CRTC
+
+**No overlay plane is accepted on CRTC 37 (LCDIF3 → HDMI), because none
+exists. Only the primary plane 35 is accepted, and only as a full-screen,
+unscaled layer at (0,0)** (observed 2026-11-28):
+
+- `kms_sweep combos` finds one candidate plane for CRTC 37 (`CANDIDATES 35
+  primary 35`). k=1 with the primary is accepted and no k=2 set exists to
+  try. `COMBO_MAX accepted_k=1`.
+- The only other plane, 32, is the primary of CRTC 34. A request that puts
+  it on CRTC 37 is refused by `plane_commit` before any ioctl (`plane 32 is
+  not a plane of the CRTC`), and `scale_probe --plane 32` finds no plane to
+  test. Both follow from `possible_crtcs` 0b1 (x2-probe).
+- Whether the LCDIFv3 hardware could scan out a second layer that the
+  driver does not expose: not measured.
+
+### Printed RESULT / VERDICT lines
+
+Observed 2026-11-28, copied from the files linked below:
+
+```text
+COMBO k=1 set=0 planes=35 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO_MAX accepted_k=1
+VERDICT kms_sweep: DONE combos
+VERDICT kms_sweep: DONE modifiers
+VERDICT kms_sweep: FAIL no connected connector with modes                    (--connector 39, LVDS-1)
+RESULT plane=35 kind=Primary format=XR24 max_upscale_h=none max_upscale_v=none max_upscale_both=none downscale=rejected min_downscale=none
+VERDICT scale_probe: FAIL some plane rejects factor 1 or the baseline: 1 plane(s) probed at dst 960x540, resolution 256/65536
+RESULT plane=35 kind=Primary format=XR24 max_upscale_h=1.0000 max_upscale_v=1.0000 max_upscale_both=1.0000 downscale=rejected min_downscale=none
+VERDICT scale_probe: OK 1 plane(s) probed at dst 1920x1080, resolution 256/65536
+VERDICT scale_probe: FAIL no plane to test                                    (--plane 32)
+VERDICT plane_commit: DONE                                                    (real commit, quadrants)
+VERDICT: PASS                                                                 (camera-check on the KVM picture)
+```
+
+### Per CRTC
+
+| CRTC | `kms_sweep` | `scale_probe` | Tag |
+| --- | --- | --- | --- |
+| 37 (LCDIF3, HDMI-A-1 connected, 1920x1080@60) | combos: k=1 ok, no k=2. modifiers: every format `addfb=EINVAL` (see Formats) | primary 35: 1:1 only at full screen, see Scaling | observed 2026-11-28 |
+| 34 (LCDIF2, LVDS-1 disconnected, forced off by `video=LVDS-1:d`) | `--connector 39`: `VERDICT kms_sweep: FAIL no connected connector with modes`, exit 2. Nothing was tested | not runnable: the examples need a connected connector with a mode, and plane 32 cannot drive CRTC 37 | observed 2026-11-28. Enabling LVDS would be a boot-chain change and was not done |
+
+### Position and size of the primary
+
+`plane_commit --test-only-only` on plane 35, no modeset (the running mode
+was kept). Observed 2026-11-28:
+
+| Layer (`src` → `dst`) | Other property | `TEST_ONLY` |
+| --- | --- | --- |
+| XR24 1920x1080 → 0,0 1920x1080 | none | ok |
+| AR24 1920x1080 → 0,0 1920x1080 | none | ok |
+| XR24 1820x980 → 100,100 1820x980 (inside the screen, offset) | none | EINVAL |
+| XR24 1920x1080 → 100,100 1920x1080 (offset, runs off the screen) | none | EINVAL |
+| XR24 960x540 → 0,0 960x540 (smaller, at the origin) | none | EINVAL |
+| XR24 1920x1080 → 0,0 1920x1080 | `zpos=0` (the value it already has) | EINVAL |
+| XR24 1920x1080 → 0,0 1920x1080 | `zpos=1` | EINVAL |
+
+- The primary is accepted only when it covers the whole mode from (0,0).
+  A primary smaller than the mode at the origin is refused too, so the
+  source's "origin only" rule is not the whole limit on this kernel. The
+  proposal's `full_output_only = true` matches what the board accepts and is
+  not too strict (observed 2026-11-28 for the results; the comparison with
+  the proposal is inferred).
+- Writing the immutable `zpos` is refused even with its current value 0
+  (observed 2026-11-28). That is the DRM core's rule for immutable
+  properties, not an LCDIF limit (inferred).
+
+### Scaling bounds
+
+`scale_probe` on plane 35, XR24, resolution 256/65536, every test
+`ATOMIC_TEST_ONLY | ALLOW_MODESET`. Observed 2026-11-28:
+
+| Destination | Largest accepted upscale (h / v / both) | 16.16 | First rejected | Downscale 0.5 / 0.75 / 0.9 |
+| --- | --- | --- | --- | --- |
+| 960x540 at (0,0) (default) | none: factor 1 itself rejected on h, v and both, errno 22 (EINVAL) | none | 1.0 | all rejected, errno 34 (ERANGE) |
+| 1920x1080 at (0,0) (`--dst 1920x1080`) | 1.0 on h, v and both | 0x00010000 (65536) | 1.25 on the ladder, then the search narrowed to 1.0039 (65792), rejected on h, v and both with errno 34 | all rejected, errno 34, on h, v and both |
+
+- The primary does no scaling at all. Any `SRC` ≠ `CRTC` size is refused
+  with `ERANGE` (observed 2026-11-28). `ERANGE` is the errno the DRM core's
+  plane-state helper returns for a scale outside the driver's limits, which
+  agrees with `DRM_PLANE_NO_SCALING` in the vendor source read for the
+  proposal below (inferred).
+- The 960x540 run gives `EINVAL` before any scaling is tried, which is the
+  full-screen rule above (observed 2026-11-28).
+
+### Formats and modifiers
+
+- `kms_sweep modifiers` reported `addfb=EINVAL test_only=not reached` for
+  all seven formats (XR24, AR24, RG16, XB24, AB24, AR15, XR15) with the
+  linear modifier, `listed=no` (observed 2026-11-28). The example always
+  sets `DRM_MODE_FB_MODIFIERS` when it passes a modifier, also for linear,
+  and the driver reports `DRM_CAP_ADDFB2_MODIFIERS` = 0. So these rows show
+  that ADDFB2 with the modifier flag is refused, not that the formats are
+  (inferred from the example's source and the cap). This is a limitation of
+  `kms_sweep` on a driver without modifier support. A mode that adds a
+  framebuffer without the flag would test the formats. It is not added
+  here, since `crates/composition-drm` is out of this item's scope.
+- Without the modifier flag (`plane_commit`), XR24 and AR24 full-screen
+  were accepted by `TEST_ONLY` (observed 2026-11-28). RG16, XB24, AB24,
+  AR15 and XR15: not measured, because `plane_commit` only offers XR24, AR24
+  and NV12. NV12: not measured, since it is not in the plane's format list.
+
+### Real commit and picture
+
+One real commit was made, because the output could be driven safely: no
+display manager or DRM client was running, the CRTC was already running
+1920x1080 (so `plane_commit` made no modeset), and the KVM showed the HDMI
+output. Observed 2026-11-28
+([`sweep-plane-commit-crtc37.txt`](observed/imx8mp-x2-2026-11-28/sweep-plane-commit-crtc37.txt)):
+
+- `plane_commit --hold-ms 30000 --layer
+  plane=35,format=XR24,src=1920x1080,dst=0,0,1920x1080,pattern=quadrants`:
+  `TEST_ONLY ok`, `COMMIT ok`, `STATE plane=35 fb=47 zpos=0`, `CRTC
+  active=1`, `RECOVER ok`, `RESTORE ok`, `VERDICT plane_commit: DONE`.
+- KVM picture during the hold
+  ([`sweep-picture-quadrants.jpg`](observed/imx8mp-x2-2026-11-28/sweep-picture-quadrants.jpg),
+  42 KB, metadata stripped): judged by `scripts/camera-check.py` against
+  [`sweep-picture-expect.json`](observed/imx8mp-x2-2026-11-28/sweep-picture-expect.json)
+  (`panel full`, rotation 0, tolerance 60): all four quadrants PASS
+  (distances 30.8-37.2), `VERDICT: PASS`
+  ([`sweep-picture-verdict.txt`](observed/imx8mp-x2-2026-11-28/sweep-picture-verdict.txt)).
+  This shows one primary plane on screen. It is not a composition test,
+  since there is only one plane.
+- `scripts/picture-hook.sh` was not run: the KVM capture here is an MCP
+  tool and not the shell command the hook's `PICTURE_CAPTURE` needs, and
+  running the hook with a copy command was refused in this session.
+  camera-check (the hook's judge) was run directly instead (observed
+  2026-11-28).
+- The KVM picture lagged the board by several seconds. One capture 4 s
+  into the hold still showed the console, and one about 12 s after
+  `RESTORE ok` still showed the quadrants (observed 2026-11-28, times
+  approximate). About 23 s after the hold, the KVM showed the fbdev console
+  again (observed 2026-11-28).
+- Pitch change with or without a modeset (proposal item 5), and whether the
+  AR24 alpha channel changes the picture: not measured.
+
+### Display-manager state
+
+- Before (observed 2026-11-28): no process had `/dev/dri/*` open. The OpenRC
+  default runlevel was as x2-probe recorded (10 services started, none of
+  them a display manager or compositor). No podman container was running.
+  The HDMI picture was the fbdev console. The board has no `systemctl`, so
+  `scripts/display-guard.sh detect` found nothing, and `stop` printed
+  `DISPLAY-GUARD none` and wrote an empty state file.
+- After (observed 2026-11-28): `display-guard.sh restore` printed
+  `DISPLAY-GUARD none` and exited 0. No process had `/dev/dri/*` open. The
+  same 10 default-runlevel services were started. HDMI-A-1 was `connected`
+  and LVDS-1 `disconnected`, and the KVM showed the fbdev console. The
+  binaries and outputs were removed from `/tmp` on the board. Nothing was
+  stopped, so there was nothing to restore.
+
+### Files
+
+All in [`observed/imx8mp-x2-2026-11-28/`](observed/imx8mp-x2-2026-11-28/README.md),
+observed 2026-11-28:
+
+| File | What |
+| --- | --- |
+| [`sweep-crtc37.txt`](observed/imx8mp-x2-2026-11-28/sweep-crtc37.txt) | `kms_sweep combos` and `kms_sweep modifiers` on CRTC 37 |
+| [`sweep-crtc34.txt`](observed/imx8mp-x2-2026-11-28/sweep-crtc34.txt) | `kms_sweep combos --connector 39`: refused, no connected connector |
+| [`sweep-scale-crtc37.txt`](observed/imx8mp-x2-2026-11-28/sweep-scale-crtc37.txt) | `scale_probe`: default destination, `--dst 1920x1080`, `--plane 32` |
+| [`sweep-summary-crtc37.md`](observed/imx8mp-x2-2026-11-28/sweep-summary-crtc37.md) | `scripts/sweep-summary.py` output for the two files above, with reading notes |
+| [`sweep-plane-commit-testonly-crtc37.txt`](observed/imx8mp-x2-2026-11-28/sweep-plane-commit-testonly-crtc37.txt) | the `plane_commit --test-only-only` position, size, format and zpos cases |
+| [`sweep-plane-commit-crtc37.txt`](observed/imx8mp-x2-2026-11-28/sweep-plane-commit-crtc37.txt) | the one real commit |
+| [`sweep-picture-quadrants.jpg`](observed/imx8mp-x2-2026-11-28/sweep-picture-quadrants.jpg), [`sweep-picture-expect.json`](observed/imx8mp-x2-2026-11-28/sweep-picture-expect.json), [`sweep-picture-verdict.txt`](observed/imx8mp-x2-2026-11-28/sweep-picture-verdict.txt) | KVM picture, camera-check regions, verdict |
+
 ## Proposed DriverProfile
 
 Design proposal only. Nothing here is implemented, and `crates/composition-drm`

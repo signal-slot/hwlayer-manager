@@ -1,0 +1,33 @@
+# kms_sweep combos /dev/dri/card1   (HDMI-A-1, connector 41, CRTC 37 = LCDIF3)
+DATE 2026-11-28T09:24:57Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+MODE 1920x1080@60Hz connector 41 crtc 37
+PLANE id 32 Primary possible_on_crtc false zpos fixed 0 in_formats none formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+PLANE id 35 Primary possible_on_crtc true zpos fixed 0 in_formats none formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+CANDIDATES 35 primary 35
+COMBO k=1 set=0 planes=35 scale=1.0000x1.0000 src=1920.0000x1080.0000 dst=1920x1080 result=ok
+COMBO_MAX accepted_k=1
+VERDICT kms_sweep: DONE combos
+combos rc=0
+
+# kms_sweep modifiers /dev/dri/card1
+DATE 2026-11-28T09:24:57Z
+KERNEL 6.12.105-0-at
+DEVICE /dev/dri/card1
+DRIVER imx-drm version 1.0.0 date 0 desc i.MX DRM graphics
+MODE 1920x1080@60Hz connector 41 crtc 37
+PLANE id 32 Primary possible_on_crtc false zpos fixed 0 in_formats none formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+PLANE id 35 Primary possible_on_crtc true zpos fixed 0 in_formats none formats XR24,AR24,RG16,XB24,AB24,AR15,XR15
+CANDIDATES 35 primary 35
+NOTE plane=35 has no IN_FORMATS; its formats are tested with the linear modifier, listed=no
+MODIFIER plane=35 format=XR24 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=35 format=AR24 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=35 format=RG16 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=35 format=XB24 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=35 format=AB24 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=35 format=AR15 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+MODIFIER plane=35 format=XR15 modifier=0x0000000000000000 listed=no addfb=EINVAL test_only=not reached
+VERDICT kms_sweep: DONE modifiers
+modifiers rc=0
