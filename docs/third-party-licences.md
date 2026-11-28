@@ -126,12 +126,12 @@ Pinned in `docs/dlm-aarch64.md` and fetched and built by `scripts/build-dlm-aarc
 | Component | URL | Pinned revision | Licence | Tag |
 | --- | --- | --- | --- | --- |
 | Zephyr | `https://github.com/zephyrproject-rtos/zephyr` | tag `v4.5.0` (annotated tag object `d6e5dc6ae358a6bbe05d040e0428e4161f09d006`, commit `41d10b59730406bbab4ca9f1fbbe9e96aafb4966`) | Apache License 2.0 (top-level `LICENSE`, first lines) | read from source 2026-11-28 |
-| cmsis (west module) | `https://github.com/zephyrproject-rtos/cmsis` | `512cc7e895e8491696b61f7ba8066b4a182569b8`, from `west.yml` at `v4.5.0` | not read | revision read from source 2026-11-28; licence not read |
-| cmsis_6 (west module) | `https://github.com/zephyrproject-rtos/CMSIS_6` | `1c1840af7a7e757d6e2fec3ddb0e5ce0dfcc93c8`, from `west.yml` at `v4.5.0` | not read | revision read from source 2026-11-28; licence not read |
-| hal_nxp (west module) | `https://github.com/zephyrproject-rtos/hal_nxp` | `a8b437ef366ff9a6f9bee3377dc189c4d2623f5b`, from `west.yml` at `v4.5.0` | not read | revision read from source 2026-11-28; licence not read |
-| Zephyr SDK (arm-zephyr-eabi toolchain) | `https://github.com/zephyrproject-rtos/sdk-ng` | tag `v1.0.1` (release archives named in `scripts/prepare-zephyr.sh`) | not read | not read |
+| cmsis (west module) | `https://github.com/zephyrproject-rtos/cmsis` | `512cc7e895e8491696b61f7ba8066b4a182569b8`, from `west.yml` at `v4.5.0` | not read: no file named `LICENSE` at the top level of that revision (HTTP 404) | revision read from source 2026-11-28; licence not read |
+| cmsis_6 (west module) | `https://github.com/zephyrproject-rtos/CMSIS_6` | `1c1840af7a7e757d6e2fec3ddb0e5ce0dfcc93c8`, from `west.yml` at `v4.5.0` | Apache License 2.0 (top-level `LICENSE`, first lines) | read from source 2026-11-28 |
+| hal_nxp (west module) | `https://github.com/zephyrproject-rtos/hal_nxp` | `a8b437ef366ff9a6f9bee3377dc189c4d2623f5b`, from `west.yml` at `v4.5.0` | not read: no file named `LICENSE` at the top level of that revision (HTTP 404) | revision read from source 2026-11-28; licence not read |
+| Zephyr SDK (arm-zephyr-eabi toolchain) | `https://github.com/zephyrproject-rtos/sdk-ng` | tag `v1.0.1` (annotated tag object `9f6d137b702f4fe6989b780ace09a5c5da76a1b9`; release archives named in `scripts/prepare-zephyr.sh`) | Apache License 2.0 for the `sdk-ng` repository (top-level `LICENSE`, first lines); the licences of the toolchain components inside the archives were not read | read from source 2026-11-28 |
 
-The licence files of the three modules and of the SDK were not read at these revisions (not measured). Zephyr's `LICENSES/` directory shows that some files and modules are under other licences; those were not read either.
+The `cmsis` and `hal_nxp` licences were not read, and neither were the licences of the components bundled in the SDK archives (not measured). Zephyr's `LICENSES/` directory shows that some files and modules are under other licences; those were not read either.
 
 Fit (inferred, not legal advice): Zephyr's main licence is the same as this repository's. A Zephyr application kept here (`tests/board/...`) is the project's own code; the Zephyr tree and its modules are fetched, not copied in.
 
@@ -139,7 +139,7 @@ Fit (inferred, not legal advice): Zephyr's main licence is the same as this repo
 
 - libdrm and Weston: only the files named above were read; per-file headers elsewhere in those trees were not (sections 3.2, 3.5).
 - fff (drm-lease-manager test-only subproject): not read.
-- Zephyr modules (cmsis, cmsis_6, hal_nxp) and the Zephyr SDK: pinned, but their licence files are not read (section 3.6).
+- Zephyr modules `cmsis` and `hal_nxp`, and the components bundled in the Zephyr SDK archives: pinned, but their licences are not read (section 3.6).
 - The demo firmware that `docs/twoplane-backend.md` names (`display_port_<soc>.c`, outside this repository): no document pins a URL or commit, and no copy could be read on 2026-11-28. Its licence is not read. It is not a build input of this repository.
 - The copyright holder named in `NOTICE` is a placeholder (section 1).
 
