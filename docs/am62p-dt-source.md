@@ -1,223 +1,266 @@
 # Verdin AM62P device tree: DSS, panels and R5F carve-outs, read from source
 
-Written 2026-11-28 for plan #465, item `am62p-dt-source`. Source study only:
-no device was used, and nothing here is **observed**. It is meant to tell the
-M3 board run which device-tree facts to check on the board. The tidss driver is
-studied in `docs/am62p-dss-source.md` and the R5F remoteproc driver in
-`docs/am62p-r5f-remoteproc-source.md`; this note covers device-tree files only
-and does not repeat them.
+Written 2026-11-28 for plan #465, item `am62p-dt-source`. Source study: no
+device was used and nothing here is **observed**. It tells the M3 board run
+which device-tree facts to check on the board. The tidss driver is studied in
+`docs/am62p-dss-source.md` and the R5F remoteproc driver in
+`docs/am62p-r5f-remoteproc-source.md`; this note covers device-tree files only.
 
-**This study is incomplete.** The Toradex kernel tree could not be read
-(see the table), and the DSS node, the Verdin display wiring and the Toradex
-display overlays were not obtained from any source. Sections (a), (b) and (d)
-say so and give only what can be stated safely. Section (c) is read from
-mainline. Do not treat a gap here as "the tree has no such node".
+Short answer:
 
-## Tags and what was actually read
+* The Toradex kernel tree describes **two** DSS instances (`dss0`, `dss1`),
+  both `disabled` in the SoC dtsi, and the Verdin AM62P files do **not** enable
+  or wire either of them. Display wiring on Verdin must come from overlays.
+  The Toradex display overlays themselves could **not** be read (section b).
+* The Toradex Verdin dtsi enables both R5F clusters and carves out memory for
+  them: MCU R5F `0x9b800000` (1 MiB DMA pool) and `0x9b900000` (15 MiB),
+  wakeup R5F `0x9c800000` and `0x9c900000`.
+* TI's tree has a DSS "shared mode" (`ti,dss-shared-mode*`) that marks a video
+  port and planes as owned by a remote core. It exists for the AM62P SK board
+  as an overlay; nothing in the Verdin files uses it.
 
-Each statement is tagged **source** (file, repository, commit or tag) or
-**inferred**. Nothing is observed.
+## Tags and sources
 
-| Source | Repository, ref, commit | Status |
+Each statement is tagged **source** (file, repository, commit) or **inferred**.
+
+| Short name | Repository, ref, commit | Status |
 | --- | --- | --- |
-| Toradex kernel tree, branch `toradex_ti-linux-6.6.y` | `https://git.toradex.com/linux-toradex.git`, tip `9764efd3fe8e5f3fa04045919296c102acd7517e` (from `git ls-remote`, 2026-11-28). The branch `toradex_ti-linux-6.18.y` (tip `9797b77f3c86abc90e771a13bc1abcce0ee5dbb5`) also exists. | **Not read.** `git ls-remote` worked; a clone was refused in this session, and the cgit web interface answered with an anti-bot "Access Denied" page. The GitHub mirror path `toradex/linux-toradex` returned 404. Which of the two TI-based branches Torizon OS uses for Verdin AM62P is **inferred** (6.6 is the older Torizon 7 line, 6.18 the newer one); the sources read here do not say. |
-| Toradex overlays, `device-tree-overlays` | `https://git.toradex.com/device-tree-overlays.git`, branch heads from `git ls-remote`: `toradex_ti-linux-5.10.y_bringup` `28a84e584ce575689110c12fcd517ab4a957dd36`, `toradex_ti-linux-6.1.y` `68f55f88d66c6f24a805bd15aca3c8892be9b5ba`, `toradex_ti-linux-6.6.y` `c93543ff886bd467219464c3cefabe8ed97d9464` | **Not read** (same cgit block). The GitHub copies `toradex/device-tree-overlays` and `toradex/device-trees` are archives (default branch `toradex_5.4.y` / `toradex_5.4-2.3.x-imx`, 48 and 153 commits) with i.MX overlays only; no file name there contains `am62p`. The `device-trees` README says the repository is deprecated in favour of a successor, and the overlays README says it is deprecated in favour of `device-trees` (page text, read 2026-11-28). |
-| Mainline Linux `arch/arm64/boot/dts/ti/` | `https://github.com/torvalds/linux.git` tag `v6.18`, commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` (the tag object is `f7b88edb52c8dd01b7e576390d658ae6eef0e134`) | **Partly read** through GitHub web views, which cut files off at about 1000 lines or were rate limited. Read in full: `k3-am62p-ti-ipc-firmware.dtsi`, `k3-am62p-verdin-dev.dtsi`, `k3-am62p-verdin-wifi.dtsi`, `k3-am62p5-verdin-nonwifi-dev.dts`, `arch/arm64/boot/dts/ti/Makefile`, the tail of `k3-am62p-j722s-common-mcu.dtsi` and `-wakeup.dtsi`. Read in part (first ~1000 lines): `k3-am62p-j722s-common-main.dtsi` (1102 lines) and `k3-am62p-verdin.dtsi` (1418 lines). **Not read:** their tails, and the carrier files `-dahlia`, `-ivy`, `-mallow`, `-yavia`. |
-| Mainline checkout in the dependency cache (`linux-mainline`) | Version `7.4-rc4` per its `Makefile` | Sparse: it has no `arch/arm64/boot/dts/ti`. Not used. |
+| **TDX 6.6** | `https://git.toradex.com/linux-toradex.git`, branch `toradex_ti-linux-6.6.y`, commit `9764efd3fe8e5f3fa04045919296c102acd7517e` (`Merge tag 'v6.6.163'`, 2026-11-23) | **Read** from a blobless clone (`git show`, `git grep`), 2026-11-28. All "source" tags below without another name mean this tree. |
+| other Toradex branches | same repository; `toradex_ti-linux-6.18.y` at `9797b77f3c86abc90e771a13bc1abcce0ee5dbb5`, `toradex_ti-linux-6.1.y` at `c5d9d94e5c3a5b9283dbf861886fd761bb4a0e26` (from `git ls-remote`) | **Not read.** That Torizon OS uses `toradex_ti-linux-6.6.y` for Verdin AM62P is **inferred** (the branch carries the Verdin AM62P board files; the 6.18 branch may supersede it in newer Torizon releases). |
+| **overlays** | `https://git.toradex.com/device-tree-overlays.git`, branch heads from `git ls-remote`: `toradex_ti-linux-6.6.y` `c93543ff886bd467219464c3cefabe8ed97d9464`, `toradex_ti-linux-6.1.y` `68f55f88d66c6f24a805bd15aca3c8892be9b5ba` | **Not read.** A second clone was refused and the cgit web view returns an anti-bot page. The GitHub archives `toradex/device-tree-overlays` and `toradex/device-trees` hold only 5.4-era i.MX overlays (page listing, 2026-11-28). |
+| **mainline v6.18** | `https://github.com/torvalds/linux.git`, tag `v6.18`, commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` | Partly read via GitHub web views; used only for the comparison in section (c). |
 
-Licences of what is quoted: `k3-am62p-ti-ipc-firmware.dtsi` carries
-`SPDX-License-Identifier: GPL-2.0-only OR MIT` (TI); `k3-am62p5-verdin-nonwifi-dev.dts`
-carries `GPL-2.0-or-later OR MIT` (Toradex). The SPDX line of the other files
-was not seen. Quotes are short excerpts, not whole files.
+Licences of quoted excerpts: `k3-am62p-main.dtsi`, `k3-am62p-mcu.dtsi` and
+`k3-am62p-wakeup.dtsi` carry `GPL-2.0-only OR MIT` (TI); the Verdin board
+`.dts` and the SK overlays carry `GPL-2.0-or-later OR MIT`. Quotes are short
+excerpts, not whole files. All paths are under `arch/arm64/boot/dts/ti/` of
+TDX 6.6 unless stated.
 
-Consequence for the question "what does Torizon run": the Verdin AM62P files
-exist in mainline from at least v6.18, but Toradex ships its own TI-based
-kernel branch, and its device tree may differ from mainline. Everything in (c)
-is therefore **source for mainline v6.18** and **inferred** for the Toradex
-tree.
+## Files that exist (source, TDX 6.6)
 
-## Board files that exist (source, mainline v6.18)
-
-From `arch/arm64/boot/dts/ti/Makefile` (tag `v6.18`, commit
-`7d0a66e4bb9081d75c82ec4957c50034cb0ea449`): the Verdin AM62P boards are
-`k3-am62p5-verdin-{nonwifi,wifi}-{dahlia,dev,ivy,mallow,yavia}.dtb`. There is
-no `.dtbo`/`.dtso` entry for Verdin AM62P in that Makefile (source). The
-AM625 Verdin has display overlays in the same directory (`k3-am625-verdin-dsi-to-hdmi.dtso`,
-`...-dsi-to-lvds-panel-cap-touch-10inch.dtso`, `...-panel-cap-touch-10inch-lvds.dtso`,
-`...-panel-cap-touch-7inch-dsi.dtso`, a GitHub directory listing of the same tag),
-but those are for the AM625 SoM, not AM62P (source for existence; inferred that
-the AM62P ones will have a similar naming).
-
-`k3-am62p5-verdin-nonwifi-dev.dts` (same tag) is 22 lines and includes, in this
-order, `k3-am62p5.dtsi`, `k3-am62p-verdin.dtsi`, `k3-am62p-verdin-nonwifi.dtsi`
-and `k3-am62p-verdin-dev.dtsi`; its compatible list is
+Verdin AM62P boards (`Makefile`): `k3-am62p5-verdin-{nonwifi,wifi}-{dahlia,dev,ivy,mallow,yavia}.dtb`
+(the tree also has `-zinnia` `.dts` files, not in the Makefile lines read).
+`k3-am62p5-verdin-nonwifi-dev.dts` includes `k3-am62p5.dtsi`, `k3-am62p-verdin.dtsi`,
+`k3-am62p-verdin-nonwifi.dtsi`, `k3-am62p-verdin-dev.dtsi`; compatible
 `toradex,verdin-am62p-nonwifi-dev`, `toradex,verdin-am62p-nonwifi`,
-`toradex,verdin-am62p`, `ti,am62p5` (source). It does **not** include
-`k3-am62p-ti-ipc-firmware.dtsi` (source for the `.dts`; the include list of the
-unread tail of `k3-am62p-verdin.dtsi` is unknown).
+`toradex,verdin-am62p`, `ti,am62p5`. `k3-am62p.dtsi` includes the SoC
+`-main`, `-mcu`, `-wakeup`, `-thermal` files. **There is no Verdin AM62P
+`.dtso` in the tree**; the `.dtso` files named `k3-am62p5-sk-*` are for TI's SK
+board (source).
 
-## (a) DSS node, video ports, planes — **not obtained**
+## (a) DSS nodes, ports and planes (source, TDX 6.6, `k3-am62p-main.dtsi`)
 
-* Mainline v6.18, `k3-am62p.dtsi`: the `cbass_main` ranges contain a window
-  commented `/* DSS */` at `0x30200000`, size `0x10000`, and one commented
-  `/* VPU */` at `0x30210000` (source, the agent that read the file reported
-  these two lines from the GitHub view).
-* The `dss:` node itself (compatible, reg, clocks, power-domains, ports and
-  remote endpoints, OLDI nodes) was **not read**. It is not in the first ~1000
-  lines of `k3-am62p-j722s-common-main.dtsi`, and the file's last 100 lines
-  were not available. `k3-am62p-main.dtsi` (82 lines, read in full) holds only
-  USB, OC-SRAM, DMSS interrupt, audio clock, GPIO and SDHCI overrides and **no**
-  display node (source).
-* A hand decode of the file through the GitHub contents API found no `dss`
-  or OLDI node either, but that decode was partial and is not relied on here.
-* Inferred (from the driver study, not from a dts): the AM62P display subsystem
-  is expected to be reachable at `0x30200000`, and the number of planes and
-  video ports follows the tidss compatible; see `docs/am62p-dss-source.md`.
-  Which ports are wired to OLDI, DPI or a DSI bridge on Verdin is **unknown
-  from the sources read**.
+The tree has two DSS instances. Excerpt of `dss0` (lines 1186 onward, trimmed):
 
-What the board run should do: read `/proc/device-tree` or `dtc -I fs` on the
-board to fill this section; it is a board task, not source work.
+```
+dss0: dss@30200000 {
+	compatible = "ti,am62p51-dss";
+	reg = <0x00 0x30200000 0x00 0x1000>, /* common */
+	      <0x00 0x30202000 0x00 0x1000>, /* vidl1 */
+	      <0x00 0x30206000 0x00 0x1000>, /* vid */
+	      <0x00 0x30207000 0x00 0x1000>, /* ovr1 */
+	      <0x00 0x30208000 0x00 0x1000>, /* ovr2 */
+	      <0x00 0x3020a000 0x00 0x1000>, /* vp1: Used for OLDI */
+	      <0x00 0x3020b000 0x00 0x1000>, /* vp2: Used as DPI Out */
+	      <0x00 0x30201000 0x00 0x1000>; /* common1 */
+	reg-names = "common", "vidl1", "vid", "ovr1", "ovr2", "vp1", "vp2", "common1";
+	power-domains = <&k3_pds 186 ...>, <&k3_pds 243 ...>, <&k3_pds 244 ...>;
+	clocks = <&k3_clks 186 6>, <&dss0_vp1_clk>, <&k3_clks 186 2>;
+	clock-names = "fck", "vp1", "vp2";
+	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+	status = "disabled";
+```
 
-## (b) Toradex display overlays for Verdin AM62P — **not obtained**
+| Item | `dss0` | `dss1` |
+| --- | --- | --- |
+| compatible | `ti,am62p51-dss` | `ti,am62p52-dss` |
+| base | `0x30200000` | `0x30220000` |
+| register blocks | common, vidl1, vid, ovr1, ovr2, vp1, vp2, common1 | same names, offsets `+0x20000` |
+| power domains (k3_pds ids) | 186 (DSS0), 243 (OLDI0), 244 (OLDI1) | 232 (DSS), 244 (OLDI1) |
+| clocks | `fck` = clk 186/6, `vp1` = `dss0_vp1_clk`, `vp2` = clk 186/2 | `fck` = clk 232/8, `vp1` = `dss1_vp1_clk`, `vp2` = clk 232/4 |
+| interrupt (GIC SPI) | 84 | 30 |
+| OLDI transmitters | `oldi0_dss0` (reg 0, `ti,companion-oldi = <&oldi1_dss0>`), `oldi1_dss0` (reg 1, `ti,secondary-oldi`) | `oldi1_dss1` (reg 0) |
+| status in the SoC dtsi | `disabled` | `disabled` |
 
-The overlay files, their panels or bridges, timing source, VP use and the
-default overlay were not read (the Toradex repositories were blocked, see the
-table). What is known:
+Further facts (source):
 
-* Mainline v6.18 has no Verdin AM62P display overlay (Makefile, source).
-* The AM625 Verdin overlay names listed above suggest the Toradex interfaces
-  (DSI to HDMI, DSI to LVDS, 10-inch and 7-inch capacitive-touch panels,
-  Raspberry Pi display); whether the AM62P tree has the same set is
-  **inferred**, not read.
-* Pin comments in `k3-am62p-verdin.dtsi` (first ~1000 lines, tag `v6.18`)
-  show the SoM routes `Verdin PWM_3_DSI`, `DSI_1_INT#`, `DSI_1_BKL_EN#`,
-  `I2C_2_DSI` (`main_i2c1`) and `I2C_3_HDMI` (`mcu_i2c0`). They show that the
-  module offers a DSI connector with I2C and backlight lines, and an HDMI
-  bridge I2C line (source). No VOUT0 (DPI) pin group was found in the part read.
-* `k3-am62p-verdin-dev.dtsi` (read in full) enables `&epwm0` (PWM_3_DSI),
-  `&main_i2c1` (I2C_2_DSI) and `&mcu_i2c0` (I2C_3_HDMI) and has no `&dss`,
-  `&dsi`, `&oldi` or panel nodes (source).
-* Inferred: at v6.18 the Verdin AM62P mainline tree does not itself describe a
-  panel; display support, if present on Torizon, comes from the Toradex branch
-  and overlays. Which overlay is enabled by default is unknown.
+* Planes: each instance lists **one** `vidl1` and **one** `vid` register block,
+  so the binding implies two planes per instance (one VIDL, one VID), two
+  overlay managers (`ovr1`, `ovr2`) and two video ports (`vp1`, `vp2`). The
+  `common1` block is the second register space used by shared mode.
+* The reg comments say `vp1` is "Used for OLDI" and `vp2` "Used as DPI Out".
+  `dss0_vp1_clk` and `dss1_vp1_clk` are `fixed-factor-clock` dividers by 7 of
+  clk 186/0 and clk 232/0 (`k3-am62p.dtsi`).
+* A single OLDI-IO control syscon `dss_oldi_io_ctrl` at offset `0x8600`
+  (size `0x200`) is referenced through `ti,oldi-io-ctrl` by all OLDI nodes.
+* `dsi0: dsi@30500000` (`ti,j721e-dsi`, wrapper at `0x30270000`) with D-PHY
+  `dphy_tx0` (`ti,j721e-dphy`, `0x301c0000`) exist, both `disabled`. The SoC
+  `cbass_main` ranges map `DSS`, `DSS1`, `DSI Wrapper` and `DSI Config`
+  (`k3-am62p.dtsi`).
+* The port graph (`dss0_ports`, `oldi*_ports`) is empty in the SoC dtsi; the
+  boards fill it. Exemplar from TI's own SK board (source, `k3-am62p5-sk.dts`
+  and `*.dtso`): `dss0` VP2 (`port@1`) goes to an HDMI transmitter
+  (`sii9022`), `dss0` VP1 (`port@0`, two endpoints) goes to OLDI0 and OLDI1
+  for a dual-link LVDS panel overlay, and `dss1` VP2 goes to `dsi0` and a
+  Toshiba `tc358762` bridge for the RPi 7-inch DSI panel overlay. The SK
+  LVDS overlay notes that OLDI TX 0 sends the odd pixels and TX 1 the even
+  ones, a fixed configuration.
+* Inferred from the above: for a Verdin AM62P the likely routes are VP1 to
+  OLDI/LVDS, VP2 to DPI (parallel RGB or an HDMI bridge on the carrier) and
+  `dss1` VP2 to DSI, but **no Verdin file in the tree sets any of it** (section b).
+
+## (b) Display overlays for Verdin AM62P
+
+* TDX 6.6 has **no display wiring for the Verdin AM62P** (source). In
+  `k3-am62p-verdin.dtsi`, `-dev`, `-dahlia`, `-ivy`, `-mallow`, `-yavia`,
+  `-zinnia`, `-nonwifi`, `-wifi` and `k3-am62p5.dtsi` a case-insensitive grep
+  for `dss`, `oldi`, `dsi`, `lvds`, `hdmi`, `panel`, `vout` finds only: the
+  comments `Verdin PWM_3_DSI`, `Verdin I2C_2_DSI`, `Verdin I2C_3_HDMI`,
+  `Verdin DSI_1_INT#` and `Verdin DSI_1_BLK_EN#` (carrier I2C, PWM and GPIO
+  groups, backlight and interrupt pins), and VOUT0 pads used as GPIO or UART
+  functions (`pinctrl_*` lines in `k3-am62p-verdin.dtsi`). No `&dss0`, `&dss1`,
+  `&oldi*` or `&dsi0` is set.
+* Consequence (inferred): `dss0` and `dss1` stay `disabled` in the base
+  dtb; a Torizon display path needs a Toradex overlay that enables them.
+* The panel or bridge, the timing source, the VP used and the default overlay
+  for each Toradex AM62P display overlay (DSI-to-HDMI, DSI-to-LVDS, LVDS panel,
+  DPI) are **not known**: the overlays repository could not be read. For the
+  AM625 Verdin, mainline names such overlays (`k3-am625-verdin-dsi-to-hdmi.dtso`,
+  `...-panel-cap-touch-10inch-lvds.dtso`, `...-panel-cap-touch-7inch-dsi.dtso`
+  at v6.18, a GitHub listing); that the AM62P set is analogous is **inferred**.
+* Which overlay Torizon enables by default: **unknown** from the sources read.
+
+For the M3 report the panel therefore has to be taken from the running board,
+not from this note.
 
 ## (c) R5F remoteproc nodes, carve-outs, mailboxes
 
-### MCU R5F and wakeup R5F (source, mainline v6.18)
+### Cores (source, TDX 6.6)
 
-`k3-am62p-j722s-common-mcu.dtsi` (tag `v6.18`, commit
-`7d0a66e4bb9081d75c82ec4957c50034cb0ea449`), lines 187 to 210:
-
-```
-mcu_r5fss0: r5fss@79000000 {
-	compatible = "ti,am62-r5fss";
-	ranges = <0x79000000 0x00 0x79000000 0x8000>,
-		 <0x79020000 0x00 0x79020000 0x8000>;
-	power-domains = <&k3_pds 7 TI_SCI_PD_EXCLUSIVE>;
-	status = "disabled";
-	mcu_r5fss0_core0: r5f@79000000 {
-		compatible = "ti,am62-r5f";
-		reg-names = "atcm", "btcm";
-		ti,sci-dev-id = <9>;
-		ti,sci-proc-ids = <0x03 0xff>;
-		firmware-name = "am62p-mcu-r5f0_0-fw";
-		ti,atcm-enable = <0>;
-		ti,btcm-enable = <1>;
-		ti,loczrama = <0>;
-		status = "disabled";
-```
-
-(abridged by omitting `#address-cells`, `#size-cells`, `reg`, `ti,sci`,
-`resets` lines). ATCM and BTCM are 32 KiB each (`0x8000`) at `0x79000000` and
-`0x79020000`. Both the cluster and the core are `disabled` here (source).
-
-`k3-am62p-j722s-common-wakeup.dtsi`, same tag, lines 118 to 141:
-`wkup_r5fss0: r5fss@78000000`, same compatibles, ATCM `0x78000000` and BTCM
-`0x78100000` (32 KiB each), `ti,sci-dev-id = <121>`, `ti,sci-proc-ids = <0x01 0xff>`,
-`firmware-name = "am62-wkup-r5f0_0-fw"`, `ti,atcm-enable = <1>`, `ti,loczrama = <1>`,
-`status = "disabled"` (source). The wakeup core is the one the TI documentation
-calls the device-manager R5F; that mapping is **inferred**, the dts does not say it.
-
-### Mailboxes (source)
-
-`k3-am62p-j722s-common-main.dtsi` (same tag) defines four nodes with
-`compatible = "ti,am64-mailbox"`, all `status = "disabled"`, `ti,mbox-num-users = <4>`,
-`ti,mbox-num-fifos = <16>`:
-
-| Label | Address | GIC SPI |
+| | MCU R5F | Wakeup R5F |
 | --- | --- | --- |
-| `mailbox0_cluster0` | `0x29000000` | 76 |
-| `mailbox0_cluster1` | `0x29010000` | 77 |
-| `mailbox0_cluster2` | `0x29020000` | 108 |
-| `mailbox0_cluster3` | `0x29030000` | 109 |
+| file | `k3-am62p-mcu.dtsi` | `k3-am62p-wakeup.dtsi` |
+| cluster | `mcu_r5fss0: r5fss@79000000`, `ti,am62-r5fss`, power domain `k3_pds 7` | `wkup_r5fss0: r5fss@78000000`, `ti,am62-r5fss`, `k3_pds 119` |
+| core | `mcu_r5fss0_core0: r5f@79000000`, `ti,am62-r5f` | `wkup_r5fss0_core0: r5f@78000000`, `ti,am62-r5f` |
+| TCM | atcm `0x79000000`, btcm `0x79020000`, 32 KiB each | atcm `0x78000000`, btcm `0x78100000`, 32 KiB each |
+| SCI | dev-id 9, proc-ids `0x03 0xff`, reset `k3_reset 9 1` | dev-id 121, proc-ids `0x01 0xff`, reset `k3_reset 121 1` |
+| `firmware-name` | `am62p-mcu-r5f0_0-fw` | `am62-wkup-r5f0_0-fw` |
+| TCM enable | `ti,atcm-enable = <0>`, `ti,btcm-enable = <1>`, `ti,loczrama = <0>` | `<1>`, `<1>`, `ti,loczrama = <1>` |
+| other | `sram = <&mcu_ram>` (`0x79100000`, 512 KiB), `wakeup-source` | none |
+| default status | `disabled` on the cluster, none on the core | `disabled` on the cluster |
 
-### Carve-outs and mailbox wiring in the TI IPC include (source)
+The wakeup core is the one TI calls the device-manager R5F; this mapping is
+**inferred** (the dts does not say it). The SK overlay's firmware label
+`dss_display_share.wkup-r5f0_0.release.strip.out` supports it (source).
 
-`k3-am62p-ti-ipc-firmware.dtsi` (tag `v6.18`, SPDX `GPL-2.0-only OR MIT`, 60
-lines) enables the R5Fs and defines:
+### Verdin overrides (source, TDX 6.6, `k3-am62p-verdin.dtsi`, lines 152-192 and 872-905)
 
 ```
-mcu_r5fss0_core0_dma_memory_region: memory@9b800000 {  /* reg 0x9b800000, size 0x100000 */
-mcu_r5fss0_core0_memory_region:     memory@9b900000 {  /* reg 0x9b900000, size 0xf00000  */
+reserved-memory {
+	mcu_r5fss0_core0_dma_memory_region: memory@9b800000 {   /* shared-dma-pool, no-map */
+		reg = <0x00 0x9b800000 0x00 0x100000>;
+	mcu_r5fss0_core0_memory_region: memory@9b900000 {
+		reg = <0x00 0x9b900000 0x00 0xf00000>;
+	wkup_r5fss0_core0_dma_memory_region: memory@9c800000 {
+		reg = <0x00 0x9c800000 0x00 0x100000>;
+	wkup_r5fss0_core0_memory_region: memory@9c900000 {
+		reg = <0x00 0x9c900000 0x00 0x01e00000>;
 ```
 
-both `compatible = "shared-dma-pool"`, `no-map`. The MCU core gets
-`mboxes = <&mailbox0_cluster1 &mbox_mcu_r5_0>` with `ti,mbox-rx = <0 0 0>`,
-`ti,mbox-tx = <1 0 0>`, and `memory-region = <dma region>, <memory region>`
-(DMA first). The wakeup core gets `mailbox0_cluster0`/`mbox_r5_0` with the same
-rx/tx numbers and the `wkup_r5fss0_core0_*` regions.
-
-`k3-am62p-verdin.dtsi` (first ~1000 lines, same tag) has, in its
-`reserved-memory` node: `tfa@9e780000` (`0x9e780000`, `0x80000`, no-map),
-`optee@9e800000` (`0x9e800000`, `0x01800000`, no-map), and
-`wkup_r5fss0_core0_dma_memory_region` `memory@9c800000` (`0x9c800000`, `0x100000`)
-and `wkup_r5fss0_core0_memory_region` `memory@9c900000` (`0x9c900000`, `0x01e00000`),
-both `shared-dma-pool`, `no-map` (source).
+Also present: `tfa@9e780000` (`0x80000`, no-map) and `optee@9e800000`
+(`0x01800000`, no-map). In the same file `&mailbox0_cluster0` and
+`&mailbox0_cluster1` are `okay`; `mbox_mcu_r5_0` has `ti,mbox-rx = <0 0 0>`,
+`ti,mbox-tx = <1 0 0>`; `&wkup_r5fss0`, `&mcu_r5fss0` and both cores are
+`okay`. The MCU core gets `mboxes = <&mailbox0_cluster1 &mbox_mcu_r5_0>` and
+`memory-region = <dma region>, <memory region>` (DMA pool first). The wakeup
+core gets only `memory-region` here, **no `mboxes`** (source: the override has
+no such line). Mailbox nodes themselves (`ti,am64-mailbox`, cluster 0 to 3 at
+`0x29000000` + `0x10000` steps, 4 users, 16 FIFOs) come from the SoC dtsi
+(source for cluster addresses at mainline v6.18; not re-read in TDX 6.6).
 
 Facts that follow:
 
-* Mainline v6.18 gives the **wakeup** R5F carve-outs in the Verdin dtsi and the
-  **MCU** R5F carve-outs only in the TI IPC include (source).
-* The Verdin board `.dts` read does not include that IPC dtsi, so in that
-  mainline board file the MCU R5F is likely to stay `disabled` and without a
-  memory region (**inferred**; the tail of `k3-am62p-verdin.dtsi` is unread).
-  The MCU R5F carve-out at `0x9b800000`/`0x9b900000` is then not available from
-  mainline alone. Whether the Toradex branch or a Torizon overlay adds it is
-  **not known**; this is the first thing to check on the board
-  (`docs/board-test-am62p-r5f.md` and `docs/remoteproc-bringup.md`).
-* The two MCU regions are contiguous (`0x9b800000` to `0x9c800000`), the
-  wakeup regions likewise (`0x9c800000` to `0x9e700000`), and the OP-TEE/TF-A
-  regions start at `0x9e780000` (**inferred** from the arithmetic of the
-  quoted values). The sizes (1 MiB DMA pool, 15 MiB for the MCU image;
-  1 MiB, 30 MiB for wakeup) bound what a firmware image can place there.
-* Firmware names: the MCU core asks Linux for `am62p-mcu-r5f0_0-fw` and the
-  wakeup core for `am62-wkup-r5f0_0-fw` (source). Whether the board test
-  overrides the name through sysfs is a driver matter; see
-  `docs/am62p-r5f-remoteproc-source.md`.
+* **The MCU R5F is enabled with its carve-out in the Toradex Verdin dtsi.**
+  The board image's code and data must fit `0x9b900000` to `0x9c800000`
+  (15 MiB), with the resource table and rpmsg/vring in or next to the DMA
+  pool at `0x9b800000` (1 MiB) (**inferred**: placement follows the usual
+  `shared-dma-pool` use by `ti_k3_r5_remoteproc`; see the remoteproc study).
+* MCU regions end at `0x9c800000` and the wakeup regions start there
+  (`0x9c800000` to `0x9e700000`); TF-A starts at `0x9e780000` (**inferred** by
+  arithmetic from the quoted values).
+* Mainline v6.18 differs: there the MCU carve-outs live in
+  `k3-am62p-ti-ipc-firmware.dtsi`, which the mainline Verdin `.dts` does not
+  include, so the MCU core stays disabled in mainline (source for the
+  includes, **inferred** for the effect). TDX 6.6 does not have that split.
+* Because both cores are `okay` and have firmware names, Linux can start
+  either through remoteproc; whether the Torizon boot chain already loads
+  firmware into the wakeup core is a boot-chain question for
+  `am62p-torizon-bsp-source`, not answered by device-tree files.
 
-## (d) DSS planes or ports owned by a remote core — **not found**
+## (d) DSS planes or ports owned by a remote core (source)
 
-Nothing in the files read marks a plane or video port as owned by a remote
-core. No `ti,dss-shared`-style property appears in the nodes quoted above, but
-the DSS node was not read, so this is **absence of evidence, not evidence of
-absence** (inferred). The only remote-core object seen is the R5F cluster and
-mailbox wiring above. The remote DSS sharing support, if any, is a driver and
-firmware matter (`docs/am62p-dss-source.md`), and for the board test the
-shared state is held by the R5F image itself (`docs/board-test-am62p-r5f.md`).
+TI's tree has a **DSS shared mode**. Binding (TDX 6.6,
+`Documentation/devicetree/bindings/display/ti/ti,am65x-dss.yaml`) properties:
 
-## What the M3 board run should confirm (all open)
+* `ti,dss-shared-mode` (boolean): "TI DSS7 supports sharing of display between
+  multiple hosts"; the host with `common` has exclusive access to the global
+  registers, the other uses `common1`; planes can be partitioned between
+  Linux and a remote core.
+* `ti,dss-shared-mode-planes` (`vidl` or `vid`): the plane owned by Linux.
+* `ti,dss-shared-mode-vp` (`vp1` or `vp2`): the video port; shared between
+  Linux and a remote core, with the remote core holding write access when
+  Linux does not own it.
+* `ti,dss-shared-mode-common` (`common` or `common1`): the register region
+  owned by Linux.
+* `ti,dss-shared-mode-vp-owned` (0 or 1): whether Linux has write access to the
+  port.
+* `ti,dss-shared-mode-plane-zorder` (0 or 1): z-order of Linux's planes; when
+  Linux has no write access it is "just informational".
 
-1. Which dts the running kernel was built from (Toradex branch and commit),
-   to close the "not read" row above.
-2. The `dss` node, its ports and the enabled overlay (a) and (b).
-3. Whether the MCU R5F has `memory-region` entries and which addresses,
-   compared with `0x9b800000` and `0x9b900000` (c).
-4. Whether `mcu_r5fss0` and `mailbox0_cluster1` are `okay` (c).
+The only user in the tree is the SK overlay `k3-am62p5-sk-dss-shared-mode.dtso`
+(compatible with Device Manager firmware `dss_display_share.wkup-r5f0_0...`):
 
-## Follow-ups for the planner
+```
+&dss0 {
+	ti,dss-shared-mode;
+	ti,dss-shared-mode-vp = "vp1";
+	ti,dss-shared-mode-vp-owned = <0>;
+	ti,dss-shared-mode-common = "common1";
+	ti,dss-shared-mode-planes = "vid";
+	ti,dss-shared-mode-plane-zorder = <0>;
+	interrupts = <GIC_SPI 85 IRQ_TYPE_LEVEL_HIGH>;
+};
+&reserved_memory {
+	rtos_framebuffer_memory_region: rtos-framebuffer-memory@93500000 {
+		reg = <0x00 0x93500000 0x00 0x08000000>;   /* no-map, 128 MiB */
+```
 
-Re-read the DSS node and the Toradex overlays when a clone of
-`linux-toradex` (`toradex_ti-linux-6.6.y` or `-6.18.y`) is possible from a node
-that is not blocked by the anti-bot page; then this note's sections (a), (b),
-(d) can be completed and the "inferred" lines replaced.
+Meaning (inferred from the binding text): Linux owns the `vid` plane through
+`common1`, has read-only access to `vp1`, and a remote core (the wakeup R5F
+running the shared-display firmware) drives `vp1`; the remote core's
+framebuffer pool is the 128 MiB region at `0x93500000`. Nothing in the Verdin
+files uses any `ti,dss-shared-mode*` property or this region (source:
+`grep` of the Verdin files above). So on Verdin, Linux owns the whole DSS
+unless a Toradex overlay says otherwise (**inferred**; overlays unread).
+
+For the M3 test: the MCU R5F in `docs/board-test-am62p-r5f.md` scenes writes
+DSS planes through its own driver while Linux's tidss is stopped or unbound;
+it does not use the shared mode (inferred from that doc's route; this note
+does not re-read it).
+
+## What the M3 board run should confirm
+
+1. The running dtb's source: kernel build and branch, to tie it to TDX 6.6 or
+   another branch.
+2. Which overlay is active, and the resulting `dss0`/`dss1` status, ports and
+   panel (section b is empty of facts).
+3. That `mcu_r5fss0` and its `memory-region` exist as in (c), and the sizes the
+   remoteproc core reports match 1 MiB and 15 MiB.
+4. Whether the wakeup R5F is running firmware (boot-chain question).
+
+## For the planner
+
+Section (b) needs the Toradex overlays repository (`device-tree-overlays`,
+branch `toradex_ti-linux-6.6.y`, tip above) or the AM62P display overlays from
+a Torizon image. A node that can clone it (the second clone was refused here)
+can complete it; the other sections do not depend on it.
