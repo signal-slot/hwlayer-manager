@@ -104,11 +104,15 @@ with no rejection, plane 49 only 1.0, no downscale anywhere; observed
   ignore alpha still needs an XRGB buffer (inferred: no blend-mode property
   exists to select "none");
 - no rule for plane 49 lacking YUV (the format lists carry it);
-- transforms are not claimed.
+- transforms are not claimed (`profile.rs` adds none and leaves what KMS
+  reports; pinned by the host test `stm32_ltdc_adds_no_transform_claims`;
+  never 90/270). Session C took no picture, so no evidence supports a
+  change (observed 2026-11-28).
 
 State at this commit: the profile above is in the tree, built on the
-session A and B measurements. The recommended transform claims (reflect-x on
-plane 42 only, nothing on the primary, never 90/270) are not applied yet.
+session A and B measurements. The transform claims proposed in sessions A and B (reflect-x on
+plane 42 only, nothing on the primary, never 90/270) are **not applied**:
+they wait for pictures (Q6).
 Two design points:
 
 - Which overlay has a scaler is a register fact, seen on one board (layers 0
@@ -164,12 +168,16 @@ the run and restored afterwards (this worked on 2026-11-27).
 
 Sessions A and B are in
 [`../stm32mp257-ltdc-session-2026-11-28.md`](../stm32mp257-ltdc-session-2026-11-28.md)
-(summary table at its end). Each question below is **answered** or **open**.
+(summary table at its end) and session C (2026-11-28: no picture, outputs
+read over ssh). Each question below is **answered** or **open**.
 
-1. **Pixel colours.** Status: **open**. No picture exists; the KVM session
-   (session C) is pending. Wanted: screenshots in both `--swap-z` phases
-   (about 2 s and 7 s of a 600-frame run) and with `--plane-alpha 32768`,
-   compared with the `EXPECT` lines.
+1. **Pixel colours.** Status: **open**. Session C was to take the pictures,
+   but the KVM capture failed again (HTTP 404 from the MCP relay, observed
+   2026-11-28), so no picture exists. Wanted: screenshots in both
+   `--swap-z` phases and with `--plane-alpha 32768`, compared with the
+   `EXPECT` lines. See
+   [session C](../stm32mp257-ltdc-session-c-2026-11-28.md#part-1-q1-pixel-colours--not-run)
+   and [the rehearsal](../observed/stm32mp257-kvm.md).
 2. **Premultiplied or straight alpha.** Status: **answered**. Straight alpha
    on plane 42, pixel alpha times plane alpha, from the output CRC (observed
    2026-11-27; the formula is inferred). See
@@ -180,8 +188,13 @@ Sessions A and B are in
    (observed 2026-11-27); plane 34 was not probed. See
    [Q3](../stm32mp257-ltdc-session-2026-11-28.md#q3-scaling-bounds-quality-and-underrun).
 4. **Scaler layers on other MP25 variants or firewall settings** (register
-   fact, one board seen). Status: **open**. Missing: a reading from ST source
-   or public documents; pending.
+   fact, one board seen). Status: **answered** from source only. No file
+   names the layers that scale; the driver reads `LXCR_C1R_SCA` per layer at
+   probe, code and device trees are the same for all variants, and a
+   firewall refusal of layer 3 removes that plane but does not change which
+   layers scale (read from source). The public reference manual was not
+   read; identical silicon is inferred. See
+   [session C, Q4](../stm32mp257-ltdc-session-c-outputs-2026-11-28.md#q4-which-layers-have-a-scaler-on-other-stm32mp25-variants).
 5. **Writing zpos.** Status: **answered**. Crossed zpos passes TEST_ONLY and
    commits and the hardware follows it (observed 2026-11-27). See
    [Q5](../stm32mp257-ltdc-session-2026-11-28.md#q5-writing-zpos-crossed-values-on-the-fixed-planes).
@@ -192,13 +205,23 @@ Sessions A and B are in
    reflect-x/180 and overlay reflect-x+reflect-y give an unstable CRC.
    Missing: the effect in a picture, plane 49 (not tested), and whether a
    failure after a passing TEST_ONLY leaves the display stopped (none seen).
+   Session C took no picture (attempted 2026-11-28, KVM capture failed), so
+   it stays open; see
+   [session C, part 2](../stm32mp257-ltdc-session-c-2026-11-28.md#part-2-q6-transforms-nv12-colours-plane-34-scaling--not-run).
+   How reflect-x, reflect-y and 180 are programmed, with predicted
+   pictures, is in
+   [`stm32mp257-ltdc-transform-source.md`](../stm32mp257-ltdc-transform-source.md)
+   (read from source).
 7. **Underrun under load.** Status: **answered**. No `fifo_underrun_error` or
    `transfer_error` under CPU and memory load with three planes and a scaled
    layer; warnings only with scaling (observed 2026-11-27). See
    [Q7](../stm32mp257-ltdc-session-2026-11-28.md#q7-underrun-under-load).
-8. **Other outputs.** Status: **open**. Only HDMI through the KVM was seen.
-   Missing: whether LVDS or DSI routes exist on this image; source creates a
-   DPI encoder but checks for LVDS in the mode check (inferred). Pending.
+8. **Other outputs.** Status: **answered**. One connector `HDMI-A-1`, one
+   encoder, one CRTC. The encoder drives a DSI host and an ADV7535 bridge
+   chain, which is the live route. An LVDS route exists in the device tree
+   but is `disabled` and not bound, so it needs a device-tree change
+   (observed 2026-11-28). See
+   [session C, Q8](../stm32mp257-ltdc-session-c-outputs-2026-11-28.md#q8-other-outputs).
 9. **C8 and YUV.** Status: **answered**. NV12 commits on plane 42 at 1:1 and
    is scanned out, refused on plane 49 and when scaled; C8 is offered on all
    three planes, not tried (observed 2026-11-27; NV12 colours not judged).
