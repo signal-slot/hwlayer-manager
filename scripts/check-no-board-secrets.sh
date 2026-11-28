@@ -59,7 +59,8 @@
 #   - Display-mode strings: "WxH@Hz", "WxH@R" and "<digits>x<digits>@<digits>[.<digits>]"
 #     (1920x1080@60, 1280x720@59.94). Only a user part that is a mode spec and
 #     a host part that is a rate match; "root@board7" is still flagged.
-#   - Literal placeholders: "user@host", "repo@commit", "repo@pin", "a@b.c", and any @example.com,
+#   - Literal placeholders: "user@host", "repo@commit", "repo@pin", "NAME@HZ"
+#     (the --mode usage string), "a@b.c", and any @example.com,
 #     @example.org, @example.net, @example.invalid address.
 #   - "name@commit" pins: @ followed only by hex digits ("imx-sm@af1e3702"),
 #     device-tree unit addresses ("port@0/1", "phy@c"), the "@N" placeholder and
@@ -225,6 +226,7 @@ scripts/check-m2-acceptance.test.sh|/dev/ttyUSB0|fake UART path the M2 acceptanc
 scripts/check-m3-report.test.sh|10\.20\.30\.40|fake address the M3 report check must reject
 scripts/check-m3-report.test.sh|aa:bb:cc:dd:ee:ff|fake MAC the M3 report check must reject
 scripts/check-m3-report.test.sh|root@verdinhost|fake ssh target the M3 report check must reject
+crates/composition-drm/examples/mode_test.rs|--mode x@fast|negative test input: a mode text without a refresh rate, not an ssh target
 scripts/check-no-farm-ids.test.sh|ip="10\.1\.2\.3"|fake IPv4 the farm-id check must reject
 scripts/check-no-farm-ids.test.sh|192\.0\.2\.7|RFC 5737 documentation range sample
 scripts/check-no-farm-ids.test.sh|1\.2\.3\.4|lockfile version that must not be flagged
@@ -254,7 +256,7 @@ done
 # only at the end of a sentence (so a hex-looking host with a domain is still a host).
 B='(\.?$|\.?[^A-Za-z0-9_.-])'
 safe_sed='s#actions/[A-Za-z0-9_.-]+@v[0-9][A-Za-z0-9.]*# #g;
-s#(^|[^A-Za-z0-9_])(user@host|repo@commit|repo@pin)'"$B"'# #g;
+s#(^|[^A-Za-z0-9_])(user@host|repo@commit|repo@pin|NAME@HZ)'"$B"'# #g;
 s#[A-Za-z0-9_.-]+@example\.(com|org|net|invalid)# #g;
 s#[A-Za-z0-9_.-]+@b\.c# #g;
 s#(^|[^A-Za-z0-9_.-])(WxH|[0-9]+x[0-9]+)@(Hz|R|[0-9]+(\.[0-9]+)?)'"$B"'#\1 #g;

@@ -65,6 +65,9 @@ run user-at-host 1 a.txt "ssh $uh"
 run mode-wxh-hz 0 a.txt "modes use WxH@Hz notation"
 run mode-concrete 0 a.txt "set 1920x1080@60 and 1280x720@59.94"
 run mode-wxh-r 0 a.txt 'format `WxH@R`'
+run mode-usage-name-hz 0 a.txt 'usage: --mode NAME@HZ and `NAME@HZ`'
+run mode-lowercase-hz-host-flagged 1 a.txt "ssh root@""hz.corp"
+run mode-name-hz-dotted-host-flagged 1 a.txt "ssh NAME@""HZ.corp"
 run mode-real-root 1 a.txt "ssh root@""boardhost"
 run mode-real-ip 1 a.txt "ssh user@""10.0.0.""1"
 run mode-real-local 1 a.txt "ssh admin@""host.local"
