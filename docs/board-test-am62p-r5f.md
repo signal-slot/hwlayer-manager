@@ -2,7 +2,7 @@
 
 `tests/board/am62p_r5f/` is a Zephyr application for the MCU Cortex-R5F of a Toradex Verdin AM62P. It drives the board's display through the engine's C API (`composition_engine.h`) and the two-plane backend (`backends/twoplane/ce_twoplane.c`, compiled from this repository). It uses no Slint and none of the demo's application code.
 
-**Status (2026-11-28): not run on a board; not built from this repository's `main`.** The binding of `struct ce_twoplane_hw` to the demo's DSS driver (`src/hw_am62p.c`) is written, and `prj.conf` is configured for the remoteproc route. The commit that wrote them (the owner's `361e31f`, 2026-11-27) states that the image builds. That build was not repeated here: this branch was rebased onto the current `main` without building the Zephyr image or running anything on a board. The scene sequence, the backend and the engine run on the host behind a fake panel. See [What was checked](#what-was-checked-2026-11-27).
+**Status (2026-11-28): the image builds from this repository; not run on a board.** The binding of `struct ce_twoplane_hw` to the demo's DSS driver (`src/hw_am62p.c`) is written, and `prj.conf` is configured for the remoteproc route. The build was repeated from this repository on 2026-11-28 and exits 0 with `zephyr.elf` (see [What was checked (2026-11-28, image build)](#what-was-checked-2026-11-28-image-build)). Nothing has run on a board. The scene sequence, the backend and the engine run on the host behind a fake panel. See [What was checked](#what-was-checked-2026-11-27).
 
 ## Layout
 
@@ -80,6 +80,15 @@ Use the remoteproc route of `$MCUI_SHOWCASE_DIR/docs/remoteproc-bringup.md`. Ins
 ## The host run
 
 `cargo test --workspace` includes `board_scenes_behind_a_fake_panel` in `backends/twoplane/tests/twoplane.rs`, which is also part of CI. It compiles `src/scenes.c`, the backend and `host/fake_panel.c` with the host's C compiler and links them with the engine. Then it runs the sequence on a 96×48 fake panel. At every frame start the fake driver latches its shadow registers. At every hold the fake panel composes the active planes at a corner and at the middle of each rectangle position, and compares them with the "should show" column above. This checks the sequence and its own judgement. It cannot check the driver, the timing or the caches.
+
+## What was checked (2026-11-28, image build)
+
+- **Command:** the one under [Build](#build), run as written with `ZEPHYR_TOOLCHAIN_VARIANT=zephyr` from inside `$ZEPHYR_WORKSPACE`, a build directory under `$TMPDIR`, and the module list exactly as given. `YAKOGL_DIR` was a read-only checkout of yakogl `main` beside the demo (a new clone was not possible in that session). No file of the demo or of yakogl was written or copied.
+- **Result:** success. `west build` exited 0 (157 of 157 steps) and `zephyr/zephyr.elf` exists. No file of `tests/board/am62p_r5f` needed a fix.
+- **Versions:** Zephyr 4.5.0 (the workspace's `VERSION`; revision not recorded), Zephyr SDK 1.0.1 with `gnu/arm-zephyr-eabi`, `ZEPHYR_TOOLCHAIN_VARIANT=zephyr`, stable rustc 1.99.0 (2026-09-28) with the `armv7r-none-eabihf` target, west in the workspace's Python virtual environment.
+- **Image size** (from the ELF section headers, in bytes; `arm-zephyr-eabi-size` itself was not run): text 80412 (code 0xeec8 + vector/boot + rodata + ISR tables, 0x376c of rodata), data 192, bss 4093336 + noinit 4936256 + RAM_CONSOLE 65536. The linker's own report: RAM 9142656 B of 12 MB (72.66%), ATCM 288 B of 32 KB, RSC_TABLE 68 B of 64 KB, RAM_CONSOLE 64 KB of 64 KB. The `.bss` is dominated by the two application buffers (2 MB each for the default 1280×800 limit) plus the `noinit` area.
+- **Link (M3-05 evidence):** the final link of `zephyr.elf` succeeded with no unresolved symbol. That includes the engine's static library `libcomposition_engine.a` built for `armv7r-none-eabihf`, `ce_twoplane.c` and `scenes.c`, and `__aeabi_memclr4`, which the engine needs. Which object supplied `__aeabi_memclr4` (the library's weak copy from compiler_builtins or the C library) was not looked at; the map file was not inspected.
+- **Not checked:** anything on a board; the image's behaviour; the host test and CI checks are in the report of the same change.
 
 ## What was checked (2026-11-27)
 
