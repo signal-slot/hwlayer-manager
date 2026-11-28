@@ -42,10 +42,10 @@ as `commit:<short sha>:<line>`). Kinds:
 | `mac` | six pairs of hex digits joined by `:` or by `-` (one separator throughout) |
 | `user@host` | a user name, an `@`, then a host name that starts with a letter |
 | `ssh-key` | a PEM `BEGIN ... PRIVATE KEY` header line |
-| `secret` | one of five credential words (the password, passwd, token, secret and api_key family; any case), then `=`, then a value |
+| `secret` | one of five credential words (see the script header; any case), then `=`, then a value |
 
 `--c7` mode uses one case-insensitive pattern: a dotted quad, the tty device-node prefix,
-the word for a password, or an `@` followed by a name and a dot. It prints
+a credential word, or an `@` followed by a name and a dot. It prints
 `fail <file>: <line>` per hit, or `ok` when clean.
 
 ### What it allows
@@ -58,7 +58,7 @@ flagged.
   versions look like addresses).
 - `user@host`: the public git hosting clone user, `noreply` addresses and
   `Co-Authored-By` / `Signed-off-by` lines; GitHub Actions `uses:` step lines
-  and `actions/NAME@vN`; display modes (width x height, `@`, refresh rate, or the `WxH` placeholder);
+  and the `actions/` version-tag shorthand; display modes (width x height, `@`, refresh rate, or the `WxH` placeholder);
   a few literal placeholder spellings and
   the reserved example domains; name-at-commit pins (hex only), device-tree
   unit addresses, `@N`, and systemd instance names; exact public mailing-list
@@ -102,7 +102,7 @@ per case and exits non-zero if any case failed.
   checks, and the script is listed under the local checks there. No board
   address, host name, serial or UART path, serial number or credential goes
   into a file or a commit.
-- **Acceptance rule c7**: "no address-like, tty, password or user-at-host strings
+- **Acceptance rule c7**: "no address-like, tty, credential or user-at-host strings
   in the diff since BASE_REF", as run by `scripts/check-m2-acceptance.sh`
   over the M2 documents and board apps. `--c7` reproduces that grep exactly,
   so a hit here is a hit there. It is stricter than the default mode (it has
