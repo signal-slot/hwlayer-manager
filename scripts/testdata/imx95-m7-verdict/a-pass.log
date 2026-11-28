@@ -1,0 +1,5 @@
+# SYNTHETIC fixture for scripts/imx95-m7-verdict.test.sh: not a board capture.
+[    1.000] unrelated console noise
+M7P: reg DPU_ID 0x00000001
+M7P: reg DPU_CTRL 0x00000000
+M7P: verdict A READABLE

@@ -1,0 +1,5 @@
+# SYNTHETIC fixture for scripts/imx95-m7-verdict.test.sh: not a board capture.
+M7E: engine start ok abi=1
+M7E: plan out0 plane0 bufA 0 0 1280 800
+M7E: plan out0 plane1 bufB 100 100 64 64
+M7E: backend=fake events=3

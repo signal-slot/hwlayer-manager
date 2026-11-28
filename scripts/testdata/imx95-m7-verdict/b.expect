@@ -1,0 +1,3 @@
+# SYNTHETIC expect file for scripts/imx95-m7-verdict.test.sh: not a board capture.
+plan out0 plane0 bufA 0 0 1280 800
+plan out0 plane1 bufB 100 100 64 64

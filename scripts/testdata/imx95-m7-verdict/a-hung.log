@@ -1,0 +1,2 @@
+# SYNTHETIC fixture for scripts/imx95-m7-verdict.test.sh: not a board capture.
+M7P: reg DPU_ID 0x00000001
