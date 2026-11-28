@@ -1,0 +1,10 @@
+# HOST RUN (fake panel), not a board result. 2026-11-28, commit 0ba62fc
+SCENE 1 safety-only: status 0 (expected 0), commits 1 latched 1 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 2 app-under-safety: status 0 (expected 0), commits 4 latched 4 (+3, expected +3), presented yes, released 1 (expected 1): ok
+SCENE 3 app-replaced: status 0 (expected 0), commits 5 latched 5 (+1, expected +1), presented yes, released 1 (expected 1): ok
+SCENE 4 safety-flipped: status 0 (expected 0), commits 6 latched 6 (+1, expected +1), presented yes, released 1 (expected 1): ok
+SCENE 5 app-off: status 0 (expected 0), commits 7 latched 7 (+1, expected +1), presented yes, released 1 (expected 1): ok
+SCENE 6 refused-no-safety: status -16 (expected -16), commits 7 latched 7 (+0, expected +0), presented -, released 0 (expected 0): ok
+SCENE 7 refused-blank: status -16 (expected -16), commits 7 latched 7 (+0, expected +0), presented -, released 0 (expected 0): ok
+SCENE 8 refused-foreign-safety: status -16 (expected -16), commits 7 latched 7 (+0, expected +0), presented -, released 0 (expected 0): ok
+RESULT PASS (8 scenes, vsyncs 61)
