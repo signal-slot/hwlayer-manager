@@ -1,0 +1,46 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
+/*
+ * Enable the DPU node of the i.MX95 M7 at the scene's size, 1280x800
+ * ARGB8888 (docs/m2-linux-zephyr-comparison.md section 2). The upstream
+ * board files only label the node; the driver needs width, height,
+ * pixel-format and a display-timings child, which the dtsi does not provide.
+ *
+ * The timing values are the "typ" column of the original Toradex 10.1"
+ * panel in docs/imx95-verdin-lvds-panel.md (read from source there). The
+ * sync polarities are placeholders, and no LVDS/LDB route, pin or clock is
+ * configured: on the EVK target this is not a working panel setup. It only
+ * gives the driver a 1280x800 mode. The node being enabled does not touch
+ * the DPU: the driver is only built when CONFIG_IMX95_M7_SCENE_ENABLE_DPU is
+ * set (see Kconfig).
+ */
+
+#include <zephyr/dt-bindings/display/panel.h>
+
+/ {
+	chosen {
+		zephyr,display = &dpu;
+	};
+};
+
+&dpu {
+	status = "okay";
+	width = <1280>;
+	height = <800>;
+	pixel-format = <PANEL_PIXEL_FORMAT_ARGB_8888>;
+
+	display-timings {
+		compatible = "zephyr,panel-timing";
+		clock-frequency = <71100000>;
+		hfront-porch = <60>;
+		hback-porch = <60>;
+		hsync-len = <40>;
+		vfront-porch = <7>;
+		vback-porch = <7>;
+		vsync-len = <9>;
+		hsync-active = <0>;
+		vsync-active = <0>;
+		de-active = <1>;
+		pixelclk-active = <0>;
+	};
+};
