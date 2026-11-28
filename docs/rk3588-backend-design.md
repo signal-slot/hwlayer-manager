@@ -1,7 +1,9 @@
 # RK3588 (VOP2) backend design
 
-Design note, written 2026-11-28. **No hardware result is claimed and no code
-was changed.** Tags follow `docs/platform-capabilities.md`:
+Design note, written 2026-11-28; the §7 status notes added 2026-11-29 carry
+their dates from the linked session and comparison files and restate nothing
+as new. **No hardware result is claimed and no code was changed.** Tags follow
+`docs/platform-capabilities.md`:
 
 - **observed**, **read from source**: carried over unchanged from the source
   documents, with their dates and pins.
@@ -83,7 +85,7 @@ good and its refusals explainable.** The reasoning, constraint by constraint:
 | Plane count, kind, `possible_crtcs` | Read from KMS | Correct. Cluster1 shows `outputs 0b0` only while its CRTC is not connected; with two connectors the mask is right. A lease or DT `disable-win-move` shrinks the set and the backend already reports only what it sees. |
 | zpos | Mutable range read from the property | Correct. The vendor note says the DRM core normalises zpos; the planner's choice of a distinct zpos per plane fits. |
 | Alpha, blend modes | From `alpha` and `pixel blend mode` | Correct on all planes. |
-| Formats and modifiers | `IN_FORMATS`, linear first, cut at 32 | **Risk.** Cluster planes have more than 32 pairs (observed: the probe truncated at 32 inside the AFBC group). Pairs past the cut are invisible to the planner, so a valid AFBC format may be refused as `FORMAT`. This is a capacity limit (`MAX_FORMATS`), not a table matter; see question Q1. |
+| Formats and modifiers | `IN_FORMATS`, linear first, cut at 32 | **Risk.** Cluster planes have more than 32 pairs (observed 2026-11-27: the probe truncated at 32 inside the AFBC group). Pairs past the cut are invisible to the planner, so a valid AFBC format may be refused as `FORMAT`. This is a capacity limit (`MAX_FORMATS`), not a table matter; see question Q1. |
 | Scaling | One global `DrmOptions::scaling` for every plane, or none | **Gap.** Without options every plane is "cannot scale", so scaled layers are refused though Esmart (8x) and Cluster (4x) can scale. With one global value the planner would send an 8x layer to a Cluster plane the hardware (or the check) may refuse. Per window-type limits need a table. |
 | Transforms | Never filled, so every rotation is refused | **Gap.** Cluster+AFBC can rotate 90/270 and reflect, Esmart reflects in Y. The mask depends on the window type and on the buffer's modifier, so a plain per-plane mask is not enough; see section 5. |
 | `max_source` | Not read | Gap, minor: 4096x7680 (Cluster sub 2048x7680) is not stated to the planner. |
@@ -212,7 +214,8 @@ behaviour:
 
 ## 7. Open questions
 
-All inferred.
+All inferred when written; the *Status (2026-11-29)* notes carry their dates
+from the session and comparison files linked in them.
 
 - **Q1.** Does `MAX_FORMATS = 32` hide usable AFBC pairs on Cluster planes?
   The recorded list was cut at 32 by the probe, not by the kernel. Needs the
@@ -221,29 +224,93 @@ All inferred.
   backend sorts linear first, yet the probe listing started with AFBC pairs;
   whether the probe prints in a different order or the Cluster planes list
   no linear pairs was not resolved.
+  *Status (2026-11-29): answered (observed 2026-11-27 and 2026-11-28:
+  [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md) Q1
+  and `crates/composition-drm/tests/data/rk3588/props-2026-11-27.txt`). A
+  Cluster plane lists 14 formats under 9 AFBC modifiers = 126 pairs and no
+  linear pair, so the cut keeps AFBC pairs only and hides 94 of the 126; the
+  ordering doubt resolves to "the Cluster planes list no linear pairs"
+  (`TEST_ONLY` still accepts linear on Cluster). Raising `MAX_FORMATS` is a
+  composition-core decision: recorded in
+  [`rk-hvs-caps-finding.md`](rk-hvs-caps-finding.md), not changed here.*
 - **Q2.** Which kernel does the target run: vendor 6.1 or a 6.18-based
   kernel (the recorded board)? Rotation, `support-multi-area`, the Primary
   window choice and the Cluster modifier list differ or are unverified for
   mainline. Table values must be tagged per kernel.
+  *Status (2026-11-29): answered (observed 2026-11-28:
+  [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md) Q2
+  — the target runs the mainline-based `6.18.55-current-rockchip64`, not the
+  vendor 6.1 kernel; and [`rk3588-kernel-compare.md`](rk3588-kernel-compare.md)
+  diffs the cited `v6.18` rows against `v6.18.55`: five differing hunks,
+  everything else byte-identical). The vendor figures of §2 stay tagged to
+  the vendor kernel and are not used for this one, as
+  `crates/composition-drm/src/profile/rk3588.rs` (read 2026-11-29) does.*
 - **Q3.** How does a profile identify a window class? KMS exposes no window
   name; the debugfs name was used in the recording. Candidates: the plane
   `type` plus the `IN_FORMATS` content (AFBC present means Cluster), or the
   `SCALE_RATE` property on the vendor kernel.
+  *Status (2026-11-29): answered (observed 2026-11-27 and 2026-11-28:
+  [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md) Q3).
+  On this kernel no property or name tells the class (`SCALE_RATE` does not
+  exist), and the class is read off `IN_FORMATS`: a listed modifier of vendor
+  `0x08` means Cluster, else Esmart — the rule
+  `crates/composition-drm/src/profile/rk3588.rs` (read 2026-11-29)
+  implements. The supported `rotation` bits remain unmeasured: the `props`
+  dumps hold the current value only (observed 2026-11-27).*
 - **Q4.** Is eight simultaneous windows achievable? Not determined in the
   source document; needs a `TEST_ONLY` sweep on a board.
+  *Status (2026-11-29): answered for this board and device tree (observed
+  2026-11-27, `crates/composition-drm/tests/data/rk3588/sweep-combos-2026-11-27.txt`
+  and its scaled re-run, `COMBO_MAX accepted_k=4`): no — every `TEST_ONLY`
+  set of four full-screen planes on the connected CRTC was accepted and every
+  set of five or more refused with `EINVAL`, at 1:1 and at 2x/0.5 scaling;
+  with one connected output there is no way to reach eight. The source row
+  `win_size / nvps = 4` for the two used video ports matches
+  ([`rk3588-vop2-window-assign-source.md`](rk3588-vop2-window-assign-source.md));
+  a device tree with one used port would allow eight (§4), untested.*
 - **Q5.** Should the planner prefer Esmart for plain RGB to leave Cluster
   free for AFBC and rotation? The core has no cost model; adding one is
   outside this note.
+  *Status (2026-11-29): still open — a planner cost model is a
+  composition-core question (§4), outside this note.*
 - **Q6.** Is zpos a global 0..=7 across CRTCs or per CRTC, and what does the
   kernel do when two planes on one CRTC share a value?
+  *Status (2026-11-29): still open for the two decisive cases. Measured
+  (observed 2026-11-28,
+  [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md)
+  Q6): `zpos` is a mutable plane property with range 0..=7 on every plane
+  including the CRTC-1-only one, and the five-plane refusal is not a zpos
+  refusal. Equal zpos on one CRTC was not tried (the sweep only uses distinct
+  values; `crates/composition-drm/examples/zpos_probe.rs`, read from source,
+  covers exactly this case), and the cross-CRTC case cannot be made on this
+  board (HDMIA-2 disconnected, observed 2026-11-28).*
 - **Q7.** Does a second output work through two leases on this board? The
   recorded board has no second connected output.
+  *Status (2026-11-29): still open — the board still has one connected output
+  (observed 2026-11-28,
+  [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md)),
+  so two leases were not tried.*
 - **Q8.** Cluster `win1` and Esmart multi-area: the source document left open
   whether they become DRM planes; with 12 planes the 16-plane limit still
   holds, but the pairing rule then matters.
+  *Status (2026-11-29): answered for this kernel (observed 2026-11-27 and
+  2026-11-28,
+  [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md)
+  Q8): the board exposes exactly eight planes, one window each — no Cluster
+  `win1` and no Esmart multi-area plane exist, so the pairing rule has no
+  case here. A vendor 6.1 kernel with `support-multi-area` was not tested.*
 - **Q9.** Overlay-plane flip behaviour and latch reporting: nothing was
   committed in the recording, so the `Latched` event semantics (page-flip
   event per CRTC) are not evidenced for this driver.
+  *Status (2026-11-29): still open as a board measurement, and blocked by
+  the tool: `twoplane` refuses to start on this board because no primary
+  lists a linear 32-bit RGB format
+  (`crates/composition-drm/tests/data/rk3588/verify-twoplane-2026-11-28.txt`,
+  observed 2026-11-28), so no flip/latch counts and no KVM picture exist and
+  `camera-check` was not run (`verify-camera-2026-11-28.txt`). The driver
+  offers no async flip (`async page flip: 0`, observed 2026-11-27 in the
+  probe record). The intended semantics are read from source
+  ([`rk3588-vop2-flip-source.md`](rk3588-vop2-flip-source.md)).*
 
 ## 8. Proposed items
 
