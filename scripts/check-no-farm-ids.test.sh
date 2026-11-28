@@ -7,7 +7,8 @@
 
 here=$(cd "$(dirname "$0")" && pwd)
 script=$here/check-no-farm-ids.sh
-root=$(mktemp -d "${TMPDIR:-/tmp}/nfi-test.XXXXXX") || exit 2
+mkdir -p "${TMPDIR:-$PWD/.tmp}"
+root=$(mktemp -d "${TMPDIR:-$PWD/.tmp}/nfi-test.XXXXXX") || exit 2
 trap 'rm -rf "$root"' EXIT HUP INT TERM
 repo=$root/r
 fail=0
@@ -118,5 +119,24 @@ frun testdata-fake 0 scripts/testdata/x/in.txt "board at $ip $tty $mac"
 frun real-secret-normal-file 1 src/a.txt "board at $ip"
 frun real-secret-scripts-dir 1 scripts/other.sh "board at $ip"
 frun testdata-lookalike 1 xscripts/testdata/in.txt "board at $ip"
+
+# Committed repository with no remote and no base ref (the scanner always
+# scans every tracked file): a clean commit passes, a planted value fails.
+full=$root/full
+rm -rf "$full"
+mkdir -p "$full/scripts"
+cp "$script" "$full/scripts/"
+fscan() { (cd "$full" && timeout 120 bash scripts/check-no-farm-ids.sh </dev/null >"$root/out" 2>&1); }
+(cd "$full" && git init -q -b topic . && git config user.email t@example.invalid &&
+    git config user.name t && printf '%s\n' "nothing to see" >a.txt &&
+    git add . && git commit -q -m base </dev/null)
+fscan
+if [ $? -eq 0 ]; then echo "ok   fullscan-clean"; else echo "FAIL fullscan-clean"; cat "$root/out"; fail=1; fi
+# Planted at run time. This scanner allowlists the documentation range, so
+# the planted value is a credential assignment instead.
+printf '%s=%s\n' "pass""word" "hunter""2" >"$full/b.txt"
+(cd "$full" && git add b.txt && git commit -q -m plant </dev/null)
+fscan
+if [ $? -eq 1 ] && grep -q 'b.txt:1' "$root/out"; then echo "ok   fullscan-planted"; else echo "FAIL fullscan-planted"; cat "$root/out"; fail=1; fi
 
 exit $fail
