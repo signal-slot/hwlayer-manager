@@ -1,189 +1,205 @@
-# vc4: a second commit while the first is pending (HVS Q6), read from source
+# vc4: a second commit while the first is pending (HVS question 6), from source
 
-Status: source read, written 2026-11-28. **No hardware result is claimed.** Nothing here was run on a
-board. This answers, from the driver and the DRM core, question 6 of
-[`hvs-backend-design.md`](hvs-backend-design.md) §7: may a commit that has not latched be replaced,
-and what is reported. The measurement is the `pending_probe` run in the `rpi5-hvs6-session` (HVS6,
-BCM2712) and the `cm4-hvs5-session` (HVS5, BCM2711); this file only states what those runs should
-find.
+Status: source read, written 2026-11-28. **No hardware result is claimed.** Nothing was run on a
+board. This is the prediction that the `pending_probe` runs in the `rpi5-hvs6-session` (HVS6,
+BCM2712) and the `cm4-hvs5-session` (HVS5, BCM2711) must confirm or refute.
 
-## Tags
+It answers question 6 of [`hvs-backend-design.md`](hvs-backend-design.md) §7 (`replace_pending`:
+can a commit that has not latched be replaced, and what is reported).
 
-- **read from source**: `raspberrypi/linux`, with a file and line. Two trees were read on 2026-11-28:
-  - `rpi-6.18.y` at commit `16ae2649dcfadf9d81445b1177a3191efa3cb82e` (written "6.18" below);
-  - branch `rpi-6.12.y`, fetched by branch name, whose tip a moment later was
-    `8f5f2e15840330091c7116b2ef9454108d4bc423` (written "6.12" below). The line numbers of 6.12 are
-    for the file as fetched, which is that tip unless the branch moved between the two requests.
-- **inferred**: a conclusion drawn from those lines, not itself a line of source.
-- Paths: `drm/` is `drivers/gpu/drm/`; `vc4/` is `drivers/gpu/drm/vc4/`.
-- Which kernel each board runs is a separate question (HVS Q7, not answered here); this file does not
-  say that a board runs either tree.
+## Tags and pins
 
-## 1. How the engine models it
+- **read from source**: read in the tree below, with file:line.
+  - Kernel `rpi-6.12.y`: tree `raspberrypi/linux`, branch `rpi-6.12.y`, commit
+    `8f5f2e15840330091c7116b2ef9454108d4bc423` (shallow checkout of `drivers/gpu/drm` and
+    `include/drm`, read 2026-11-28). Line numbers below are from this checkout and are exact.
+  - Kernel `rpi-6.18.y`: tree `raspberrypi/linux`, branch `rpi-6.18.y`, commit
+    `16ae2649dcfadf9d81445b1177a3191efa3cb82e`. The local checkout of this commit had no files,
+    so the `vc4_*.c` files were read through a web fetch of
+    `https://raw.githubusercontent.com/raspberrypi/linux/16ae2649dcfadf9d81445b1177a3191efa3cb82e/drivers/gpu/drm/vc4/vc4_kms.c`
+    (and `vc4_crtc.c`, `vc4_hvs.c`, `vc4_plane.c` at the same commit). The line numbers given for
+    it are approximate (about 3 lines either way). `vc4_plane.c` was only partly readable
+    there: its async check and update are **inferred** to match 6.12.
+  - `drm_atomic_helper.c` at 6.18 was not read in full; the helper statements for 6.18 are
+    **inferred** from 6.12 (generic DRM core code, same stall and async checks in both
+    lineages).
+- **inferred**: a conclusion of this note. A line without a tag is inferred.
+- Board facts (the boards' kernel versions) are in
+  [`observed/bcm2712-topology.md`](observed/bcm2712-topology.md) and are not repeated here.
+  Whether the boards run these exact kernels is HVS question 7 and is not decided here.
 
-All read from this repository on 2026-11-28 (a statement about the engine's contract, not the HVS):
+## 1. How the engine models `replace_pending`
 
-- `Capabilities::replace_pending` is read once per commit at `crates/composition-core/src/engine.rs:310`
-  and passed to `Presentation::check_submit` / `submit`.
-- With the flag false and a submission still pending on that output, the core refuses before the
-  backend is asked: `PresentError::Busy` (`crates/composition-core/src/presentation.rs:331`).
-- With the flag true, the pending submission is replaced and reported as `DisplayEvent::Dropped`
-  (`presentation.rs:357-366`, doc comment).
-- The vc4 profile does not decide the flag; it "stays as reported (unknown: inferred)"
-  (`crates/composition-drm/src/profile/vc4.rs:74`).
+All of this is read from the repository on 2026-11-28 (inferred as far as it concerns the HVS).
 
-So the question for the board is exactly: does the kernel accept a second nonblocking commit on the
-same CRTC between the first commit's return and its flip event?
+- `Capabilities::replace_pending` (`crates/composition-core/src/caps.rs:172`): "whether a new
+  commit may replace one that has not been latched yet. If `false`, committing while a submission
+  is pending fails as busy."
+- `Presentation::check_submit` (`crates/composition-core/src/presentation.rs:331`): a slot with a
+  pending submission and `replace_pending == false` gives `PresentError::Busy(output)`.
+  With `replace_pending == true` the pending submission is replaced and reported as
+  `DisplayEvent::Dropped` (`presentation.rs:357-359`).
+- `Engine::commit` (`crates/composition-core/src/engine.rs:310`) takes the flag from
+  `self.caps.replace_pending` and calls `check_submit` before asking the backend to commit.
+- `crates/composition-drm/src/profile/vc4.rs:74` leaves the flag "as reported (unknown:
+  inferred)": no profile claims `true`; the default is `false` (`caps.rs:208`).
 
-## 2. Second nonblocking atomic commit before the first flip event
+So the engine's question is: when userspace commits again before the first commit's flip event,
+does the kernel **accept** the second commit (then `true`, with a Dropped for the first), or
+refuse it (then `false`, the engine reports Busy)?
 
-**Prediction: the kernel refuses it with `-EBUSY`, on both kernels and both generations. It is not
-queued and not replaced.** (inferred from the lines below)
+## 2. What the kernel does (read from source)
 
-- `drm_atomic_helper_commit` calls `drm_atomic_helper_setup_commit(state, nonblock)` for every
-  non-async-update commit (read from source: 6.18 `drm/drm_atomic_helper.c:2257`; 6.12 same function,
-  `drm/drm_atomic_helper.c` near 2060, read by name).
-- `setup_commit` calls `stall_checks(crtc, nonblock)` per CRTC. For the newest commit on the CRTC's
-  `commit_list`, if its `flip_done` has not completed and the new commit is nonblocking, it returns
-  `-EBUSY` ("busy with a previous commit"). Read from source: 6.18 `drm/drm_atomic_helper.c:2370-2395`;
-  6.12 `drm/drm_atomic_helper.c:2162-2184` (the `-EBUSY` at 2184).
-- The same refusal exists per connector and per plane, if the old state's commit has not completed
-  `flip_done` (read from source: 6.18 `drm/drm_atomic_helper.c:2569-2574` and `2591-2596`; 6.12
-  `2366` and `2388` by the `-EBUSY` lines). A second commit that touches only other planes of the
-  same CRTC is still refused by the CRTC check (inferred: `stall_checks` is keyed on the CRTC, and a
-  plane-only commit pulls its CRTC into the state).
-- The driver does not override it. `vc4_atomic_commit_setup` (read from source: 6.18
-  `vc4/vc4_kms.c:545-583`; 6.12 `vc4/vc4_kms.c:515`) runs after the helper checks, forces
-  `legacy_cursor_update = false`, and records the commit as the channel's `pending_commit`; it
-  returns no error of its own.
-- A **blocking** commit is not refused: `stall_checks` only returns `-EBUSY` when `nonblock` is set.
-  `vc4_atomic_commit_tail` waits for the previous commit of every in-use HVS channel with
-  `drm_crtc_commit_wait` (read from source: 6.18 `vc4/vc4_kms.c:455-473`). (inferred: it returns
-  after the first flip event, with no replacement.)
-- `TEST_ONLY` does not go through `setup_commit` (inferred: the uapi calls `drm_atomic_check_only`,
-  read from source: 6.18 `drm/drm_atomic_uapi.c:1579` region, by the `DRM_MODE_ATOMIC_TEST_ONLY`
-  branch following line 1576). A `TEST_ONLY` while a commit is pending should therefore succeed.
+### 2.1 The second nonblocking atomic commit is refused with -EBUSY
 
-What is reported: the ioctl returns `-1` with `errno = EBUSY` (inferred; the helper returns `-EBUSY`
-and the atomic ioctl passes it up). The first commit is unaffected and still produces its event
-(inferred).
+`rpi-6.12.y` `8f5f2e1`, `drivers/gpu/drm/`:
 
-## 3. When the first commit's flip event arrives
+- `vc4_kms.c:1133-1141`: both the vc4 and the vc5 mode-config funcs use
+  `.atomic_commit = drm_atomic_helper_commit`; the commit hooks are
+  `.atomic_commit_setup = vc4_atomic_commit_setup` and
+  `.atomic_commit_tail = vc4_atomic_commit_tail` (`vc4_kms.c:1128-1129`). So the generic
+  helper's nonblocking machinery applies unchanged.
+- `drm_atomic_helper.c:2049` (`drm_atomic_helper_commit`): `drm_atomic_helper_setup_commit(state,
+  nonblock)` runs first for every non-async commit.
+- `drm_atomic_helper.c:2322` calls `stall_checks()` for each CRTC in the state.
+  `stall_checks` (`drm_atomic_helper.c:2162-2209`): if the newest commit on the CRTC has not
+  completed its `flip_done` and the new commit is nonblocking, it returns `-EBUSY`
+  (`drm_atomic_helper.c:2173-2184`, message "busy with a previous commit"). The comment at
+  `:2174-2175` says "Userspace is not allowed to get ahead of the previous commit with
+  nonblocking ones."
+- The same refusal exists per plane (`drm_atomic_helper.c:2382-2389`) and per connector
+  (`drm_atomic_helper.c:2360-2367`): a nonblocking commit that touches a plane or connector whose
+  previous commit has not completed `flip_done` returns `-EBUSY`.
+- `flip_done` completes when the CRTC's vblank event is sent: `setup_commit` ties the event to
+  `commit->flip_done` (`drm_atomic_helper.c:2345`), and vc4 sends it from
+  `vc4_crtc_handle_page_flip` (`vc4_crtc.c:832-858`, the send at `:853`) in the vblank interrupt
+  (`vc4_crtc_handle_vblank`, `vc4_crtc.c:870-881`) once the hardware's active display list equals
+  the one this commit installed (`vc4_crtc.c:851-852`: `current_dlist == vc4_crtc->current_dlist`).
+  The latter is stored by `vc4_hvs_update_dlist` (`vc4_hvs.c:1177-1204`; the event is stored at
+  `:1192`, `current_dlist` at `:1202`).
 
-This fixes what "latched" means for the probe.
+Result: **a second nonblocking atomic commit that touches the same CRTC (or a plane or connector
+of it) before the first commit's flip event is refused at the ioctl with `-EBUSY`.** Nothing is
+queued and nothing is dropped; the first commit still completes and sends its event.
 
-- On a CRTC with a new state event, `vc4_hvs_update_dlist` stores it as `vc4_crtc->event` and takes a
-  vblank reference (read from source: 6.18 `vc4/vc4_hvs.c:1218-1228`; 6.12 `vc4/vc4_hvs.c:1191`).
-- The event is sent from the vblank interrupt, only when the HVS channel's active display list equals
-  the one the commit wrote: `vc4_crtc->current_dlist == current_dlist` (read from source: 6.18
-  `vc4/vc4_crtc.c:863`; 6.12 `vc4/vc4_crtc.c:852`). The register read differs by generation: HVS5
-  reads `SCALER_DISPLACTX(chan)`, HVS6 reads `SCALER6_DISPX_DL_LACT` (read from source: 6.18
-  `vc4/vc4_crtc.c:857-861`). `vc4_crtc_handle_vblank` calls the page-flip handler on every vblank
-  (read from source: 6.18 `vc4/vc4_crtc.c:882-893`).
-- So the flip event is the latch, one or more vblanks after the commit returns. If the display list
-  has not become active at a vblank, the event waits for the next one (inferred). If the CRTC
-  stops, the CRTC-disable path sends the event (read from source: 6.18 `vc4/vc4_crtc.c:625-636`,
-  `664`).
-- The commit's `flip_done` completes when that event is delivered (read from source: 6.18
-  `drm/drm_atomic_helper.c:2553`, `new_crtc_state->event->base.completion = &commit->flip_done`).
-  That completion is what `stall_checks` tests, which closes the loop: the refusal in section 2
-  lasts exactly until the flip event of the first commit.
+### 2.2 A blocking commit waits, it does not replace
 
-## 4. Legacy cursor and async plane updates: replaced in place
+- `drm_atomic_helper.c:2178` returns `-EBUSY` only `if (!completed && nonblock)`. A blocking
+  (no `DRM_MODE_ATOMIC_NONBLOCK`) commit goes on.
+- vc4 adds its own serialisation per HVS channel: `vc4_atomic_commit_setup` stores
+  `fifo_state[channel].pending_commit = drm_crtc_commit_get(crtc_state->commit)` for every CRTC in
+  the state whose channel is in use (`vc4_kms.c:536-550`), and `vc4_atomic_commit_tail` begins by
+  waiting on the previous commit of each in-use channel with `drm_crtc_commit_wait`
+  (`vc4_kms.c:422-439`).
+- So a blocking second commit is delayed until the first has latched and then applied in order.
+  Both frames are shown, and each commit's flip event is delivered. That is not
+  `replace_pending`: nothing is replaced.
 
-**Prediction: a legacy cursor-plane update (`DRM_IOCTL_MODE_CURSOR` / `MODE_CURSOR2`, and the
-legacy `SETPLANE` helper path when the plane is the CRTC's cursor) is applied in place to the live
-display list when only position and framebuffer address change, with no flip event.** (inferred)
+### 2.3 The in-place async paths do not apply to an atomic overlay commit
 
-- The legacy plane helpers set `legacy_cursor_update = true` when the plane is `crtc->cursor` (read
-  from source: 6.18 `drm/drm_atomic_helper.c:3414` and `3452`; 6.12 `3206` and `3244`). The atomic
-  ioctl does not set it (inferred: no other assignment found in `drm_atomic_uapi.c`).
-- In `drm_atomic_helper_check`, if `legacy_cursor_update`, `state->async_update` is set to
-  `!drm_atomic_helper_async_check()` (read from source: 6.18 `drm/drm_atomic_helper.c:1130-1131`;
-  6.12 `1118`). `drm_atomic_helper_commit` then skips `setup_commit` and calls
-  `drm_atomic_helper_async_commit` (read from source: 6.18 `drm/drm_atomic_helper.c:2246-2251`). So
-  `stall_checks` is not run and no commit object is created: there is no `-EBUSY` from section 2
-  and no flip event (inferred).
-- `drm_atomic_helper_async_check` refuses with `-EBUSY` while an earlier commit that modifies the
-  plane has not reached `hw_done` (read from source: 6.18 `drm/drm_atomic_helper.c:2158-2162`; 6.12
-  `1949-1950`). The ioctl then continues on the normal path (inferred: `async_update` stays false),
-  which for a legacy (blocking) call waits instead of failing.
-- The vc4 plane hook accepts the update only if the display-list layout is unchanged and every word
-  except pos0, pos2, ptr0 (and the LBM word) is equal; otherwise `-EINVAL` and the normal path (read
-  from source: 6.18 `vc4/vc4_plane.c:2667-2715`; 6.12 `vc4/vc4_plane.c:2561-2590`). The update
-  writes those three words into the hardware display list (`writel`) (read from source: 6.18
-  `vc4/vc4_plane.c:2593-2665`). Gen 5 uses `vc4_plane_mode_set`, gen 6 `vc6_plane_mode_set` for the
-  check (read from source: 6.18 `vc4/vc4_plane.c:2677-2680`).
-- Hook table: both the primary/overlay and the cursor `drm_plane_helper_funcs` list
-  `atomic_async_check` / `atomic_async_update` (read from source: 6.18 `vc4/vc4_plane.c:2750-2758`;
-  6.12 `2644-2652`). A cursor plane exists on each CRTC (read from source: 6.18 `vc4/vc4_plane.c:2991`).
-- Consequence for the engine (inferred): in-place replacement exists only for the cursor plane via
-  legacy calls and only for position or buffer-address changes. It is not a way to replace a pending
-  multi-plane atomic commit, and the engine's atomic commits never take this path.
+- The core decides async update only for the legacy cursor path: `drm_atomic_helper.c:1117-1118`
+  (`if (state->legacy_cursor_update) state->async_update = !drm_atomic_helper_async_check(...)`).
+  `legacy_cursor_update` is set only in `drm_atomic_helper_update_plane` /
+  `drm_atomic_helper_disable_plane` when the plane is the CRTC's cursor plane
+  (`drm_atomic_helper.c:3205-3206`, `:3243-3244`). The atomic ioctl does not set it (it is not
+  assigned in `drm_atomic_uapi.c`). So an atomic commit never takes the in-place path.
+- `drm_atomic_helper_async_check` (`drm_atomic_helper.c:1895-1963`) refuses: a state with a
+  modeset (`:1906-1909`), more than one plane (`:1915`, "only single plane async updates are
+  supported"), a CRTC change (`:1921-1927`), a fence (`:1937-1942`), and a plane whose previous
+  commit has not reached `hw_done` (`:1949-1955`, `-EBUSY`, "inflight previous commit preventing
+  async commit"). A refusal means the commit goes through the normal path, i.e. section 2.1/2.2.
+- vc4 additionally forces the normal path when it can: `vc4_atomic_commit_setup` sets
+  `state->legacy_cursor_update = false` unless firmware KMS is in use (`vc4_kms.c:524-530`), "to
+  prevent `drm_atomic_helper_setup_commit()` from auto-completing `commit->flip_done`". This is on
+  the non-async path only; the async decision was already taken in the check
+  (`drm_atomic_helper.c:1117`), before `setup_commit`.
+- vc4's plane hooks do implement the in-place update: `.atomic_async_check` and
+  `.atomic_async_update` are set for both plane helper funcs (`vc4_plane.c:2639-2653`).
+  `vc4_plane_atomic_async_check` (`vc4_plane.c:2561-2607`) allows the change only if the display
+  list has the same length and offsets and differs only in the `pos0`, `pos2` and `ptr0` words
+  (and the LBM word): position and framebuffer address, not size, format, scale or alpha;
+  otherwise `-EINVAL` (comment at `:2591-2593`: "if anything else has changed, fallback to a
+  sync update"). `vc4_plane_atomic_async_update` (`vc4_plane.c:2487-2559`) writes those three
+  words straight into the hardware display list (`:2551-2556`). No flip event is produced and
+  nothing is pending: `drm_atomic_helper_commit` returns right after
+  `drm_atomic_helper_async_commit` (`drm_atomic_helper.c:2038-2047`), without `setup_commit`.
+- In practice this path is the **legacy cursor** ioctl (a cursor-plane move or image change); it
+  replaces in place, at once, and reports nothing. An overlay plane is not reached by it from the
+  atomic ioctl.
 
-## 5. DRM_MODE_PAGE_FLIP_ASYNC
+### 2.4 DRM_MODE_PAGE_FLIP_ASYNC exists on these kernels
 
-**Prediction: it exists on both kernels, for gen 4, 5 and 6, and is not what the engine uses.**
+- `vc4_kms.c:1184` (6.12) sets `dev->mode_config.async_page_flip = true` unconditionally; in the
+  6.18 fetch it is also unconditional (`vc4_kms.c`, about line 1215).
+- Atomic ioctl: the flag is accepted when `async_page_flip` is set
+  (`drm_atomic_uapi.c:1443-1451`; otherwise `-EINVAL` at `:1444-1448`). With it, only the primary
+  plane's `FB_ID`, `IN_FENCE_FD` and `FB_DAMAGE_CLIPS` may change; any other property must keep
+  its value (`drm_atomic_uapi.c:1106-1112`), and a CRTC or connector property must keep its value
+  (`:1084-1089`, `:1062-1067`). `drm_atomic_helper.c:3656` copies the flag into
+  `crtc_state->async_flip` for the legacy flip path. `vc4/*.c` (6.12) does not read
+  `crtc_state->async_flip`, so for an atomic commit the flag does not by itself change what vc4
+  does: **inferred**, from the absence of a use in the driver. It is not a way to replace a
+  pending commit and is not used by composition-drm.
+- Legacy page-flip ioctl: `vc4_page_flip` (`vc4_crtc.c:1105-1122`) with the flag calls
+  `vc5_async_page_flip` for gen 5 and 6 (`vc4_crtc.c:1115-1116`, which is
+  `vc4_async_page_flip_common`, `:1097-1103`). That sets the new fb in the plane state, waits for
+  the buffer's dma-resv read fence, then writes the plane address (`vc4_plane_async_set_fb`,
+  called at `vc4_crtc.c:921`) and sends the event **immediately, not at vblank**
+  (`vc4_crtc.c:922-928`). It takes no `flip_done` and queues nothing behind a pending atomic
+  commit (it does not go through `setup_commit`), so it bypasses the -EBUSY check. It also races
+  with a pending commit's display list: **inferred**, not tested. `vc4_async_page_flip` (the
+  VC4_GEN_4 variant) returns `-ENODEV` on gen 5 and 6 (`vc4_crtc.c:1072-1073`).
 
-- `dev->mode_config.async_page_flip = true` (read from source: 6.18 `vc4/vc4_kms.c:1215`; 6.12
-  `vc4/vc4_kms.c:1184`). The generic legacy ioctl accepts the flag only if that is set (read from
-  source: 6.18 `drm/drm_plane.c:1408`; 6.12 `drm/drm_plane.c:1381`), and so does the atomic ioctl
-  (read from source: 6.18 `drm/drm_atomic_uapi.c:1466-1473`; 6.12 `1443`).
-- Legacy page flip with the flag: `vc4_page_flip` calls `vc5_async_page_flip` for gen above 4 and
-  `vc4_async_page_flip` for gen 4 (read from source: 6.18 `vc4/vc4_crtc.c:1120-1127`; 6.12
-  `vc4/vc4_crtc.c:1111`). Both end in `vc4_async_page_flip_common`, which waits for the buffer's
-  fence, then changes the plane's framebuffer address and sends the event
-  (`vc4_async_page_flip_complete`, read from source: 6.18 `vc4/vc4_crtc.c:923-938`). It takes a
-  vblank reference, and the event is sent when the fence signals, not at a vblank (inferred from
-  `vc4_crtc.c:934`, `1050`). It does not go through `stall_checks` (inferred: it bypasses
-  `drm_atomic_helper_page_flip`, line 1129 is the only helper call).
-- Atomic with the flag: the core restricts the changeable properties to the primary plane's FB_ID,
-  IN_FENCE_FD and FB_DAMAGE_CLIPS; anything else is rejected (read from source: 6.12
-  `drm/drm_atomic_uapi.c:1106-1110`, same pattern at 6.18 `1113`). (inferred: so an overlay
-  cannot be moved or replaced this way.)
-- Whether the flag is accepted for a given plane by a kernel that runs on a board is a board
-  question; `pending_probe` need only record the errno.
+## 3. Per kernel and per HVS
 
-## 6. Expected `replace_pending`
+The commit path is the same code for HVS5 and HVS6. The gen switch is in three places only:
+the core-clock handling (gen 5 only, `vc4_kms.c:441-455`, `:496-512`), the PV muxing commit
+(`vc4_kms.c:462-481`), and the active-display-list read that decides when the event is sent
+(`vc4_crtc.c:845-849`: `SCALER_DISPLACTX(chan)` below gen 6, `SCALER6_DISPX_DL(chan)` field
+`LACT` from gen 6). None of them changes the stall, EBUSY or serialisation behaviour.
 
-| | HVS5 (BCM2711) | HVS6 (BCM2712) |
-|---|---|---|
-| second nonblocking atomic commit before flip event, kernel 6.12 | `-EBUSY` | `-EBUSY` |
-| same, kernel 6.18 | `-EBUSY` | `-EBUSY` |
-| blocking commit in that window | waits, no replace | waits, no replace |
-| `TEST_ONLY` in that window | accepted | accepted |
-| legacy cursor update in that window | in place if hw_done reached, else normal path | same |
-| `DRM_MODE_PAGE_FLIP_ASYNC` legacy flip | accepted | accepted |
-| **expected `Capabilities::replace_pending`** | **false** | **false** |
+| Kernel | HVS | 2nd nonblocking atomic commit before the flip event | 2nd blocking atomic commit | Legacy cursor move | Legacy async page flip | `replace_pending` the source predicts |
+| --- | --- | --- | --- | --- | --- | --- |
+| `rpi-6.12.y` `8f5f2e1` (read from source) | HVS5 (BCM2711, gen 5) | `-EBUSY` at the ioctl; first commit unaffected | waits for the first to latch, then both are shown, two events | in place, no event, only if no commit is in flight on the plane and only `pos0/pos2/ptr0` change; else normal path | accepted, event at once | `false` |
+| `rpi-6.12.y` `8f5f2e1` (read from source) | HVS6 (BCM2712, gen 6) | the same | the same | the same | the same | `false` |
+| `rpi-6.18.y` `16ae2649` (read from source for vc4, approximate lines; helper and plane async check inferred from 6.12) | HVS5 | the same (inferred for the helper) | the same | the same | the same | `false` |
+| `rpi-6.18.y` `16ae2649` (as above) | HVS6 | the same (inferred for the helper) | the same | the same | the same | `false` |
 
-All rows are inferred from the source lines above; the refusal is DRM-core code shared by every
-generation, so the generations differ only in how the latch is detected (section 3), not in the
-result. With `false` the engine itself returns `PresentError::Busy` before the kernel is asked, so
-the kernel's `-EBUSY` should never be seen by a correct engine (inferred). This matches the
-hvs-backend-design note that the commit-ordering row suggests `false`.
+If the second commit is refused, the engine's `Capabilities::replace_pending == false` is the
+matching value: `Engine::commit` returns Busy before the backend is asked, and no `Dropped` event
+exists. A backend that would set `true` would have to turn `-EBUSY` into a replacement itself,
+for example by waiting for the flip event; that is a different behaviour from "replaced while
+pending" and this source does not support it.
 
-## 7. What the board runs should confirm or refute
+What the backend sees: the `-EBUSY` comes back from the commit ioctl, not as a later event
+(inferred: the check runs in `drm_atomic_helper_setup_commit`, which runs inside
+`drm_atomic_helper_commit`, `drm_atomic_helper.c:2049-2051`). The first commit's event arrives at
+the next vblank after the hardware switched to its display list; on HVS6 that comparison reads
+the `LACT` field (`vc4_crtc.c:845-849`), which is the part of the prediction that differs from
+HVS5 and is the least certain (inferred).
 
-For each of `rpi5-hvs6-session` and `cm4-hvs5-session`, the `pending_probe` runs are the measurement.
-A row of this file is confirmed or refuted by:
+## 4. What the `pending_probe` must show
 
-1. Nonblocking commit A returns; nonblocking commit B on the same CRTC is submitted before A's event:
-   expect `EBUSY`. Anything else (success with A's event never arriving, or two events) refutes
-   section 2 and would make `replace_pending = true` worth measuring further.
-2. After A's event, B succeeds, and A's flip count is one.
-3. A `TEST_ONLY` commit between A and its event returns success.
-4. A legacy cursor move between A and its event: record the result and whether any event arrives.
-5. The kernel version string, so the result is matched to the 6.12 or 6.18 column (HVS Q7).
+The measurement is the `pending_probe` run in the `rpi5-hvs6-session` (HVS6) and in the
+`cm4-hvs5-session` (HVS5), both items of plan #467; the tool is the `pending-probe-tool` item.
+Neither result exists when this note is written. The prediction to confirm or refute:
 
-Until those runs exist, HVS Q6 is **not answered**: this file gives the source's prediction, `false`
-for both, and no hardware result.
+1. Commit A nonblocking with an event, then commit B nonblocking on the same CRTC before A's
+   event: **B returns `-EBUSY`**; A's event still arrives once. If B is accepted instead, this
+   note is wrong for that kernel; check that the board's kernel is the one read here (HVS
+   question 7) before changing the model.
+2. Same with B blocking: B returns after A latched; two events, in order.
+3. Legacy cursor move before A's event: if a cursor plane is present, expected to wait or fall
+   back to the normal path, not to replace A (the in-place path needs no commit in flight,
+   `drm_atomic_helper.c:1949-1955`).
+4. Counts to record per run: the errno of B, flip events received, time from B to return.
 
-## 8. Not covered
+If all four match, `replace_pending` stays `false` for HVS5 and HVS6 and
+`crates/composition-drm/src/profile/vc4.rs` needs no change (its comment already says "as
+reported"); the design question can be marked answered by source plus measurement.
 
-- Whether a commit that has not latched can be dropped by the kernel on a CRTC disable or modeset
-  (the disable path sends the event; what the engine would call that is the backend's decision).
-- HVS channel assignment and FIFO sharing between CRTCs. `vc4_atomic_commit_tail` waits on the
-  previous commit of each in-use channel (read from source: 6.18 `vc4/vc4_kms.c:455-473`), which
-  could delay a commit on one CRTC behind another CRTC that shares a channel's state; this was not
-  traced further (inferred only).
-- Firmware KMS (`vc4->firmware_kms`) takes other branches in `vc4_kms.c`; not read.
+## 5. Not covered
+
+- Firmware KMS (`vc4-fkms-v3d`, `firmware_kms` in the code above): out of scope as in the design.
+- The TXP/writeback path (`feeds_txp`, `vc4_crtc.c:852`): not used by composition-drm.
+- Any timing claim. The source gives ordering, not latency.
