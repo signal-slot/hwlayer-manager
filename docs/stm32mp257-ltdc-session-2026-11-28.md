@@ -228,7 +228,8 @@ alpha / 255, truncated.
 
 Host 2026-11-27T22:43:58Z to 22:44:09Z. Weston stopped; every test is
 `ATOMIC_TEST_ONLY | ALLOW_MODESET` over a full-screen XR24 primary (observed
-2026-11-27):
+2026-11-27). Host time of each of the three commands: not recorded, only the
+range above:
 
 ```text
 /tmp/scale_probe /dev/dri/card0 --plane 42 --max-factor 4096
@@ -273,14 +274,14 @@ nearest with pixel-centre sampling, bilinear centre-aligned and bilinear
 corner-aligned. Because the image is R-only, the CRC tells pixel values
 apart (Q2).
 
-| Case | src → dst | Commit | Matching reference | `fifo_underrun_warning` while held (≈1.4 s) |
-|---|---|---|---|---|
-| h4-v4 | 240x135 → 960x540 | ok, 801 ms | none | +279 |
-| h4-v2 | 240x270 → 960x540 | ok, 747 ms | none | +98 |
-| h2-v4 | 480x135 → 960x540 | ok, 748 ms | none | +310 |
-| h1.5-v1.5 | 640x360 → 960x540 | ok, 747 ms | none | +105 |
-| h3-v3 | 320x180 → 960x540 | ok, 748 ms | none | +192 |
-| h1-v1 | 960x540 → 960x540 | ok, 746 ms | all five (identical pictures) | +0 |
+| Case | Host time (UTC) | src → dst | Commit | Matching reference | `fifo_underrun_warning` while held (≈1.4 s) |
+|---|---|---|---|---|---|
+| h4-v4 | host time not recorded (within 22:46:00Z–22:47:24Z) | 240x135 → 960x540 | ok, 801 ms | none | +279 |
+| h4-v2 | host time not recorded (same range) | 240x270 → 960x540 | ok, 747 ms | none | +98 |
+| h2-v4 | host time not recorded (same range) | 480x135 → 960x540 | ok, 748 ms | none | +310 |
+| h1.5-v1.5 | host time not recorded (same range) | 640x360 → 960x540 | ok, 747 ms | none | +105 |
+| h3-v3 | host time not recorded (same range) | 320x180 → 960x540 | ok, 748 ms | none | +192 |
+| h1-v1 | host time not recorded (same range) | 960x540 → 960x540 | ok, 746 ms | all five (identical pictures) | +0 |
 
 - Observed 2026-11-27: each scaled picture gave a stable CRC (the same
   about 0.5 s later, and the same in the repeat run). It **matched none of
@@ -809,6 +810,31 @@ The Q1, Q2 and Q9 answers above are unchanged. Q1 colours, NV12 colours, the
 mirrored output and reflect-y stay open until the KVM relay works (inferred:
 the 404 comes from the relay path to the NanoKVM, not from the board, which
 answered over ssh in the same minute).
+
+## End-state check (host time 2026-11-28T03:28:52Z)
+
+Observed 2026-11-28, over ssh only; nothing was stopped, restarted or written
+on the board. Host `date -u` printed `Sat Nov 28 03:28:52 UTC 2026`. On the
+board:
+
+```text
+$ systemctl is-active weston-graphical-session seatd-weston
+active
+active
+$ uptime
+ 17:35:27 up 16:32,  2 users,  load average: 0.06, 0.08, 0.08
+```
+
+The `uptime` clock is the board's (about 9 h 53 min behind the host, see the
+top of this file); the host time above is the one that counts.
+
+## Host-time audit of the runs
+
+Observed 2026-11-28 by reading this file: every run entry carries a host time
+except the following, marked "host time not recorded" where they appear in Q3:
+the six scaled-commit cases (two runs, 22:46:00Z and 22:47:02Z, no per-case
+time) and the three `scale_probe` commands (only the range 22:43:58Z to
+22:44:09Z).
 
 ## Summary of sessions A and B
 
