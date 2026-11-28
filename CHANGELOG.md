@@ -75,6 +75,15 @@ release, rename **Unreleased** to the version and date and open a new empty one.
 - tests/zephyr: `display_dummy`, the engine over Zephyr's dummy display driver in QEMU (not hardware) (2026-11-28).
 - composition-drm (`tests/data`): dated read-only KMS dumps and TEST_ONLY sweeps recorded from the BCM2711 (CM4), BCM2712 (Raspberry Pi 5) and RK3588 (NanoPC-T6) boards, each with a README giving date and source (2026-11-27, 2026-11-28).
 - docs: `docs/testing.md`, `docs/architecture.md`, `docs/msrv.md` (host measurement of 2026-11-28 of the minimum Rust version against the declared `rust-version`; says nothing about a board) (2026-11-28).
+- scripts: `host-demo.sh`, a host-only reproducible demo (builds, fake-backend scene tests, `plan_time`, the two thumbv7em builds), with `host-demo.test.sh` and `docs/host-demo.md`; a host run, not a hardware result (2026-11-28).
+- scripts: host tests `prepare-zephyr.test.sh` (dry run and argument handling) and `imx95-session.test.sh` (fake ssh) (2026-11-28).
+- scripts: `imx95-observe.sh`, a read-only board snapshot script (remoteproc, device tree, dmesg, clk and genpd), and `imx95-observe-summary.py`, which turns a snapshot into a short ownership table; each with a host test; `imx95-m7-log.sh`, which captures the M7 rpmsg or trace log under `/tmp`, with a host test (2026-11-28; the host tests are not board results).
+- scripts: `trace-to-metrics.py` converts `docs/trace-format.md` event logs into `m2-compare-report.py` METRIC lines, with an optional `--refresh-us N` from which the outlier and late-latch counts are derived; `RUN` lines with `alpha=` are variant runs and are skipped, not reported as the scene (`scripts/trace-to-metrics-README.md`; 2026-11-28, host only).
+- scripts: `m2-compare-report.py`, which builds the WP3 Linux vs Zephyr comparison table from run logs, and `check-m2-acceptance.sh`, which runs the M2 acceptance checks mechanically; host tests `m2-pipeline.test.sh` and `m2scene-trace.test.sh` run trace logs through `trace-to-metrics.py` and the report (2026-11-28; host only, no measurement).
+- scripts: `check-trace-log.sh`, which checks trace log headers against `docs/trace-format.md` (version, `# date:`, not-a-hardware-result comment), with a host test (2026-11-28).
+- scripts: `check-feasibility-doc.sh` (tags, dates and pinned sources of `docs/imx95-zephyr-feasibility.md`) and `check-doc-tags.sh` (evidence tags in hardware docs), each with a host test (2026-11-28).
+- composition-drm: `m2scene` example, the WP3 comparison scene on Linux, emitting `docs/trace-format.md` events; usage in `docs/m2-linux-scene.md` (2026-11-28; no board run recorded here).
+- tests/board: `README.md`, an index of the board test apps (2026-11-28).
 
 ### Changed
 
@@ -115,3 +124,5 @@ release, rename **Unreleased** to the version and date and open a new empty one.
 - docs: design notes for backends for the RK3588 VOP2, the Raspberry Pi HVS and the STM32MP257 LTDC (`docs/design/`), and a draft of RK3588 and vc4 profiles (`docs/rk3588-vc4-profiles.md`); proposals, not hardware results.
 - docs: Linux board scenarios A1-A5 for the Raspberry Pi 5 and NanoPC-T6, with results where run and a reason for each row not measured (`docs/linux-board-scenarios.md`); board session procedure for the NanoPC-T6, Raspberry Pi 5 and reTerminal (`docs/rk3588-vc4-board-procedure.md`).
 - docs: `docs/platform-capabilities.md` gains BCM2712, BCM2711 and STM32MP257 sections from the board records; `docs/wp5-gap-analysis.md`, `docs/twoplane-backend.md`, `docs/third-party-licences.md` (verified against `Cargo.lock`) and `docs/ci.md` updated; README links the new i.MX95 Zephyr, WP5 and board-test docs (2026-11-28).
+- docs: `docs/trace-format.md` requires a `# date:` comment line in real trace logs (section 5.1); `docs/wp5-evidence.md`, an evidence checklist per milestone for the WP5 demo and benchmark; `docs/m2-linux-zephyr-comparison.md`, the method of the WP3 comparison, with no measurement (2026-11-28).
+- docs: `docs/imx95-m7-runbook.md`, how a board item uses `imx95-observe.sh` and `imx95-m7-rproc.sh`; `docs/imx95-verdin-sm-config.md` (the Verdin System Manager configuration, pinned) and `docs/imx95-sm-linux-interfaces.md` (what the 6.6 kernel shows userspace about the System Manager), both read from source; the dated snapshots are under `docs/imx95-zephyr/` (2026-11-28).
