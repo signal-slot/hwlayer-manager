@@ -1,0 +1,54 @@
+# imx95-observe: read-only snapshot
+### date
+Sat Nov 28 10:00:00 UTC 2026
+### uname -r
+6.6.0-synthetic
+### remoteproc
+/sys/class/remoteproc/remoteproc0
+  name: imx-rproc
+  state: offline
+  firmware: example-m7.elf
+/sys/class/remoteproc/remoteproc1
+  name: imx-rproc-b
+  state: running
+  firmware:
+### device tree
+/display-subsystem
+  compatible: example,display-subsystem
+  status: okay
+  reg:
+/soc/display-controller@0
+  compatible: example,dpu
+  status: okay
+  reg: 00000000 00001000
+/soc/ldb@0
+  compatible: example,ldb
+  status: disabled
+  reg: 00000000 00000100
+/soc/remoteproc-m7
+  compatible: example,rproc-m7
+  status: okay
+  reg:
+/reserved-memory
+  compatible:
+  status:
+  reg:
+/reserved-memory/vdev0vring0@0
+  compatible: shared-dma-pool
+  status: okay
+  reg: 00000000 00008000
+/firmware/scmi
+  compatible: arm,scmi
+  status: okay
+  reg:
+### dmesg (SM/SCMI/rproc/DPU)
+[    0.5] arm-scmi: SCMI Notifications - Core Enabled.
+[    0.5] arm-scmi: SCMI Protocol v2.0 'NXP:SM' Version 1.2.3
+[    5.1] remoteproc remoteproc0: imx-rproc is available
+### debugfs clk/clk_summary (disp/dpu/ldb/lvds/dsi/pix lines)
+    disp_axi_root   1  1  0  400000000  0  0  50000  Y
+    ldb_pll_pixel   0  0  0  0  0  0  50000  N
+    cpu_root        1  1  0  1000000  0  0  50000  Y
+### debugfs pm_genpd/pm_genpd_summary (disp/dpu/ldb/lvds/dsi/pix lines)
+display-domain  on  0
+lvds-domain  off-0  0
