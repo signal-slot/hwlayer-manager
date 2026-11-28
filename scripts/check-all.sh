@@ -18,7 +18,10 @@
 #                 check-feasibility-doc.sh (on docs/imx95-zephyr-feasibility.md),
 #                 then the self-tests check-arm-link.test.sh,
 #                 check-no-farm-ids.test.sh, check-feasibility-doc.test.sh and
-#                 m2-compare-report.test.sh.
+#                 m2-compare-report.test.sh, then imx95-m7-rproc.test.sh,
+#                 imx95-observe.test.sh, check-m2-acceptance.test.sh,
+#                 m2-pipeline.test.sh and m2scene-trace.test.sh (the last two
+#                 are skipped when python3 or cargo is missing).
 #                 The three that take a base ref get origin/main and are
 #                 skipped with a message when it does not resolve.
 #                 These are not CI steps; without --lint nothing changes.
@@ -35,7 +38,7 @@ for a in "$@"; do
         --keep-going) keep_going=1 ;;
         --cross) cross=1 ;;
         --lint) lint=1 ;;
-        -h|--help) sed -n '2,27p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,30p' "$0"; exit 0 ;;
         *) echo "unknown argument: $a" >&2; exit 2 ;;
     esac
 done
@@ -153,6 +156,27 @@ if [ "$lint" -eq 1 ]; then
             continue
         fi
         step "script test $t" sh "$f"
+    done
+    # Tests written for bash; the name:tools list gives the tools a test needs
+    # (empty = none). They are skipped with a message when a tool is missing.
+    for tt in imx95-m7-rproc: imx95-observe: check-m2-acceptance: \
+        m2-pipeline:python3 m2scene-trace:python3,cargo; do
+        t=${tt%%:*}
+        tools=${tt#*:}
+        f=scripts/$t.test.sh
+        if [ ! -f "$f" ]; then
+            echo "SKIP  script test $t: $f does not exist"
+            continue
+        fi
+        missing=""
+        for tool in $(echo "$tools" | tr , ' '); do
+            command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool"
+        done
+        if [ -n "$missing" ]; then
+            echo "SKIP  script test $t: missing tool(s):$missing"
+            continue
+        fi
+        step "script test $t" bash "$f"
     done
 fi
 
