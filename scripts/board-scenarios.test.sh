@@ -488,6 +488,18 @@ t "A3 holds last --seconds" A3 "SCENARIO stop-restart PASS" 0 --seconds 1 --hook
 a=$(sed -n 3p "$T/hook5.log"); b=$(sed -n 4p "$T/hook5.log")
 [ $((b - a)) -ge 1 ] && ok || bad "post-stop hold shorter than --seconds ($a..$b)"
 
+# A3 pause (bug 2): at post-stop-start the restart has not begun yet.
+printf '#!/bin/sh\n[ "$2" = post-stop-start ] && { [ -e "%s/out/A3/restart-after-$3.log" ] && echo "$3 restarted" || echo "$3 not-restarted"; } >> "%s/hook7.log"\nexit 0\n' "$T" "$T" > "$T/hook7"
+chmod +x "$T/hook7"; rm -f "$T/hook7.log"
+t "A3 pause before restart" A3 "SCENARIO stop-restart PASS" 0 --seconds 1 --hook "$T/hook7"
+[ "$(cat "$T/hook7.log")" = "TERM not-restarted
+KILL not-restarted" ] && ok || { bad "A3 post-stop hook ran after the restart began"; cat "$T/hook7.log" >&2; }
+# A5 (bug 1): the harness's own connector spelling needs no sysfs lookup, and
+# a BLOCKED row names the mode count from the harness.
+E="MOCK_MS=blocked MOCK_CONN=HDMIA-1"; t "A5 blocked, harness connector name" A5 "SCENARIO modeset BLOCKED" 3
+has A5 "connector=HDMIA-1 current=800x480@60 modes listed=1"
+has A5 "1 listed"
+
 # ---- selection, summary, hook, usage
 rm -rf "$T/out"
 sh "$script" --out "$T/out" --rows A1,A4 --seconds 0 "$T/harness" > "$T/stdout" 2>&1
