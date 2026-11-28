@@ -10,8 +10,9 @@ Short answer:
 
 * The Toradex kernel tree describes **two** DSS instances (`dss0`, `dss1`),
   both `disabled` in the SoC dtsi, and the Verdin AM62P files do **not** enable
-  or wire either of them. Display wiring on Verdin must come from overlays.
-  The Toradex display overlays themselves could **not** be read (section b).
+  or wire either of them. Display wiring on Verdin comes from Toradex overlays
+  (section b): LVDS panels use `dss0` VP1 through OLDI, every DSI overlay uses
+  `dss1` VP2 through `dsi0` and a bridge. No overlay uses DPI.
 * The Toradex Verdin dtsi enables both R5F clusters and carves out memory for
   them: MCU R5F `0x9b800000` (1 MiB DMA pool) and `0x9b900000` (15 MiB),
   wakeup R5F `0x9c800000` and `0x9c900000`.
@@ -27,7 +28,7 @@ Each statement is tagged **source** (file, repository, commit) or **inferred**.
 | --- | --- | --- |
 | **TDX 6.6** | `https://git.toradex.com/linux-toradex.git`, branch `toradex_ti-linux-6.6.y`, commit `9764efd3fe8e5f3fa04045919296c102acd7517e` (`Merge tag 'v6.6.163'`, 2026-11-23) | **Read** from a blobless clone (`git show`, `git grep`), 2026-11-28. All "source" tags below without another name mean this tree. |
 | other Toradex branches | same repository; `toradex_ti-linux-6.18.y` at `9797b77f3c86abc90e771a13bc1abcce0ee5dbb5`, `toradex_ti-linux-6.1.y` at `c5d9d94e5c3a5b9283dbf861886fd761bb4a0e26` (from `git ls-remote`) | **Not read.** That Torizon OS uses `toradex_ti-linux-6.6.y` for Verdin AM62P is **inferred** (the branch carries the Verdin AM62P board files; the 6.18 branch may supersede it in newer Torizon releases). |
-| **overlays** | `https://git.toradex.com/device-tree-overlays.git`, branch heads from `git ls-remote`: `toradex_ti-linux-6.6.y` `c93543ff886bd467219464c3cefabe8ed97d9464`, `toradex_ti-linux-6.1.y` `68f55f88d66c6f24a805bd15aca3c8892be9b5ba` | **Not read.** A second clone was refused and the cgit web view returns an anti-bot page. The GitHub archives `toradex/device-tree-overlays` and `toradex/device-trees` hold only 5.4-era i.MX overlays (page listing, 2026-11-28). |
+| **overlays** | `https://git.toradex.com/device-tree-overlays.git`, branch `toradex_ti-linux-6.6.y`, commit `c93543ff886bd467219464c3cefabe8ed97d9464` (same as `git ls-remote` tip) | **Read** from a blobless clone, 2026-11-28, directory `overlays/`. The GitHub archives `toradex/device-tree-overlays` and `toradex/device-trees` hold only 5.4-era i.MX overlays and were not used. |
 | **mainline v6.18** | `https://github.com/torvalds/linux.git`, tag `v6.18`, commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` | Partly read via GitHub web views; used only for the comparison in section (c). |
 
 Licences of quoted excerpts: `k3-am62p-main.dtsi`, `k3-am62p-mcu.dtsi` and
@@ -109,29 +110,53 @@ Further facts (source):
   OLDI/LVDS, VP2 to DPI (parallel RGB or an HDMI bridge on the carrier) and
   `dss1` VP2 to DSI, but **no Verdin file in the tree sets any of it** (section b).
 
-## (b) Display overlays for Verdin AM62P
+## (b) Display overlays for Verdin AM62P (source, overlays repository)
 
-* TDX 6.6 has **no display wiring for the Verdin AM62P** (source). In
-  `k3-am62p-verdin.dtsi`, `-dev`, `-dahlia`, `-ivy`, `-mallow`, `-yavia`,
-  `-zinnia`, `-nonwifi`, `-wifi` and `k3-am62p5.dtsi` a case-insensitive grep
-  for `dss`, `oldi`, `dsi`, `lvds`, `hdmi`, `panel`, `vout` finds only: the
-  comments `Verdin PWM_3_DSI`, `Verdin I2C_2_DSI`, `Verdin I2C_3_HDMI`,
-  `Verdin DSI_1_INT#` and `Verdin DSI_1_BLK_EN#` (carrier I2C, PWM and GPIO
-  groups, backlight and interrupt pins), and VOUT0 pads used as GPIO or UART
-  functions (`pinctrl_*` lines in `k3-am62p-verdin.dtsi`). No `&dss0`, `&dss1`,
-  `&oldi*` or `&dsi0` is set.
-* Consequence (inferred): `dss0` and `dss1` stay `disabled` in the base
-  dtb; a Torizon display path needs a Toradex overlay that enables them.
-* The panel or bridge, the timing source, the VP used and the default overlay
-  for each Toradex AM62P display overlay (DSI-to-HDMI, DSI-to-LVDS, LVDS panel,
-  DPI) are **not known**: the overlays repository could not be read. For the
-  AM625 Verdin, mainline names such overlays (`k3-am625-verdin-dsi-to-hdmi.dtso`,
-  `...-panel-cap-touch-10inch-lvds.dtso`, `...-panel-cap-touch-7inch-dsi.dtso`
-  at v6.18, a GitHub listing); that the AM62P set is analogous is **inferred**.
-* Which overlay Torizon enables by default: **unknown** from the sources read.
+Source for this section: `device-tree-overlays`, branch `toradex_ti-linux-6.6.y`,
+commit `c93543ff886bd467219464c3cefabe8ed97d9464`, directory `overlays/`,
+files `verdin-am62p_*_overlay.dts` (SPDX line of the files read:
+`GPL-2.0-or-later OR MIT`). Each has `compatible = "toradex,verdin-am62p"`.
+The base dtb (TDX 6.6, section a) enables no display, so these overlays are
+what turns `dss0` or `dss1` on.
 
-For the M3 report the panel therefore has to be taken from the running board,
-not from this note.
+The tree has no base-dtb display wiring (source, TDX 6.6): a case-insensitive
+grep of `k3-am62p-verdin*.dtsi` and `k3-am62p5.dtsi` for `dss`, `oldi`, `dsi`,
+`lvds`, `hdmi`, `panel`, `vout` finds only pin comments (`Verdin PWM_3_DSI`,
+`I2C_2_DSI`, `I2C_3_HDMI`, `DSI_1_INT#`, `DSI_1_BLK_EN#`) and VOUT0 pads used
+as GPIO or UART functions.
+
+| Overlay file (`verdin-am62p_...`) | Panel or bridge | Timing source | DSS and VP | Path |
+| --- | --- | --- | --- | --- |
+| `panel-cap-touch-10inch-lvds` (single-channel LVDS, SoM connector) | `panel-lvds`, `data-mapping = "vesa-24"`, `pwm-backlight`, Atmel maXTouch at 0x4a | `panel-timing` in the overlay: clock 68.9 / 71.1 / 73.4 MHz (min/typ/max), 1280 x 800 | `&dss0` okay, comment "VP1: Output to OLDI" (`dss0_ports` port@0, two endpoints) | VP1 to `oldi0_dss0` and `oldi1_dss0` to the panel. `oldi1_dss0` is enabled too, with a comment calling it a hack ("pretend we are in clone mode") |
+| `mezzanine_panel-cap-touch-10inch-lvds` | same panel data, backlight from `verdin-am62p_mezzanine_backlight.dtsi` | same: 68.9 / 71.1 / 73.4 MHz, 1280 x 800 | `&dss0`, VP1 to OLDI0 and OLDI1 | same hack for OLDI1 |
+| `mezzanine_panel-lvds-dual-channel-1080p` | LG LP156WF1 dual-channel LVDS, `panel-lvds`, `data-mapping = "jeida-24"`, `dual-lvds-odd-pixels` / `dual-lvds-even-pixels` | 138.5 MHz, 1920 x 1080 | `&dss0`, VP1 to OLDI0 (odd) and OLDI1 (even) | true dual link |
+| `dsi-to-hdmi` | Lontium `lt8912b` bridge (I2C 0x48) and an `hdmi-connector` | not in the overlay (taken from the sink by the bridge; **inferred**) | `&dss1` okay; `dss1_ports` port@1 (`dss1_dpi1_out`, VP2) to `dsi0` | `dss1` VP2 to `dsi0` to `lt8912b` to HDMI |
+| `dsi-to-lvds_panel-cap-touch-10inch-lvds` | TI `sn65dsi84` bridge (I2C 0x2c) to `panel-lvds`, `pwm-backlight`, maXTouch | `panel-timing`: 68.9 / 71.1 / 73.4 MHz | `&dss1`, VP2 to `dsi0` | `dss1` VP2 to `dsi0` to `sn65dsi84` to LVDS panel |
+| `panel-cap-touch-10inch-dsi` | `ti,sn65dsi83` on the panel board to the `panel-lvds` of `display-rvt101hvdwc00b_overlay.dtsi`, ILI2132 touch | 68.9 / 71.1 / 73.4 MHz, 1280 x 800 (that dtsi) | `&dss1`, VP2 to `dsi0` | same as above |
+| `panel-cap-touch-7inch-dsi` | `ti,sn65dsi83` to the panel of `display-rvt70hslnwca0_overlay.dtsi`, ILI2132 touch | 40.8 / 51.2 / 67.2 MHz, 1024 x 600 | `&dss1`, VP2 to `dsi0` | same |
+| the `-lvds-v2` variants (`panel-cap-touch-10inch-lvds-v2`, `mezzanine_panel-cap-touch-10inch-lvds-v2`, `dsi-to-lvds_..-lvds-v2`) | **not read** (listed in the Makefile) | | | |
+
+Findings (source unless marked):
+
+* **No overlay uses the DPI output** (`dss0` VP2 or a parallel panel): none of
+  the files read references a DPI endpoint on `dss0` port@1; the SK board's
+  HDMI route (section a) has no Verdin counterpart in this repository.
+* LVDS panels use `dss0` VP1 (OLDI); every DSI route uses `dss1` VP2. A board
+  with an LVDS overlay and one with a DSI overlay therefore drive **different
+  DSS instances**. Whether both families can be applied together is not
+  stated (inferred: nothing in the files read forbids it, none was seen doing it).
+* **Which overlay Torizon enables by default is not stated** in the
+  repository: its `Makefile` only builds all `.dtbo` files (lines 52 to 66),
+  and the `overlays/` directory holds no list or README. Inferred: the image
+  runs with **no display overlay** until one is selected on the device; this
+  must be read on the board.
+* AM62P `.dtbo` list in the `Makefile`: dsi-to-hdmi, dsi-to-lvds (10 inch, v1
+  and v2), mezzanine LVDS (10 inch v1 and v2, dual-channel 1080p), panel
+  7 inch DSI, panel 10 inch DSI, panel 10 inch LVDS (v1 and v2), plus
+  non-display overlays (nau8822, ov5640 and ov5640-27mhz, spidev, uart4-mcu).
+
+For the M3 report the panel and the active overlay still have to be taken from
+the running board; this table is what to compare with.
 
 ## (c) R5F remoteproc nodes, carve-outs, mailboxes
 
@@ -253,14 +278,13 @@ does not re-read it).
 1. The running dtb's source: kernel build and branch, to tie it to TDX 6.6 or
    another branch.
 2. Which overlay is active, and the resulting `dss0`/`dss1` status, ports and
-   panel (section b is empty of facts).
+   panel; compare with the table in section (b).
 3. That `mcu_r5fss0` and its `memory-region` exist as in (c), and the sizes the
    remoteproc core reports match 1 MiB and 15 MiB.
 4. Whether the wakeup R5F is running firmware (boot-chain question).
 
 ## For the planner
 
-Section (b) needs the Toradex overlays repository (`device-tree-overlays`,
-branch `toradex_ti-linux-6.6.y`, tip above) or the AM62P display overlays from
-a Torizon image. A node that can clone it (the second clone was refused here)
-can complete it; the other sections do not depend on it.
+Not read: the three `-lvds-v2` overlays and the files outside `overlays/`
+(for example how Torizon picks the active overlay). The second would come from
+the Torizon boot-chain study.
