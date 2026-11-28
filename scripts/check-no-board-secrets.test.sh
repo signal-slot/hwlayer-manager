@@ -225,4 +225,38 @@ frun unit-instance 0 a.txt "systemd[1]: modprobe@drm.service: Deactivated"
 frun fixture-other-file 1 a.txt "echo 192.168.""1.5"
 frun fixture-own-file 0 scripts/check-zephyr-apps.test.sh "echo 192.168.""1.5"
 
+# Bare run (no argument) with no base ref: full scan of HEAD. A repository
+# whose only branch is "topic" has no origin/main, main or origin/HEAD.
+# bare NAME WANT FILE CONTENT
+bare() {
+    name=$1 want=$2 file=$3 content=$4
+    rm -rf "$repo"
+    mkdir -p "$repo"
+    (
+        cd "$repo" || exit 2
+        git init -q -b topic . &&
+            git config user.email t@example.invalid &&
+            git config user.name t &&
+            mkdir -p "$(dirname "$file")" &&
+            printf '%s\n' "$content" >"$file" &&
+            git add . && git commit -q -m base &&
+            sh "$script" >"$root/out" 2>&1
+    )
+    got=$?
+    if [ "$got" -eq "$want" ]; then
+        echo "ok   $name"
+    else
+        echo "FAIL $name: want $want got $got"
+        cat "$root/out" 2>/dev/null
+        fail=1
+    fi
+}
+bare bare-clean 0 a.txt "nothing to see"
+bare bare-real-secret 1 src/a.txt "board at $ip"
+bare bare-real-secret-pw 1 docs/a.md "$pw"
+# scripts/testdata/ is the one excluded directory; scripts/ elsewhere is not.
+bare bare-testdata-fake 0 scripts/testdata/x/in.txt "board at $ip $tty $mac"
+bare bare-scripts-not-excluded 1 scripts/other.sh "board at $ip"
+bare bare-testdata-lookalike 1 xscripts/testdata/in.txt "board at $ip"
+
 exit $fail

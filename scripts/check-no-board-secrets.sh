@@ -42,13 +42,16 @@
 #   - This script, its test (which also tests check-no-farm-ids.sh) and the
 #     sibling scripts/check-no-farm-ids.sh are not scanned (they spell out
 #     the patterns). Exact paths, no globs.
+#   - scripts/testdata/ (the one directory exception): fake fixture data for
+#     the self-tests of the scrubber scripts. Nothing else is excluded by
+#     directory; other self-test files use the FIXTURES table below.
 #
 # False-positive rules added for the user@host pattern (each is narrow; see
 # benign_sed and uh_line_ok below):
 #   - A YAML step line "uses: owner/repo[/path]@ref" (GitHub Actions) is
 #     skipped as a whole. A line that runs ssh to a host is not.
 #   - "actions/NAME@vN" anywhere (prose in commit messages, for example).
-#   - Literal placeholders: "user@host", "repo@commit", "a@b.c", and any @example.com,
+#   - Literal placeholders: "user@host", "repo@commit", "repo@pin", "a@b.c", and any @example.com,
 #     @example.org, @example.net, @example.invalid address.
 #   - "name@commit" pins: @ followed only by hex digits ("imx-sm@af1e3702"),
 #     device-tree unit addresses ("port@0/1", "phy@c"), the "@N" placeholder and
@@ -172,6 +175,11 @@ while IFS= read -r l; do
         case $file in
         scripts/check-no-board-secrets.sh | scripts/check-no-board-secrets.test.sh | \
             scripts/check-no-farm-ids.sh) ;;
+        # scripts/testdata/ holds deliberately fake secrets (fake IPs, MACs,
+        # UART paths) that the self-tests of the scrubbers must contain.
+        # Excluded as one directory; patterns are not loosened. Never put
+        # real data there.
+        scripts/testdata/*) ;;
         *) printf '%s:%s\t%s\n' "$file" "$n" "${l#+}" ;;
         esac
         n=$((n + 1))
@@ -201,7 +209,17 @@ grep -v "secrets-ok" "$raw" >"$stream"
 # prove that check rejects them. The same text in any other file is reported.
 FIXTURES='scripts/check-zephyr-apps.test.sh|192\.168\.1\.5|private-range sample the Zephyr-app check must reject
 scripts/check-zephyr-apps.test.sh|/dev/ttyUSB0|serial path the Zephyr-app check must reject
-scripts/check-zephyr-apps.test.sh|Password=x|credential sample the Zephyr-app check must reject'
+scripts/check-zephyr-apps.test.sh|Password=x|credential sample the Zephyr-app check must reject
+scripts/board-run-bundle.test.sh|10\.9\.8\.7|fake board address the bundle scrubber must remove
+scripts/board-run-bundle.test.sh|aa:bb:cc:dd:ee:ff|fake MAC the bundle scrubber must remove
+scripts/check-m2-acceptance.test.sh|10\.20\.30\.40|fake address the M2 acceptance check must reject
+scripts/check-m2-acceptance.test.sh|/dev/ttyUSB0|fake UART path the M2 acceptance check must reject
+scripts/check-no-farm-ids.test.sh|ip="10\.1\.2\.3"|fake IPv4 the farm-id check must reject
+scripts/check-no-farm-ids.test.sh|192\.0\.2\.7|RFC 5737 documentation range sample
+scripts/check-no-farm-ids.test.sh|1\.2\.3\.4|lockfile version that must not be flagged
+scripts/check-no-farm-ids.test.sh|password=changeme|placeholder credential sample
+scripts/check-no-farm-ids.test.sh|let token = abc123|credential sample that must stay flagged
+scripts/check-no-farm-ids.test.sh|dri-devel@lists|mailing-list address next to an ssh target sample'
 printf '%s\n' "$FIXTURES" | while IFS='|' read -r fpath fre freason; do
     printf '%s\n' "$fpath" >>"$work/fx-paths"
     printf '%s\n' "$fre" >>"$work/fx-res"
@@ -222,7 +240,7 @@ done
 # only at the end of a sentence (so a hex-looking host with a domain is still a host).
 B='(\.?$|\.?[^A-Za-z0-9_.-])'
 safe_sed='s#actions/[A-Za-z0-9_.-]+@v[0-9][A-Za-z0-9.]*# #g;
-s#(^|[^A-Za-z0-9_])(user@host|repo@commit)'"$B"'# #g;
+s#(^|[^A-Za-z0-9_])(user@host|repo@commit|repo@pin)'"$B"'# #g;
 s#[A-Za-z0-9_.-]+@example\.(com|org|net|invalid)# #g;
 s#[A-Za-z0-9_.-]+@b\.c# #g;
 s#https?://lore\.kernel\.[A-Za-z0-9./-]*/[^ ]*@[A-Za-z0-9.-]+# #g'
