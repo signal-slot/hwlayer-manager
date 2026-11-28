@@ -1,8 +1,11 @@
 # STM32MP257F-DK (LTDC) display topology
 
 Tags: `observed 2026-11-28` = read from the live board in this session.
-`inferred` = derived by me from observed rows. Nothing here is "read from
-source". Board identity (addresses, names, serials) is deliberately omitted.
+`inferred` = derived from observed rows. `read from source` = stated by a
+source file; it appears only in the "Session C additions (2026-11-28)" section
+at the end, copied from the session C outputs file. Every row outside that
+section is observed or inferred, with no read-from-source claim. Board identity
+(addresses, names, serials) is deliberately omitted.
 
 ## System
 
@@ -103,3 +106,72 @@ alpha variants) is in [`stm32mp257.md`](stm32mp257.md).
 
 Weston was never stopped (probe and modetest read without master);
 `weston-graphical-session` was `active` after the run. `/tmp/probe` removed.
+
+## Session C additions (2026-11-28)
+
+Copied from [`../stm32mp257-ltdc-session-c-outputs-2026-11-28.md`](../stm32mp257-ltdc-session-c-outputs-2026-11-28.md)
+(Q8 other outputs, Q4 scaler layers), with the tags it gives. Observed rows
+were read over ssh, read only, Weston running; the host UTC time of the reads
+was 2026-11-28T01:04Z to 2026-11-28T01:06Z. Read-from-source rows come from ST's
+public kernel tree, branches `v6.18-stm32mp` and `v6.6-stm32mp`, via a
+web-fetch agent; that the fetched files are the tip commits recorded in the
+outputs file is itself inferred.
+
+### Q8: encoder chain and routes
+
+| Item | Value | Tag |
+|---|---|---|
+| Encoders | One (id 31). `bridge_chains` shows a two-bridge chain: the DSI host `dsi@48000000` (`st,stm32mp25-dsi`), then the ADV7535 at `hdmi@3d` (`adi,adv7535`) on I2C, type HDMI-A, ending at `HDMI-A-1` | observed 2026-11-28 |
+| `possible_crtcs` | One CRTC (id 41); every plane has `crtc-0` available; connector, encoder and plane masks are 1. The encoder's `possible_crtcs` is not shown by sysfs or `state`; `0x1` follows from the single CRTC and `encoder_mask=1` | observed 2026-11-28 (masks), inferred (encoder `possible_crtcs`) |
+| Other connectors, encoders | None: no LVDS, DSI or DPI connector in `/sys/class/drm` or the debugfs `state` | observed 2026-11-28 |
+| DRM clients | Only `seatd` holds master (Weston runs under it) | observed 2026-11-28 |
+| Error counters | `transfer_error=0`, `fifo_underrun_error=0`, `fifo_underrun_warning=0` | observed 2026-11-28 |
+| DSI route | LTDC, DSI host, ADV7535, HDMI-A connector: exists and is live | observed 2026-11-28 |
+| LVDS route | LTDC `endpoint@1` points at `lvds_in`, but `lvds@48060000`, `panel-lvds` and its backlight are `disabled`, no LVDS device is bound, no connector appears; not usable without a device-tree change | observed 2026-11-28 |
+| Both at once | The binding says the two LTDC endpoints "cannot be activated simultaneously"; on this image only DSI is enabled | read from source (binding), observed 2026-11-28 (the state) |
+| Implication for the backend | One encoder with a DSI bridge chain and one connector: one output, no output selection on this image | inferred |
+
+### Q8: device tree (`/proc/device-tree`)
+
+| Node | `compatible` | `status` | Tag |
+|---|---|---|---|
+| `display-controller@48010000` (LTDC) | `st,stm32mp25-ltdc` | okay | observed 2026-11-28 |
+| `dsi@48000000` | `st,stm32mp25-dsi` | okay | observed 2026-11-28 |
+| `i2c@40130000/hdmi@3d` | `adi,adv7535` | okay | observed 2026-11-28 |
+| `lvds@48060000` | `st,stm32mp25-lvds` | **disabled** (LVDS) | observed 2026-11-28 |
+| `panel-lvds` | `edt,etml0700z9ndha`, `panel-lvds` | **disabled** | observed 2026-11-28 |
+| `panel-lvds-backlight` | `pwm-backlight` | **disabled** | observed 2026-11-28 |
+| `connector` with `hdmi-pwr-supply` | HDMI-A connector node | present | observed 2026-11-28 |
+
+LTDC details, observed 2026-11-28: `port` has `endpoint@0` (remote phandle
+`0x50`, the DSI input `dsi_in`) and `endpoint@1` (remote `0x51`, the LVDS input
+`lvds_in`). The firewall children `l1l2`, `l3`, `rot` carry RIFSC ids `0x77`,
+`0x78`, `0x79` (119, 120, 121) and the node `0x50` (80). The reserved-memory
+nodes `ltdc-sec-layer@fe800000` and `ltdc-sec-rotation@ff000000` exist. The
+LTDC node has an `st,syscon` property; no `rotation-memory` property was seen
+in the listing, and whether the driver finds the secured rotation memory was
+not checked.
+
+### Q8: display modules (`lsmod`, read only)
+
+Loaded, observed 2026-11-28: `stm_drm`, `dw_mipi_dsi_stm`, `dw_mipi_dsi`,
+`adv7511` (with `cec`), `drm_dma_helper`, `galcore`. No LVDS, panel or backlight
+module appears. The device `48000000.dsi` is bound; no `48060000` LVDS device
+is among the platform devices.
+
+### Q4: scaler layers per variant
+
+| Finding | Result | Tag |
+|---|---|---|
+| How the driver learns which layer scales | At probe, `ltdc_get_caps()` (`case HWVER_40100: case HWVER_40101:`) reads `LTDC_L1C1R + i * LAY_OFS` per layer and sets `plane_scaling[i]` from bit 31, `LXCR_C1R_SCA`. Same code on both branches | read from source |
+| A static per-variant or per-layer table | None. The only layer comment is about YUV semi-planar/planar formats on layer 1, not scaling | read from source |
+| Which layers scale | Not stated by any source file; a hardware register value. On the board plane 42 (layer 2) scales and plane 49 (layer 3) does not (earlier file); plane 34 not yet probed | open in source; observed 2026-11-27 for 42/49 |
+| MP251, MP253 | Same LTDC node; no DSI, LVDS or GPU nodes; same scaler registers and code path | read from source |
+| MP255, MP257 | `stm32mp255.dtsi` adds `dsi`, `lvds` (both `disabled` by default) and `gpu`; same scaler code | read from source |
+| Per-variant scaler difference | None in the driver or device tree; identical silicon is not stated by any file | inferred |
+| Public reference manual | Not read; ST's layer-by-layer scaler capability is unchecked | open |
+| Scaling limits | Upscale only; YUV never scaled; a layer without the scaler refuses size mismatch; no numeric cap in the code | read from source |
+| Firewall or RIF: layers | When access to `l3` is refused, `nb_layers` is decremented (layer 3 not exposed) and `caps.crc` is cleared; refusal of `cmn`, `l1l2` or `rot` fails the probe | read from source |
+| Firewall or RIF: scaler | Does not change which layers scale; with no usable `rotation-memory`, `ltdc_load()` clears `crtc_rotation` | read from source |
+| Firewall on this board | Three planes exist, so `l3` access was granted and `nb_layers` was not reduced | observed 2026-11-28 (properties), observed 2026-11-27 (three planes) |
+| Other variants' firewall settings | Same `access-controllers` in every variant's device tree; whether a boot chain denies `l3` is a runtime RIF property | inferred |
