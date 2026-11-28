@@ -171,9 +171,14 @@ Sessions A and B are in
 (summary table at its end) and session C (2026-11-28: no picture, outputs
 read over ssh). Each question below is **answered** or **open**.
 
-1. **Pixel colours.** Status: **open**. Session C was to take the pictures,
-   but the KVM capture failed again (HTTP 404 from the MCP relay, observed
-   2026-11-28), so no picture exists. Wanted: screenshots in both
+1. **Pixel colours.** Status: **open**, not run, no picture. Session C was
+   to take the pictures, but the KVM capture failed (HTTP 404 from the MCP
+   relay, observed 2026-11-28); the newest rehearsal, 2026-11-28 10:00 UTC,
+   gave the verdict "capture fails" (see its
+   [section](../observed/stm32mp257-kvm.md#kvm-rehearsal-2026-11-28-1000-utc-fourth)).
+   The planned fallback without a picture is the CRC readout
+   ([`stm32mp257-ltdc-crc-source.md`](../stm32mp257-ltdc-crc-source.md),
+   read from source; not yet run on the board). Wanted: screenshots in both
    `--swap-z` phases and with `--plane-alpha 32768`, compared with the
    `EXPECT` lines. See
    [session C](../stm32mp257-ltdc-session-c-2026-11-28.md#part-1-q1-pixel-colours--not-run)
@@ -205,8 +210,12 @@ read over ssh). Each question below is **answered** or **open**.
    reflect-x/180 and overlay reflect-x+reflect-y give an unstable CRC.
    Missing: the effect in a picture, plane 49 (not tested), and whether a
    failure after a passing TEST_ONLY leaves the display stopped (none seen).
-   Session C took no picture (attempted 2026-11-28, KVM capture failed), so
-   it stays open; see
+   Not run, no picture: session C took none (attempted 2026-11-28; the
+   newest KVM rehearsal, 2026-11-28 10:00 UTC, verdict "capture fails", see
+   [the rehearsal](../observed/stm32mp257-kvm.md#kvm-rehearsal-2026-11-28-1000-utc-fourth)),
+   so it stays open. The CRC readout
+   ([`stm32mp257-ltdc-crc-source.md`](../stm32mp257-ltdc-crc-source.md),
+   read from source) is the planned fallback that needs no picture; see
    [session C, part 2](../stm32mp257-ltdc-session-c-2026-11-28.md#part-2-q6-transforms-nv12-colours-plane-34-scaling--not-run).
    How reflect-x, reflect-y and 180 are programmed, with predicted
    pictures, is in
