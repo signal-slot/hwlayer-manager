@@ -12,13 +12,79 @@ How to read the tags. Every statement ends with one of:
 - **inferred** — reasoned from a source or from general Linux/U-Boot knowledge,
   not stated by a source. The board run must check it.
 
-Limits of this study: the Toradex layers `meta-toradex-ti` and
-`meta-toradex-torizon` could not be read in this session (the `meta-toradex-ti` clone returned "Repository not found"), so no
-recipe or commit was read. Statements about them are `inferred` or rest on the
-Toradex developer pages and community threads listed in "Sources". Community
-threads (some answers there come from Toradex's AI assistant) are weaker than
-official docs and are marked as such. Re-read the layers at a pinned commit
-before relying on any `inferred` row (see "Open points").
+Limits of this study: `meta-toradex-ti` was cloned shallowly (branch
+`scarthgap-7.x.y`, commit `fe6bdf3e93d72426650326978852e3c2c7a08762`, dated
+2026-11-23) and only three files were read: `conf/machine/verdin-am62p.conf`,
+`conf/machine/verdin-am62p-k3r5.conf` and `conf/layer.conf`. The clone was
+deleted afterwards. `meta-toradex-bsp-common@8f13083c771e7187b61eb83e5ae216498e55864a`
+was also cloned shallowly: its file list and one file,
+`recipes-bsp/u-boot/u-boot-distro-boot/boot.cmd.in`, were read (see "Boot script
+read"); that clone was deleted too. The layer holds **no** boot-script / `uEnv.txt` template and
+**no** recipe that installs R5F firmware into `/lib/firmware` (a file-name
+search of the layer for `*boot*`, `*uenv*`, `*firmware*`, `*ipc*` found only the
+U-Boot recipe `recipes-bsp/u-boot/u-boot-toradex-ti_2024.04.bb`, which was not
+read). The `uEnv.txt` template is **inferred** to belong to `meta-toradex-torizon`
+(which has no public 7.x branch, so it was not read) or to another layer; neither
+searched layer holds it (open point 1). Rows that these files settle are
+tagged **read from source**; the rest stay `inferred` or rest on the Toradex
+developer pages and community threads in "Sources". Community threads (some
+answers there come from Toradex's AI assistant) are weaker than official docs.
+
+## Layer pins
+
+Looked up with `git ls-remote --heads` on 2026-11-28; `meta-toradex-ti` was then
+cloned at that head (see Limits). Torizon OS 7.x is built on the Yocto `scarthgap`
+release; Toradex names its branch `scarthgap-7.x.y` (**source**: branch names
+in the `ls-remote` output below; that Torizon OS 7.x uses these branches is
+**inferred** from the name).
+
+| Layer | Where | Branch | Commit (branch head on 2026-11-28) | Tag |
+|---|---|---|---|---|
+| `meta-toradex-ti` | https://git.toradex.com/meta-toradex-ti.git | `scarthgap-7.x.y` | `fe6bdf3e93d72426650326978852e3c2c7a08762` | read from source (cloned); `layer.conf` has `LAYERSERIES_COMPAT = "nanbield scarthgap"`; a branch head moves, so this is a pin of the head seen that day, not a release tag |
+| `meta-toradex-bsp-common` | https://git.toradex.com/meta-toradex-bsp-common.git | `scarthgap-7.x.y` | `8f13083c771e7187b61eb83e5ae216498e55864a` | source: `ls-remote`; read from source: `meta-toradex-ti@fe6bdf3:conf/layer.conf` lists `toradex-bsp-common-layer` in `LAYERDEPENDS` (with `core`, `freescale-layer`, `meta-ti-bsp`), so this is the BSP layer it pairs with; at `8f13083` its file list and `recipes-bsp/u-boot/u-boot-distro-boot/boot.cmd.in` were read (see "Boot script read") |
+| `meta-toradex-torizon` | https://github.com/toradex/meta-toradex-torizon.git | none for 7.x | not pinned | source: the GitHub mirror lists only `dunfell-5.x.y`, `kirkstone-6.x.y`, `master`, `warrior`, `zeus` (`kirkstone-6.x.y` = `62bc1adb0a4b4045cfa8f8b7bac08a35a3496459`); the git server answered "repository not found". No public 7.x branch was found |
+
+Other branches seen: `meta-toradex-ti` has `kirkstone-6.x.y`
+(`bd7b97aa1f773b62bfd4bf3b2bc3184191cad504`) and `master`
+(`8d3df72715add8bef7f7a00694bb6ed21a5ad1f1`); `meta-toradex-bsp-common` also has
+`walnascar` (`ff22a42d33e8cc7b9100295b38bdc7161dd7e0a0`) and `master`
+(`89132e014e18419506fcc8462bb8a7963013a0e5`). The GitHub path
+`toradex/meta-toradex-ti` did not answer within 60 s on 2026-11-28 (the earlier
+"Repository not found" is not reproduced), so the git server is the reference.
+
+Read from `meta-toradex-ti@fe6bdf3:conf/machine/verdin-am62p.conf`: kernel provider `linux-toradex-ti` with `TI_PREFERRED_BSP = "ti-6_6"`; bootloader provider `u-boot-toradex-ti` (recipe `u-boot-toradex-ti_2024.04.bb`); the R5 half is built by the multiconfig machine `verdin-am62p-k3r5` (`do_image[mcdepends] = "mc::k3r5:virtual/bootloader:do_deploy"`); the machine file sets no R5F firmware or remoteproc item.
+
+Consequence for the rows below: the OSTree/Torizon `uEnv.txt` template lives
+(by the community threads in a.3) in `meta-toradex-torizon`, which has no
+public 7.x branch. It may therefore never be readable from public sources. The
+board's own `/usr/lib/ostree-boot/uEnv.txt` (read-only, over ssh) is then the
+only direct evidence.
+
+## Boot script read (meta-toradex-bsp-common)
+
+`meta-toradex-bsp-common@8f13083c771e7187b61eb83e5ae216498e55864a` (branch
+`scarthgap-7.x.y`) was cloned shallowly, its file list read, and one file read:
+`recipes-bsp/u-boot/u-boot-distro-boot/boot.cmd.in`. The clone was deleted. The
+list has no `uEnv*` file, no OSTree boot-file recipe and no recipe that installs
+R5F/remoteproc firmware (**read from source**). Contents of `boot.cmd.in`
+(**read from source**):
+
+- It is Toradex's distro boot script (root by `PARTUUID`, `ro rootwait`; kernel,
+  device tree and `overlays.txt` loaded from the boot partition). It is not an
+  OSTree script, so it does not settle how Torizon picks the deployment.
+- Its header says `skip_fdt_overlays` "is adopted from the TorizonCore"; `1`
+  skips overlays. This matches the Torizon use in a.3.
+- Before the kernel load it runs the U-Boot variable `m4boot`, default `;`
+  (no-op) when unset: `run m4boot; run bootcmd_dtb && run bootcmd_overlays && ...`.
+  So U-Boot can start a remote core before Linux **if `m4boot` is set** in the
+  environment. Whether it is set on the Verdin AM62P is not in the file;
+  **inferred** open point: read `m4boot` (read-only) on the board. If it is set,
+  the MCU R5F may be started by U-Boot, not by Linux (b.2).
+- It sets `fdtfile` from `fdt_file` when empty, and `fdt_overlays` are applied
+  from `overlays.txt`.
+
+Whether Torizon on the AM62P uses this script or the OSTree `uEnv.txt` path of
+a.3 is not settled by it (**inferred**: a.3's community sources say OSTree).
 
 ## (a) Torizon boot chain on the Verdin AM62P
 
@@ -27,7 +93,7 @@ before relying on any `inferred` row (see "Open points").
 | Stage | File | Runs on | Tag |
 |---|---|---|---|
 | Boot ROM loads the first stage from the device chosen by the boot-mode pins, into on-chip SRAM (DDR is not up yet) | — | boot ROM | source: U-Boot AM62Px docs, https://docs.u-boot.org/en/latest/board/ti/am62px_sk.html (search summary) |
-| First stage: U-Boot R5 SPL packaged by binman | `tiboot3.bin` (Toradex name for the AM62P: `tiboot3-am62px-hs-fs-verdin.bin`) | R5F (the boot-time R5F; on AM62P this is the wakeup/device-manager R5F) | source for file name and R5 build: https://developer.toradex.com/linux-bsp/os-development/build-u-boot-and-linux-kernel-from-source-code/build-u-boot/build-u-boot-for-ti-am62p-modules (search summary); source for R5 SPL: U-Boot AM62Px docs above; the "wakeup R5F" identity is inferred |
+| First stage: U-Boot R5 SPL packaged by binman | `tiboot3.bin` (Toradex name for the AM62P: `tiboot3-am62px-hs-fs-verdin.bin`) | R5F (the boot-time R5F; on AM62P this is the wakeup/device-manager R5F) | read from source for the file name: `meta-toradex-ti@fe6bdf3:conf/machine/verdin-am62p.conf` (`FIRMWARE_BINARY[0099] = "tiboot3-am62px-hs-fs-verdin.bin"`); source for the build page: https://developer.toradex.com/linux-bsp/os-development/build-u-boot-and-linux-kernel-from-source-code/build-u-boot/build-u-boot-for-ti-am62p-modules (search summary); source for R5 SPL: U-Boot AM62Px docs above; the "wakeup R5F" identity is inferred |
 | Device Manager (DM, TISCI server: power, clocks, interrupts, DMA) | DM firmware, built into the boot images through binman (`ti-dm` entry, firmware directory passed as `BINMAN_INDIRS`) | R5F; the DM R5F runs the DM task and may run other non-DM code beside it | source: TI E2E FAQ and U-Boot docs via search (search summary); which image carries it on this module is inferred |
 | Second stage: TF-A (`bl31`), OP-TEE (`bl32`), A53 SPL and A53 DTBs | `tispl.bin` | A53 (Cortex-A53 cluster) | source: U-Boot AM62Px docs (search summary) |
 | U-Boot proper | `u-boot.img` | A53 | source: U-Boot AM62Px docs (search summary) |
@@ -43,7 +109,13 @@ Toradex builds the AM62P bootloader in two parts: an R5 build giving
 and `u-boot.img`, from the `toradex_ti-u-boot-2024.04` branch with the TI Linux
 firmware fetched (**source**: Toradex build page above, search summary). The
 "A72" label in that page is a Toradex build-target name; the AM62P application
-cores are Cortex-A53, so treat the label as inferred to be a naming quirk.
+cores are Cortex-A53, so treat the label as inferred to be a naming quirk. The
+layer names the two builds `verdin-am62p_r5_defconfig` (R5, machine
+`verdin-am62p-k3r5`, `SYSFW_SOC = "am62px"`, `SYSFW_CONFIG = "verdin"`,
+`SYSFW_SUFFIX = "hs-fs"`) and `verdin-am62p_a53_defconfig` (A53), with
+`UBOOT_ENTRYPOINT`/`UBOOT_LOADADDRESS` `0x80200000` (**read from source**,
+`meta-toradex-ti@fe6bdf3`, `verdin-am62p-k3r5.conf` and `verdin-am62p.conf`). So
+the layer itself labels the second build A53.
 
 ### a.2 Where the files live
 
@@ -51,8 +123,11 @@ cores are Cortex-A53, so treat the label as inferred to be a naming quirk.
   (`mmc dev 0 1`) at fixed offsets: `tiboot3` at block 0, `tispl.bin` at
   0x400 (1024) and `u-boot.img` at 5120 blocks (**source**: U-Boot Verdin AM62
   doc, https://docs.u-boot.org/en/latest/board/toradex/verdin-am62.html, and a
-  Toradex-related DFU config, search summary). The same offsets for the AM62P
-  module are **inferred** from the AM62 numbers.
+  Toradex-related DFU config, search summary). For the AM62P module the
+  Toradex Easy Installer payload offsets are **read from source**
+  (`meta-toradex-ti@fe6bdf3:conf/machine/verdin-am62p.conf`, in 512-byte blocks):
+  `tiboot3.bin` 0, `tispl.bin` 1024, `u-boot.img` 5120. That the target is the
+  eMMC boot area (not the user area) is not in the file and stays **inferred**.
 - A community report writes the three files with `dd` to the first eMMC boot
   device at seeks 0, 1024 and 5120 (**source**: TI E2E thread
   https://e2e.ti.com/support/processors-group/processors/f/processors-forum/1427329/am62p-q1-how-to-boot-from-emmc,
@@ -80,9 +155,13 @@ cores are Cortex-A53, so treat the label as inferred to be a naming quirk.
 - The base device tree comes from the `fdtfile` default in the
   `meta-toradex-torizon` `uEnv.txt` template, and TorizonCore Builder changes it
   by writing the new file into the boot script (**source**: community threads,
-  search summary). The AM62P default name is **inferred** to be the module's
-  `k3-am62p5-verdin-*` tree with the carrier-board suffix; read it from the board
-  before relying on it.
+  search summary). The AM62P machine config builds `ti/k3-am62p5-verdin-{nonwifi,wifi}-{dahlia,dev,ivy,mallow,yavia,zinnia}.dtb`
+  (**read from source**, `meta-toradex-ti@fe6bdf3:conf/machine/verdin-am62p.conf`,
+  `KERNEL_DEVICETREE`), so the module tree plus carrier suffix is confirmed as the
+  set of names; which one this board boots is read from the board. The same file
+  sets `TEZI_EXTERNAL_KERNEL_DEVICETREE_BOOT` to the overlays `verdin-am62p_dsi-to-hdmi_overlay.dtbo` and
+  `verdin-am62p_spidev_overlay.dtbo` for the generated `overlays.txt` (**read from
+  source**; that applies to the Easy Installer image, not necessarily Torizon).
 - Device-tree overlays are enabled by `overlays.txt` (an `fdt_overlays=` line)
   in the OSTree deployment, with the `.dtbo` files beside it (**source**:
   Toradex developer page https://developer.toradex.com/knowledge-base/device-tree-overlays
@@ -99,7 +178,7 @@ cores are Cortex-A53, so treat the label as inferred to be a naming quirk.
   M4 and R5 cores on the AM62 (**source**: community thread
   https://community.toradex.com/t/verdin-am62-support-for-ipc/25454, search
   summary; community post). Its AM62P equivalent and whether it is enabled by
-  default are **not known**. This overlap with the MCU R5F carve-outs belongs to
+  default are **not known**; the AM62P machine config lists no `hmp` overlay (only the two above). This overlap with the MCU R5F carve-outs belongs to
   the device-tree study (item am62p-dt-source), not here.
 
 ## (b) R5F firmware under Torizon
@@ -118,6 +197,10 @@ cores are Cortex-A53, so treat the label as inferred to be a naming quirk.
   (wakeup R5F). Confirm against the `firmware-name` properties and the
   `remoteproc` sysfs `firmware` attribute on the board; the remoteproc driver
   study (item am62p-rproc-source) owns the driver side.
+- `meta-toradex-ti@fe6bdf3` has no recipe that installs R5F firmware into
+  `/lib/firmware` (file-name search, see Limits). Firmware images, if any, come
+  from another layer (`meta-ti-bsp` is a dependency, not read) or are absent
+  (**inferred**).
 - In Linux the firmware files are usually symlinks into `/lib/firmware/ti-ipc/...`
   (**inferred** from TI SDK images; not confirmed for Torizon).
 
@@ -230,13 +313,22 @@ entries, which this project does not do).
 
 ## Open points for the next session
 
-1. Pin `meta-toradex-ti` and `meta-toradex-torizon` at a commit and read:
-   `conf/machine/verdin-am62p.conf`, the U-Boot recipe, the `uEnv.txt` template,
-   the K3 firmware recipe. Then upgrade the `inferred` rows above.
-2. Read the AM62P remoteproc nodes on the board (read-only) and fill b.1/b.2.
-3. Read the active eMMC boot partition number (read-only `mmc` sysfs entries)
+Still unconfirmed (every row still tagged `inferred` above), in order of use to the board run:
+
+1. Read the Torizon `uEnv.txt` template. It is not in `meta-toradex-ti`
+   nor in `meta-toradex-bsp-common@8f13083` (file list of that checkout read:
+   no `uEnv*`, no firmware-install recipe; only the distro boot script
+   `recipes-bsp/u-boot/u-boot-distro-boot/boot.cmd.in`, see "Boot script read");
+   it lives in `meta-toradex-torizon` (no public 7.x branch) or in another layer
+   (`u-boot-distro-boot`, `ostree-uenv-extlinux`). If none is public, take
+   `/usr/lib/ostree-boot/uEnv.txt` from the board, read-only.
+2. Find where the Torizon image gets any R5F firmware under `/lib/firmware`
+   (not `meta-toradex-ti`); `meta-ti-bsp` is the candidate, not read.
+3. Read the AM62P remoteproc nodes on the board (read-only) and fill b.1/b.2:
+   firmware names, who boots the MCU R5F.
+4. Read the active eMMC boot partition number (read-only `mmc` sysfs entries)
    for a.2, without writing.
-4. Confirm that the custom firmware path route and the `firmware` attribute route
+5. Confirm that the custom firmware path route and the `firmware` attribute route
    work on the Torizon kernel; the driver study owns the stop/start rules.
 
 ## Sources (accessed 2026-11-28; search summaries)
@@ -253,4 +345,4 @@ entries, which this project does not do).
 - TI E2E, AM62P eMMC boot: https://e2e.ti.com/support/processors-group/processors/f/processors-forum/1427329/am62p-q1-how-to-boot-from-emmc
 - Toradex community threads cited inline (community.toradex.com, topics 20672, 19957, 28978, 25454, 25489)
 - Linux kernel docs (fetched 2026-11-28): https://docs.kernel.org/staging/remoteproc.html, https://docs.kernel.org/driver-api/firmware/fw_search_path.html
-- Repositories not read: `toradex/meta-toradex-ti` (the clone at that GitHub path returned "Repository not found" on 2026-11-28; the real location or name must be found) and `toradex/meta-toradex-torizon` (no commit pinned)
+- Toradex layers (branch heads via `git ls-remote`, 2026-11-28; three `meta-toradex-ti` files read; `meta-toradex-bsp-common@8f13083` file list and `recipes-bsp/u-boot/u-boot-distro-boot/boot.cmd.in` read): https://git.toradex.com/meta-toradex-ti.git, https://git.toradex.com/meta-toradex-bsp-common.git, https://github.com/toradex/meta-toradex-torizon.git
