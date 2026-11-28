@@ -1,14 +1,15 @@
 # i.MX95 display route from DPU to the LVDS panel: source study for an M7 driver
 
-Desk research, 2026-11-28. **Nothing here is observed on a board.** Tags: **read from source** = read in the named file at the pinned ref; **inferred** = concluded from what was read, not stated by a source. A gap is written **NOT READ**. This note covers the route after the DPU (pixel interleaver, pixel link, LDB, LVDS PHY, display-mix CSRs, clocks, panel). The DPU core driver is out of scope (see `docs/imx95-dpu-source-6.6.md`).
+Desk research, 2026-11-28, corrected 2026-11-28 against the two dated board snapshots under `docs/imx95-zephyr/`. Sections 1-3, 5 and 6 are source reads and inference only. Section 4 holds the board facts, tagged **observed** with the run date (2026-11-27 for both snapshots, see [observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt) and [observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt)). Tags: **observed** = read on the board in a named snapshot; **read from source** = read in the named file at the pinned ref; **inferred** = concluded from what was read, not stated by a source. A gap is written **NOT READ**. This note covers the route after the DPU (pixel interleaver, pixel link, LDB, LVDS PHY, display-mix CSRs, clocks, panel). The DPU core driver is out of scope (see `docs/imx95-dpu-source-6.6.md`).
 
 ## 1. Sources and pins
 
 | Ref | URL | Pin | Notes |
 |---|---|---|---|
 | NXP Linux | `https://github.com/nxp-imx/linux-imx` | tag `lf-6.6.52-2.2.2`, commit `5a0a5e71d2bd` (as recorded in `docs/imx95-dpu-source-6.6.md`; this study could not re-resolve the SHA: the GitHub API answered 403) | Files read via `https://raw.githubusercontent.com/nxp-imx/linux-imx/lf-6.6.52-2.2.2/<path>` |
-| Upstream Zephyr | `https://github.com/zephyrproject-rtos/zephyr` | branch `main`, newest commit seen `2c9beecdd026` (merge of PR #99224, 2026-05-19). The head SHA and the latest release tag were **not obtained** (API 403); pages were live around 2026-11-27 | Files via `https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/main/<path>` |
-| Toradex kernel / DT | `https://git.toradex.com/cgit/linux-toradex.git`, branch `toradex_6.6-2.2.x-imx` | **NOT READ.** `github.com/toradex/linux-toradex` and `github.com/toradex/meta-toradex-nxp` answered 404 and cgit is behind a bot challenge. `github.com/toradex/device-trees` is reachable but has only 5.4-era branches (default `toradex_5.4-2.3.x-imx`, last update 2024-02-07) | No Verdin iMX95, Mallow or panel-overlay file was read |
+| Upstream Zephyr | `https://github.com/zephyrproject-rtos/zephyr` | this study read `main` unpinned: newest commit seen `2c9beecdd026` (merge of PR #99224, 2026-05-19), head SHA **not obtained** (API 403). The canonical pin of this repository is tag `v4.5.0` (commit `41d10b59730406bbab4ca9f1fbbe9e96aafb4966`, the tag `scripts/prepare-zephyr.sh` fetches; see [imx95-m7-scmi.md](imx95-m7-scmi.md)); section 5 was **not re-read** at that tag | Files via `https://raw.githubusercontent.com/zephyrproject-rtos/zephyr/main/<path>` |
+| Toradex kernel / DT | `https://git.toradex.com/linux-toradex.git`, branch `toradex_6.6-2.2.x-imx` | commit `64f85d65c112c45ceb6c7e0566885afc62b1a551` (the `SRCREV_machine` of BSP 7.8.0, kernel 6.6.157, pinned in [imx95-m7-memory-map.md](imx95-m7-memory-map.md)). **This study did not read it**: `github.com/toradex/linux-toradex` and `github.com/toradex/meta-toradex-nxp` answered 404 and cgit is behind a bot challenge (2026-11-28). The Verdin and Mallow DT files at that commit are read by [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) | No Verdin iMX95 or Mallow file was read here |
+| Toradex overlays | `https://git.toradex.com/device-tree-overlays.git`, branch `toradex_6.6-2.2.x-imx` | commit `e9a3ca6fbd6bd5fab7f00cdb87360be44373cf69` | Read by [imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md) (section 1 there); the panel facts of section 4 come from there and from the snapshots |
 
 The board kernel is NXP 6.6.157-7.8.0 (Toradex). That it shares the `lf-6.6.52-2.2.x` drivers below is **inferred** (see the same caveat in `docs/imx95-dpu-source-6.6.md`). The Toradex deltas to these files are not read.
 
@@ -66,7 +67,7 @@ All offsets are from the DT base of the named syscon.
 ### 3.2 Clocks (read from source)
 
 - SCMI clock IDs (`include/dt-bindings/clock/fsl,imx95-clock.h`): `IMX95_CLK_LDBPLL_VCO` 37, `IMX95_CLK_LDBPLL` 38, `DISPAPB` 75, `DISPAXI` 76, `DISPOCRAM` 78, `DISP1PIX` 80, `CAMAPB` 62. Zephyr's `imx95_clock.h` carries the same names (section 5).
-- `dispmix_csr` assigns `DISPAXI` and `DISPOCRAM` = 400 MHz (parent `SYSPLL1_PFD1`) and `DISPAPB` = 133.333 MHz (parent `SYSPLL1_PFD1_DIV2`) through `assigned-clocks`.
+- `dispmix_csr` assigns `DISPAXI` and `DISPOCRAM` = 400 MHz (parent `SYSPLL1_PFD1`) and `DISPAPB` = 133.333 MHz (parent `SYSPLL1_PFD1_DIV2`) through `assigned-clocks` (read from source, NXP pin). On the board `dispocram` is 400 MHz and `dispapb` 133.333 MHz but **`dispaxi` is 800 MHz**, not 400 (**observed** 2026-11-27, `clk_summary` in [observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt)); why differs is **NOT READ** (the Toradex tree or the SM may set it). Do not use 400 MHz for `DISPAXI` as a board fact.
 - `ldb_pll_div7` is a DT `fixed-factor-clock` (1/7) of `IMX95_CLK_LDBPLL`. It is the parent of `lvds_di0/1_gate`; `ldb_phy_div` is a 1-bit power-of-two divider of `ldbpll` and parents `lvds_ch0/1_gate`. All four gates set `CLK_SET_RATE_PARENT`.
 - The LDB driver (`imx95_ldb_bridge_mode_set`) does `clk_set_rate(ldb_di<N>, mode_clock*1000)`. Propagated up, this makes LDBPLL = 7 x pixel clock (the PLL is an SCMI-owned clock). `ldb_vco` is only enabled, never rate-set, in the files read.
 - `mode_valid`: clock > 330 MHz rejected; a single channel rejects > 165 MHz. `DPU95_FRAMEGEN_MAX_CLOCK` is **NOT READ**.
@@ -84,11 +85,23 @@ Dual-link: split mode sets `LVDS_PHY_DIV2`, powers both PHYs; the even/odd pixel
 
 `display_master_csr` (0x4ad10000, with its `Pixel_link_sel` mux at +0x4) and `display_stream_csr` serve the DSI path in the DT (`mipi_dsi` references them). The LVDS driver code read does not use them. Whether the hardware needs them idle for LVDS is **inferred** as no, and untested. `imx95-mipi-dsi.c` was not read.
 
-## 4. Toradex Verdin iMX95 / Mallow / 10.1" panel (NOT READ)
+## 4. Toradex Verdin iMX95 / 10.1" panel on the board
 
-None of the following was obtained, so nothing is claimed: the board DT (LDB channel, PHY, `panel-lvds` node), the panel overlay name, `data-mapping` (JEIDA/SPWG), `data-width`, panel timings (pixel clock, active size, porches, sync lengths, polarity), backlight PWM and enable, any `assigned-clock-rates`, board-level `status` of the display nodes, reserved memory and the Cortex-M7 nodes. Panel timings are therefore **unknown from source**.
+What is **observed** comes from the two snapshots (both run 2026-11-27, board over ssh, read-only). The overlay files are **read from source** in [imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md).
 
-Nothing in this repository from the earlier work should be read as filling this gap; the read-only board snapshot in `docs/` is a separate item and is not used here. How to close it: obtain the Toradex 7.8.0 kernel or the matching `device-trees` / overlay source (SRCREV from the BSP recipes), or read the live device tree on the board, and add the panel node, mapping and timings to this note with a commit pin.
+| Fact | Tag | Where |
+|---|---|---|
+| One LDB channel in use: `ldb@4` (`fsl,imx95-ldb`) under `syscon@4b0c0000`, `channel@0` `okay`, `phys` the PHY at `phy@8`, `phy-names` `lvds_phy`; single link. `phy@8` `reg` = `<0x8 0x4>`, `status` `okay` | observed 2026-11-27 | S2 |
+| `channel@1`: its `status` was **never dumped** in either snapshot. Only its clock gates (`lvds_ch1_gate`, `lvds_di1_gate`) being off is observed. "Channel 1 disabled" is therefore **not observed** | observed 2026-11-27 (gates), NOT READ (status) | S1 `clk_summary`, S2 |
+| Root node `panel-lvds-native` (`panel-lvds`), `data-mapping` `vesa-24`, 217 x 136 mm; `panel-timing`: 1280 x 800, clock 68.9 / 71.1 / 73.4 MHz (min/typ/max), hfront/hback porch 23/60/71, hsync 15/40/47, vfront/vback 5/7/10, vsync 6/9/12, hsync and vsync active 0, de-active 1, pixelclk-active 1 | observed 2026-11-27 | S2 (hex decoded in its header) |
+| These values equal the original native overlay `verdin-imx95_panel-cap-touch-10inch-lvds_overlay.dts` and differ from the V2 overlay (64.5 MHz, `pixelclk-active` 0) | observed (board values) and read from source (overlay) | S2 and the panel note |
+| `ldb@4` `assigned-clock-rates` 2 986 200 000 and 497 700 000 Hz; `clk_summary`: `ldbpll_vco` 2 986.2 MHz, `ldbpll` 497.7 MHz, `ldb_pll_div7` 71.1 MHz, `lvds_ch0_gate` and `lvds_di0_gate` on | observed 2026-11-27 | S1, S2 |
+| Backlight `backlight-lvds-native` (`pwm-backlight`): PWM period 6 666 667 ns, polarity flag 1; brightness levels 0 45 63 88 119 158 203 255 (decoded from hex), default level 4. The enable GPIO and the PWM controller phandle were not decoded | observed 2026-11-27 | S2 |
+| Machine string `Toradex Verdin iMX95 WB on Verdin Development Board`, SoC revision 2.0 | observed 2026-11-27 | S2 |
+| **Carrier is a Mallow** | **not observed**: the board's own model string names the Verdin Development Board, not Mallow. The Mallow naming comes from the plan's description of the hardware. The Toradex Mallow DTS names the model "... on Mallow Board" ([imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md) section 3.1), a different string, so the board's DT is not that file. The Verdin Development Board DTS at the Toradex pin was **NOT READ** (fetch refused 2026-11-28) | see panel note section 2 |
+| The DPU stream that feeds the LDB channel (stream 0 or 1) | read from source only (the `imx95.dtsi` graph in section 2); never observed | - |
+
+S1 = [observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt), S2 = [observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt). Still **NOT READ**: the board-level `status` of the DPU, pixel link and interleaver nodes beyond what the panel note lists from the overlays, and the reserved memory and Cortex-M7 nodes (other notes).
 
 ## 5. Upstream Zephyr (read from source, pin in section 1)
 
@@ -113,9 +126,9 @@ Derived from sections 3 and 5; none of it was run.
 3. Pixel interleaver 0x4b0d0000: reset, polarity, interrupt enable (needed only if the interleaver is not bypassed; the Linux default with no property is bypass).
 4. Display irqsteer 0x4b0b0000, for the interleaver and DPU interrupts (the interrupt path itself is another item).
 
-**Clocks and power** (SCMI-owned, by inference from the Linux DT using `scmi_clk`/`scmi_devpd`): `IMX95_PD_DISPLAY`; `DISPAPB`, `DISPAXI`, `DISPOCRAM`; `LDBPLL_VCO` and `LDBPLL` at 7 x pixel clock (the panel clock is unknown, section 4); the CSR-local gates (lvds_csr +0x0) are plain register bits, not SCMI clocks, so an M7 driver would clear them itself.
+**Clocks and power** (SCMI-owned, by inference from the Linux DT using `scmi_clk`/`scmi_devpd`): `IMX95_PD_DISPLAY`; `DISPAPB`, `DISPAXI`, `DISPOCRAM`; `LDBPLL_VCO` and `LDBPLL` at 7 x pixel clock (71.1 MHz on this board, 497.7 MHz PLL, observed 2026-11-27, section 4); the CSR-local gates (lvds_csr +0x0) are plain register bits, not SCMI clocks, so an M7 driver would clear them itself.
 
-**Panel side** (cannot be sized: section 4): mapping (JEIDA/SPWG) and width, sync polarity, backlight PWM (upstream has TPM PWM) and enable GPIO, touch not needed.
+**Panel side** (sized by the 2026-11-27 observation, section 4): `vesa-24` mapping, sync polarity active low, backlight PWM (upstream has TPM PWM) and enable GPIO, touch not needed.
 
 **Gaps in upstream Zephyr to fill for this route**: an LDB/PHY/pixel-link/interleaver driver or a minimal register-poking board layer; display-mix DT nodes and bindings; an LVDS panel or a fixed-timing description (the DPU driver already takes `display-timings`); a Verdin board or overlay; an LDB PLL rate path (clock IDs exist; setting the rate was not checked).
 
