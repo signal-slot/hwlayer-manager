@@ -160,3 +160,62 @@ only). Job `arm-backend` links the C backend for Cortex-M7 and Cortex-R5 and
 runs nothing. A green run says nothing about hardware. `sh
 scripts/check-all.sh` runs the same steps locally (`--lint` adds the lint
 scripts).
+
+## Board test apps (Zephyr)
+
+Written 2026-11-28. **Read from source**: the scripts and docs named here
+were read; nothing was built or run for this section.
+
+The board test apps are Zephyr applications under `tests/board/` (one
+directory each, with `CMakeLists.txt`, `prj.conf`, `src/` and a `README.md`
+holding its `west build` line). `tests/board/README.md` indexes them.
+
+- **Prepare the workspace and SDK.** `scripts/prepare-zephyr.sh [--dry-run]
+  <dest-root>` fetches a pinned west workspace and a minimal Zephyr SDK under
+  `<dest-root>/zephyr` and prints the two lines to export,
+  `ZEPHYR_WORKSPACE` and `ZEPHYR_SDK_INSTALL_DIR`. Versions and reasons are in
+  `docs/zephyr-workspace.md`. `--dry-run` prints the steps and changes
+  nothing.
+- **Build.** `sh scripts/build-zephyr-apps.sh` runs `west build -p always`
+  for every app, with the board taken from the first `-b <board>` of the
+  `west build` line in the app's `README.md`. It needs `ZEPHYR_WORKSPACE`,
+  `ZEPHYR_SDK_INSTALL_DIR` and `west` on `PATH` (exit 2 if one is missing).
+  Flags: `--dry-run` (print the commands; needs no environment),
+  `--build-root DIR` (default `$TMPDIR/zephyr-apps`, else `target/zephyr-apps`
+  in the repository; never `/tmp`), `--keep-going` (build the remaining apps
+  after a failure). Exit 0 all built, 1 a build failed.
+- **Lint the layout.** `sh scripts/check-zephyr-apps.sh` checks each app for
+  the required files, a source file, a `west build` line in its README, and
+  that it holds no IP address or UART device path. It prints `ok <dir>` or
+  `fail <dir>: <reason>` per app and exits 1 on a failure. It needs no Zephyr
+  environment; `sh scripts/check-all.sh --lint` runs it.
+
+CI does not build these apps (`docs/ci.md`: the board test's firmware is not
+built in CI), so a green CI run says nothing about them. A host build shows
+that an app compiles and links for its board. It is **not** a hardware
+result: nothing about display, timing or ownership follows from it until the
+image has run on the board and the run is recorded as a dated measurement.
+For board sessions see `docs/imx95-m7-runbook.md`.
+
+## Script tests
+
+Each helper script in `scripts/` with host-testable behaviour has a
+self-test next to it, named `scripts/<name>.test.sh`. They run on a host,
+use throwaway directories under `$TMPDIR` or fake commands, and touch no
+board.
+
+- **All together.** `sh scripts/check-all.sh --lint` runs the CI steps and
+  then the repository's lint scripts and the script self-tests that the
+  header of `scripts/check-all.sh` lists. Add `--keep-going` to run every
+  step after a failure. Without `--lint` only the CI steps run.
+- **One test.** Run it from the repository root with the interpreter named
+  in its first line, for example `sh scripts/check-doc-links.test.sh` or
+  `bash scripts/prepare-zephyr.test.sh`. Most use `#!/bin/sh`; some use
+  bash, so check the first line of the file. A failure gives a non-zero
+  exit status.
+- **Not all are wired in.** `check-all.sh --lint` runs a chosen subset; a
+  `*.test.sh` that its header does not list has to be run by hand as above.
+
+These tests check the scripts, not the hardware. A script that talks to a
+board is tested against a fake, so a pass is **not** a board result. For
+board sessions see `docs/imx95-m7-runbook.md`.
