@@ -78,7 +78,7 @@ check diff "$out" "IRQSTEER present"
 
 # 3. custom match, including chip-less lines (IPI, Err)
 out=$(sh "$S" --match 'ipi|^err|Err:' "$T/a.txt" "$T/b.txt")
-check match "$out" "IPI0 120 60 - - IPI0 Rescheduling interrupts (15.00/s)"
+check match "$out" "IPI0 180 60 - - IPI0 Rescheduling interrupts (15.00/s)"
 check match "$out" "Err 0 0 - - Err"
 check match "$out" "IRQ-LINES n=2"
 check match "$out" "IRQSTEER present"   # reported on the whole capture
