@@ -30,6 +30,10 @@
 #   serial    'serial' / 'Serial Number' / 'serial_no' followed by an
 #             8-digit number (Toradex-style board serial), e.g.
 #             "Serial Number: 12345678", "serial=12345678"
+#   hostname  Toradex default host name that embeds the board serial:
+#             (verdin|colibri|apalis|aquila|smarc)-<soc>-<8 digits>, case
+#             insensitive, whole token (e.g. verdin-imx95-NNNNNNNN).
+#             'verdin-imx95' or 'verdin-imx95 board' alone are allowed
 #   mac       xx:xx:xx:xx:xx:xx (also with '-')
 #   user@host user@host, host starting with a letter
 #   ssh-key   -----BEGIN ... PRIVATE KEY-----
@@ -304,6 +308,8 @@ grep -E '(^|[^0-9A-Fa-f:-])(([0-9A-Fa-f]{2}:){5}|([0-9A-Fa-f]{2}-){5})[0-9A-Fa-f
     report mac
 grep -iE 'serial([ _-]?(number|no))?[^A-Za-z0-9@]{0,4}[0-9]{8}($|[^0-9A-Za-z])' "$stream" |
     report serial
+grep -iE '(^|[^A-Za-z0-9_])(verdin|colibri|apalis|aquila|smarc)-[a-z0-9]+-[0-9]{8}($|[^A-Za-z0-9_])' "$stream" |
+    report hostname
 grep -E "$uh_re" "$stream" |
     grep -viE 'co-authored-by:|signed-off-by:|git@github\.com|git@gitlab\.com|noreply' |
     uh_filter |

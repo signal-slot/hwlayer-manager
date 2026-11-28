@@ -117,6 +117,16 @@ run serial-placeholder 0 a.txt "Serial Number: <serial> and serial=\$SERIAL"
 run serial-short-number 0 a.txt "serial 12345 and serial port 115200"
 run serial-dt-unit-address 0 a.txt 'lpuart3 is serial@42570000'
 run serial-long-digits 0 a.txt "serial 1234567890123"
+run hostname-full 1 a.txt "prompt root@""verdin-imx95-""$sn"
+run hostname-bare-full 1 a.txt "host Verdin-IMX95-""$sn up"
+run hostname-colibri 1 a.txt "colibri-imx8x-""$sn"
+run hostname-family-soc 0 a.txt "verdin-imx95"
+run hostname-family-soc-board 0 a.txt "the verdin-imx95 board"
+run hostname-placeholder 0 a.txt "ssh torizon@<host>"
+run hostname-short-digits 0 a.txt "verdin-am62p-01 and verdin-imx95-1234567"
+run hostname-commit-msg 1 a.txt ok "subject
+
+board verdin-imx95-$sn"
 run mac-sysfs 1 a.txt "cat /sys/class/net/eth0/address: $mac"
 run ssh-torizon-host 1 a.txt "ssh tori""zon@verdin-am62p-0""1 true"
 run ssh-torizon-ip 1 a.txt "ssh tori""zon@192.168.""7.9"
