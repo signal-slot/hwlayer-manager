@@ -48,7 +48,8 @@
 #                   hold, so the caller can take a camera or KVM picture; its
 #                   failure is only noted. hold-start is called once the
 #                   hold is under way (the first `commit` record of the run
-#                   is seen), while the hold goes on, so the hook may sleep
+#                   is seen; for A2 and A4, which print none, their `step`
+#                   record; after --stop-wait at the latest), while the hold goes on, so the hook may sleep
 #                   and then take its picture; hold-end follows the end of
 #                   the hold. PHASEs, by row (LABEL in brackets):
 #                     A1  hold-start/hold-end [master | kernel-lease]
@@ -251,19 +252,25 @@ runhook() {
 }
 
 # run_held ROW LABEL START END LOG CMD...: run CMD in the background, call
-# the hook START once its first commit is seen (or it has ended), wait for
-# it, then call the hook END. Sets rc to its exit status.
+# the hook START once the hold has started (a record matching $hmark, an
+# extended regexp, default the first `commit`; or the run has ended), wait for
+# it, then call the hook END. Sets rc to its exit status. A2 and A4 print no
+# `commit` record, so they set hmark to their `step` record, which the
+# harness prints just before the hold. If the record never comes, the hook
+# fires after --stop-wait and that is noted.
 run_held() {
 	hrow=$1 hlab=$2 hs=$3 he=$4 hlog=$5
 	shift 5
 	"$@" > "$hlog" 2>&1 &
 	hpid=$!
 	t=0
-	while [ "$(count "$hlog" commit)" -eq 0 ] && kill -0 "$hpid" 2>/dev/null \
+	while ! grep -Eq "${hmark:-^commit }" "$hlog" && kill -0 "$hpid" 2>/dev/null \
 		&& ! grep -q '^VERDICT ' "$hlog" \
 		&& [ "$t" -lt $((stop_wait * 10)) ]; do
 		sleep 0.1; t=$((t + 1))
 	done
+	[ "$t" -lt $((stop_wait * 10)) ] || note "$hrow: no start record in ${stop_wait}s, hook $hs fired on the timeout"
+	hmark=
 	runhook "$hrow" "$hs" "$hlab"
 	wait "$hpid"
 	rc=$?
@@ -336,6 +343,7 @@ row_a2() {
 	d=$out/A2; mkdir -p "$d"
 	note "hold=${hold}s fps=${fps} (assumed) frames=$frames buffers=3 allow_drops=$allow_drops"
 	# shellcheck disable=SC2086
+	hmark='^step '
 	run_held A2 "" hold-start hold-end "$d/rotate.log" \
 		"$harness" $common --source master --frames "$frames" --buffers 3 \
 		$(targ "$d/rotate.log") rotate
@@ -413,6 +421,7 @@ row_a3() {
 row_a4() {
 	d=$out/A4; mkdir -p "$d"; f=$d/revoke.log
 	# shellcheck disable=SC2086
+	hmark='^step '
 	run_held A4 "" hold-start hold-end "$f" \
 		"$harness" $common --source kernel-lease --frames 60 --buffers 3 \
 		--seconds "$seconds" $(targ "$f") revoke

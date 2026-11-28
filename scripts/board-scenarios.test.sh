@@ -10,6 +10,10 @@
 #   MOCK_REV      revoke: ok | commitafter | nolost | busy | exit1
 #   MOCK_MS       modeset: ok | blocked | blockedexit0 | switchfail | nolatch |
 #                 noafter | norestore | exit1 | noverdict
+#   MOCK_LINGER   seconds rotate and revoke keep running after their `step`
+#                 record, as a hold does
+#   MOCK_ORDER    file to which rotate and revoke append `harness-done`
+#                 after the linger
 #   MOCK_CONN     connector name of the selected output (default HDMI-A-1;
 #                 the real harness prints e.g. HDMIA-1, DisplayPort-2)
 #   MOCK_REC      recovery: ok | fail | noverdict | stall | passbusy |
@@ -86,6 +90,8 @@ rotate)
 	mode=${MOCK_ROT:-ok}
 	frames=0; prev=
 	for a; do [ "$prev" = --frames ] && frames=$a; prev=$a; done
+	echo "step label=rotate frames=$frames buffers_per_plane=3 period_us=16666"
+	if [ -n "$MOCK_LINGER" ]; then sleep "$MOCK_LINGER"; [ -z "$MOCK_ORDER" ] || echo harness-done >> "$MOCK_ORDER"; fi
 	pres=$frames; drop=0; rel=$((2 * (frames - 1)))
 	[ "$mode" = drop ] && { drop=2; pres=$frames; rel=$((rel + 4)); }
 	[ "$mode" = norelease ] && rel=0
@@ -95,6 +101,8 @@ rotate)
 	;;
 revoke)
 	mode=${MOCK_REV:-ok}
+	echo "step label=revoke frames_before=60 buffers_per_plane=3"
+	if [ -n "$MOCK_LINGER" ]; then sleep "$MOCK_LINGER"; [ -z "$MOCK_ORDER" ] || echo harness-done >> "$MOCK_ORDER"; fi
 	echo "progress frame=60 presented=60 dropped=0 releases=118 violations=0"
 	echo "before_revoke frames=60 releases=118 on_screen=3,6"
 	[ "$mode" = commitafter ] && echo "commit step=revoke submission=61 validate_us=1 commit_us=1 latency_us=1"
@@ -450,6 +458,18 @@ A4 hold-end -" ] && ok || { bad "A4 hook calls"; cat "$T/hook3.log" >&2; }
 hookrun A5 modeset
 [ "$(cat "$T/hook3.log")" = "A5 hold-start -
 A5 hold-end -" ] && ok || { bad "A5 hook calls"; cat "$T/hook3.log" >&2; }
+# A2 and A4 print no `commit` record: the hook must fire on their `step`
+# record, while the harness still runs, not after --stop-wait.
+printf '#!/bin/sh\necho "hook $1 $2" >> "%s/order.log"\n' "$T" > "$T/hookord"
+chmod +x "$T/hookord"
+for r in "A2 steady-state" "A4 lease-loss"; do
+	set -- $r
+	rm -f "$T/order.log"
+	E="MOCK_LINGER=2 MOCK_ORDER=$T/order.log"
+	t "hook order $1" "$1" "SCENARIO $2 PASS" 0 --hook "$T/hookord"
+	[ "$(sed -n 1p "$T/order.log")" = "hook $1 hold-start" ] && [ "$(sed -n 2p "$T/order.log")" = "harness-done" ] \
+		&& ok || { bad "$1 hold-start hook fired after the harness ended"; cat "$T/order.log" >&2; }
+done
 rm -f "$T/hook3.log"
 hookrun A6 display-recovery
 [ "$(cat "$T/hook3.log")" = "A6 hold-start -
