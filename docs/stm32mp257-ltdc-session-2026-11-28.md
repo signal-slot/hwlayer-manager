@@ -228,8 +228,9 @@ alpha / 255, truncated.
 
 Host 2026-11-27T22:43:58Z to 22:44:09Z. Weston stopped; every test is
 `ATOMIC_TEST_ONLY | ALLOW_MODESET` over a full-screen XR24 primary (observed
-2026-11-27). Host time of each of the three commands: not recorded, only the
-range above:
+2026-11-27). Host time of each of the three commands: not recorded in the
+original run, only the range above. Re-run on 2026-11-28 with per-run host
+times (see "Re-run of the un-timed runs" below):
 
 ```text
 /tmp/scale_probe /dev/dri/card0 --plane 42 --max-factor 4096
@@ -276,12 +277,12 @@ apart (Q2).
 
 | Case | Host time (UTC) | src → dst | Commit | Matching reference | `fifo_underrun_warning` while held (≈1.4 s) |
 |---|---|---|---|---|---|
-| h4-v4 | host time not recorded (within 22:46:00Z–22:47:24Z) | 240x135 → 960x540 | ok, 801 ms | none | +279 |
-| h4-v2 | host time not recorded (same range) | 240x270 → 960x540 | ok, 747 ms | none | +98 |
-| h2-v4 | host time not recorded (same range) | 480x135 → 960x540 | ok, 748 ms | none | +310 |
-| h1.5-v1.5 | host time not recorded (same range) | 640x360 → 960x540 | ok, 747 ms | none | +105 |
-| h3-v3 | host time not recorded (same range) | 320x180 → 960x540 | ok, 748 ms | none | +192 |
-| h1-v1 | host time not recorded (same range) | 960x540 → 960x540 | ok, 746 ms | all five (identical pictures) | +0 |
+| h4-v4 | host time not recorded (within 22:46:00Z–22:47:24Z); not re-run, see below | 240x135 → 960x540 | ok, 801 ms | none | +279 |
+| h4-v2 | host time not recorded (same range); not re-run, see below | 240x270 → 960x540 | ok, 747 ms | none | +98 |
+| h2-v4 | host time not recorded (same range); not re-run, see below | 480x135 → 960x540 | ok, 748 ms | none | +310 |
+| h1.5-v1.5 | host time not recorded (same range); not re-run, see below | 640x360 → 960x540 | ok, 747 ms | none | +105 |
+| h3-v3 | host time not recorded (same range); not re-run, see below | 320x180 → 960x540 | ok, 748 ms | none | +192 |
+| h1-v1 | host time not recorded (same range); not re-run, see below | 960x540 → 960x540 | ok, 746 ms | all five (identical pictures) | +0 |
 
 - Observed 2026-11-27: each scaled picture gave a stable CRC (the same
   about 0.5 s later, and the same in the repeat run). It **matched none of
@@ -831,10 +832,50 @@ top of this file); the host time above is the one that counts.
 ## Host-time audit of the runs
 
 Observed 2026-11-28 by reading this file: every run entry carries a host time
-except the following, marked "host time not recorded" where they appear in Q3:
+except the following, which carried only a range in the original session:
 the six scaled-commit cases (two runs, 22:46:00Z and 22:47:02Z, no per-case
 time) and the three `scale_probe` commands (only the range 22:43:58Z to
 22:44:09Z).
+
+Status after the re-run of 2026-11-28 (observed 2026-11-28):
+
+| Run | Status |
+|---|---|
+| `scale_probe` plane 42 | re-run, host 2026-11-28T07:48:35Z |
+| `scale_probe` plane 49 | re-run, host 2026-11-28T07:48:37Z |
+| `scale_probe` plane 42 `--dst 1920x1080` | re-run, host 2026-11-28T07:48:37Z |
+| six scaled-commit cases (h4-v4, h4-v2, h2-v4, h1.5-v1.5, h3-v3, h1-v1) | **not re-run: the `crcprobe` tool is not in the repository.** Original range kept: 22:46:00Z to 22:47:24Z on 2026-11-27 |
+
+None of the nine runs left the display stopped in the original session.
+
+## Re-run of the un-timed runs (2026-11-28)
+
+Observed 2026-11-28, over ssh only. Each host time is `date -u` on the host
+taken right before the command; the board clock is not NTP-synchronised (its
+`DATE` lines read 2026-11-27T21:22Z). `scale_probe` was rebuilt for
+`aarch64-unknown-linux-musl` (rust-lld) from this repository's tip, without
+`scripts/cross-aarch64.sh`, copied to the board's `/tmp` and removed after.
+`weston-graphical-session` and `seatd-weston` were stopped once for the three
+commands and started again right after. No DRM, udev or seat configuration was
+changed.
+
+| Host time (UTC) | Command | Observed |
+|---|---|---|
+| 2026-11-28T07:48:35Z | `/tmp/scale_probe /dev/dri/card0 --plane 42 --max-factor 4096` | exit 0. `RESULT plane=42 kind=Overlay format=XR24 max_upscale_h=960.0000+ max_upscale_v=540.0000+ max_upscale_both=540.0000+ downscale=rejected min_downscale=none`; `VERDICT scale_probe: OK 1 plane(s) probed at dst 960x540, resolution 256/65536`. Same as 2026-11-27 |
+| 2026-11-28T07:48:37Z | `/tmp/scale_probe /dev/dri/card0 --plane 49 --max-factor 4096` | exit 0. `RESULT plane=49 kind=Overlay format=XR24 max_upscale_h=1.0000 max_upscale_v=1.0000 max_upscale_both=1.0000 downscale=rejected`; same VERDICT. Same as 2026-11-27 |
+| 2026-11-28T07:48:37Z | `/tmp/scale_probe /dev/dri/card0 --plane 42 --dst 1920x1080 --max-factor 4096` | exit 0. `3840x2160 XR24 refused (os error 22); using 1920x1080`; `RESULT plane=42 … max_upscale_h=1920.0000+ max_upscale_v=1080.0000+ max_upscale_both=1080.0000+ downscale=untested`; `VERDICT scale_probe: OK 1 plane(s) probed at dst 1920x1080, resolution 256/65536`. Same as 2026-11-27 |
+
+Not re-run (inferred reason: the CRC probe was a throwaway program that was
+never committed, so "exactly as the doc describes" cannot be met): the six
+scaled-commit cases. They keep their original range.
+
+End state, host 2026-11-28T07:48:49Z, on the board:
+
+```text
+$ systemctl is-active weston-graphical-session seatd-weston
+active
+active
+```
 
 ## Summary of sessions A and B
 
