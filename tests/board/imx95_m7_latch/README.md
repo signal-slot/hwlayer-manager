@@ -187,5 +187,15 @@ two commands above:
 | default | links, no compiler warnings; RAM 37936 B of 42 MB; no DPU code in the image (no `fsl_dpu.c`, no `display_socionext_dpu.c`) |
 | `CONFIG_IMX95_M7_LATCH_ENABLE_DPU=y` | links, no compiler warnings; RAM 2593960 B of 42 MB (mostly the two buffers and the ring); `fsl_dpu.c` is in the application library, `display_socionext_dpu.c` is not built, and the ISR table entry 215 points at `latch_isr` |
 
+Rebuilt on a second x86_64 Linux host on 2026-11-28 against the workspace that
+`scripts/prepare-zephyr.sh` creates (Zephyr tag `v4.5.0`, `hal_nxp` at
+`a8b437ef366ff9a6f9bee3377dc189c4d2623f5b`), same SDK and compiler, same two
+commands:
+
+| Configuration | Result (`v4.5.0`) |
+| --- | --- |
+| default | links, no compiler warnings; RAM 37928 B of 42 MB |
+| `CONFIG_IMX95_M7_LATCH_ENABLE_DPU=y` | links, no compiler warnings; RAM 2593952 B of 42 MB; `fsl_dpu.c` is built into the application library |
+
 These are host builds only. The image was not loaded on any board; no latch,
 interval or latency was measured.
