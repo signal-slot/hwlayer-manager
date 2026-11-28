@@ -190,5 +190,19 @@ if [ "$lint" -eq 1 ]; then
     done
 fi
 
+# M3 host checks for the AM62P R5F (armv7r-none-eabihf). They run in their
+# skip-friendly mode (no --strict): a missing target, clang or arm gcc prints a
+# SKIP/skipped verdict and exits 0, so a node without them still passes. Each
+# script's own output, including its verdict line (ARMV7R ..., PASS/FAIL/SKIP,
+# skipped), is shown under its step.
+for l in check-armv7r-build check-ffi-r5f-link check-am62p-r5f-c; do
+    f=scripts/$l.sh
+    if [ ! -f "$f" ]; then
+        echo "SKIP  m3 host check $l: $f does not exist"
+        continue
+    fi
+    step "m3 host check $l" sh "$f"
+done
+
 summary
 [ "$fail" -eq 0 ]
