@@ -1,0 +1,53 @@
+# observed
+# date: 2026-11-28
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B (BCM2712, HVS6), vc4 card, HDMI 1920x1080@60, no display manager or compositor running
+# repository commit: 8136775
+# command: twoplane /dev/dri/<vc4 card> --frames 600 (generic profile; twoplane has no hvs6 profile option)
+DATE 2026-11-28T01:12:01Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+PROFILE Generic
+MODE 1920x1080@60.000Hz output 0 (crtc 94) of 1
+PLANE index 0 id 83 Primary zpos fixed 0 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 1 id 107 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 2 id 118 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 3 id 129 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 4 id 140 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 5 id 151 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 6 id 162 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 7 id 173 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 8 id 184 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 9 id 195 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 10 id 206 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 11 id 217 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 12 id 228 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 13 id 239 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 14 id 250 Overlay zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+PLANE index 15 id 657 Cursor zpos 1..=17 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+BUFFERS 3 per layer: background XR24 1920x1080, overlay AR24 384x540
+GEOMETRY output 1920x1080
+GEOMETRY background layer 0 dst 0,0 1920x1080 format XR24 rgb #202020
+GEOMETRY block red 192,135 384x540 rgb #ff0000
+GEOMETRY block green 768,135 384x540 rgb #00ff00
+GEOMETRY block blue 1344,135 384x540 rgb #0000ff
+GEOMETRY bar strip 0,864 1920x162 bar 48x162 rgb #ffffff moving 16 px per frame
+GEOMETRY overlay layer 1 dst 960,270 384x540 format AR24 blend premultiplied plane-alpha 0xffff
+GEOMETRY overlay opaque 960,270 384x270 colour #ffff00 pixel-alpha 0xff
+GEOMETRY overlay translucent 960,540 384x270 colour #ff00ff pixel-alpha 0x80
+GEOMETRY overlay counter 8 squares of 16x16 from 1156,274 step 20 px, most significant bit left, white #ffffff = 1, black #000000 = 0
+PLAN from frame 0:
+  layer 0 (background) -> plane 83 Primary zpos 0 src 0,0 1920x1080 dst 0,0 1920x1080
+  layer 1 (overlay) -> plane 107 Overlay zpos 1 src 0,0 384x540 dst 960,270 384x540
+EXPECT phase=normal "background" x=96 y=756 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=normal "red block" x=384 y=405 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=normal "blue block" x=1536 y=405 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=normal "green block uncovered" x=864 y=405 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=normal "overlay opaque over green" x=1056 y=405 fx=0.5500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay opaque over background" x=1248 y=405 fx=0.6500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay translucent over green" x=1056 y=607 fx=0.5500 fy=0.5620 rgb=#807f80
+EXPECT phase=normal "overlay translucent over background" x=1248 y=675 fx=0.6500 fy=0.6250 rgb=#901090
+RESULT frames=600 committed=600 latched=600 released=1198 dropped=0 late=0 period_ms=16.667 latch_interval_mean_ms=16.667 latch_interval_max_ms=16.694 elapsed_s=9.985
+RELEASE after the run: released 1200 of 1200 buffer uses, 0 still on screen
+VERDICT twoplane: PASS 600 frames on two planes, 600 latched, 1198 released, 0 late, driver vc4 mode 1920x1080@60.000Hz

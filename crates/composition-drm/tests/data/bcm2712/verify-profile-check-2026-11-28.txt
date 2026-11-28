@@ -1,0 +1,299 @@
+# observed
+# date: 2026-11-28
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B (BCM2712, HVS6), vc4 card, HDMI 1920x1080@60, no display manager or compositor running
+# repository commit: 8136775
+# command: profile_check /dev/dri/<vc4 card> --profile generic, then hvs6, then hvs5, then --profile hvs6 --show 20 (four runs, in this order, separated by '## ' lines)
+## --profile generic
+DATE 2026-11-28T01:11:09Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4
+PROFILE Generic
+output 0: crtc 94 1920x1080 @ 60.000 Hz
+plane 83 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 118 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 129 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 140 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 151 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 162 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 173 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 184 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 195 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 206 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 217 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 228 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 239 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 250 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 657 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+MODE 1920x1080 output 0 (crtc 94)
+CHECK layers-1 planner=plan:83 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:83,107,118 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:83,107,118,129 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=plan:83,107,118,129,140 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-6 planner=plan:83,107,118,129,140,151 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-7 planner=plan:83,107,118,129,140,151,162 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-8 planner=plan:83,107,118,129,140,151,162,173 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-9 planner=plan:83,107,118,129,140,151,162,173,184 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-10 planner=plan:83,107,118,129,140,151,162,173,184,195 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-11 planner=plan:83,107,118,129,140,151,162,173,184,195,206 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-12 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-13 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-14 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-15 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-16 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,657 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.5 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-0.75 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-1.5 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-2 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-4 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-8 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK nv12 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK below-primary planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=27 agree=18 stricter=7 looser=0
+VERDICT profile_check: PASS profile Generic driver vc4: 27 frames, 18 agree, 7 stricter, 0 looser
+## --profile hvs6
+DATE 2026-11-28T01:11:09Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4
+PROFILE Vc4Hvs6
+output 0: crtc 94 1920x1080 @ 60.000 Hz
+plane 83 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 118 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 129 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 140 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 151 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 162 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 173 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 184 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 195 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 206 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 217 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 228 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 239 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 250 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 657 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+resource group: consumers 0xc, planes 0b1111111111111111, capacity 4
+resource group: consumers 0x1, planes 0b1111111111111111, capacity 16
+MODE 1920x1080 output 0 (crtc 94)
+CHECK layers-1 planner=plan:83 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:83,107,118 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:83,107,118,129 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=plan:83,107,118,129,140 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-6 planner=plan:83,107,118,129,140,151 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-7 planner=plan:83,107,118,129,140,151,162 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-8 planner=plan:83,107,118,129,140,151,162,173 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-9 planner=plan:83,107,118,129,140,151,162,173,184 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-10 planner=plan:83,107,118,129,140,151,162,173,184,195 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-11 planner=plan:83,107,118,129,140,151,162,173,184,195,206 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-12 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-13 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-14 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-15 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-16 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,657 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.5 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.75 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-1.5 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-4 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-8 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK nv12 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK below-primary planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=27 agree=24 stricter=1 looser=0
+VERDICT profile_check: PASS profile Vc4Hvs6 driver vc4: 27 frames, 24 agree, 1 stricter, 0 looser
+## --profile hvs5
+DATE 2026-11-28T01:11:09Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4
+PROFILE Vc4Hvs5
+output 0: crtc 94 1920x1080 @ 60.000 Hz
+plane 83 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 118 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 129 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 140 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 151 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 162 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 173 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 184 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 195 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 206 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 217 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 228 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 239 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 250 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8191x7680, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 657 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+resource group: consumers 0xc, planes 0b1111111111111111, capacity 8
+MODE 1920x1080 output 0 (crtc 94)
+CHECK layers-1 planner=plan:83 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:83,107,118 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:83,107,118,129 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=plan:83,107,118,129,140 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-6 planner=plan:83,107,118,129,140,151 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-7 planner=plan:83,107,118,129,140,151,162 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-8 planner=plan:83,107,118,129,140,151,162,173 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-9 planner=plan:83,107,118,129,140,151,162,173,184 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-10 planner=plan:83,107,118,129,140,151,162,173,184,195 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-11 planner=plan:83,107,118,129,140,151,162,173,184,195,206 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-12 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-13 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-14 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-15 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-16 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,657 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.5 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.75 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-1.5 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-4 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-8 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK nv12 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK below-primary planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=27 agree=24 stricter=1 looser=0
+VERDICT profile_check: PASS profile Vc4Hvs5 driver vc4: 27 frames, 24 agree, 1 stricter, 0 looser
+## --profile hvs6 --show 20
+DATE 2026-11-28T01:11:30Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4
+PROFILE Vc4Hvs6
+output 0: crtc 94 1920x1080 @ 60.000 Hz
+plane 83 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 118 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 129 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 140 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 151 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 162 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 173 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 184 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 195 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 206 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 217 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 228 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 239 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 250 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling up 32.00 down 2.00, max source 8192x8192, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 657 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+resource group: consumers 0xc, planes 0b1111111111111111, capacity 4
+resource group: consumers 0x1, planes 0b1111111111111111, capacity 16
+MODE 1920x1080 output 0 (crtc 94)
+CHECK layers-1 planner=plan:83 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:83,107,118 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:83,107,118,129 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=plan:83,107,118,129,140 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-6 planner=plan:83,107,118,129,140,151 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-7 planner=plan:83,107,118,129,140,151,162 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-8 planner=plan:83,107,118,129,140,151,162,173 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-9 planner=plan:83,107,118,129,140,151,162,173,184 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-10 planner=plan:83,107,118,129,140,151,162,173,184,195 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-11 planner=plan:83,107,118,129,140,151,162,173,184,195,206 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-12 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-13 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-14 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-15 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-16 planner=plan:83,107,118,129,140,151,162,173,184,195,206,217,228,239,250,657 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.5 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.75 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-1.5 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-2 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-4 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-8 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK nv12 planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK below-primary planner=plan:83,107 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=27 agree=24 stricter=1 looser=0
+SHOW layer 0 -> plane 83 zpos 0
+SHOW layer 1 -> plane 107 zpos 1
+EXPECT phase=normal "background" x=96 y=756 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=normal "red block" x=384 y=405 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=normal "blue block" x=1536 y=405 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=normal "green block uncovered" x=864 y=405 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=normal "overlay opaque over green" x=1056 y=405 fx=0.5500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay opaque over background" x=1248 y=405 fx=0.6500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay translucent over green" x=1056 y=607 fx=0.5500 fy=0.5620 rgb=#807f80
+EXPECT phase=normal "overlay translucent over background" x=1248 y=675 fx=0.6500 fy=0.6250 rgb=#901090
+SHOW on screen for 20 s
+SHOW done: blanked
+VERDICT profile_check: PASS profile Vc4Hvs6 driver vc4: 27 frames, 24 agree, 1 stricter, 0 looser

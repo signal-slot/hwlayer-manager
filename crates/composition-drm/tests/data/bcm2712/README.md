@@ -167,3 +167,41 @@ to restart).
 bounds (ladder limit 64x, smallest downscale tried 0.5); the real HVS6 limits
 (Q1) were not reached. The 8/4 layer limits above show that the
 combination budget, not the per-plane ratio, is what TEST_ONLY rejects.
+
+## Profile check (observed 2026-11-28)
+
+`rpi5-verify`: `probe`, `profile_check` and `twoplane` cross-built from
+repository commit 8136775 (aarch64 musl), run on the Raspberry Pi 5 (kernel
+`6.18.50+rpt-rpi-2712`, vc4 card, HDMI 1920x1080@60) as root. No display
+manager or compositor exists on this image (`display-manager`, `lightdm`,
+`gdm`, `sddm` inactive before and after; only the tty1 and serial getty run),
+so there was nothing to stop or restart. The runs are portability evidence for
+the new profiles and never count toward M1, M2 or M3.
+
+| File | Content |
+| --- | --- |
+| `verify-probe-2026-11-28.txt` | `probe` on the vc4 card: output 0 lists 16 planes (primary, 14 overlays and the cursor; 18 reachable, 16 kept), 32 format pairs per plane |
+| `verify-profile-check-2026-11-28.txt` | `profile_check` with `--profile generic`, `hvs6`, `hvs5`, and `hvs6 --show 20` |
+| `verify-twoplane-2026-11-28.txt` | `twoplane --frames 600` (generic; twoplane has no hvs6 option) |
+| `verify-camera-2026-11-28.txt` | `twoplane-expect.py` + `camera-check.py` (KVM HDMI capture screenshot, `--panel full --rotation 0`, tolerance 60) of the `hvs6 --show 20` picture |
+
+Results:
+
+* `AGREEMENT total=27 agree=18 stricter=7 looser=0` (generic), `total=27
+  agree=24 stricter=1 looser=0` (hvs6), `total=27 agree=24 stricter=1 looser=0`
+  (hvs5). No `planner-looser` case in any run.
+* generic is planner-stricter on `scale-0.5` .. `scale-8` and `wide-source`
+  (it does not claim scaling; TEST_ONLY accepts with scaling forced). hvs6
+  and hvs5 agree on every scale frame and differ from TEST_ONLY only on
+  `wide-source` (planner refuses a 4352-wide source, TEST_ONLY accepts it
+  with the source limit removed). `rotate-90` and `reflect-y` are `agree=no`
+  (composition-drm does not program rotation; TEST_ONLY not reached).
+* The `hvs5` negative control did **not** differ from `hvs6` on this board:
+  `profile_check` produced no `modifier-*` frame (no non-linear modifier
+  reaches the planner's capabilities), so T-tiled/SAND64 were not exercised
+  and the expected hvs5 disagreement did not appear.
+* `twoplane --frames 600`: `VERDICT twoplane: PASS 600 frames on two planes,
+  600 latched, 1198 released, 0 late`.
+* Camera: `VERDICT: PASS` for all 8 regions (largest distance 37.2, red
+  block). The KVM screenshot was taken during the 20 s show, a few seconds
+  after the commit, not at a measured 2 s; the picture is not kept.
