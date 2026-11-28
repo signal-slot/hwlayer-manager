@@ -15,6 +15,9 @@
 #   --seconds N     how long each picture is held in A1, A3, A4, A5, A6
 #                   (default 3); a hold that a picture is taken 20 s or more
 #                   into needs --seconds of 25 or more
+#   --pause SECS    A3: how long the screen is held between the signal and the
+#                   restart (default: the --seconds value); the hook is
+#                   called during it as post-stop-start/post-stop-end
 #   --loss NAME     A6: how the harness loses the display, master or disable
 #                   (default: the harness's, master)
 #   --allow-drops N dropped frames A2 may report (default 0)
@@ -54,7 +57,7 @@
 #                         the signal, held --seconds; the signal follows
 #                         hold-end at once
 #                         post-stop-start/post-stop-end [TERM | KILL]: the
-#                         process has exited; the screen is held --seconds
+#                         process has exited; the screen is held --pause
 #                         restart-start/restart-end [TERM | KILL]: the
 #                         restarted run, held --seconds
 #                     A4  hold-start/hold-end: the revoke run
@@ -128,6 +131,7 @@ hook=
 trace=
 common=
 seconds_given=
+pause=
 loss=
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -140,6 +144,7 @@ while [ $# -gt 0 ]; do
 	--allow-drops) shift; allow_drops=${1:-} ;;
 	--stop-wait) shift; stop_wait=${1:-} ;;
 	--hook) shift; hook=${1:-} ;;
+	--pause) shift; pause=${1:-} ;;
 	--loss) shift; loss=${1:-} ;;
 	--trace) trace=1 ;;
 	--device) shift; common="$common --device ${1:-}" ;;
@@ -155,7 +160,7 @@ usage() { sed -n '2,/^$/s/^# \{0,1\}//p' "$0" >&2; exit 2; }
 [ $# -eq 1 ] || usage
 harness=$1
 [ -x "$harness" ] || { echo "harness not executable: $harness" >&2; exit 2; }
-for n in "$hold" "$fps" "$seconds" "$allow_drops" "$stop_wait" $frames; do
+for n in "$hold" "$fps" "$seconds" $pause "$allow_drops" "$stop_wait" $frames; do
 	case $n in ''|*[!0-9]*) echo "not a number: $n" >&2; exit 2 ;; esac
 done
 for r in $(echo "$rows" | tr ',' ' '); do
@@ -265,10 +270,10 @@ run_held() {
 	runhook "$hrow" "$he" "$hlab"
 }
 
-# hold_for ROW START END LABEL: hold --seconds with the hook START running
+# hold_for ROW START END LABEL [SECS]: hold SECS (default --seconds) with the hook START running
 # meanwhile, then call END.
 hold_for() {
-	sleep "$seconds" &
+	sleep "${5:-$seconds}" &
 	hsp=$!
 	runhook "$1" "$2" "$4"
 	wait "$hsp"
@@ -387,7 +392,7 @@ stop_run() {
 	fi
 	wait "$pid"; rc=$?
 	note "$sig: exit=$rc after commits=$(count "$log" commit)"
-	hold_for A3 post-stop-start post-stop-end "$sig"
+	hold_for A3 post-stop-start post-stop-end "$sig" "${pause:-$seconds}"
 	case $sig in TERM) check_trace "$log" stop-term ;; *) check_trace "$log" stop-kill ;; esac
 	case $sig:$rc in
 	TERM:0|TERM:143|KILL:137) ;;

@@ -494,6 +494,14 @@ chmod +x "$T/hook7"; rm -f "$T/hook7.log"
 t "A3 pause before restart" A3 "SCENARIO stop-restart PASS" 0 --seconds 1 --hook "$T/hook7"
 [ "$(cat "$T/hook7.log")" = "TERM not-restarted
 KILL not-restarted" ] && ok || { bad "A3 post-stop hook ran after the restart began"; cat "$T/hook7.log" >&2; }
+# --pause sets the post-stop hold independently of --seconds.
+rm -f "$T/hook8.log"
+printf '#!/bin/sh\necho "$2 $(date +%%s)" >> "%s/hook8.log"\n' "$T" > "$T/hook8"
+chmod +x "$T/hook8"
+t "A3 --pause" A3 "SCENARIO stop-restart PASS" 0 --seconds 0 --pause 2 --hook "$T/hook8"
+a=$(grep -m1 '^post-stop-start' "$T/hook8.log" | cut -d' ' -f2); b=$(grep -m1 '^post-stop-end' "$T/hook8.log" | cut -d' ' -f2)
+[ $((b - a)) -ge 1 ] && ok || bad "--pause 2 not held ($a..$b)"
+sh "$script" --pause x --out "$T/o2" "$T/harness" > /dev/null 2>&1; [ $? -eq 2 ] && ok || bad "--pause x accepted"
 # A5 (bug 1): the harness's own connector spelling needs no sysfs lookup, and
 # a BLOCKED row names the mode count from the harness.
 E="MOCK_MS=blocked MOCK_CONN=HDMIA-1"; t "A5 blocked, harness connector name" A5 "SCENARIO modeset BLOCKED" 3
