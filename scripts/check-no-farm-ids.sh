@@ -45,6 +45,8 @@ FIXTURES=(
   'scripts/check-no-board-secrets.sh|1.2.3.4|comment: example dependency version that looks like an IPv4 address'
   'scripts/check-no-board-secrets.test.sh|1.2.3.4|fixture: dependency version in Cargo.lock/vendor must not be flagged'
   'scripts/check-no-board-secrets.sh|/dev/ttyUSB0|FIXTURES table entry that names the serial sample to allow'
+  'scripts/check-no-board-secrets.sh|aa:bb:cc:dd:ee:ff|FIXTURES table entry that names the MAC sample to allow'
+  'scripts/check-no-board-secrets.sh|let token = abc123|FIXTURES table entry that names the credential sample to allow'
   'scripts/check-no-board-secrets.sh|Password=x|FIXTURES table entry that names the credential sample to allow'
   'scripts/check-zephyr-apps.test.sh|192.168.1.5|fixture: private-range sample the Zephyr-app check must reject'
   'scripts/check-zephyr-apps.test.sh|/dev/ttyUSB0|fixture: serial path the Zephyr-app check must reject'
@@ -63,11 +65,17 @@ FIXTURES=(
   'scripts/testdata/scrub-kms-dump/input.txt|/dev/ttyUSB7|fixture: fake UART path the KMS-dump scrubber must remove'
   'scripts/testdata/scrub-kms-dump/input.txt|02:00:5e:10:00:01|fixture: fake MAC the KMS-dump scrubber must remove'
   'scripts/testdata/scrub-kms-dump/input.txt|password=hunter2|fixture: fake credential the KMS-dump scrubber must remove'
+  'scripts/check-m2-acceptance.test.sh|10.20.30.40|fixture: fake address the M2 acceptance check must reject'
+  'scripts/check-m2-acceptance.test.sh|/dev/ttyUSB0|fixture: fake UART path the M2 acceptance check must reject'
+  'scripts/check-no-farm-ids.test.sh|let token = abc123|fixture: credential sample that must stay flagged'
   'crates/composition-drm/tests/common/recorded.rs|parse_format(token: &str)|Rust parameter named token, not a credential'
 )
 
-# Never scanned: this script (holds the patterns) and the lockfile.
-EXCLUDE=(':(exclude)scripts/check-no-farm-ids.sh' ':(exclude)Cargo.lock')
+# Never scanned: this script (holds the patterns), the lockfile, and
+# scripts/testdata/ (deliberately fake IPs, MACs, UART paths and credentials
+# for the scrubber self-tests; the only directory exclusion, patterns are
+# unchanged).
+EXCLUDE=(':(exclude)scripts/check-no-farm-ids.sh' ':(exclude)Cargo.lock' ':(exclude)scripts/testdata')
 
 allow_re=""
 for e in "${ALLOW[@]}"; do allow_re+="${allow_re:+|}(${e%|*})"; done

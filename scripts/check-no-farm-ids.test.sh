@@ -108,6 +108,13 @@ echo "board at $ip" >"$repo/untracked.txt"
 (cd "$repo" && git init -q . && git add scripts && bash scripts/check-no-farm-ids.sh >"$root/out" 2>&1)
 if [ $? -eq 0 ]; then echo "ok   untracked-ignored"; else echo "FAIL untracked-ignored"; fail=1; fi
 
+# scripts/testdata/ is the one excluded directory; its fake values pass, the
+# same text in a normal file (also under scripts/) is still reported.
+frun testdata-fake 0 scripts/testdata/x/in.txt "board at $ip $tty $mac"
+frun real-secret-normal-file 1 src/a.txt "board at $ip"
+frun real-secret-scripts-dir 1 scripts/other.sh "board at $ip"
+frun testdata-lookalike 1 xscripts/testdata/in.txt "board at $ip"
+
 # Runs from a subdirectory of the repository.
 (cd "$repo/scripts" && bash check-no-farm-ids.sh >"$root/out" 2>&1)
 if [ $? -eq 0 ]; then echo "ok   from-subdir"; else echo "FAIL from-subdir"; fail=1; fi
