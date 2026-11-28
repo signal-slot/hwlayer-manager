@@ -787,6 +787,27 @@ active
 active
 ```
 
+## Session C: KVM retry, 2026-11-28 (no picture)
+
+Session C was to take the pictures that sessions A and B could not: Q1
+(twoplane in both `--swap-z` phases and with `--plane-alpha 32768`, judged by
+`scripts/camera-check.py`), the NV12 colours on plane 42 (Q9), the look of the
+unstable mirrored output and reflect-y (Q6). Its first step was one KVM
+capture of the idle Weston screen, with the rule to stop if that failed.
+
+| Host time (UTC) | Step | Result | Tag |
+|---|---|---|---|
+| 2026-11-28T01:41:22Z | KVM capture of the idle Weston screen | **Failed.** The NanoKVM's MCP server (`kvm_kvm-stm32mp257f-dk`) did not connect when the session started; its relay answered HTTP 404, as in sessions A and B. No screenshot tool was available, so no picture was taken | observed 2026-11-28 |
+| 2026-11-28T01:41:34Z | Board check over ssh, no change made | `systemctl is-active weston-graphical-session seatd-weston` printed `active` twice; plane 34 `allocated by = weston`; `transfer_error=0 fifo_underrun_error=0` | observed 2026-11-28 |
+
+Because the capture failed, session C stopped there. It ran no example,
+stopped no service, copied nothing to the board and committed nothing to
+DRM. **camera-check verdict lines: none**, because there was no picture.
+The Q1, Q2 and Q9 answers above are unchanged. Q1 colours, NV12 colours, the
+mirrored output and reflect-y stay open until the KVM relay works (inferred:
+the 404 comes from the relay path to the NanoKVM, not from the board, which
+answered over ssh in the same minute).
+
 ## Summary of sessions A and B
 
 | Question | Answer | Tag |
