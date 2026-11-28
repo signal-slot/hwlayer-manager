@@ -37,7 +37,7 @@ case_() {
 n=0
 for t in 0 90 180 270 reflect-x reflect-y 180+reflect-x; do
     n=$((n + 1))
-    case_ transform "t$n-good-$t" "--plane $P --transform $t" pass "--plane $P --transform $t"
+    case_ transform "t$n-good" "--plane $P --transform $t" pass "--plane $P --transform $t"
 done
 # Transforms: wrong on purpose.
 case_ transform wrong-90-as-180 "--plane $P --transform 90" fail "--plane $P --transform 180"
