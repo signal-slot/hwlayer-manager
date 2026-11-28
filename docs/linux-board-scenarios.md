@@ -83,7 +83,7 @@ python3 scripts/camera-check.py PICTURE EXPECT.json [--compare PICTURE2] [--rota
 
 Exit 0 is `VERDICT: PASS`, 1 `VERDICT: FAIL`, 2 a usage or input error. The picture is rotated by `rotation` (default 180 for the board camera; a KVM capture is normally upright, so pass `--rotation 0` or set it in the file), the panel is found (`auto`, or explicit corners, which are needed for a black panel background), and each region in `EXPECT.json` is measured against an expected colour within a tolerance. With `--compare` the same regions are measured in two pictures and asserted `changed` or `same`.
 
-Pictures are taken through the script's `--hook` at `hold-start`/`hold-end` of A2 and A3 only (A1, A4 and A5 have no hook call, so a picture of A1 has to be taken by hand during its `--seconds` hold). The expected regions come from the plane layout and colours printed by the harness's `two-planes` run. A picture verdict is recorded next to the log verdict of its row; the two are never merged, and a row whose logs fail is FAIL whatever the picture shows. A picture that cannot be judged (no capture, panel not found) is recorded as such, not as PASS.
+Pictures are taken through the script's `--hook` (read from source: `scripts/board-scenarios.sh` at 99f8748, its usage text). The hook is called as `CMD ROW PHASE [LABEL]`, and `hold-start` comes once the first commit of the run is seen, so the hook may sleep and then take its picture. A1, A2, A4 and A5 have `hold-start`/`hold-end`; A3 has `hold-start`/`hold-end` before the signal, `post-stop-start`/`post-stop-end` while the screen is held after the process has exited (`--pause`, default `--seconds`), and `restart-start`/`restart-end` for the restarted run. The NanoPC-T6 run was made with the script at 195b458, which had hooks in A2 and A3 only (A3 with its two calls 0.1 s apart), no hook in A1, A4 and A5, and no `post-stop` phase; its table below stays true for that script. The expected regions come from the plane layout and colours printed by the harness's `two-planes` run. A picture verdict is recorded next to the log verdict of its row; the two are never merged, and a row whose logs fail is FAIL whatever the picture shows. A picture that cannot be judged (no capture, panel not found) is recorded as such, not as PASS.
 
 ## Raspberry Pi 5 (BCM2712, vc4)
 
@@ -138,6 +138,8 @@ Observed on the NanoPC-T6 on 2026-11-27, kernel 6.18.55-current-rockchip64, harn
 1. **A5 cannot find the connector's modes.** The harness prints the connector as `HDMIA-1`, but sysfs names it `card0-HDMI-A-1`, so `row_a5` in `scripts/board-scenarios.sh` never finds the modes file and gives a wrong BLOCKED reason. Reproduce: run `drm-harness --source master --seconds 1 two-planes`, take the line with `selected=yes`, and compare with `ls /sys/class/drm/`.
 2. **The A3 hook does not cover the screen after the stop.** Its two calls are about 0.1 s apart and the restart begins at once, so no picture can show the screen after the signal.
 3. **No picture hook in A1, A4 or A5.** Pictures of A1 had to be taken by hand.
+
+   Bugs 1-3 were fixed in the script afterwards, by 9a780bc (sysfs connector names, picture hooks in A1/A3/A4/A5) and 99f8748 (`--pause` for the A3 hold after the signal). They are kept here as observed at 195b458.
 4. **The harness has no SIGTERM handler.** It exits 143 without writing `resources` or `VERDICT`, so A3 does not test a clean shutdown.
 5. **`revoke` ignores the `--seconds` the script passes.** The run took 1063 ms with `--seconds 15`, so the screen after the revoke is never held.
 
