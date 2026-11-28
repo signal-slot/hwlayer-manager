@@ -41,7 +41,7 @@ Files used: `docs/platform-capabilities.md`, `docs/twoplane-backend.md`, `docs/i
 1. AM62P: Linux DRM driver, plane list, formats, scaling, blending, z-order, TI firmware and resource assignment, interrupt ownership. The demo's own docs and sources, named in `SoW.md` §5.2, are not read here. Issue #12 (AM62P board work) is not touched.
 2. i.MX95: the board's SM config (and whether the Linux side may start the M7) is still open in `docs/imx95-zephyr-feasibility.md`; the M7 rows will change once it is read.
 3. Any observed value on the AM62P, and any Zephyr-side measurement on the i.MX95.
-4. `docs/am62p-imx95-matrix.md` already holds an earlier comparison with its own tag scheme; the two documents overlap and the planner may want to merge or cross-link them. Neither was changed to do so.
+4. `docs/am62p-imx95-matrix.md` already holds an earlier comparison with its own tag scheme; the two documents overlap. They are now cross-linked and their differences are listed under "Known differences between the two matrices"; only merging them into one remains open.
 
 ## Known differences between the two matrices
 
