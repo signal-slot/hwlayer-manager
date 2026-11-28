@@ -275,6 +275,32 @@ run the report says so.
 Linux and Zephyr clocks have no common origin: the proposal supports
 intervals within one log only. No cross-log absolute time is defined.
 
+### 5.1 The `# date:` comment line
+
+The trace lines carry no calendar date (section 4), so a log file carries
+it as a comment line, written by whoever produces or collects the log:
+
+```
+# date: 2026-11-28
+```
+
+- Syntax, exactly as `scripts/trace-to-metrics.py` accepts it: the line
+  starts with `#` (column 0), then optional white space, `date`, optional
+  white space, `:` or `=`, optional white space, the date as
+  `YYYY-MM-DD` (four, two, two digits), optional trailing white space and
+  nothing else. `# date=2026-11-28` is the same line. Only the shape is
+  checked, not that the date exists.
+- A log from a real run must carry the line, with the date of the run. A
+  log may repeat the line, but all copies must give the same date.
+- A host or dry-run log, or any log not produced on the board, must say in
+  a further comment line that it is not a hardware result (for example
+  `# not a hardware result: host dry run`). The date line then gives the
+  date of that host run.
+- `scripts/trace-to-metrics.py` refuses (exit 2) a log with no such line
+  and a log with two different dates; it never invents or defaults a date
+  (`scripts/trace-to-metrics-README.md`). Other lines that do not start
+  with `CETRACE` are ignored.
+
 ## 6. Examples (illustrative, invented, not measured)
 
 Linux:
