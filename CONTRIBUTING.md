@@ -33,7 +33,7 @@ all with `sh scripts/check-all.sh` (`--keep-going` continues after a failure,
 also runs the lint scripts that are not CI steps. The lints can be run one by
 one:
 
-- `scripts/check-ffi-header.sh [BASE_REF]`: `include/composition_engine.h`
+- `scripts/check-ffi-header.sh [BASE_REF]`: `crates/composition-ffi/include/composition_engine.h`
   moved with `crates/composition-ffi/src/lib.rs`.
 - `scripts/check-commit-subjects.sh [BASE_REF]`: commit subjects follow the
   style below.
