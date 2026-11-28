@@ -50,7 +50,9 @@ date. The Weston release tag `16.0.2` (see `docs/weston-release-read.md`) was
 | Statement | Basis |
 | --- | --- |
 | The AGL docs home page says anyone can join the mailing list and Zoom meetings, or contribute to any project, and names Gerrit "for code collaboration" | read from source (2026-11-28): `https://docs.automotivelinux.org/` home page text (web page, no commit) |
-| Signed-off-by, DCO, CLA or licence-of-contribution rules, or an AI policy, for AGL Gerrit | not found in source (2026-11-28): not on the docs home page or `/en/master/`; the wiki and `git.automotivelinux.org` were not readable (the latter returned an anti-bot page) |
+| The AGL wiki page `https://wiki.automotivelinux.org/agl-distro/contributing` (DokuWiki, last modified 2024/09/06) says: "Please sign you commit before you submit the change (otherwise it will not be accepted by gerrit):", followed by `git commit --signoff`. It also says to create an account on identity.linuxfoundation.org, that a merge to master needs a +2 and no -2, and that only AGL-Mergers can give +2 | read from source (2026-11-28): web page, no commit; quoted through a fetch agent, not opened by this item directly. The page does not use the words "Signed-off-by" or "DCO" |
+| The wiki start page says it "is no longer being updated and will be shut down on December 31, 2026" and points to Confluence and `docs.automotivelinux.org` | read from source (2026-11-28): `https://wiki.automotivelinux.org/`, same caveat. The rule above may move; re-read it after that date |
+| An explicit DCO or CLA text, licence-of-contribution rule, or AI policy for AGL Gerrit | not found in source (2026-11-28): not on the docs home page, `/en/master/` or the two wiki pages; the AGL Confluence space and `git.automotivelinux.org` were not read (the latter returned an anti-bot page) |
 | Licence of the `meta-agl-drm-lease` recipes and its Weston patches | not found in source (2026-11-28): the layer could not be read in this session |
 | Licence of `drm-lease-manager` and `libdlmclient` | see `docs/third-party-licences.md` §3.1; not repeated here |
 | Layer contents (`weston_13.0.%.bbappend` and three patches, tag `unagi_20.92.0`) | recorded in `docs/weston-imx-lease.md` row S7; not re-read here |
@@ -81,13 +83,14 @@ advice.
   Apache-2.0. Code offered upstream must be under the upstream's licence, which
   the copyright holders must grant; the copyright holder is not decided
   (`docs/wp5-gap-analysis.md` W5-07). Decision for the owner.
-- AGL Gerrit: no rule found, so no statement is made about a CLA, a DCO or AI
-  authorship there. Treat it as unknown until the contribution pages are read.
+- AGL Gerrit: the wiki asks for a signed-off commit, so the same human sign-off
+  applies in practice (inferred). Whether that sign-off means the DCO, whether a
+  CLA exists, and any AI-authorship rule are unknown; make no statement on them.
 - Commits here follow the repository's own rules (`CONTRIBUTING.md`); this note
   does not change them.
 
 ## Not done
 
-- AGL wiki and Gerrit contribution pages, `meta-agl` licence files.
+- AGL Confluence space, `meta-agl` licence files.
 - freedesktop.org-wide pages on AI contributions.
 - The same files at Weston tag `16.0.2` and in stable branches.
