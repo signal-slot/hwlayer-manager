@@ -1,0 +1,51 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Toradex Verdin iMX95, Cortex-M7, running from TCM.
+ *
+ * Derived from upstream Zephyr boards/nxp/imx95_evk/imx95_evk_mimx9596_m7.dts
+ * (commit pinned in ../../README.md). Kept from the EVK: the SoC dtsi, the
+ * TCM memory map and LPUART3 as console. Dropped: every EVK carrier
+ * peripheral (Ethernet, CAN and its PHY, FlexSPI NOR, I2C and the devices on
+ * it, SPI, LPUART5, SAI, PDM, TPM, timers, eDMA, GPIO, ADC, watchdog). The
+ * README lists each difference and the reason.
+ *
+ * Display: the dpu and mipi_dsi nodes stay disabled as the SoC dtsi ships
+ * them. There is no LVDS/LDB node in upstream Zephyr. In NXP's EVK System
+ * Manager configuration the display belongs to the A55 (Linux) side, and
+ * Linux drives the panel on this board, so the board enables nothing
+ * display-related.
+ */
+
+/dts-v1/;
+
+#include <nxp/imx/nxp_imx95_m7.dtsi>
+#include "verdin_imx95_mimx9596_m7-pinctrl.dtsi"
+
+/ {
+	compatible = "toradex,verdin-imx95";
+	model = "Toradex Verdin iMX95 (Cortex-M7)";
+
+	chosen {
+		/* TCM: the addresses Linux remoteproc maps for the M7. */
+		zephyr,flash = &itcm;
+		zephyr,sram = &dtcm;
+
+		zephyr,console = &lpuart3;
+		zephyr,shell-uart = &lpuart3;
+
+		/*
+		 * The SoC dtsi chooses LPTMR1, which needs an SCMI clock the
+		 * EVK board enables. Use the core SysTick instead, so the
+		 * system timer depends on no System Manager resource.
+		 */
+		/delete-property/ zephyr,system-timer;
+	};
+};
+
+&lpuart3 {
+	current-speed = <115200>;
+	pinctrl-0 = <&lpuart3_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
