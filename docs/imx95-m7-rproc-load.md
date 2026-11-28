@@ -41,12 +41,16 @@ Already covered elsewhere, linked rather than repeated:
 | Z1 | Zephyr | tag `v4.5.0` = commit `41d10b59730406bbab4ca9f1fbbe9e96aafb4966`; https://github.com/zephyrproject-rtos/zephyr/tree/v4.5.0 | local checkout at that commit; line numbers exact |
 | Z2 | Zephyr west modules `open-amp` / `libmetal` | revisions `01032a8a7bdfdd541686f5dfa3671e602b9fcbff` / `77237e9748212796a8f93a33689ce935fb9c81c2` (Z1 `west.yml:361-363` / `west.yml:305-307`) | pins only; module code not read |
 
-**Which kernel.** The board runs Toradex's `toradex_6.6-2.2.x-imx` tree, which
-could not be read (see
-[`imx95-zephyr-feasibility.md` S9](imx95-zephyr-feasibility.md#sources)). L1
-is the newest NXP `lf-6.6` release tag; it is the same revision as S6 of the
-feasibility doc. I found no NXP tag named after 6.6.157 or 7.8.0. That the BSP
-driver equals L1 is **inferred**; it is consistent with two observed facts: the
+**Which kernel.** The board runs Toradex's `toradex_6.6-2.2.x-imx` tree. This
+note's line numbers are from L1, not from that tree. The Toradex tree itself
+was read later (2026-11-28): the 7.8.0 `SRCREV_machine` commit `64f85d65c112`
+and the branch head `8ad2b7ff6b56` have an identical
+`drivers/remoteproc/imx_rproc.c`
+([`imx95-m7-memory-map.md`](imx95-m7-memory-map.md), pins K and T). This note
+did not diff that file against L1, so that the BSP driver equals L1 stays
+**inferred**. L1 is the newest NXP `lf-6.6` release tag; it is the same
+revision as S6 of the feasibility doc. I found no NXP tag named after 6.6.157
+or 7.8.0. The inference it is consistent with two observed facts: the
 remoteproc is called `imx-rproc` (L1 passes that fixed name to `rproc_alloc`;
 L3 uses the DT node name, which would be `remoteproc-cm7`) and dmesg shows no
 "Using CPU/LMM Protocol OPS" line (L3 prints one at probe).
@@ -79,7 +83,7 @@ the v6 patch quoted in
 | `imx_rproc_da_to_va()` then needs the system address inside one of `priv->mem[]`, again with a strict end test | `imx_rproc.c:521-552`, test at `:539-540` | read from source |
 | `imx_rproc_addr_init()` fills `priv->mem[]` with the `ATT_OWN` entries (the two TCM windows, `devm_ioremap`) and then with every `memory-region` of the node whose name does not start with `vdev` (`devm_ioremap_wc`) | `imx_rproc.c:765-844`, skip at `:812` | read from source |
 | The DDR ATT entry has no `ATT_OWN`, so DDR is not mapped by the ATT; a DDR address resolves only if a non-`vdev` memory-region covers it | `imx_rproc.c:777-778`, `:798-841` | read from source |
-| On the board those memory-regions would be `memory@80000000` (16 MiB, `no-map`) and `rsc-table@88220000` (4 KiB); the `vdev*` ones are skipped | snapshot (b) reserved-memory | observed 2026-11-27 (names of the regions in the node's list inferred: the snapshot has only phandle numbers) |
+| On the board those memory-regions are `memory@80000000` (16 MiB, `no-map`; label `m7_reserved` in the Toradex DT) and `rsc-table@88220000` (4 KiB); the `vdev*` ones are skipped | snapshot (b) reserved-memory: node names and `reg` | observed 2026-11-27 (which nodes the `remoteproc-cm7` list points to: the snapshot has only phandle numbers; the Toradex DT lists them, read from source in [`imx95-m7-memory-map.md`](imx95-m7-memory-map.md)) |
 | So the windows an ELF segment may load into on this board are: M7 `0x00000000-0x0003FFFF` (ITCM), `0x20000000-0x2003FFFF` (DTCM), `0x80000000-0x80FFFFFF` (`m7_reserved`), and the 4 KiB at `0x88220000`; each minus its last byte because of the strict test | from the rows above | inferred |
 | Toradex user report "bad phdr da 0x90000000" ([verdin-bsp §3](imx95-m7-verdin-bsp.md#3-resource-table-and-rpmsg-vrings-versus-the-dt)) fits this: `0x90000000` passes the DDR ATT entry but lies in no mapped region | | inferred |
 
@@ -91,9 +95,9 @@ the v6 patch quoted in
 | Stop: `arm_smccc_smc(IMX_SIP_RPROC, IMX_SIP_RPROC_STOP, …)`; `res.a1` set means "Not in wfi, force stopped" | `imx_rproc.c:440-483`, SMC at `:463-469` | read from source |
 | `IMX_SIP_RPROC` = `0xC2000005`, `START` 0, `STARTED` 1, `STOP` 2 | `imx_rproc.c:71-74` | read from source |
 | Probe asks `IMX_SIP_RPROC_STARTED`; non-zero → `RPROC_DETACHED` (Linux attaches, loads nothing) | `imx_rproc.c:1034-1053` | read from source |
-| What TF-A does with the SiP call (SCMI CPU protocol `set_reset_addr`/`start`/`stop` on M7P, as the secure AP agent) and which SM configs allow it | [feasibility, "2. How M7 firmware is loaded on this board"](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board) | read from source there (imx-atf), not re-read |
+| What TF-A does with the SiP call (TF-A names `0xC2000005` `IMX_SIP_SRC`, the kernel `IMX_SIP_RPROC`; SCMI CPU protocol `set_reset_addr`/`start`/`stop` on M7P, as the secure AP agent) and which SM configs allow it (NXP EVK configs; the Verdin SM config is a separate read) | [feasibility, "2. How M7 firmware is loaded on this board"](imx95-zephyr-feasibility.md#2-how-m7-firmware-is-loaded-on-this-board) | read from source there (imx-atf), not re-read |
 | `fsl,startup-delay-ms` is `0x32` (50 ms) and `power-domains` is `<0x5c 0x11>` on the board's `remoteproc-cm7` node | snapshot (b2) | observed 2026-11-27 |
-| Domain `0x11` = 17 = `IMX95_PD_M7` in Zephyr's ID table (Z1 `include/zephyr/dt-bindings/power/imx95_power.h:27`); that Linux uses the same SM domain number, so the node holds the M7 power domain on while the device is bound (runtime PM "unsupported" in the snapshot), is | | inferred |
+| Domain `0x11` = 17 = `IMX95_PD_M7` in Zephyr's ID table (Z1 `include/zephyr/dt-bindings/power/imx95_power.h:27`); that Linux uses the same SM domain number is inferred; the node is then likely to hold the M7 power domain on while the device is bound (runtime PM "unsupported" in the snapshot) | Z1 header; snapshot (b2) | inferred |
 
 ### Boot address
 
@@ -150,7 +154,7 @@ the v6 patch quoted in
 | The SoC linker script adds `.resource_table` to the ROM region only with `CONFIG_OPENAMP_RSC_TABLE` | `soc/nxp/imx/imx9/imx95/m7/linker.ld:11-16` | read from source |
 | `CONFIG_OPENAMP_RSC_TABLE` defaults off and `imply OPENAMP`; `OPENAMP` depends on the `open-amp` module and selects `LIBMETAL` | `subsys/ipc/open-amp/Kconfig:8-14`; `modules/Kconfig.open-amp:7-12` | read from source |
 | The generic table (`resource_table.c`) has a vdev entry only if `CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0` and a trace entry (`RSC_TRACE`, `ram_console_buf`, `CONFIG_RAM_CONSOLE_BUFFER_SIZE`, name `Zephyr_log`) only with `CONFIG_RAM_CONSOLE` | `subsys/ipc/open-amp/resource_table.h:36-44`, `:88-97`; `resource_table.c:40-53` | read from source |
-| Upstream's own i.MX95 M7 OpenAMP overlay puts the table at `0x88220000` (`zephyr,ipc_rsc_table`, `0x100` bytes) and shared memory at `0x88000000` (5 MiB), uses `mu7`, and sets `CONFIG_OPENAMP_COPY_RSC_TABLE=y` (the M7 copies its table there at run time) | `samples/subsys/ipc/openamp_rsc_table/boards/imx95_evk_mimx9596_m7.overlay:8-37`; `.conf:10`; `resource_table.c:32-36`, `:47-49` | read from source |
+| Upstream's own i.MX95 M7 OpenAMP overlay (written for the NXP EVK, not for the Verdin; its carve-out addresses equal the Toradex DT's, read from source in [`imx95-m7-memory-map.md`](imx95-m7-memory-map.md), but the overlay is not Verdin evidence) puts the table at `0x88220000` (`zephyr,ipc_rsc_table`, `0x100` bytes) and shared memory at `0x88000000` (5 MiB), uses `mu7`, and sets `CONFIG_OPENAMP_COPY_RSC_TABLE=y` (the M7 copies its table there at run time) | `samples/subsys/ipc/openamp_rsc_table/boards/imx95_evk_mimx9596_m7.overlay:8-37`; `.conf:10`; `resource_table.c:32-36`, `:47-49` | read from source |
 | `prepare-zephyr.sh` pins only `cmsis`, `cmsis_6` and `hal_nxp` ([`zephyr-workspace.md`](zephyr-workspace.md#pins-2026-11-28)), so a build with `CONFIG_OPENAMP_RSC_TABLE` would also need `open-amp` and `libmetal` fetched | | read from source (pins) + inferred (need) |
 
 ### Does the default ELF fall inside the windows?
