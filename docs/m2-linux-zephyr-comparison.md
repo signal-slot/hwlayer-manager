@@ -1,6 +1,6 @@
 # M2 Linux vs Zephyr comparison: how it will be run
 
-Method note, written 2026-11-28 from merged repository files only. It states how WP3 / M2 (`SoW.md`) compares Linux and Zephyr on the same scene on the i.MX95 **once a Zephyr scanout exists**. It holds **no measurement**: every timing, count or load figure below is *not measured*. It is no hardware claim and no claim from another SoC. The fuller plan is [m2-comparison-plan.md](m2-comparison-plan.md); this note is the short operating summary and wins nowhere over it except where it is stricter.
+Method note, written 2026-11-28 from merged repository files only. It states how WP3 / M2 (`SoW.md`) compares Linux and Zephyr on the same scene on the i.MX95 **once a Zephyr scanout exists**. It holds **no measurement**: every timing, count or load figure below is *not measured*. It is no hardware claim and no claim from another SoC. The fuller plan is [m2-comparison-plan.md](m2-comparison-plan.md); this note is the short operating summary. [m2-comparison-plan.md](m2-comparison-plan.md) is the canonical text; where the two differ, the plan wins and this note is the defect.
 
 Tags: **observed** (dated measurement), **read from source**, **inferred**.
 
@@ -44,25 +44,26 @@ The test is the shared definition: either side checks that it plans the same ass
 
 ## 4. (d) Metrics
 
-Every cell is *not measured*. Units and recording (the definitions are M-1..M-4 of [m2-comparison-plan.md](m2-comparison-plan.md) §3).
+Every cell is *not measured*. Units and recording (the definitions are M-1..M-4 of [m2-comparison-plan.md](m2-comparison-plan.md) §3; M-5 plane assignment, M-6 event order violations and M-7 memory are in the plan and are not repeated here).
 
-| Metric | Unit | Linux (A55) | Zephyr (M7) | Value |
+| Metric (plan id and name) | Unit | Linux (A55) | Zephyr (M7) | Value |
 | --- | --- | --- | --- | --- |
-| Latch-to-latch jitter | ms (interval median, maximum; deviation from one refresh period) | differences of consecutive flip-event vblank times | differences of consecutive cycle-counter reads in the latch ISR, converted by the read clock | not measured |
-| Commit-to-latch latency | ms (median, p95, maximum) | commit-return time to the flip-event vblank time, same clock | commit-call return count to the latch-ISR count, same counter | not measured |
-| Dropped frames | count; late latches by count | harness counters `submitted`, `latched`, `dropped`; identity `latched + dropped = submitted` | the same counters from the application's own log lines | not measured |
-| CPU load | percent of that core's time in the submit and event path, run-average | process CPU time over wall time, frame generation reported apart | busy cycles in the path over total cycles from the counter, or idle-thread accounting; the method used is stated | not measured |
+| M-1 frame interval | ms (interval median, maximum; outliers are intervals outside one refresh period ± 20 %) | differences of consecutive flip-event vblank times | differences of consecutive cycle-counter reads in the latch ISR, converted by the read clock | not measured |
+| M-2a submit-to-latch latency (M-2b latch-to-light is not measurable by software or by the frame camera) | ms (median, p95, maximum) | commit-return time to the flip-event vblank time, same clock | commit-call return count to the latch-ISR count, same counter | not measured |
+| M-3 missed frames | count; late latches (interval above 1.5 refresh periods) by count | harness counters `submitted`, `latched`, `dropped`; identity `latched + dropped = submitted` | the same counters from the application's own log lines | not measured |
+| M-4 CPU load | percent of that core's time in the submit and event path, run-average | process CPU time over wall time, frame generation reported apart | busy cycles in the path over total cycles from the counter, or idle-thread accounting; the method used is stated | not measured |
 
-Rules: A55 and M7 CPU loads are never added or ranked on one scale (inferred). Each result states date, commit under test, tool version, mode (Mode R refresh-locked, Mode O over-submitted), frame count (the plan sets at least 1000 for latency) and whether the display driver is stock or patched.
+Rules: A55 and M7 CPU loads are never added or ranked on one scale (inferred). Each result states date, commit under test, tool version, mode (Mode R refresh-locked, Mode O over-submitted), frame count (the plan sets at least 1000 for latency, [plan](m2-comparison-plan.md) §2.3) and whether the display driver is stock or patched.
 
 ## 5. (e) What counts as a comparison
 
 Counts (all of them required):
 
-- Both columns come from the **same board, same panel, same scene definition** of §2, each dated and tagged **observed**, with the numbers from an i.MX95 only.
+- Both columns come from the **same board, same panel, same scene definition** of §2, each a dated measurement, with the numbers from an i.MX95 only.
 - Both sides planned the scene as `m2_scene.rs` pins it, and every difference in what each side supports is listed (for stage A: the `ARGB8888` substitution).
 - The Zephyr latch time stamp comes from a real display interrupt, not from a timer, a sleep or a simulated display.
 - No dropped or overwritten frame is hidden, and ordering violations are zero on both sides.
+- Each side's stage meets the pass criteria of [m2-comparison-plan.md](m2-comparison-plan.md) §5 (stage A: §5.1; stage B: §5.2; the comparison: §5.3); this note does not restate them.
 
 Does not count:
 

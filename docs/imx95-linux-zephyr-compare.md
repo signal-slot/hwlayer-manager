@@ -6,13 +6,13 @@ Written 2026-11-28. Design only. Nothing was run on a board, no code was written
 
 Tags, on every statement: **read from source** (a file of this repository, named), **inferred** (reasoning from those files, not checked by running anything), **not measured** (a quantity no run has produced). A table row carries its tag in its last tag column. There is no *observed* row. Pass thresholds below are **inferred** proposals, not results.
 
-Inputs read (all in this repository): [SoW.md](../SoW.md), [board-scenarios.md](board-scenarios.md), [imx95-m7-backend-contract.md](imx95-m7-backend-contract.md), [imx95-twoplane-port.md](imx95-twoplane-port.md), [m2-comparison-plan.md](m2-comparison-plan.md), [m1-imx95-test-plan.md](m1-imx95-test-plan.md), [imx95-sm-display-lm.md](imx95-sm-display-lm.md), [imx95-m7-fb-memory.md](imx95-m7-fb-memory.md), [platform-capabilities.md](platform-capabilities.md), [weston-imx-lease.md](weston-imx-lease.md). A trace-format document and a feasibility document for the i.MX95 Zephyr work were not on main when this was written and are not linked; where this design depends on them it says so.
+Inputs read (all in this repository): [SoW.md](../SoW.md), [board-scenarios.md](board-scenarios.md), [imx95-m7-backend-contract.md](imx95-m7-backend-contract.md), [imx95-twoplane-port.md](imx95-twoplane-port.md), [m2-comparison-plan.md](m2-comparison-plan.md), [m1-imx95-test-plan.md](m1-imx95-test-plan.md), [imx95-sm-display-lm.md](imx95-sm-display-lm.md), [imx95-m7-fb-memory.md](imx95-m7-fb-memory.md), [platform-capabilities.md](platform-capabilities.md), [weston-imx-lease.md](weston-imx-lease.md). [trace-format.md](trace-format.md) (the shared trace line format; no producer emits it yet) and [imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md) (ownership and the remoteproc gate) were not on main when this was written and have since been added; the statements below that predate them are marked.
 
 No board address, host name, user or serial path appears here.
 
 ## 1. Relation to the existing M2 plan
 
-[m2-comparison-plan.md](m2-comparison-plan.md) already holds a scene, a metric list and criteria (**read from source**). This file does not replace it. It is the design rationale: why the scene is shaped as it is, what makes the two sides comparable, and how each quantity is defined. Where the two differ, the M2 plan is the operational text, and the difference is a defect of one of them for its owner to fix (**inferred**).
+[m2-comparison-plan.md](m2-comparison-plan.md) already holds a scene, a metric list and criteria (**read from source**). This file does not replace it. It is the design rationale: why the scene is shaped as it is, what makes the two sides comparable, and how each quantity is defined. [m2-comparison-plan.md](m2-comparison-plan.md) is the canonical text: where the two differ, the plan wins and the difference is a defect of this file (**inferred**). The short operating summary is [m2-linux-zephyr-comparison.md](m2-linux-zephyr-comparison.md).
 
 ## 2. The comparison scene
 
@@ -23,10 +23,10 @@ The scene is expressed in the engine's vocabulary (source buffer, source and des
 | Property | Value | Tag |
 | --- | --- | --- |
 | Layers | 1: `base`, full panel, z 0 | inferred (proposal) |
-| Format | `XRGB8888`; if the stock Zephyr driver cannot do it, the format both sides use is the one it offers (`ARGB8888` or `RGB565`), recorded as a substitution | read from source (the stock driver lists RGB565, RGB888, ARGB8888: backend contract §2) |
+| Format | `XRGB8888`; if the stock Zephyr driver cannot do it, the format both sides use is the one it offers, recorded as a substitution (M2 plan §2.1; `ARGB8888` is the agreed substitute in [m2-linux-zephyr-comparison.md](m2-linux-zephyr-comparison.md) §2) | read from source (the stock driver lists RGB565, RGB888, ARGB8888: backend contract §2) |
 | Size | the panel's native mode, taken from the Linux probe, not assumed | inferred; the mode is not measured here |
 | Scaling, alpha, rotation | none | inferred (proposal) |
-| Buffers | 3 in rotation, each rewritten only after its release event | inferred (proposal), following the M1 `rotate` scenario in the M2 plan |
+| Buffers | two or three in rotation (two as a second run, three as the main run), each rewritten only after its release event | read from source (M2 plan §2.1) |
 | Content | flat saturated colour plus a marker strip carrying the low bits of the frame number | inferred (proposal) |
 
 Stage A is the only stage the stock Zephyr driver could carry, because it has one plane over a constant colour (**read from source**: backend contract §2).
@@ -35,12 +35,12 @@ Stage A is the only stage the stock Zephyr driver could carry, because it has on
 
 | Layer | Format | Size | z | Update | Tag |
 | --- | --- | --- | --- | --- | --- |
-| `base` | `XRGB8888` | full panel | 0 | buffer fixed after first fill | inferred (proposal) |
+| `base` | `XRGB8888` (or the stage A substitute) | full panel | 0 | buffer fixed after first fill | inferred (proposal) |
 | `top` | `ARGB8888` | about one third of the panel in each direction | 1 | destination position changes every frame; buffer not rewritten | inferred (proposal) |
 
 Sub-scenes: opaque, plane alpha one half (only where both sides expose a plane alpha), move, z-swap (only where zpos is mutable). A sub-scene a side cannot express is reported *not applicable* with the reason, never dropped silently (**inferred**).
 
-Fixed buffers with a moving destination are deliberate: if only the position changes, a correct picture can come only from the hardware combining two planes, so flattening cannot fake it (**read from source**: the anti-flattening rule of M1, M2 plan §1 item 7).
+In stage B, mode R uses this move scene; in stage A, mode R changes the buffer (M2 plan §2.3). Fixed buffers with a moving destination are deliberate: if only the position changes, a correct picture can come only from the hardware combining two planes, so flattening cannot fake it (**read from source**: the anti-flattening rule of M1, M2 plan §1 item 7).
 
 More than two layers, scaling, NV12 and rotation are out of scope. Linux-only cases may be run but are labelled *Linux only* (**inferred**).
 
@@ -63,7 +63,7 @@ Names follow the engine events *accepted/submitted*, *latched/presented*, *relea
 | Plan (validate) time | time of the planning and check call. On Zephyr `check` is a software function only, with no test-only hardware path | read from source (backend contract §3.2) | not measured |
 | Commit latency | time from the commit call returning to the latch event | inferred | not measured |
 | Latch-to-light | latch event to pixels on the panel | inferred; not software-observable | not measured |
-| Frame interval | time between consecutive latch events; outliers are intervals outside one refresh period ± 20 % | inferred (thresholds taken from M1, M2 plan §3) | not measured |
+| Frame interval (M-1) | time between consecutive latch events; outliers are intervals outside one refresh period ± 20 % | read from source (M2 plan §3, M1 §7.1) | not measured |
 | Missed frames | `submitted − latched` (drops) and late latches (interval above 1.5 refresh periods); `latched + dropped = submitted` must hold | read from source for the identity (M2 plan §3) | not measured |
 | Event-order violations | must be zero | read from source (`SoW.md` §7) | not measured |
 | CPU cost | share of the executing core's time in submit and event handling; frame generation reported separately | inferred | not measured |
@@ -75,7 +75,7 @@ Names follow the engine events *accepted/submitted*, *latched/presented*, *relea
 
 | Quantity | Method | Tag |
 | --- | --- | --- |
-| Plan result | the `commit` trace lines of the harness (layer, plane, format, zpos); the planner is `composition-drm` | read from source (board-scenarios.md, tools listing); a parsable shared trace format is not on main |
+| Plan result | the `commit` trace lines of the harness (layer, plane, format, zpos); the planner is `composition-drm` | read from source (board-scenarios.md, tools listing); the shared format is [trace-format.md](trace-format.md); no harness or Zephyr producer emits it yet |
 | Commit latency, frame interval | DRM page-flip completion events carry a kernel timestamp and a CRTC sequence number; the interval is between consecutive events; commit latency is the event timestamp minus the monotonic time at which the commit call returned | inferred (event semantics of the DRM API; not checked on this board) |
 | Missed frames | harness counters `submitted`, `latched`, `dropped`, and late counts computed from the intervals | read from source (M2 plan §4.1); whether the current harness revision reports them is to be checked with its `--help` |
 | CPU cost | process CPU time over wall time during the run, with Weston stopped for a DRM-master run and restored afterwards | inferred |
@@ -92,7 +92,7 @@ Names follow the engine events *accepted/submitted*, *latched/presented*, *relea
 | Missed frames | counters of commits and of latch interrupts; a latch timeout supplied through the engine's time input is reported once | read from source (backend contract §4) |
 | CPU cost | share of cycles in the submit path and ISR, from the cycle counter; core-relative | inferred |
 | Memory | linker map and the buffer table | inferred |
-| Log transport | a console UART or an rpmsg channel; not fixed here | not decided |
+| Log transport | a console UART, or the remoteproc trace buffer / rpmsg; the choice is in [imx95-m7-console.md](imx95-m7-console.md) and the feasibility doc, not here | read from source |
 
 ### 4.3 Latch-to-light on both sides
 
@@ -116,27 +116,22 @@ Neither side sees pixels light up. A frame camera cannot resolve an interval sho
 
 Unequal by construction, to be listed in any report: Linux has an event interface with vblank timestamps and a test-only commit, and the stock Zephyr driver has neither (**inferred** from backend contract §2 and the DRM API). Linux uses the vendor driver's multi-plane pipeline and its per-commit resource allocation, while the stock Zephyr driver offers one plane (**read from source**: [platform-capabilities.md](platform-capabilities.md), i.MX95 Linux section; backend contract §2). Stage B on Zephyr needs a multi-plane driver that is not upstream (**read from source**: imx95-twoplane-port.md, "What is generic and what is SoC-specific").
 
-## 6. Pass and verdict rules (proposed)
+## 6. Pass and verdict rules
 
-All **inferred**; none is a result.
-
-- Stage A passes on a side if the scene shows, the identity `latched + dropped = submitted` holds, there are zero order violations, and every cell is filled or labelled *not measured*, *not measurable* or *not applicable* with the reason.
-- Stage B passes on a side only if the move sub-scene shows the moving layer with fixed buffers and the commit log names two distinct planes.
-- The comparison is complete only when both sides have a passing stage, or one side has a blocker report in place of stage B (`SoW.md` §8 WP3, §9 M2: **read from source**).
-- A side without a verdict does not take one from the other side's result.
+The criteria are those of [m2-comparison-plan.md](m2-comparison-plan.md) §5 (stage A: §5.1, six criteria including stated ownership and hygiene; stage B: §5.2; the comparison: §5.3). Each stage and side ends as exactly one of **passed**, **failed**, **blocked**, and a blocked Zephyr stage B is replaced by the blocker report (plan §7). They are not restated here (**read from source**). A side without a verdict does not take one from the other side's result.
 
 ## 7. Blockers that keep the comparison from running today
 
 | Blocker | Basis | Tag |
 | --- | --- | --- |
-| The DPU, its clocks and its power domain belong to Linux under the board's boot flow: Linux runs the vendor DRM driver and Weston holds the display. Only the stock System Manager configuration of NXP's reference board was read; the Verdin's configuration was not | [imx95-sm-display-lm.md](imx95-sm-display-lm.md) §1 and the board rules quoted in board-scenarios.md | read from source; the Verdin SM configuration is not read |
+| The DPU, its clocks and its power domain belong to Linux under the board's boot flow: Linux runs the vendor DRM driver and Weston holds the display. Only the stock System Manager configuration of NXP's reference board was read; the Verdin's own configuration file could not be fetched ([imx95-verdin-sm-config.md](imx95-verdin-sm-config.md), 2026-11-28) | [imx95-sm-display-lm.md](imx95-sm-display-lm.md) §1 and the board rules quoted in board-scenarios.md | read from source; the Verdin SM configuration is not read |
 | Giving the display to the M7 needs a changed System Manager logical-machine configuration, which cannot be applied here | imx95-sm-display-lm.md (scope) | read from source |
 | Linux and the M7 cannot be assumed to share the DPU: both would use the same shadow-load registers and clocks | none read; reasoning only | inferred |
 | The stock Zephyr DPU driver has one plane, a blocking write, no event callback, no clock or power-domain call, and a hard-coded register block that differs from the devicetree address; the DPU and DSI nodes are disabled by default | backend contract §2; imx95-twoplane-port.md | read from source |
 | The stock SoC description has a DSI node but no LVDS node, and the Verdin panel is LVDS | backend contract §7 | read from source |
 | The meaning of the ExtDst0 shadow-load interrupt, the cache attributes of scanout memory, and the DPU's view of buffer addresses are open | backend contract §7; imx95-twoplane-port.md | read from source as open |
 | The M1 Linux side exists only as plans and probe records; no Linux run of this scene exists | M2 plan §4.1; [m1-imx95-test-plan.md](m1-imx95-test-plan.md) | read from source |
-| A parsable trace format shared by both sides is not on main | board-scenarios.md, "What is common to all rows and missing" | read from source |
+| The shared trace format exists ([trace-format.md](trace-format.md)) but no Linux harness or Zephyr application emits it yet, so there are no logs to parse | trace-format.md status paragraph | read from source |
 | The Zephyr tools (single-plane scanout app with latch hooks, engine-linked app) are planned items | backend contract §6 | read from source |
 
 Consequence (**inferred**): today only the Linux side of stage A could run in principle, once the M1 tools exist. No Zephyr cell can be filled. Every value in §3 is *not measured*.
@@ -144,7 +139,7 @@ Consequence (**inferred**): today only the Linux side of stage A could run in pr
 ## 8. Order of work to unblock (proposal, inferred)
 
 1. Settle ownership: read the Verdin's System Manager configuration and decide whether the M7 can own the DPU at all.
-2. Fix a shared trace line format for both sides.
+2. Make the Linux harness and the Zephyr applications emit the shared trace format of [trace-format.md](trace-format.md).
 3. Extend the Zephyr driver for a latch event and a non-blocking present (backend contract §6, steps 2 and 3), then run a single-plane scanout app.
 4. Run stage A on both sides in separate sessions at the same panel mode.
 5. Study the DPU units beyond the stock pipeline, then attempt stage B, or write the blocker report in its place.
