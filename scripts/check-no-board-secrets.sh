@@ -225,6 +225,8 @@ scripts/check-m2-acceptance.test.sh|/dev/ttyUSB0|fake UART path the M2 acceptanc
 scripts/check-m3-report.test.sh|10\.20\.30\.40|fake address the M3 report check must reject
 scripts/check-m3-report.test.sh|aa:bb:cc:dd:ee:ff|fake MAC the M3 report check must reject
 scripts/check-m3-report.test.sh|root@verdinhost|fake ssh target the M3 report check must reject
+crates/composition-drm/examples/mode_test.rs|NAME@HZ|mode_test option syntax NAME@HZ, not an ssh target
+crates/composition-drm/examples/mode_test.rs|--mode x@fast|mode_test malformed-option sample, not an ssh target
 scripts/check-no-farm-ids.test.sh|ip="10\.1\.2\.3"|fake IPv4 the farm-id check must reject
 scripts/check-no-farm-ids.test.sh|192\.0\.2\.7|RFC 5737 documentation range sample
 scripts/check-no-farm-ids.test.sh|1\.2\.3\.4|lockfile version that must not be flagged

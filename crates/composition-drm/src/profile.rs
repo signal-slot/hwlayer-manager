@@ -34,7 +34,7 @@ pub enum DriverProfile {
     /// them is observed; confirm them with `TEST_ONLY` on the board.
     ///
     /// - Six planes per output (primary plus five overlays), all alike:
-    ///   observed. At most six planes are active across both display
+    ///   observed 2026-11-28. At most six planes are active across both display
     ///   streams, because six fetch units and six layer blends are shared:
     ///   source (the `ANY` group).
     /// - Four of the six fetch units (FetchYUV) can read YCbCr or feed a
@@ -45,7 +45,7 @@ pub enum DriverProfile {
     /// - One horizontal and one vertical scaler, shared by all planes of both
     ///   streams: source. The vertical scaler exists only because the board's
     ///   SoC is not revision 1.x (on 1.0/1.1 vertical scaling is refused):
-    ///   source for the rule, observed revision 2.0, so "available here" is
+    ///   source for the rule, observed 2026-11-28 revision 2.0, so "available here" is
     ///   inferred. Do not use this profile unchanged on a revision 1.x part.
     /// - Upscaling up to 2048x per axis, no downscaling: source
     ///   (`min_scale = 1/2048`, `max_scale = NO_SCALING`).
@@ -56,7 +56,7 @@ pub enum DriverProfile {
     ///   `TEST_ONLY`. The driver judges "unscaled" as `src_w == dst_w ||
     ///   src_h == dst_h`, so one-axis scaling also gets 8192: source.
     /// - Scaling is assumed on every non-cursor plane. KMS shows no scaling
-    ///   property (observed: only `SCALING_FILTER`), and the driver sets the
+    ///   property (observed 2026-11-28: only `SCALING_FILTER`), and the driver sets the
     ///   same limits on all planes: source. The board has no cursor plane
     ///   (observed), so the cursor exemption never applies there.
     ///
