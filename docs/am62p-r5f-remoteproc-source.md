@@ -5,8 +5,8 @@ of `tests/board/am62p_r5f` through the remoteproc route. **Nothing here is obser
 
 ## Tags and pins
 
-- **source** (function, file, commit): read in the raw text of the file at the commit below, 2026-11-28. The fetch tool returned
-  text without line numbers, so statements name the function instead of `file:line`; a line number would have been a guess.
+- **source** (function, file, commit): read in the raw text of the file at the commit below, 2026-11-28. Lines are in the
+  [line index](#line-index) at the end (counted from the downloaded files).
 - **inferred**: derived from facts read, or general kernel knowledge not read in the listed files.
 
 | Tree | Pin |
@@ -16,8 +16,7 @@ of `tests/board/am62p_r5f` through the remoteproc route. **Nothing here is obser
 
 The Toradex branch is TI's 6.6 kernel plus Toradex board files (inferred from its name). Whether its remoteproc files differ from
 TI's is unchecked. Treat every row as a prediction to compare with `dmesg` and `/sys/class/remoteproc` on the board.
-Files read: `drivers/remoteproc/ti_k3_r5_remoteproc.c` (the tree has no `ti_k3_common.c` for this driver; the fetch of the
-driver file was cut at about 40 000 of 62 000 characters, so rows from its later part are marked), `remoteproc_sysfs.c`,
+Files read, in full: `drivers/remoteproc/ti_k3_r5_remoteproc.c` (the tree has no `ti_k3_common.c` for this driver), `remoteproc_sysfs.c`,
 `remoteproc_debugfs.c`, `remoteproc_elf_loader.c`, and `remoteproc_core.c` for the functions the sysfs files call.
 
 ## 1. Identification, and stop/start per mode
@@ -26,13 +25,13 @@ driver file was cut at about 40 000 of 62 000 characters, so rows from its later
 |---|---|
 | The class is `remoteproc`; each core is `/sys/class/remoteproc/remoteprocN`. The attributes are `coredump`, `recovery`, `firmware`, `state`, `name` | source: `rproc_class`, `rproc_dev_attrs`, `remoteproc_sysfs.c`, TI `a7758da1` |
 | `name` prints `rproc->name`, which `rproc_alloc` copies from the name passed in | source: `name_show`; `rproc_alloc`, `remoteproc_core.c`, TI `a7758da1` |
-| The K3 driver passes `dev_name()` of the core's device as that name, and the DT `firmware-name` as the firmware (`rproc_of_parse_firmware`). So `name` is the core's device name, which for the AM62P MCU R5F is the unit address `79000000.r5f` and **not** a word like "mcu-r5f" | source: `k3_r5_cluster_rproc_init` (read from a model-extracted summary of the cut-off part, so less certain), TI `a7758da1`; the address `79000000` is inferred from the node `mcu_r5fss0_core0` at `0x79000000` in the SoC dtsi |
+| The K3 driver passes `dev_name()` of the core's device as that name, and the DT `firmware-name` as the firmware (`rproc_of_parse_firmware`). So `name` is the core's device name, which for the AM62P MCU R5F is the unit address `79000000.r5f` and **not** a word like "mcu-r5f" | source: `k3_r5_cluster_rproc_init`, TI `a7758da1`; the address `79000000` is inferred from the node `mcu_r5fss0_core0` at `0x79000000` in the SoC dtsi |
 | `remoteprocN` numbering follows probe order, so N is not fixed: pick the core by `name`, not by number, and cross-check with `firmware` | inferred |
 | `state` strings: `offline`, `suspended`, `running`, `crashed`, `deleted`, `attached`, `detached`, `invalid`. `state_store` accepts `start`, `stop`, `detach`; anything else logs `Unrecognised option`, `-EINVAL` | source: `rproc_state_string`, `state_show`, `state_store`, TI `a7758da1` |
-| **Remoteproc mode** (core powered off when Linux probes): the driver logs `configured R5F for remoteproc mode`; `start` and `stop` are real: `start` loads the firmware and clears the halt bit through TI-SCI, `stop` asks the firmware to shut down by mailbox (waits up to 5 s), checks WFI and halts the core | source: `k3_r5_rproc_configure_mode` (summary), `k3_r5_rproc_start`, `k3_r5_rproc_stop`, TI `a7758da1` |
+| **Remoteproc mode** (core powered off when Linux probes): the driver logs `configured R5F for remoteproc mode`; `start` and `stop` are real: `start` loads the firmware and clears the halt bit through TI-SCI, `stop` asks the firmware to shut down by mailbox (waits up to 5 s), checks WFI and halts the core | source: `k3_r5_rproc_configure_mode`, `k3_r5_rproc_start`, `k3_r5_rproc_stop`, TI `a7758da1` |
 | `echo stop` in remoteproc mode: state `running` -> `offline` on success. A firmware that never acks costs 5 s and is then halted anyway. A firmware that acks but is not in WFI within about 2 ms fails: `can't stop rproc: -110`, state stays `running` | source: `k3_r5_rproc_stop`, `is_core_in_wfi`, `rproc_stop`, TI `a7758da1`. Details in section 2 of the first study of this item, if merged |
-| **IPC-only mode** (core already running when Linux probes: started by the bootloader or a boot stage): the driver logs `configured R5F for IPC-only mode`, state is `detached`, and `prepare`, `start`, `stop` are NULL | source: `k3_r5_rproc_configure_mode` (summary), TI `a7758da1` |
-| `echo stop` in IPC-only mode: from `detached` it is refused (`-EINVAL`, `rproc_shutdown` wants `running` or `attached`); after `echo start` (an attach, no firmware loaded) it passes that check and then fails because `ops->stop` is NULL (`-EINVAL`). Only `detach` works and it leaves the core running. The shell shows `Invalid argument` and `dmesg` stays quiet | source: `state_store`, `rproc_shutdown`, `rproc_stop`, `rproc_detach`, TI `a7758da1` (the NULL `stop` is from the summary of the cut-off part) |
+| **IPC-only mode** (core already running when Linux probes: started by the bootloader or a boot stage): the driver logs `configured R5F for IPC-only mode`, state is `detached`, and `prepare`, `start`, `stop` are NULL | source: `k3_r5_rproc_configure_mode`, TI `a7758da1` |
+| `echo stop` in IPC-only mode: from `detached` it is refused (`-EINVAL`, `rproc_shutdown` wants `running` or `attached`); after `echo start` (an attach, no firmware loaded) it passes that check and then fails because `ops->stop` is NULL (`-EINVAL`). Only `detach` works and it leaves the core running. The shell shows `Invalid argument` and `dmesg` stays quiet | source: `state_store`, `rproc_shutdown`, `rproc_stop`, `rproc_detach`, TI `a7758da1` |
 | The mode is decided once at probe from the hardware state, not from sysfs. Which mode the Verdin's R5F is in depends on Torizon's boot chain and is **not known**: read `state` and the `dmesg` line before anything else | inferred |
 | `firmware` shows `unknown` while the state is `attached` | source: `firmware_show`, TI `a7758da1` |
 
@@ -40,7 +39,7 @@ driver file was cut at about 40 000 of 62 000 characters, so rows from its later
 
 | Statement | Tag |
 |---|---|
-| The file name is the `firmware` attribute. `echo name > firmware` calls `rproc_set_firmware`; it is refused (`can't change firmware while running`, an error return) unless the state is `offline`. A trailing newline from `echo` is stripped by the core | source: `firmware_store`; `rproc_set_firmware`, `remoteproc_core.c`, TI `a7758da1` (the newline strip is inferred; the sysfs attribute is also made read-only if `sysfs_read_only` is set, `rproc_is_visible`) |
+| The file name is the `firmware` attribute. `echo name > firmware` calls `rproc_set_firmware`; it is refused (`can't change firmware while running`, `-EBUSY`) unless the state is `offline`. The name is cut at the first newline, so `echo` works; an empty name is `-EINVAL` | source: `firmware_store`; `rproc_set_firmware`, `remoteproc_core.c`, TI `a7758da1` (`firmware` is also read-only if `sysfs_read_only` is set, `rproc_is_visible`) |
 | Order for a new image: stop (state `offline`), write `firmware`, write `start`. `start` runs `rproc_boot`, which fetches the file with `request_firmware` and boots | source: `state_store`, `rproc_boot`, `rproc_fw_boot`, TI `a7758da1` (the first two read, the last two inferred from the first study) |
 | The name is looked up by the generic firmware loader, which is outside the listed files. Its default search path is `/lib/firmware/updates/<uname -r>`, `/lib/firmware/updates`, `/lib/firmware/<uname -r>`, `/lib/firmware`. The module parameter `firmware_class.path` (kernel command line) adds a first, custom directory; read it with `cat /sys/module/firmware_class/parameters/path` (empty means unset) | inferred (general kernel knowledge; `drivers/base/firmware_loader` is not among the files to read). Verify with the read-only `cat` on the board |
 | `/lib/firmware` is usually read-only on Torizon (an OSTree deployment). If the write fails, the custom path above or a bind mount is needed. This is the board item's decision | inferred |
@@ -76,5 +75,15 @@ driver file was cut at about 40 000 of 62 000 characters, so rows from its later
 ## Not read
 
 - The Toradex tree itself (anti-bot page); the Toradex device tree for the R5F; `drivers/base/firmware_loader`; TI documents.
-- The second half of `ti_k3_r5_remoteproc.c` and of `remoteproc_core.c` as verbatim text; rows from it are marked.
-- Line numbers: not available from the fetch tool. Function names stand in for them.
+
+## Line index
+
+All at TI `a7758da1`. `ti_k3_r5_remoteproc.c`: `k3_r5_rproc_start` 742, `k3_r5_rproc_stop` 820, `k3_r5_rproc_configure_mode` 1321
+(IPC-only branch 1388-1395, remoteproc mode 1401), `rproc_of_parse_firmware` 1442, `devm_rproc_alloc(dev_name)` 1449,
+`recovery_disabled` 1465. `remoteproc_sysfs.c`: `firmware_show` 131 (`unknown` 143), `firmware_store` 149, state strings 166,
+`state_store` 189 (`Unrecognised option` 205), `name_show` 213, `sysfs_read_only` 229. `remoteproc_debugfs.c`: `rproc_trace_read`
+126 (`not available` 138, `strnlen` 142), `rproc_create_trace_file` 386 (mode 0400, 389), `rproc_create_debug_dir` 398,
+`rproc_init_debugfs` 421. `remoteproc_elf_loader.c`: `No loadable segments` 101, `bad phdr filesz` 191, `bad phdr da` 214,
+`.resource_table` 275, `ver != 1` 293, `rproc_elf_load_rsc_table` 326. `remoteproc_core.c`: `rproc_handle_trace` 547, handler
+table 1143, `rproc_resource_cleanup` 1349 (trace removal 1359), `rproc_stop` 1840, `rproc_shutdown` 2122 (cleanup call 2150),
+`rproc_set_firmware` 2301 (`can't change firmware` 2319), default firmware name 2521, `auto_boot` 2591, `rproc->name` 2614.
