@@ -28,6 +28,9 @@ USERHOST_KEEP = re.compile(r"git@git(?:hub|lab)\.com|noreply|@example\.(?:com|or
 SERIAL = re.compile(
     r"(?i)(serial(?:[ _-]?(?:number|no\.?|num))?[ \t]*[:=]?[ \t]*)([^\s,;:=][^\s,;]*)"
 )
+TORADEX_HOST = re.compile(
+    r"\b(?:verdin|colibri|apalis|aquila|smarc)-[a-z0-9]+-[0-9]{8}\b", re.I
+)
 CRED_VALUE = re.compile(
     r"(?i)\b(password|passwd|token|secret|api_key)([ \t]*=[ \t]*[\"']?)(?!<|\$|\{)[A-Za-z0-9+/_.-][^\s\"']*"
 )
@@ -83,6 +86,7 @@ class Scrubber:
         )
         s = self.sub("serial", SERIAL, lambda m: None if m.group(2).startswith("<") else m.group(1) + "<serial>", s)
         s = self.sub("secret", CRED_VALUE, lambda m: m.group(1) + m.group(2) + "<redacted>", s)
+        s = self.sub("toradex-host", TORADEX_HOST, "<host>", s)
         if self.hosts:
             s = self.sub("hostname", self.hosts, "<host>", s)
         return s
