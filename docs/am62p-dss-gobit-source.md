@@ -18,7 +18,7 @@ Plane formats, zpos and blending are not covered here (see `docs/am62p-dss-sourc
 | TI AM67 TRM SPRUJB3 (March 2024), DSS shadow-register section and VP interrupt table | GUID-826823F4-1511-4A8F-9799-B408ADBD867B | Search snippets only. A **sibling** device of the AM62P (same DISPC family), not the AM62P. |
 | TI AM62P silicon errata SPRZ574B (Oct 2025), advisory i2097 | GUID-366566E5-9066-4ECC-A4BF-8AAA2228E812 | Read in full on 2026-11-28 (HTML page, section 2.2 Silicon Advisories; Figures 2-1 and 2-2 are images and were not read). |
 | **TI AM62P TRM** (DSS chapter, `DISPC_VP_CONTROL`, `DISPC_VP_IRQSTATUS`) | | **Not reached.** The TRM page `SPRUJ83` is over 10 MB and the fetch failed; the DSS chapter's own page addresses are unknown. Nothing below is quoted from the AM62P TRM. |
-| TI MCU+ SDK DSS driver for AM62P | `mcupsdk-core` tags `REL.MCUSDK.K3.11.02.00.25` and `K3.12.01.00.33` | **Not found.** The public `mcupsdk-core` has no `dss`, `dispc` or `dctrl` under `source/drivers`; `mcupsdk-core-am62px` returns 404. A TI docs page `AM62Px MCU+ SDK 12.00.00 ... cslr_dss.h` is listed by search but returned 404 when fetched. |
+| TI MCU+ SDK DSS driver for AM62P | `mcupsdk-core` release tags of Dec 2025 (K3 11.02) and Aug 2026 (K3 12.01), branch `next` | **Not found.** The public `mcupsdk-core` has no `dss`, `dispc` or `dctrl` under `source/drivers`; `mcupsdk-core-am62px` returns 404. A TI docs page `AM62Px MCU+ SDK 12.00.00 ... cslr_dss.h` is listed by search but returned 404 when fetched. |
 | Upstream Zephyr | `main`, `drivers/display` and `dts/bindings/display` listings | No TI DSS driver in the Kconfig list (complete) or the binding list (cut off before `ti,*`; not conclusive). |
 
 Consequence: (a) and (b) rest on the AM67 TRM and Linux. That the AM62P behaves as the AM67 does is **inferred** wherever it is written so. The first thing to do when the AM62P TRM can be read is to check the rows tagged "AM67 TRM" against it.
@@ -91,4 +91,4 @@ All of these need only the driver table and a readable counter; none is observed
 - The text of the `GOBIT` field of the AM62P `DISPC_VP_CONTROL` and of the VP IRQ status register (bit numbers of VSYNC, FRAMEDONE, SYNC_LOST).
 - What the hardware does for GO written while it is 1, and for shadow writes after GO.
 - Whether reads of plane registers return shadow or work values.
-- Whether TI's MCU+ SDK or another public TI source has a DSS driver for the AM62P R5F (none was found in `mcupsdk-core` K3.12.01.00.33).
+- Whether TI's MCU+ SDK or another public TI source has a DSS driver for the AM62P R5F (none was found in `mcupsdk-core` release K3 12.01).
