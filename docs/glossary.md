@@ -16,8 +16,11 @@ defined from outside knowledge (search of 2026-11-28).
 repository contrasts them with the M7 when asking who owns the display. First
 used: `README.md`; the ownership question is in `docs/platform-capabilities.md`.
 
-**AFBC**: A compressed buffer modifier. The repository mentions it only in the
-RK3588 notes; the engine's own model is `FormatModifier`. First used:
+**AFBC**: A compressed buffer modifier (Arm Frame Buffer Compression). The
+repository mentions it only in the RK3588 notes; the engine's own model is
+`FormatModifier`. On the NanoPC-T6, Cluster planes list AFBC modifiers and
+Esmart planes list linear only (observed 2026-11-28); the source reading is in
+[rk3588-vop2-formats-source.md](rk3588-vop2-formats-source.md). First used:
 `docs/observed/rk3588-source.md`.
 
 **AM62P**: The TI SoC of the existing Zephyr/R5F demo and of milestone M3. The
@@ -54,6 +57,13 @@ defined: `crates/composition-core/src/presentation.rs`.
 formats, scaling, z-order and resource groups. First defined:
 `crates/composition-core/src/caps.rs`.
 
+**Cluster window**: A VOP2 window class on the RK3588 (Cluster0 to Cluster3) that
+takes AFBC buffers and 10-bit RGB and can rotate them; the source gives it 4x
+scaling. Read from source (2026-11-28) in
+[rk3588-mainline-source.md](rk3588-mainline-source.md) and
+[rk3588-vendor-vop2-source.md](rk3588-vendor-vop2-source.md); design use in
+[rk3588-backend-design.md](rk3588-backend-design.md) §5.
+
 **CM4**: The Raspberry Pi Compute Module 4 (BCM2711), not a Cortex-M4. First
 used: `README.md`; its probe is in `docs/observed/bcm2711-cm4.md`.
 
@@ -73,6 +83,12 @@ mapping out in one place. First used: `SoW.md` §4.1; used in
 **DeviceLost**: The event that the backend lost its display resources (reset,
 lease revoked); everything pending is dropped and all buffers are released.
 First defined: `crates/composition-core/src/presentation.rs`.
+
+**display list (dlist)**: The list of per-plane words in HVS memory from which the
+HVS composes one output channel; a plane costs a few words and one dlist memory
+serves all channels. Read from source (2026-11-28) in
+[vc4-hvs-dlist-source.md](vc4-hvs-dlist-source.md); design use in
+[hvs-backend-design.md](hvs-backend-design.md) §3.
 
 **DLM**: Short for *drm-lease-manager* in `docs/dlm-aarch64.md`.
 
@@ -110,6 +126,13 @@ used: `SoW.md` §5.2.
 
 ## E
 
+**Esmart window**: A VOP2 window class on the RK3588 (Esmart0 to Esmart3) that
+reads linear buffers and NV formats and has the 8x scaler; rotation is
+`REFLECT_Y` only. Read from source (2026-11-28) in
+[rk3588-vop2-scale-source.md](rk3588-vop2-scale-source.md) and
+[rk3588-vendor-vop2-source.md](rk3588-vendor-vop2-source.md). The repository
+docs do not use a separate "Smart window" term.
+
 **ExtDst**: An i.MX95 DPU block at the end of the pipeline. The repository
 records that the stock Zephyr `socionext,dpu` driver uses `ExtDst0` and that
 the twoplane note says `latched_count` follows its sync busy bit; that is a
@@ -135,6 +158,12 @@ allowed `unsafe`. Its header is `crates/composition-ffi/include/composition_engi
 one blanks the output. It is not a displayed refresh. First defined:
 `crates/composition-core/src/types.rs` (`Frame`).
 
+**firmware KMS (fkms)**: The older Raspberry Pi display stack
+(`vc4-fkms-v3d`) in which the VideoCore firmware owns the display hardware. The
+HVS design takes it as out of scope and assumes full KMS (the kernel drives the
+HVS itself); see [hvs-backend-design.md](hvs-backend-design.md) §7 and
+[vc4-mainline-source.md](vc4-mainline-source.md).
+
 **FrameGen**: The i.MX95 DPU block that generates the display timing; the
 vendor sequence sets it up and a "shadow load" is triggered through it. Read
 from source only. First used:
@@ -153,7 +182,13 @@ hardware here. First used: `SoW.md` §5.2 ("single ownership of GO/commit");
 
 **HVS**: The Raspberry Pi (VC4) hardware video scaler. The repository has source
 notes and topology records for it, each with its own status. First used:
-`SoW.md`; `docs/observed/vc4-hvs-source.md`.
+`SoW.md`; `docs/observed/vc4-hvs-source.md`. See also `HVS4 / HVS5 / HVS6`.
+
+**HVS4 / HVS5 / HVS6**: The HVS generations: HVS4 is BCM2835 to 2837 and out of
+scope; HVS5 is the BCM2711 (reTerminal CM4); HVS6 is the BCM2712 (Raspberry Pi 5).
+They differ in registers, LBM/UPM pools and formats, per
+[hvs-backend-design.md](hvs-backend-design.md) §5, read from source (2026-11-28)
+in [vc4-mainline-source.md](vc4-mainline-source.md).
 
 ## I
 
@@ -177,6 +212,11 @@ to planes. First defined: `crates/composition-core/src/types.rs` (`Layer`).
 
 **LayerBlend**: A DPU blend stage; the source reading counts six and allocates
 them per commit. First used: `docs/platform-capabilities.md`.
+
+**LBM**: The HVS line buffer memory, a pool shared by all channels; planes that
+scale vertically (HVS5) or scale or are YUV (HVS6) need a part of it. Read from
+source (2026-11-28) in
+[vc4-hvs-lbm-upm-source.md](vc4-hvs-lbm-upm-source.md).
 
 **LDB**: The i.MX95 LVDS display bridge. The repository knows it as clocks
 (`ldb`, `ldb_vco`) and a device-tree node only. First used:
@@ -214,6 +254,14 @@ milestone M2. Whether it can own the display is an open question. First used:
 **modifier**: A buffer layout descriptor (for example linear). First defined:
 `crates/composition-core/src/types.rs` (`Modifier`).
 
+**multi-area / win1**: On the RK3588, `win1` is the second sub window of a Cluster
+window; the vendor 6.1 driver makes it a plane only with the DT property
+`support-multi-area`, and Esmart windows carry a multi-area feature flag. The
+mainline table has eight windows and no `win1` entry. Read from source
+(2026-11-28): [rk3588-vendor-vop2-source.md](rk3588-vendor-vop2-source.md),
+[rk3588-mainline-source.md](rk3588-mainline-source.md); whether the board shows
+them is open question Q8 in [rk3588-backend-design.md](rk3588-backend-design.md).
+
 ## O
 
 **OLDI**: The TI LVDS-style panel transmitter the AM62P DSS video ports can feed, per the TI AM62Px TRM; the repository has not observed it. M3 names it as the possible panel link of the Verdin AM62P setup. See `docs/open-issues.md` (M3).
@@ -239,6 +287,18 @@ frame and capabilities it was made from. First defined:
 **plane**: A hardware scan-out source that a CRTC composes: primary, overlay or
 cursor. First used: `SoW.md`; model in `crates/composition-core/src/caps.rs`
 (`PlaneCaps`, `PlaneKind`).
+
+**port_mux / layer select**: The VOP2 registers that choose which video port
+each window feeds and in what mixer order. The mainline driver reads the old
+layer select register to find a port's start mixer. Read from source
+(2026-11-28): [rk3588-mainline-source.md](rk3588-mainline-source.md),
+[rk3588-dt-source.md](rk3588-dt-source.md).
+
+**PPF**: A scaling filter mode of the vc4 HVS (the other is TPZ); the driver
+picks it for upscales, for downscales up to about 1.5x and for multi-plane (YUV)
+formats. Read from source (2026-11-28) in
+[vc4-hvs-scaling-source.md](vc4-hvs-scaling-source.md) and
+[vc4-mainline-source.md](vc4-mainline-source.md).
 
 **Presented / Dropped / Released**: The engine events for a submission's life: it
 reached the screen, it never did, a buffer may be reused. First defined:
@@ -307,11 +367,20 @@ ELF segment may load into together with the reserved DDR. First used:
 [imx95-m7-rproc-load.md](imx95-m7-rproc-load.md).
 
 **TEST_ONLY**: The DRM atomic commit flag that checks a request without applying
-it; the DRM backend uses it to validate. First used: `SoW.md` §4.1;
-`crates/composition-drm/src/lib.rs`.
+it; the DRM backend uses it to validate. The plane-count and scale-limit
+sweeps of the RK3588 and HVS designs use it because it changes nothing on the
+board (`docs/rk3588-backend-design.md` §7 Q4, `docs/hvs-backend-design.md` §7
+Q1); on the HVS, memory-bandwidth underruns are not caught by it. First used:
+`SoW.md` §4.1; `crates/composition-drm/src/lib.rs`.
 
 **thumbv7em**: The Rust target family for Cortex-M4/M7 builds; the two CI
 cross-builds use it. First used: `docs/ci.md`.
+
+**TPZ**: The trapezoidal scaling filter of the vc4 HVS, used for steeper
+downscales; its horizontal ratio field is 21 bits wide and the driver rejects
+ratios above it. Read from source (2026-11-28) in
+[vc4-hvs-scaling-source.md](vc4-hvs-scaling-source.md) and
+[vc4-mainline-source.md](vc4-mainline-source.md).
 
 **TRDC**: The bus access-control block that the System Manager programs; the
 repository reads it as part of who may touch display registers, and did not
@@ -327,6 +396,12 @@ controller, written for the AM62P model with an i.MX95 note. First used:
 
 **trace buffer**: The log memory a remoteproc firmware declares in its resource table; Linux exposes it as `trace0` under the remoteproc debugfs directory, per kernel documentation. M3 reads the R5F test's console from it over ssh because the UART may be busy; the AM62P run has not happened yet. Compare `resource table`.
 
+## U
+
+**UPM**: The HVS6 (BCM2712) pool of unified buffer memory, one handle per colour
+plane. Read from source (2026-11-28) in
+[vc4-hvs-lbm-upm-source.md](vc4-hvs-lbm-upm-source.md).
+
 ## V
 
 **vblank**: The start of a display refresh, as a DRM event. First used: `SoW.md`.
@@ -335,13 +410,15 @@ controller, written for the AM62P model with an i.MX95 note. First used:
 
 **VID / VIDL**: The DSS input pipelines that fetch a buffer for a plane, per the TI AM62Px TRM; "VIDL" is the lite variant with fewer features. The twoplane note treats the AM62P as two planes; which pipeline each one is, is not recorded. First used: `docs/twoplane-backend.md`.
 
-**video port (VP)**: A DSS output that composes the overlay manager's result and drives one display interface with timing and vblank, per the TI AM62Px TRM. It plays the role of the engine's `output` on the AM62P; the mapping is not observed. See `docs/am62p-imx95-matrix.md`.
+**video port (VP)**: A DSS output that composes the overlay manager's result and drives one display interface with timing and vblank, per the TI AM62Px TRM. It plays the role of the engine's `output` on the AM62P; the mapping is not observed. See `docs/am62p-imx95-matrix.md`. The RK3588 VOP2 has the same kind of output, also called a video port (VP); the NanoPC-T6 registers two as CRTCs (observed 2026-11-28, [rk3588-backend-design.md](rk3588-backend-design.md) §2).
 
 **vkms**: The virtual KMS driver of the Linux kernel; host DRM tests and CI run
 against it, not hardware. First used: `README.md`;
 `crates/composition-drm/tests/vkms.rs`; CI in `docs/ci.md`.
 
-**VOP2**: The Rockchip RK3588 display controller, in the topology notes. First
+**VOP2**: The Rockchip RK3588 display controller, in the topology notes: four
+video ports, four Cluster and four Esmart windows. Read from source
+(2026-11-28) in [rk3588-mainline-source.md](rk3588-mainline-source.md). First
 used: `SoW.md`; `docs/observed/rk3588-source.md`.
 
 **VSYNC**: The same refresh boundary as a signal; M2 wants the Zephyr driver to
