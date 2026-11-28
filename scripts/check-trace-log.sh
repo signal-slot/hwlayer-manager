@@ -19,7 +19,7 @@ for f in "$@"; do
     { sub(/\r$/, "") }
     /^CETRACE( |$)/ {
         v = ""
-        if (match($0, /^CETRACE v=[^ ]*/)) v = substr($0, 12, RLENGTH - 11)
+        if (match($0, /^CETRACE v=[^ ]*/)) v = substr($0, 11, RLENGTH - 10)
         if (v != "1") fail(NR, "unsupported or missing version \"" v "\" (supported: v=1)")
         ncet++
         next
