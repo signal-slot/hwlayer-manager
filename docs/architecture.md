@@ -114,6 +114,16 @@ A `no_std` crate with no code of its own beyond `extern crate composition_ffi` (
 
 A backend in C against the C ABI, for a driver with two planes on one output (application plane below, safety plane on top). It reaches the driver through `struct ce_twoplane_hw` (`ce_twoplane.h:67`) and the system through `struct ce_twoplane_port` (`:88`); its state is `struct ce_twoplane` (`:110`), initialised by `ce_twoplane_init` (`:137`). Its `ce_backend_ops` table is `ce_twoplane_ops` (`ce_twoplane.c:247`), built from `twoplane_check` (`:114`), `twoplane_commit` (`:154`), `twoplane_poll_event` (`:227`) and the vsync callback `vsync_cb` (`:50`). Its tests, what they do not cover, and the port-table contract are in [`docs/twoplane-backend.md`](twoplane-backend.md).
 
+### 5.6 Planned, not implemented: i.MX95 M7 backend (milestone M2)
+
+No i.MX95 M7 backend exists in this repository, and nothing about it was measured on hardware. This section only places the planned work against the crates above. It comes from [`docs/imx95-m7-backend-contract.md`](imx95-m7-backend-contract.md), [`docs/imx95-twoplane-port.md`](imx95-twoplane-port.md), [`docs/twoplane-backend.md`](twoplane-backend.md) and [`docs/imx95-zephyr-feasibility.md`](imx95-zephyr-feasibility.md).
+
+- **Core: unchanged.** *Inferred.* `composition-core` stays hardware-independent. The M7 backend would implement the same four operations of `DisplayBackend` (§3.5), through the C callbacks `capabilities`, `check`, `commit` and `poll_event`. The contract document maps each operation onto Zephyr's display API and records which parts need a driver extension.
+- **ABI and library: reused.** *Inferred.* A Zephyr application would link `libcomposition_engine.a` from `composition-ffi-staticlib` (§5.4) and give `composition-ffi` (§5.3) a `ce_backend_ops` table. The backend would be C or Rust firmware code outside the core, like `backends/twoplane`.
+- **`backends/twoplane`: partly reusable.** *Read from source* (contract doc §5): its `ce_twoplane_port` (interrupt lock, wake, buffer lookup, device-ready) maps onto Zephyr calls. Its capabilities, `check` and `commit` do not carry over as they are: they assume two planes and a mandatory safety layer, while the stock Zephyr DPU driver has one plane. A single-plane backend would need its own versions. *Inferred:* the port document (a design, written on paper) proposes filling the hardware and port tables for the DPU, and the pending/latched protocol could be shared; that would edit `backends/twoplane` and is a later item.
+- **Open prerequisite.** *Read from source:* whether the M7 may own the DPU and display route at all, under the board's System Manager configuration, is the question of the feasibility document. The contract document assumes a favourable answer and does not claim it.
+- **Status.** No M7 backend code, no backend host test and no board result exist for this target. Milestone status is in [`README.md`](../README.md).
+
 ## 6. Where to look next
 
 - Terms: [`docs/glossary.md`](glossary.md).
