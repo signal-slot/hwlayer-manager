@@ -31,10 +31,15 @@ fence.
 ### 2.1 Property presence
 
 - Every plane in the recorded probe lists `IN_FENCE_FD` as a mutable atomic
-  range `-1..=2147483647` with default `-1`: planes 31, 42, 51, 59, 67, 75 and
-  83. Both CRTCs (39 and 50) list `OUT_FENCE_PTR` as a mutable atomic range.
-  Tag: **read from source** (`docs/imx95-probe-2026-11-28.txt`, a probe record
-  kept in the repository; kernel `6.6.157-7.8.0`, driver `imx95-dpu`).
+  range `-1..=2147483647`; the recorded value is `18446744073709551615`, the
+  range's low end `-1` printed as an unsigned number (no fence in flight at
+  capture): planes 31, 42, 51, 59, 67, 75 and 83. Both CRTCs (39 and 50) list
+  `OUT_FENCE_PTR` as a mutable atomic range `0..=18446744073709551615` with
+  value `0` (none requested). Tag: **read from source**
+  (`docs/imx95-probe-2026-11-28.txt`, a probe record kept in the repository;
+  kernel `6.6.157-7.8.0`, driver `imx95-dpu`). The probe's header notes that
+  recorded property *values* are the compositor's state at capture time, not
+  driver defaults; this section claims presence, not defaults.
 - The run must **re-read** presence in its own probe output (`probe --raw`)
   before any scenario and print one line per plane. A plane without
   `IN_FENCE_FD` makes the scenario BLOCKED for that plane, not failed. The
@@ -66,7 +71,7 @@ Three candidates; none is confirmed for this board.
 | Source | What it gives | How to tell whether it is available | Status |
 |---|---|---|---|
 | `sw_sync` timeline (`CONFIG_SW_SYNC`, control node under the debugfs `sync` directory) | A software timeline: create a fence at point N, signal by advancing the timeline. Full control of the signal time. Signalling with an error is **inferred** not possible through the plain timeline interface | From the run's own ssh session, read-only: look for the node and for `CONFIG_SW_SYNC` in `/proc/config.gz` if it exists. Debugfs counts as available only if it is **already mounted** (§6) | **Unknown.** No document in the repository records `CONFIG_SW_SYNC` or debugfs for the Verdin iMX95. **Inferred** that a production-style BSP config may leave it off. `docs/imx8mp-x2-board.md` (a different board) records that its debugfs DRM directory was not mounted (read from source) |
-| Writeback out-fence (`WRITEBACK_OUT_FENCE_PTR` on a writeback connector) | A hardware fence that signals when a writeback job ends. The signal time cannot be chosen | A writeback connector in the run's probe output. `examples/writeback.rs` is the only repository code that uses a fence | **Not available on the record:** the recorded probe lists the LVDS output only, no writeback connector (read from source, `docs/imx95-probe-2026-11-28.txt`). **Inferred** unlikely on this kernel; re-check in the run's own probe |
+| Writeback out-fence (`WRITEBACK_OUT_FENCE_PTR` on a writeback connector) | A hardware fence that signals when a writeback job ends. The signal time cannot be chosen | A writeback connector in the run's probe output. `crates/composition-drm/examples/writeback.rs` is the only repository Rust code that uses a fence | **Not available on the record:** the recorded probe lists the LVDS output only, no writeback connector (read from source, `docs/imx95-probe-2026-11-28.txt`). **Inferred** unlikely on this kernel; re-check in the run's own probe |
 | GPU fence (job completion of the GPU driver, exported as a `sync_file`) | A genuine producer fence | GPU driver and userspace on the Reference Multimedia Image | **Unknown.** Nothing in the repository records them for this board. Adding a GPU client is outside a minimal run (no packages) and belongs to the WP5 producers |
 
 Decision rule for the M1 plan, in order:
