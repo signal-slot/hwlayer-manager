@@ -2,97 +2,86 @@
 
 Date of reading: 2026-11-28. **Nothing here is a board measurement and no picture has been taken.** Every row is tagged **read from source** (stated by the code read) or **inferred** (a conclusion drawn from it). This is the baseline for the Q6 picture session of [`stm32mp257-ltdc-session-2026-11-28.md`](stm32mp257-ltdc-session-2026-11-28.md).
 
-## What was read, and the limit of this reading (read this first)
+## What was read
 
-Tree: ST `drivers/gpu/drm/stm/ltdc.c`, repository `STMicroelectronics/linux`, branch `v6.6-stm32mp`, commit `548f960c059bc4b9165cb69895fd67551f6061ca` (the commit pinned by [`stm32mp257-ltdc-source-full.md`](stm32mp257-ltdc-source-full.md) and [`stm32mp257-ltdc-source-diff-6.6.md`](stm32mp257-ltdc-source-diff-6.6.md)). That diff document finds the plane path of v6.18-stm32mp (`3056405e`) and 6.6 to be the same code, so no separate v6.18 rows are added.
+`drivers/gpu/drm/stm/ltdc.c` (2943 lines) of `STMicroelectronics/linux`, branch `v6.6-stm32mp`, commit `548f960c059bc4b9165cb69895fd67551f6061ca`, the commit pinned by [`stm32mp257-ltdc-source-full.md`](stm32mp257-ltdc-source-full.md) and [`stm32mp257-ltdc-source-diff-6.6.md`](stm32mp257-ltdc-source-diff-6.6.md). The raw file at that commit was downloaded with `curl` and read with line numbers; all `ltdc.c:N` below are lines of that file. The earlier diff document finds the plane path of v6.18-stm32mp (`3056405e`) identical to 6.6, so no separate v6.18 rows are added (the v6.18 numbers are 5 to 6 lines higher in this region, see its rows 43, 55-61). No checkout was kept in the dependency cache (`git clone` was refused); the file was held in a scratch file and removed.
 
-**Limit.** This item could not run `git clone`, `git fetch`, `gh` or `curl` (each was refused as needing approval), so no checkout exists in the dependency cache for this file. The file was read through a web-fetch agent (HTTP 200, raw file at the commit above). That agent returns no line numbers and would not reproduce code text; it gave paraphrases of what the code does. Consequences, stated plainly:
+## 1. Reflect-x, reflect-y and their combination: `ltdc_plane_update` (`ltdc.c:1648`)
 
-- **Behaviour rows below are the agent's paraphrase of the code, not text I read line by line.** Treat them as read from source at one remove; a second reader with a real checkout should confirm them (command at the end).
-- **`file:line` is given only where an earlier document counted it on a real checkout of the same commit** (cited as "diff row N"). Where no earlier count exists the cell says "line not counted" and names the function and the register or macro to search for. The contract's "file:line for each row" is therefore **not fully met**.
-
-## 1. Reflect-x, reflect-y and their combination (`ltdc_plane_update`)
-
-All planes go through one function, `ltdc_plane_update` (shared by `ltdc_plane_atomic_update` and `ltdc_plane_atomic_enable`). There is no vertical-flip bit; reflect-y is a negative pitch.
+All planes go through this one function (called from `ltdc_plane_atomic_update`, `ltdc.c:2056`, and from the enable path, `ltdc.c:2107`). There is no vertical-flip bit: reflect-y is a negative pitch.
 
 | Step | What the code does | Where | Tag |
 | --- | --- | --- | --- |
-| Fold | Any `ROTATE_x` request is first turned into a combined rotate/reflect value; the user's `REFLECT_X` and `REFLECT_Y` are then toggled into it, so a reflect that the rotation already produced is cancelled by the user's bit | `ltdc.c:1684-1717` (diff row 59) | read from source |
-| Reflect-x, address | Start address written to `LTDC_L1CFBAR` is the framebuffer address plus `cpp[0] * src_width - 1`, the last byte of the first line | `ltdc_plane_update`, line not counted (search `LTDC_L1CFBAR`) | read from source |
-| Reflect-x, mirror bit | `LXCR_HMEN` ("horizontal mirroring enable") is ORed into the value written to `LTDC_L1CR` | `ltdc_plane_update`, line not counted (search `LXCR_HMEN`) | read from source |
-| Reflect-x, chroma | For YUV with auxiliary planes, `LTDC_L1AFBA0R` and `LTDC_L1AFBA1R` get the matching half-width offset | line not counted | read from source |
-| Reflect-y, address | `LTDC_L1CFBAR` moves forward by `pitches[0] * (src_height - 1)`: the first line fetched is the last line | line not counted | read from source |
-| Reflect-y, pitch | The pitch field of `LTDC_L1CFBLR` (`LXCFBLR_CFBP`, bits 31:16) is written as `0x10000 - pitches[0]`, a negative 16-bit value. Chroma planes use `pitches[1]`, `pitches[2]` and a negated `LTDC_L1AFBLR` | line not counted (search `LXCFBLR_CFBP`) | read from source |
-| Both | HMEN, last-byte offset, last-line offset and negative pitch all apply | as above | read from source |
-| Always | Line length `LXCFBLR_CFBLL = cpp[0] * src_width + (bus_width >> 3) - 1`; `LTDC_L1CFBLNR = src_height`; base from `drm_fb_dma_get_gem_addr` | line not counted | read from source |
-| Order | Fold, window position, pixel format, constant alpha, `LXBFCR` blending, `LTDC_L1CFBAR`, `LTDC_L1CFBLR`, `LTDC_L1CFBLNR`, YCbCr auxiliary registers, burst length, CLUT, `LXCR` (with HMEN) and scaler, `LTDC_L1CR` write, shadow reload, fifo warnings | line not counted | read from source |
-| Checks | `ltdc_plane_atomic_check` (`ltdc.c:1566-1605`, diff row 35) holds no rotation or reflection test; the property mask (section 3) is the only filter | diff row 35 | read from source |
-| Same for overlays | Reflect programming has no layer-index condition, so plane 42 and plane 49 use the same registers with their own layer base | | inferred |
+| Fold | `plane_rotation` starts at `ROTATE_0`; `ROTATE_90` sets `ROTATE_90 | REFLECT_Y`; `ROTATE_180` sets `REFLECT_X | REFLECT_Y`; `ROTATE_270` sets `ROTATE_90 | REFLECT_X`. The user's `REFLECT_X` and `REFLECT_Y` are then toggled in (cleared if the rotation already set it) | `ltdc.c:1688-1717` | read from source |
+| Reflect-x, start address | `paddr = drm_fb_dma_get_gem_addr(...)`, then `paddr += cpp[0] * src_width - 1`: the last byte of the first line | `ltdc.c:1845-1848` | read from source |
+| Reflect-y, start address | `paddr += pitches[0] * (src_height - 1)`: the first line fetched is the last line | `ltdc.c:1850-1851` | read from source |
+| Address write | `LTDC_L1CFBAR + lofs` (colour frame buffer address) | `ltdc.c:1854` | read from source |
+| Reflect-y, pitch | `pitch_in_bytes = 0x10000 - pitches[0]` ("negative value, signed on 16 bits"), otherwise `pitches[0]` | `ltdc.c:1859-1863` | read from source |
+| Pitch and length write | `val = (pitch_in_bytes << 16) | line_length`, `line_length = cpp[0] * src_width + (bus_width >> 3) - 1`, written to `LTDC_L1CFBLR` under `LXCFBLR_CFBLL | LXCFBLR_CFBP` (pitch is `GENMASK(31, 16)`, `ltdc.c:234`) | `ltdc.c:1857`, `1865-1866` | read from source |
+| Line count | `LTDC_L1CFBLNR = src_height` (unchanged by reflection) | `ltdc.c:1869-1870` | read from source |
+| Reflect-x, mirror bit | `lxcr |= LXCR_HMEN` (`BIT(8)`, "Horizontal Mirroring ENable", `ltdc.c:214`); written to `LTDC_L1CR` with `LXCR_MASK` (which includes `LXCR_HMEN`, `ltdc.c:216`) | `ltdc.c:1975-1977`, `2007-2010` | read from source |
+| YUV, auxiliary planes | The same reflect-x and reflect-y adjustments are applied to `LTDC_L1AFBA0R`/`LTDC_L1AFBA1R` (half-width / half-height offsets) and the negative pitch to `LTDC_L1AFBLR` | `ltdc.c:1880-1922`, `1931-1945` | read from source |
+| Reflect-x and reflect-y together | All of the above apply: HMEN, last-byte offset, last-line offset, negative pitch | as above | read from source |
+| Reflection and scaler | Independent: the scaler registers (`LTDC_L1SISR`, `L1SOSR`, scaling factors) are written from `src`/`dst` sizes, with no reference to `plane_rotation` | `ltdc.c:1979-2005` | read from source |
+| Shadow reload | `LTDC_L1RCR + lofs = LXRCR_VBR` once at the end of the update when `plane_reg_shadow` (true on 4.x): vertical-blanking reload, once per commit | `ltdc.c:2012-2015` | read from source |
+| Atomic check | `ltdc_plane_atomic_check` has no rotation or reflection test (diff row 35, `ltdc.c:1566-1605`); only the property mask (section 3) filters | | read from source |
+| Same registers on overlays | The reflect code has no layer-index condition, so plane 42 and plane 49 use the same registers at their own layer offset `lofs` | | inferred |
 
 ## 2. The primary's 180
 
 | Fact | Where | Tag |
 | --- | --- | --- |
-| 180 is mapped to `REFLECT_X | REFLECT_Y`, i.e. HMEN plus last-byte plus last-line start address plus negative pitch | `ltdc.c:1684-1717` (diff row 59) | read from source |
-| The rotator is **not** used for 180: `GCR_ROTEN` is set only in the branch where the folded value contains `ROTATE_90`; no rotation memory is needed for 180 | line not counted | read from source |
-| So 180 on the primary and reflect-x+reflect-y on an overlay are the same programming | | inferred |
+| 180 is `REFLECT_X | REFLECT_Y`: HMEN plus last-byte and last-line start address plus negative pitch | `ltdc.c:1695-1696` | read from source |
+| The rotator is **not** involved: `GCR_ROTEN` and the rotation memory are used only inside `if (plane_rotation & DRM_MODE_ROTATE_90)`, and 180 never sets `ROTATE_90` | `ltdc.c:1738-1784` | read from source |
+| 180 on the primary and reflect-x + reflect-y on an overlay are the same programming | | inferred |
 
 ## 3. 90 and 270, and where they are refused
 
 | Fact | Where | Tag |
 | --- | --- | --- |
-| The property offers 90/180/270 only on the primary and only if `plane_rotation && crtc_rotation` when the property is created; overlays get `ROTATE_0 | REFLECT_X | REFLECT_Y` | `ltdc.c:2263-2276` (primary), `2310-2314` (overlays) (diff row 43) | read from source |
-| Why overlay `rotate-180` is `EINVAL`: it is not in the overlay's property mask, so the DRM core refuses it before the driver is called | | inferred |
-| `crtc_rotation` is cleared when the DT has no `rotation-memory` (none is set in any DT file read) | `ltdc.c:2820-2826` (diff row 44) | read from source |
-| Ordering: the paraphrase says this clearing runs in `ltdc_load` **after** `ltdc_crtc_init` has created the property, so 90/270 stay on the primary's property while `crtc_rotation` is false. That would explain why session B's 90/270 passed `TEST_ONLY` although the earlier diff document expected the property to lack them. Not confirmed against a checkout | `ltdc_load`, line not counted | read from source (paraphrase), confirm |
-| 90 = rotate-90 plus reflect-y; 270 = rotate-90 plus reflect-x; user reflects toggle on top | `ltdc.c:1684-1717` (diff row 59) | read from source |
-| Refusal 1: another layer while `GCR_ROTEN` is set ("Rotation enabled on primary plane, do not use another layer") | `ltdc.c:1669-1682`, warn 1679 (diff row 58) | read from source |
-| The rotation branch first clears `GCR_LTDCEN` and waits about two frames | `ltdc.c:1738-1743` (diff row 55) | read from source |
-| Refusal 2: `rot_mem->size < hdisplay*vdisplay*2*3` ("Rotation buffer too small") returns with the controller left off | `ltdc.c:1753-1756` (diff row 56) | read from source |
-| Refusal 3: `vdisplay > 1366` returns silently, controller left off | after row 56; `ltdc.c:1744-1765` in v6.18 numbering (`stm32mp257-source.md`) | read from source |
-| Rotator setup: `LTDC_RB0AR` = reserved base, `LTDC_RB1AR` = base + size/2, `LTDC_RBPR` = `((vdisplay + 9) / 10) * 64`, `IER_FURIE` set, then `GCR_ROTEN` and `GCR_LTDCEN` | `ltdc.c:1762-1775`, `1782` (diff rows 60, 61) | read from source |
-| `GCR_ROTEN` is cleared only in `ltdc_crtc_atomic_disable`, not when a plane goes back to 0 | line not counted | read from source (paraphrase) |
-| `rot_mem` is dereferenced without a null check (paraphrase). With no `rotation-memory`, a **committed** 90/270 on this tree could therefore be a null dereference rather than a clean refusal. Nobody should commit one without a console | | inferred |
-| No `-EINVAL` about rotation exists in `ltdc.c`; the refusals are warnings and early returns after the display was stopped. Nothing refuses after `TEST_ONLY` with an error code | diff row 35 | read from source |
+| Primary property: 90/180/270 are in the mask when `crtc_rotation` is true at creation; otherwise only `ROTATE_0 | REFLECT_X | REFLECT_Y` | `ltdc.c:2263-2276` | read from source |
+| Overlay property: only `ROTATE_0 | REFLECT_X | REFLECT_Y`. So `rotate-180/90/270` on plane 42 or 49 are refused by the DRM core (not in the mask), which matches the `EINVAL` of session B | `ltdc.c:2311-2314` | read from source (mask); that EINVAL comes from the core is inferred |
+| `crtc_rotation` is set from `GC2R_ROTA` for the 4.x hardware | `ltdc.c:2571-2573` | read from source |
+| **Ordering:** `ltdc_crtc_init` (which creates the property) is called at `ltdc.c:2774`; `crtc_rotation` is cleared when there is no `rotation-memory` only at `ltdc.c:2820-2826`, later in `ltdc_load`. So on a tree with `GC2R_ROTA` set and no `rotation-memory` (this board, per the earlier documents) the primary **still offers 90/180/270**. This explains why session B's 90/270 passed `TEST_ONLY`; it corrects the expectation in conclusion 3 of the diff document that the property lacks them | `ltdc.c:2774`, `2263-2271`, `2825-2826` | read from source |
+| Because `crtc_rotation` ends up false, the guard against a second layer while `GCR_ROTEN` is set (`ltdc.c:1669-1682`) is skipped on this board | `ltdc.c:1669` | read from source |
+| 90 and 270 reach the rotator through `if (plane_rotation & DRM_MODE_ROTATE_90)`: clear `GCR_LTDCEN`, wait about two frames | `ltdc.c:1738-1743` | read from source |
+| Refusal "Rotation buffer too small": `ldev->rot_mem->size < hdisplay * vdisplay * 2 * 3`, a `DRM_WARN` and a bare `return` with the controller still off | `ltdc.c:1753-1756` | read from source |
+| `vdisplay > 1366` returns silently, controller still off | `ltdc.c:1759-1760` | read from source |
+| `ldev->rot_mem` is dereferenced at `ltdc.c:1753` **with no null check**; it is null when the DT has no `rotation-memory` (`ltdc.c:2820-2822`). So a committed 90/270 on this board, after `GCR_LTDCEN` was cleared and the delay, reaches a null pointer dereference rather than the "too small" warning. Not tried on the board; nobody should commit 90/270 without a console | `ltdc.c:1740-1753`, `2820-2826` | inferred from the lines cited |
+| Rotator setup (not reached here): `LTDC_RB0AR` = base, `LTDC_RB1AR` = base + size/2, `LTDC_RBPR = ((vdisplay + 9) / 10) * 64`, `IER_FURIE`, then `GCR_ROTEN | GCR_LTDCEN` | `ltdc.c:1762-1784` | read from source |
+| `GCR_ROTEN` is cleared only in the CRTC disable (`ltdc.c:1313-1314`), not when the plane returns to 0 | `ltdc.c:1313` | read from source |
+| No `-EINVAL` about rotation exists in the plane path; the refusals are `DRM_WARN` plus `return` | `ltdc.c:1648-2042` | read from source |
 
 ## 4. Does the source explain a frame-to-frame changing CRC with reflect-x on the primary?
 
-**Plainly: no.** Nothing in `ltdc_plane_update` or the interrupt code treats a reflected layer specially beyond the address, pitch and HMEN writes of section 1. What was checked:
+**Plainly: no.** Nothing in the driver treats a reflected layer differently from a plain one beyond sections 1 and 2. What was checked:
 
-| Candidate | Finding | Tag |
-| --- | --- | --- |
-| CRC region not following the mirror | The CRC is a hardware block on the LTDC output, enabled by `GCR_CRCEN` when the source is "auto"; the driver only reads `LTDC_CCRCR` and reports one value per frame after skipping the first two. It covers the output of the controller, not a layer, so a mirrored picture has a different but fixed CRC. The driver offers no region setting | read from source (paraphrase); which pipeline stage it covers is not visible in the driver |
-| Per-frame shadow reload | On hardware 4.x each layer's `LXRCR` is written with the vblank-reload flag at the end of `ltdc_plane_update`; this happens once per commit, not per frame, and is the same for every transform | read from source (paraphrase) |
-| Rotator double buffer | Used only in the 90/270 branch (`RB0AR`/`RB1AR`); not involved in reflect-x or 180 | read from source |
-| Burst length | Written on MP25 as `max_burst_length`, 0 because `st,burstlen` is absent; the same for every transform | read from source (paraphrase; `ltdc.c:1970-1972` in v6.18 numbering, `stm32mp257-ltdc-source-full.md`) |
-| FIFO threshold and underrun | `LTDC_FUT` is set when the CRTC is enabled; underruns are only counted and logged by the IRQ thread. Nothing changes the pixel data on an underrun in the driver | read from source (paraphrase) |
-| Fetch direction | A mirrored fetch starts at the last byte of a line and the line length is rounded with `(bus_width >> 3) - 1`; the layer reads each line backwards (HMEN) and, for reflect-y, lines from the end with a negative pitch. If the fetch FIFO or its burst alignment misbehaves for a backwards read, the picture could change between frames and so would the CRC. The source cannot confirm it; it is a hypothesis for a hardware question | inferred |
-| Same symptom on overlay reflect-x+reflect-y and primary 180/reflect-x, stable on reflect-y alone | All unstable cases contain HMEN; the paraphrase shows no code path special to reflect-y alone. Both observations are session B's, not rechecked here | inferred |
+| Candidate | Finding | Where | Tag |
+| --- | --- | --- | --- |
+| CRC region that does not follow the mirror | The driver has no CRC region: `set_crc_source("auto")` sets `IER_LIE` and `GCR_CRCEN` and nothing else. The value is the controller's `LTDC_CCRCR` for the whole output | `ltdc.c:1488-1491` | read from source |
+| When the value is read | `ltdc_irq` reads `LTDC_CCRCR` in the hard interrupt for every interrupt while the CRC is active; the thread reports it with `drm_crtc_add_crc_entry` only for a line interrupt, after skipping 2 frames. The line interrupt is placed at `accum_act_h + 1`, just after the active area. Separate interrupts (fifo, transfer) also re-read `ldev->crc` | `ltdc.c:1041-1056`, `1005-1025`, `1209` | read from source |
+| What that implies | A CRC taken after the active area is of the frame just shown. It is stable for a static picture only if every frame is fetched identically; the driver cannot make it differ by itself | | inferred |
+| Per-frame shadow reload | Written once per commit (`LXRCR_VBR`), the same for every transform. No reload is repeated per frame | `ltdc.c:2012-2015` | read from source |
+| Rotator double buffer | Only in the 90/270 branch; not used for reflect-x or 180 | `ltdc.c:1738-1784` | read from source |
+| Burst length | `LTDC_L1BLCR` is written with `max_burst_length`, which is 0 here (`st,burstlen` absent); identical for every transform | `ltdc.c:1963-1966`, `2655-2661` | read from source |
+| FIFO and underrun | `LTDC_FUT` set at CRTC enable (`ltdc.c:1276`). Underrun and warning interrupts only increment counters (`ltdc.c:1027-1036`) and are logged at the *next* plane update (`ltdc.c:2019-2041`); nothing in the driver alters pixels on an underrun | | read from source |
+| Fetch reversed | With HMEN the layer reads each line starting at the last byte (`ltdc.c:1848`) and, for reflect-y, lines from the end with a negative pitch (`ltdc.c:1861`). The line length is rounded by `(bus_width >> 3) - 1` (`ltdc.c:1857`). If the hardware fetches mirrored lines in a way that races the pixel clock (an underrun that corrupts a few pixels, or a burst alignment issue), the output and hence the CRC would change from frame to frame. The source has no test for this | | inferred (a hypothesis, not in the source) |
+| Pattern in session B | Every unstable case (primary reflect-x, primary 180, overlay reflect-x + reflect-y) includes HMEN; reflect-y alone is not reported unstable. No code path is special to reflect-y alone | session B, `ltdc.c:1975-1977` | inferred |
 
-**What a picture can settle.** If the picture is a correct, steady mirror while the CRC changes, the CRC is the culprit (a measurement artefact of the CRC block with HMEN) and the transform may still be usable. If the picture flickers, tears or shows colour or line corruption, the fetch is the culprit. Source alone cannot decide.
+**What settles it, using only what the source exposes.** The CRTC debugfs state dump prints `transfer_error`, `fifo_underrun_error`, `fifo_underrun_warning` and `fifo_underrun_rotation` (`ltdc.c:1529-1532`); an increasing underrun counter with reflect-x, and none without, points at the fetch. A correct steady mirror in the picture with a changing CRC would point at the CRC block instead. Source alone does not decide it.
 
 ## 5. Predicted pictures for `plane_commit`'s colour bars
 
-The source buffer is eight vertical bars, left to right: white, yellow, cyan, green, magenta, red, blue, black (`crates/composition-drm/examples/plane_commit.rs`, `BARS`, `bar_at`). The mirror acts on the framebuffer rectangle (`src`) and the destination window stays where it is. With mirroring on the picture should show the bars in the order below. Other items change the pattern to show orientation; these rows describe the eight-bar pattern only.
+The source buffer is eight vertical bars, left to right: white, yellow, cyan, green, magenta, red, blue, black (`crates/composition-drm/examples/plane_commit.rs`, `BARS` and `bar_at`). The mirror acts on the source rectangle; the destination window stays where it is. These rows describe that eight-bar pattern; other items may add an orientation pattern.
 
-| Case | Predicted picture | Tell apart from rotation 0 by vertical bars? | Tag |
+| Case | Predicted picture | Vertical bars tell it from rotation 0? | Tag |
 | --- | --- | --- | --- |
-| Primary rotate-180 (reflect-x + reflect-y) | Bars left to right: black, blue, red, magenta, green, cyan, yellow, white. The vertical flip cannot be seen | Yes, by the order, but not distinguishable from reflect-x | inferred (from the programming in sections 1-2) |
-| Primary reflect-x | Same order as 180: black, blue, red, magenta, green, cyan, yellow, white | Yes | inferred |
-| Overlay 42 reflect-x | The overlay's own window shows black, blue, red, magenta, green, cyan, yellow, white; the primary below it is unchanged | Yes | inferred |
-| Overlay 42 reflect-y | Looks exactly like rotation 0: white, yellow, cyan, green, magenta, red, blue, black | **No**: every row is the same, so a vertical flip is invisible | inferred |
-| Plane 49 reflect-x | As overlay 42 reflect-x, in plane 49's window | Yes | inferred (same code path, section 1) |
+| Primary rotate-180 | Left to right: black, blue, red, magenta, green, cyan, yellow, white (the vertical half of the flip is invisible) | Yes by the order, but not from reflect-x | inferred (from `ltdc.c:1695-1696`, `1847-1863`, `1976`) |
+| Primary reflect-x | Same: black, blue, red, magenta, green, cyan, yellow, white | Yes | inferred (from `ltdc.c:1847-1848`, `1976`) |
+| Overlay 42 reflect-x | The overlay window shows black, blue, red, magenta, green, cyan, yellow, white; the primary below it is not mirrored | Yes | inferred |
+| Overlay 42 reflect-y | White, yellow, cyan, green, magenta, red, blue, black, as for rotation 0 | **No**: every row is identical, so a vertical flip is invisible | inferred (from `ltdc.c:1850-1851`, `1859-1863`) |
+| Plane 49 reflect-x | As overlay 42 reflect-x, in plane 49's window | Yes | inferred (same code path) |
 | Plane 49 reflect-y | As rotation 0 | **No** | inferred |
-| Plane 49 reflect-x + reflect-y | As reflect-x (and as 180) | Yes, but cannot be told from reflect-x alone | inferred |
+| Plane 49 reflect-x + reflect-y | As reflect-x | Yes, but not from reflect-x alone | inferred |
 
-Consequences for the session: vertical bars cannot show reflect-y at all, nor the vertical half of 180 and of reflect-x+reflect-y; reflect-y needs a pattern that changes along y (the orientation pattern another item is adding). A picture that shows the reflect-x order but also tearing, a shifted bar edge, or colour noise points at the fetch (section 4), and a steady picture with a changing CRC points at the CRC block.
-
-## Confirm with a real checkout
-
-```sh
-git clone --depth 1 --branch v6.6-stm32mp --filter=blob:none --no-checkout \
-  https://github.com/STMicroelectronics/linux "$CONNECTED_DEPS_DIR/st-linux-6.6"
-git -C "$CONNECTED_DEPS_DIR/st-linux-6.6" show HEAD:drivers/gpu/drm/stm/ltdc.c | grep -n 'HMEN\|CFBAR\|CFBLR\|ROTEN\|REFLECT\|rot_mem'
-```
-
-Then replace each "line not counted" with the number and drop the "paraphrase" qualifiers.
+Consequences: vertical bars cannot show reflect-y, nor the vertical part of 180 or of reflect-x + reflect-y; separating those needs a pattern that changes along y. A mirrored picture that also tears, shifts a bar edge or shows colour noise points at the fetch (section 4); a steady mirror with a changing CRC points at the CRC read.
