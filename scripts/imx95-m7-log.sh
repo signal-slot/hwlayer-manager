@@ -15,7 +15,9 @@
 #
 # Environment (test hooks): SYSFS_ROOT (default /sys), DEV_ROOT (default
 # /dev), LOG_ROOT (allowed output prefix, default /tmp).
-# Exit: 0 ok, 1 no rpmsg tty found, 2 usage or refused path.
+# Without an rpmsg tty the trace buffer alone is captured (SECS is then a wait
+# before one read). A symlinked OUTFILE is refused.
+# Exit: 0 ok, 1 neither tty nor trace found, 2 usage or refused path.
 
 SYSFS_ROOT=${SYSFS_ROOT:-/sys}
 DEV_ROOT=${DEV_ROOT:-/dev}
@@ -36,6 +38,10 @@ if [ -e "$out" ] && [ ! -f "$out" ]; then
 	echo "FAIL out-path: not a regular file: $out" >&2
 	exit 2
 fi
+if [ -L "$out" ]; then
+	echo "FAIL out-path: refusing a symlink: $out" >&2
+	exit 2
+fi
 
 tty=
 for _t in "$DEV_ROOT"/ttyRPMSG*; do
@@ -43,22 +49,34 @@ for _t in "$DEV_ROOT"/ttyRPMSG*; do
 	tty=$_t
 	break
 done
-if [ -z "$tty" ]; then
-	echo "FAIL rpmsg: no ttyRPMSG* under $DEV_ROOT (is the M7 running with an rpmsg tty?)" >&2
+have_trace=
+for _tr in "$SYSFS_ROOT"/kernel/debug/remoteproc/*/trace*; do
+	[ -f "$_tr" ] && have_trace=1
+done
+if [ -z "$tty" ] && [ -z "$have_trace" ]; then
+	echo "FAIL log: neither ttyRPMSG* under $DEV_ROOT nor a remoteproc trace file under $SYSFS_ROOT (is the M7 running?)" >&2
 	exit 1
 fi
 
 date +"# date: %Y-%m-%d" >"$out" || { echo "FAIL out-path: cannot write $out" >&2; exit 2; }
 
-cat "$tty" >>"$out" 2>/dev/null &
-pid=$!
-_n=0
-while [ "$_n" -lt "$secs" ] && kill -0 "$pid" 2>/dev/null; do
-	sleep 1
-	_n=$((_n + 1))
-done
-kill "$pid" 2>/dev/null
-wait "$pid" 2>/dev/null
+pid=
+trap '[ -n "$pid" ] && kill "$pid" 2>/dev/null; exit 2' HUP INT TERM
+if [ -n "$tty" ]; then
+	cat "$tty" >>"$out" 2>/dev/null &
+	pid=$!
+	_n=0
+	while [ "$_n" -lt "$secs" ] && kill -0 "$pid" 2>/dev/null; do
+		sleep 1
+		_n=$((_n + 1))
+	done
+	kill "$pid" 2>/dev/null
+	wait "$pid" 2>/dev/null
+	pid=
+else
+	echo "# rpmsg: no ttyRPMSG* found, trace buffer only" >>"$out"
+	sleep "$secs"
+fi
 
 for _tr in "$SYSFS_ROOT"/kernel/debug/remoteproc/*/trace*; do
 	[ -f "$_tr" ] || continue
