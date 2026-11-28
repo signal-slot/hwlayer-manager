@@ -26,6 +26,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod fence;
 pub mod profile;
 
 pub use profile::DriverProfile;
@@ -292,6 +293,7 @@ pub struct DrmBackend {
     latches: VecDeque<LatchInfo>,
     require_primary: bool,
     latch_timeout: Option<Duration>,
+    fences: fence::FenceTable,
 }
 
 fn invalid(message: &'static str) -> io::Error {
@@ -415,8 +417,10 @@ impl DrmBackend {
             latches: VecDeque::new(),
             require_primary: false,
             latch_timeout: Some(DEFAULT_LATCH_TIMEOUT),
+            fences: fence::FenceTable::new(),
         };
         backend.discover()?;
+        backend.discover_fences()?;
         Ok(backend)
     }
 
@@ -803,6 +807,7 @@ impl DrmBackend {
             .position(|b| b.id == buffer)
             .ok_or_else(|| missing("buffer"))?;
         let entry = self.buffers.swap_remove(index);
+        self.fences.clear_acquire_fence(buffer);
         self.card.destroy_framebuffer(entry.framebuffer)?;
         if let Some(dumb) = entry.dumb {
             self.card.destroy_dumb_buffer(dumb)?;
@@ -1305,7 +1310,8 @@ impl DisplayBackend for DrmBackend {
             return Err(BackendError::DeviceLost);
         }
         let primary_used = self.primary_check(frame, plan)?;
-        let (request, modeset) = self.request(frame, plan)?;
+        let (mut request, modeset) = self.request(frame, plan)?;
+        let fences = self.attach_fences(&mut request, frame, plan, fence::Purpose::Check)?;
         let mut flags = AtomicCommitFlags::TEST_ONLY;
         if modeset {
             flags |= AtomicCommitFlags::ALLOW_MODESET;
@@ -1313,6 +1319,11 @@ impl DisplayBackend for DrmBackend {
         let Err(error) = self.card.atomic_commit(flags, request) else {
             return Ok(());
         };
+        if let Some(refused) =
+            self.fence_refusal(&fences, frame, plan, Operation::Check, &error, primary_used)
+        {
+            return Err(refused);
+        }
         // A frame that works only with a modeset is not unsupported, and is
         // logged as such. It is still refused: commit() does not allow a
         // modeset after the first one.
@@ -1338,7 +1349,8 @@ impl DisplayBackend for DrmBackend {
             return Err(BackendError::DeviceLost);
         }
         let primary_used = self.primary_check(frame, plan)?;
-        let (request, modeset) = self.request(frame, plan)?;
+        let (mut request, modeset) = self.request(frame, plan)?;
+        let fences = self.attach_fences(&mut request, frame, plan, fence::Purpose::Commit)?;
         // The first commit of an output sets the mode and blocks. A modeset
         // can take several frame times (PLL lock, LVDS PHY power-up), and a
         // nonblocking one fails with EBUSY while the kernel is still
@@ -1353,8 +1365,19 @@ impl DisplayBackend for DrmBackend {
             AtomicCommitFlags::NONBLOCK | AtomicCommitFlags::PAGE_FLIP_EVENT
         };
         if let Err(error) = self.card.atomic_commit(flags, request) {
+            if let Some(refused) = self.fence_refusal(
+                &fences,
+                frame,
+                plan,
+                Operation::Commit,
+                &error,
+                primary_used,
+            ) {
+                return Err(refused);
+            }
             return Err(self.fail(Operation::Commit, error, primary_used));
         }
+        self.fences.committed(&fences);
 
         let crtc = self
             .outputs

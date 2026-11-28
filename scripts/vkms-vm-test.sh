@@ -6,9 +6,9 @@
 # host's kernel image with an initramfs holding a tiny init, the vkms
 # modules and the statically linked test binary.
 #
-# It runs two things, both against vkms with an overlay plane enabled
+# It runs three things, all against vkms with an overlay plane enabled
 # (enable_overlay=1, set only inside the VM): the ignored tests of
-# composition-drm's `vkms` test, and the `twoplane` example for a bounded
+# composition-drm's `vkms` and `vkms_fence` tests, and the `twoplane` example for a bounded
 # number of frames, with its unsupported-combination list. The example's
 # VERDICT lines are printed and its final `VERDICT twoplane: PASS` is
 # required. This is a virtual device: a vkms result is never a hardware
@@ -34,6 +34,9 @@ cargo build --quiet -p vm-init --target "$target" --release
 test_exe=$(cargo test -p composition-drm --test vkms --target "$target" --no-run 2>&1 |
     sed -n 's/.*Executable.*(\(.*\))$/\1/p')
 [ -x "$test_exe" ] || { echo "could not build the vkms test binary" >&2; exit 2; }
+fence_exe=$(cargo test -p composition-drm --test vkms_fence --target "$target" --no-run 2>&1 |
+    sed -n 's/.*Executable.*(\(.*\))$/\1/p')
+[ -x "$fence_exe" ] || { echo "could not build the vkms_fence test binary" >&2; exit 2; }
 cargo build --quiet -p composition-drm --example twoplane --target "$target"
 twoplane_exe=target/$target/debug/examples/twoplane
 [ -x "$twoplane_exe" ] || { echo "could not build the twoplane example" >&2; exit 2; }
@@ -42,10 +45,12 @@ rm -rf "$work"
 mkdir -p "$work/root/opt" "$work/root/modules"
 cp "target/$target/release/vm-init" "$work/root/init"
 cp "$test_exe" "$work/root/opt/vkms"
+cp "$fence_exe" "$work/root/opt/vkms_fence"
 cp "$twoplane_exe" "$work/root/opt/twoplane"
 # Run by vm-init in this order; a command passes if it exits with 0.
 cat > "$work/root/commands.list" <<'LIST'
 /opt/vkms --ignored --test-threads=1
+/opt/vkms_fence --ignored --test-threads=1 --nocapture
 /opt/twoplane /dev/dri/card0 --frames 60 --unsupported
 LIST
 
