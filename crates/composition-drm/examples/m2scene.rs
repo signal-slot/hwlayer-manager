@@ -48,6 +48,8 @@
 //! # Output
 //!
 //! ```text
+//! # date: YYYY-MM-DD
+//! # not a hardware result: host dry run                  (--dry-run only)
 //! RUN date=YYYY-MM-DD side=linux stage=B tool=m2scene-<version> time=<ISO 8601 UTC> frames=N mode=device|dry-run [alpha=A]
 //! DEVICE / KERNEL / DRIVER / MODE lines
 //! SCENE layer=base buffer=1,3 format=AR24 src=0,0,WxH dst=0,0,WxH zorder=0 blend=premultiplied alpha=0xffff
@@ -960,6 +962,10 @@ fn main() -> ExitCode {
     };
     let clock = Clock::new();
     let (date, time) = utc_now();
+    println!("# date: {date}");
+    if options.dry_run {
+        println!("# not a hardware result: host dry run");
+    }
     println!(
         "RUN date={date} side=linux stage=B tool=m2scene-{} time={time} frames={} mode={}{}",
         env!("CARGO_PKG_VERSION"),

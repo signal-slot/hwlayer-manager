@@ -12,6 +12,7 @@ It builds stage B of the scene in [m2-linux-zephyr-comparison.md](m2-linux-zephy
 
 On stdout it writes:
 
+- first, the comment line `# date: YYYY-MM-DD` (system clock, UTC, as `docs/trace-format.md` §5.1 requires of a log), and under `--dry-run` also `# not a hardware result: host dry run`. A device run on a software driver such as vkms is not detected and gets no such line; whoever collects that log adds it;
 - a `RUN date=YYYY-MM-DD side=linux stage=B tool=m2scene-<version> time=<UTC> frames=N mode=device|dry-run` line, with the date from the system clock (UTC), in the form `scripts/m2-compare-report.py` reads;
 - `DEVICE`, `KERNEL`, `DRIVER`, `MODE` and `SCENE` lines;
 - `CETRACE v=1` lines in the format of [trace-format.md](trace-format.md): one `hdr`, then `validate`, `commit`, `latched`, `released` (and `dropped`, `latch_timeout`, `device_lost`, `caps_changed` if they happen). `t` and `at` are `CLOCK_MONOTONIC` nanoseconds; `latched` carries `tev` (the page-flip event's vblank time) and the extra field `vseq` (the CRTC vblank counter); `validate` and `commit` carry `dur`. The planner's `check` entries are left out. If the process cannot read its monotonic time, `hdr` says `clock=rel_ns` and the vblank time is written as `vbl_ns` instead of `tev` (see the example's module doc);
