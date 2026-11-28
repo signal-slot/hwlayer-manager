@@ -138,25 +138,112 @@ Camera-check verdict: not observed. The KVM listed for this board captures the H
 
 Both runs used a KVM for pictures. The DRM device is `/dev/dri/card1`: `card0` is the v3d GPU and `probe` on it fails with "Not supported" (observed 2026-11-28, post-fix run).
 
+Board facts, observed 2026-11-28 (re-run, board clock 09:02Z to 09:12Z UTC): model "Raspberry Pi 5 Model B Rev 1.1", kernel 6.18.50+rpt-rpi-2712, `card1` bound to `vc4-drm`, `card0` to `v3d`. `probe --raw /dev/dri/card1`: 2 connectors, 4 CRTCs, 4 encoders, 56 planes. Connector 35 (HDMI-A, the KVM) is connected on CRTC 94, 1920x1080 @ 60.000 Hz; connector 44 is disconnected. No display manager or compositor ran before, during or after (observed 2026-11-28: `display-manager`, `lightdm`, `gdm`, `sddm` inactive; no weston, labwc, wayfire or Xorg process), so nothing was stopped or restarted. The tty1 login prompt showed on the KVM before the runs and again after each run.
+
+Plane inventory (observed 2026-11-28, `probe --raw`):
+
+| Planes | Type | Possible CRTCs |
+| --- | --- | --- |
+| 48, 67, 83, 95 | primary | 59, 78, 94, 106 (one each) |
+| 107 to 272 step 11 (16 planes) | overlay | 78, 94, 106 |
+| 283 to 624 step 11 (32 planes) | overlay | 59 only |
+| 635, 646, 657, 668 | cursor | 59, 78, 94, 106 (one each) |
+
+So 18 planes can reach output 0 (CRTC 94): primary 83, the 16 overlays 107 to 272, cursor 657 (inferred from the table).
+
+### Re-run 2026-11-28: builds and method
+
+Both builds were made on the host with `scripts/cross-aarch64.sh -p composition-drm --example probe --example twoplane` (static `aarch64-unknown-linux-musl`), copied to the board's `/tmp` and run as the unprivileged board user with DRM master (no lease). The board's `/tmp` was removed afterwards and matched its listing from before the run (observed 2026-11-28).
+
+- Pre-fix: commit `82a0355b995ca147095fabf3ea24419600ed5561` (a git worktree of that commit, built with `--manifest-path`).
+- Post-fix: commit `63b29bfb410b255e3d24cf494be97d76d92cc9de`, the integration tip of 2026-11-28, which holds the X-08 fix, the X-09 fix, the `KEPT` line of `probe` and the `swapz=` field of the `VERDICT` line.
+
+Commands per build: `probe /dev/dri/card1`, then `twoplane /dev/dri/card1 --swap-z --frames 2400` (swap point frame 1200), then a plain `twoplane /dev/dri/card1 --frames 1200`, because the swapped phase was skipped.
+
+KVM pictures: the KVM screenshot tool returned frames that were up to about a minute old after it had been idle (observed 2026-11-28: it still showed the test pattern more than 60 s after `twoplane` had exited, then the console). Each capture used here was therefore tied to its run by two checks: the KVM showed the console just before the run started and again after it ended, and the frame number decoded from the picture (8-bit counter plus bar position, unique below frame 29952) rises within the run. The decoded frame numbers are given with each verdict. A first pair of runs at 09:04Z to 09:06Z is not used: its decoded frames showed that the captures labelled "post-fix" came from the pre-fix run (observed 2026-11-28).
+
+EXPECT.json files were made with `scripts/twoplane-expect.py OUTPUT --out DIR --panel full --rotation 0` from each run's own output, and every picture was checked with `scripts/camera-check.py PICTURE DIR/expect-normal.json`. For both `--swap-z` runs `twoplane-expect.py` wrote only `expect-normal.json` and printed `skipped phase swapped` (observed 2026-11-28): for the pre-fix output it takes the skip from the `SWAPZ skipped` line, because the unmarked swapped block alone does not say so.
+
 ### Before (commit 82a0355)
 
-Date: 2026-11-27 (observed 2026-11-27: the run took place between 20:08Z and 20:17Z). Binaries `probe`, `twoplane` and `drm-harness` were built from a scratch worktree at 82a0355. The board's tty1 showed on the KVM before and after, no display manager existed to restore, and the files copied to the board were removed.
+Run of 2026-11-28 (observed 2026-11-28; `twoplane` printed `DATE 2026-11-28T09:08:55Z`). An earlier pre-fix run on 2026-11-27 (20:08Z to 20:17Z) also took place, but its notes were lost; the values below are from the 2026-11-28 re-run.
 
-**The detailed notes of this run (plane set, verbatim `twoplane` lines, camera-check verdicts and KVM capture characteristics) were not available to this document.** Only the run's summary survived: it said that camera-check verdicts with exit codes were produced for four phases and that the board was left clean. The four verdicts and the plane set are therefore **not recorded here (not measured in this document)**. A reader needs the original report of the `vc4-rpi5-before` item to fill this in; nothing is invented below.
+Output 0 (CRTC 94) kept planes, observed 2026-11-28 from the `probe` plane list (16 planes, the `MAX_PLANES` cap):
 
-| | Before |
+| Output 0 (CRTC 94) | Kept planes, before |
 | --- | --- |
-| Kept planes | not recorded |
-| Verbatim `EXPECT`/`SWAPZ`/`VERDICT` | not recorded |
-| Camera-check verdicts | not recorded (four verdicts existed in the original report) |
+| Primary | 48, 67, 95 (mask `0b0`, dead); 83 (reaches) |
+| Overlays | 107, 118, 129, 140, 151, 162, 173, 184, 195, 206, 217, 228 (12, all reach) |
+| Cursor | none |
+| Dropped though reachable | overlays 239, 250, 261, 272 and cursor 657 |
 
-### After (post-fix tip e3c6f68)
+Observed 2026-11-28: 13 of the 16 kept planes reach the output, 3 are dead primaries. `twoplane` listed the same 13 reachable planes as `PLANE index 2 id 83` to `PLANE index 15 id 228`.
 
-Date: 2026-11-28 (observed 2026-11-28). Commit: e3c6f68 (observed 2026-11-28). Commands: `probe` and `twoplane --swap-z` on `/dev/dri/card1`. No display manager or compositor held DRM master, so nothing was stopped; the board's `/tmp` was clean afterwards.
+Verbatim lines of `twoplane --swap-z --frames 2400` (observed 2026-11-28), in printed order; the swapped block comes before the plan and the skip:
 
-Output 0 (1920x1080 @ 60 Hz) kept planes (observed 2026-11-28): 16 planes, all of which reach output 0: primary 83, 14 overlays from 107 through 250, cursor 657. The report gives only the first and last overlay id; the intermediate ids are inferred to follow the 11-id step (not listed individually).
+```
+EXPECT phase=normal "background" x=96 y=756 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=normal "red block" x=384 y=405 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=normal "blue block" x=1536 y=405 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=normal "green block uncovered" x=864 y=405 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=normal "overlay opaque over green" x=1056 y=405 fx=0.5500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay opaque over background" x=1248 y=405 fx=0.6500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay translucent over green" x=1056 y=607 fx=0.5500 fy=0.5620 rgb=#807f80
+EXPECT phase=normal "overlay translucent over background" x=1248 y=675 fx=0.6500 fy=0.6250 rgb=#901090
+EXPECT phase=swapped "background" x=96 y=756 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=swapped "red block" x=384 y=405 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=swapped "blue block" x=1536 y=405 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=swapped "green block uncovered" x=864 y=405 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=swapped "overlay opaque over green" x=1056 y=405 fx=0.5500 fy=0.3750 rgb=#00ff00
+EXPECT phase=swapped "overlay opaque over background" x=1248 y=405 fx=0.6500 fy=0.3750 rgb=#202020
+EXPECT phase=swapped "overlay translucent over green" x=1056 y=607 fx=0.5500 fy=0.5620 rgb=#00ff00
+EXPECT phase=swapped "overlay translucent over background" x=1248 y=675 fx=0.6500 fy=0.6250 rgb=#202020
+PLAN from frame 0:
+  layer 0 (background) -> plane 83 Primary zpos 0 src 0,0 1920x1080 dst 0,0 1920x1080
+  layer 1 (overlay) -> plane 107 Overlay zpos 1 src 0,0 384x540 dst 960,270 384x540
+SWAPZ skipped: a plane of the plan has a fixed zpos
+RESULT frames=2400 committed=2400 latched=2400 released=4798 dropped=0 late=0 period_ms=16.667 latch_interval_mean_ms=16.667 latch_interval_max_ms=17.382 elapsed_s=39.998
+RELEASE after the run: released 4800 of 4800 buffer uses, 0 still on screen
+VERDICT twoplane: PASS 2400 frames on two planes, 2400 latched, 4798 released, 0 late, driver vc4 mode 1920x1080@60.000Hz
+```
 
-Verbatim lines (observed 2026-11-28):
+Plain `twoplane --frames 1200` (observed 2026-11-28, `DATE 2026-11-28T09:11:23Z`): the same `PLAN` lines, no swapped `EXPECT` lines, and
+
+```
+RESULT frames=1200 committed=1200 latched=1200 released=2398 dropped=0 late=0 period_ms=16.667 latch_interval_mean_ms=16.667 latch_interval_max_ms=16.700 elapsed_s=19.988
+VERDICT twoplane: PASS 1200 frames on two planes, 1200 latched, 2398 released, 0 late, driver vc4 mode 1920x1080@60.000Hz
+```
+
+Camera-check verdicts, before (observed 2026-11-28; KVM pictures 1920x1080, `expect-normal.json` of the same run):
+
+| Picture | Decoded frame | Verdict line | Exit |
+| --- | --- | --- | --- |
+| `--swap-z` run, first half (normal phase) | 408 | `VERDICT: PASS` (8 of 8 regions) | 0 |
+| `--swap-z` run, second half (swap skipped, normal picture) | 2252 | `VERDICT: PASS` (8 of 8 regions) | 0 |
+| plain run | 245 | `VERDICT: PASS` (8 of 8 regions) | 0 |
+
+The largest region distance was 39.0 of tolerance 40 (red block, measured `(219, 1, 15)`), observed 2026-11-28 in all three pictures.
+
+What the unmarked swapped block would have done (observed 2026-11-28): the same pre-fix output with its `SWAPZ` line removed gives `twoplane-expect.py ... --phase swapped` a swapped file (8 regions, exit 0). Checking the second-half picture (frame 2252) against it gives `VERDICT: FAIL`, exit 1: background and the three blocks pass, and all four overlay regions fail (`overlay opaque over green` distance 235.9, `overlay opaque over background` 298.9, `overlay translucent over green` 218.9, `overlay translucent over background` 149.1). The screen was right; the expectations described a phase that never ran. That is X-08.
+
+### After (commit 63b29bf)
+
+Run of 2026-11-28 (observed 2026-11-28; `twoplane` printed `DATE 2026-11-28T09:09:51Z`).
+
+`probe` printed (observed 2026-11-28):
+
+```
+KEPT output=0 crtc=94 primary=83 overlay=107,118,129,140,151,162,173,184,195,206,217,228,239,250 cursor=657 dropped_reachable=261,272
+```
+
+| Output 0 (CRTC 94) | Kept planes, after |
+| --- | --- |
+| Primary | 83 (reaches) |
+| Overlays | 107, 118, 129, 140, 151, 162, 173, 184, 195, 206, 217, 228, 239, 250 (14, all reach) |
+| Cursor | 657 (reaches) |
+| Dropped though reachable | overlays 261, 272 |
+
+Observed 2026-11-28: all 16 kept planes reach output 0, and `twoplane` listed the same 16 as `PLANE index 0 id 83` to `PLANE index 15 id 657`. Two reachable overlays are still dropped because 18 planes reach the output and the cap is 16 (inferred). This matches the earlier post-fix run at commit e3c6f68 (observed 2026-11-28), which reported primary 83, 14 overlays 107 to 250 and cursor 657, one KVM picture of the normal phase with `VERDICT: PASS` (8 of 8 regions), and these lines:
 
 ```
 SWAPZ skipped: a plane of the plan has a fixed zpos
@@ -164,9 +251,65 @@ EXPECT phase=swapped skipped reason=fixed-zpos
 VERDICT twoplane: PASS 1500 frames on two planes, 1500 latched, 2998 released, 0 late, driver vc4 mode 1920x1080@60.000Hz
 ```
 
-Camera-check (observed 2026-11-28): one KVM screenshot taken mid-run for the normal phase; all 8 regions passed, `VERDICT: PASS`. The swapped phase did not run, so it has no picture. The per-region numbers are in the original report, not here.
+That run was made before the KVM's stale frames were known, so its picture was not tied to its run by frame number (inferred).
 
-Before/after: the plane set before is not recorded (see above), so no comparison of plane sets is possible from this document. The report of the post-fix run itself said the same.
+Verbatim lines of `twoplane --swap-z --frames 2400` (observed 2026-11-28), in printed order:
+
+```
+PLAN from frame 0:
+  layer 0 (background) -> plane 83 Primary zpos 0 src 0,0 1920x1080 dst 0,0 1920x1080
+  layer 1 (overlay) -> plane 107 Overlay zpos 1 src 0,0 384x540 dst 960,270 384x540
+SWAPZ skipped: a plane of the plan has a fixed zpos
+EXPECT phase=normal "background" x=96 y=756 fx=0.0500 fy=0.7000 rgb=#202020
+EXPECT phase=normal "red block" x=384 y=405 fx=0.2000 fy=0.3750 rgb=#ff0000
+EXPECT phase=normal "blue block" x=1536 y=405 fx=0.8000 fy=0.3750 rgb=#0000ff
+EXPECT phase=normal "green block uncovered" x=864 y=405 fx=0.4500 fy=0.3750 rgb=#00ff00
+EXPECT phase=normal "overlay opaque over green" x=1056 y=405 fx=0.5500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay opaque over background" x=1248 y=405 fx=0.6500 fy=0.3750 rgb=#ffff00
+EXPECT phase=normal "overlay translucent over green" x=1056 y=607 fx=0.5500 fy=0.5620 rgb=#807f80
+EXPECT phase=normal "overlay translucent over background" x=1248 y=675 fx=0.6500 fy=0.6250 rgb=#901090
+EXPECT phase=swapped skipped reason=fixed-zpos
+RESULT frames=2400 committed=2400 latched=2400 released=4798 dropped=0 late=0 period_ms=16.667 latch_interval_mean_ms=16.667 latch_interval_max_ms=16.706 elapsed_s=39.987
+RELEASE after the run: released 4800 of 4800 buffer uses, 0 still on screen
+VERDICT twoplane: PASS 2400 frames on two planes, 2400 latched, 4798 released, 0 late, driver vc4 mode 1920x1080@60.000Hz, swapz=skipped(fixed-zpos)
+```
+
+Plain `twoplane --frames 1200` (observed 2026-11-28, `DATE 2026-11-28T09:11:51Z`): the same `PLAN` lines, and
+
+```
+RESULT frames=1200 committed=1200 latched=1200 released=2398 dropped=0 late=0 period_ms=16.667 latch_interval_mean_ms=16.667 latch_interval_max_ms=16.692 elapsed_s=19.991
+VERDICT twoplane: PASS 1200 frames on two planes, 1200 latched, 2398 released, 0 late, driver vc4 mode 1920x1080@60.000Hz, swapz=off
+```
+
+Camera-check verdicts, after (observed 2026-11-28; same method):
+
+| Picture | Decoded frame | Verdict line | Exit |
+| --- | --- | --- | --- |
+| `--swap-z` run, first half (normal phase) | 746 | `VERDICT: PASS` (8 of 8 regions) | 0 |
+| `--swap-z` run, second half (swap skipped, normal picture) | 1544 | `VERDICT: PASS` (8 of 8 regions) | 0 |
+| plain run | 246 | `VERDICT: PASS` (8 of 8 regions) | 0 |
+
+The swapped phase did not run, so it has no picture and no expectation file (observed 2026-11-28).
+
+### RPi5 before/after
+
+| | Before 82a0355 | After 63b29bf |
+| --- | --- | --- |
+| Kept planes reaching output 0 | 13 of 16 | 16 of 16 |
+| Primary kept | 4 (83 reaches; 48, 67, 95 dead) | 1 (83) |
+| Overlays kept | 12 (107 to 228) | 14 (107 to 250) |
+| Cursor kept | none | 657 |
+| Reachable but dropped | 239, 250, 261, 272, cursor 657 | 261, 272 |
+| `PLAN` | plane 83 + plane 107 | plane 83 + plane 107 (same) |
+| Swapped `EXPECT` | 8 unmarked lines before `PLAN`, then `SWAPZ skipped` | `EXPECT phase=swapped skipped reason=fixed-zpos` after `SWAPZ skipped` |
+| `VERDICT` | PASS 2400 latched, 4798 released, 0 late | PASS 2400 latched, 4798 released, 0 late, `swapz=skipped(fixed-zpos)` |
+| Camera-check (3 pictures each) | PASS, PASS, PASS (exit 0) | PASS, PASS, PASS (exit 0) |
+
+All values observed 2026-11-28. Inferred from these lines:
+
+- X-09 is fixed on this board: the dead primaries 48, 67 and 95 are no longer kept, and the cursor 657 and overlays 239 and 250 take their slots. The plan `twoplane` makes is unchanged (planes 83 and 107), so the fix does not change what this test draws; it changes which planes are available to a scene with more layers.
+- X-08 is fixed on this board: the post-fix output has no unmarked swapped block, and the `VERDICT` line says the swap was skipped. Before the fix, a check built from the `EXPECT` lines alone fails on a correct screen (FAIL, exit 1, above).
+- Camera-check verdicts are the same before and after, as expected: both builds draw the same two-plane picture.
 
 ## RPi4 (BCM2711)
 
