@@ -83,6 +83,19 @@ time and stay out of the repository.
 
 - Board tests are Zephyr applications or small programs kept in this
   repository, not runs of external projects.
+
+  Adding a board app:
+
+  1. Create a directory under `tests/board/` with `CMakeLists.txt`,
+     `prj.conf`, `src/` and a `README.md` that gives the `west build`
+     command. `scripts/check-zephyr-apps.sh` enforces this layout.
+  2. Add a row for it to `tests/board/README.md`.
+  3. Build it with `scripts/build-zephyr-apps.sh`.
+  4. When running it on a board, follow the board rules in
+     [docs/imx95-board.md](docs/imx95-board.md) and
+     [docs/imx95-m7-runbook.md](docs/imx95-m7-runbook.md).
+  5. Real trace logs carry a `# date:` line; see
+     [docs/trace-format.md](docs/trace-format.md).
 - Changes to the DRM code should also run `scripts/vkms-vm-test.sh` where it
   can run (a throwaway QEMU VM; see the script header). It needs no root and
   touches nothing on the host. Never change DRM, udev or seat configuration on
