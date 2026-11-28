@@ -176,3 +176,36 @@ no console or reset was used.
 
 The picture items (Q1, Q6, NV12, plane-34 scaling) stay blocked until the
 relay path of the MCP server works.
+
+## KVM rehearsal, 2026-11-28 10:00 UTC (fourth)
+
+Verdict: **capture fails.**
+
+Host UTC time of the attempt: 2026-11-28 10:00 to 10:03 (`date -u` on the
+host; the board clock is not used).
+
+Access path tried: the KVM's MCP server, registered for this task from the
+KVM lease. It failed to connect at the start of the session with the same
+error as in every earlier session:
+
+```
+HTTP 404 dialing http://<kvm relay>/p2p/v1/<id>/<id>/kvm/<id>/mcp
+```
+
+No screenshot tool was registered. Second path: one unauthenticated
+read-only probe of the KVM's web interface from the host: the front page
+answered HTTP 200 and the MJPEG stream endpoint answered HTTP 401, as in the
+third rehearsal. The KVM is up, but a frame needs the credential, which is
+not on this host and was not requested. No screenshot was taken, no picture
+was saved, and `scripts/camera-check.py` was not run on a frame. Host
+self-test only: `python3 scripts/camera-check.py --self-test` printed
+`31 checks` and `PASS`.
+
+Read only over ssh (10:00 UTC host): `systemctl is-active
+weston-graphical-session seatd-weston` printed `active` and `active`;
+`uname -r` printed `6.6.129`. Nothing was stopped, run or left on the board;
+no console or reset was used.
+
+The picture items (Q1, Q6, NV12, plane-34 scaling) stay blocked until the
+relay path of the MCP server works or the stream credential is available to
+the worker.
