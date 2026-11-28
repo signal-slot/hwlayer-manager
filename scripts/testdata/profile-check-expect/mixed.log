@@ -1,7 +1,0 @@
-[   1.0] drm: opened card0
-profile_check: matrix of 3 frames
-AGREE profile=vc4-hvs5 frame=single planner=accept kernel=ok
-  AGREE indented-is-skipped profile=bogus
-AGREEMENT is not a line
-AGREE profile=vc4-hvs5 frame="two plane" planner=accept kernel=ok extra=1
-done

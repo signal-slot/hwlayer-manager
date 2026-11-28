@@ -1,11 +1,30 @@
 #!/bin/sh
 # Self-test for profile-check-expect.py.
 # Run: bash scripts/profile-check-expect.test.sh
+#
+# Sample lines follow the CHECK formats asserted in the unit tests of
+# crates/composition-drm/examples/profile_check.rs (check_and_agreement_lines);
+# no board data.
 
 here=$(cd "$(dirname "$0")" && pwd)
 tool=$here/profile-check-expect.py
-data=$here/testdata/profile-check-expect
 fail=0
+tmp=$(mktemp -d) || exit 1
+trap 'rm -rf "$tmp"' EXIT
+
+cat > "$tmp/agree.txt" <<'X'
+CHECK layers-1 planner=plan:33 test_only=ok agree=yes via=plan candidates=1
+CHECK refuse-1 planner=refuse:layer1:SCALING test_only=not reached agree=yes via=none candidates=0 note=a:b
+X
+cat > "$tmp/stricter.txt" <<'X'
+CHECK layers-1 planner=plan:33 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-2 planner=refuse:layer1:SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=x
+AGREEMENT total=2 agree=1 stricter=1 looser=0
+X
+cat > "$tmp/looser.txt" <<'X'
+CHECK scale-8 planner=plan:33,45 test_only=ERANGE agree=planner-looser via=plan candidates=3
+X
+printf 'profile "Generic" driver x: 0 frames\n' > "$tmp/none.txt"
 
 check() { # NAME WANT_RC PATTERN ARGS...
     name=$1 want=$2 pat=$3
@@ -21,22 +40,20 @@ check() { # NAME WANT_RC PATTERN ARGS...
     fi
 }
 
-check all-agree 0 "VERDICT: PASS" "$data/all-agree.txt"
-check all-agree-counts 0 "profile=rk3588-vop2 agree=3 disagree=0" "$data/all-agree.txt"
-check one-disagree 1 "VERDICT: FAIL" "$data/one-disagree.txt"
-check disagree-shown 1 "note=tiled, rot 90" "$data/one-disagree.txt"
-check no-lines 1 "no AGREE/DISAGREE lines" "$data/no-lines.txt"
-check mixed-log 0 "profile=vc4-hvs5 agree=2 disagree=0" "$data/mixed.log"
-check mixed-pass 0 "VERDICT: PASS" "$data/mixed.log"
-check mixed-markdown 0 "| vc4-hvs5 | 2 | 0 |" --markdown "$data/mixed.log"
-check missing-profile 1 "no line for profile vc4-hvs6" --expect-profile vc4-hvs6 "$data/missing-profile.txt"
-check profile-present 0 "VERDICT: PASS" --expect-profile vc4-hvs5 "$data/missing-profile.txt"
-check allow-disagree 0 "VERDICT: PASS" --allow-disagree 1 "$data/one-disagree.txt"
-check allow-too-few 1 "2 DISAGREE (allowed 1)" --allow-disagree 1 "$data/two-disagree.txt"
-check markdown 0 "| rk3588-vop2 | 3 | 0 |" --markdown "$data/all-agree.txt"
-check markdown-disagree 1 "| vc4-hvs6 | sand128 | accept | errno=22 |" --markdown "$data/one-disagree.txt"
-check stdin 0 "VERDICT: PASS" - < "$data/all-agree.txt"
-check missing-file 2 "No such file" "$data/absent.txt"
+check agree 0 "VERDICT: PASS" "$tmp/agree.txt"
+check agree-counts 0 "total=2 yes=2 no=0" "$tmp/agree.txt"
+check stricter 1 "DISAGREE scale-2 agree=planner-stricter" "$tmp/stricter.txt"
+check stricter-fail 1 "VERDICT: FAIL" "$tmp/stricter.txt"
+check allow-stricter 0 "VERDICT: PASS" --allow planner-stricter "$tmp/stricter.txt"
+check allow-count 0 "VERDICT: PASS" --allow-disagree 1 "$tmp/stricter.txt"
+check looser-not-allowed 1 "planner-looser=1" --allow planner-stricter "$tmp/looser.txt"
+check looser-detail 1 "test_only=ERANGE" "$tmp/looser.txt"
+check no-lines 1 "no CHECK lines" "$tmp/none.txt"
+check markdown 0 "| planner-stricter | 0 |" --markdown "$tmp/agree.txt"
+check markdown-bad 1 "| scale-2 | planner-stricter |" --markdown "$tmp/stricter.txt"
+check stdin 0 "VERDICT: PASS" - < "$tmp/agree.txt"
+check bad-allow 2 "bad --allow" --allow bogus "$tmp/agree.txt"
+check missing-file 2 "No such file" "$tmp/absent.txt"
 check bad-option 2 "" --bogus
 
 [ "$fail" = 0 ] && echo "all passed"

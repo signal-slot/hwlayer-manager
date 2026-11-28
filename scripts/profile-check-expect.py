@@ -1,53 +1,48 @@
 #!/usr/bin/env python3
-"""Judge profile_check AGREE/DISAGREE lines.
+"""Judge the CHECK ... agree= lines printed by the profile_check example.
 
-  profile-check-expect.py [OUTPUT|-] [--allow-disagree N] [--expect-profile NAME]
-                          [--markdown]
+  profile-check-expect.py [OUTPUT|-] [--allow VALUE[,VALUE...]]
+                          [--allow-disagree N] [--markdown]
 
-Reads profile_check output (file or stdin). Lines that start with neither
-AGREE nor DISAGREE are skipped. Each judged line is `AGREE|DISAGREE` followed
-by key=value tokens (profile=, frame=, planner=, kernel= or errno=, ...);
-values may be quoted, unknown keys are kept and shown.
-Prints a per-profile summary and one `VERDICT: PASS` or `VERDICT: FAIL` line.
+Reads profile_check output (file or stdin). Only lines starting with `CHECK `
+are judged, others are skipped. A CHECK line is
+  CHECK <name> planner=.. test_only=.. agree=<yes|no|planner-stricter|planner-looser> via=.. candidates=N [note=..]
+agree=yes is agreement; no, planner-stricter and planner-looser are
+disagreements. --allow names disagreement values that are tolerated (for
+example planner-stricter); --allow-disagree N tolerates N further ones.
+Prints a count per agree value, each disallowed disagreement, and one
+`VERDICT: PASS` or `VERDICT: FAIL` line.
 Exit status: 0 = PASS, 1 = FAIL, 2 = usage or input error.
 Python 3, standard library only.
 """
 import argparse
 import re
-import shlex
 import sys
 
-KEYS = ("profile", "frame", "planner", "kernel", "errno")
+VALUES = ("yes", "no", "planner-stricter", "planner-looser")
+FIELD = re.compile(r"(\w+)=")
 
 
 def parse_line(line):
-    """Return (word, fields) for an AGREE/DISAGREE line, else None."""
-    m = re.match(r"(AGREE|DISAGREE)(?:\s+(.*))?$", line.rstrip())
+    """Return (name, fields) for a CHECK line, else None."""
+    m = re.match(r"CHECK\s+(\S+)\s*(.*)$", line.rstrip())
     if not m:
         return None
+    rest = m.group(2)
+    # Values may hold spaces (test_only=not reached): a value runs to the next key=.
+    marks = [x for x in FIELD.finditer(rest)
+             if x.start() == 0 or rest[x.start() - 1] == " "]
     fields = {}
-    rest = m.group(2) or ""
-    try:
-        toks = shlex.split(rest)
-    except ValueError:
-        toks = rest.split()
-    for t in toks:
-        k, eq, v = t.partition("=")
-        if eq and k:
-            fields[k] = v.strip("\"'")
+    for i, x in enumerate(marks):
+        end = marks[i + 1].start() if i + 1 < len(marks) else len(rest)
+        fields[x.group(1)] = rest[x.end():end].strip()
+    if "agree" not in fields:
+        return None
     return m.group(1), fields
 
 
 def parse(text):
     return [r for r in map(parse_line, text.splitlines()) if r]
-
-
-def summarize(rows):
-    per = {}
-    for word, f in rows:
-        c = per.setdefault(f.get("profile", "?"), [0, 0])
-        c[0 if word == "AGREE" else 1] += 1
-    return per
 
 
 def cell(s):
@@ -57,15 +52,17 @@ def cell(s):
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("input", nargs="?", default="-")
+    ap.add_argument("--allow", default="", metavar="VALUES")
     ap.add_argument("--allow-disagree", type=int, default=0, metavar="N")
-    ap.add_argument("--expect-profile", metavar="NAME")
     ap.add_argument("--markdown", action="store_true")
     try:
         a = ap.parse_args(argv)
     except SystemExit as e:
         return 2 if e.code else 0
-    if a.allow_disagree < 0:
-        print("profile-check-expect: --allow-disagree must be >= 0", file=sys.stderr)
+    allowed = {v for v in a.allow.split(",") if v}
+    if not allowed <= set(VALUES[1:]) or a.allow_disagree < 0:
+        print("profile-check-expect: bad --allow/--allow-disagree (values: %s)"
+              % ", ".join(VALUES[1:]), file=sys.stderr)
         return 2
     try:
         if a.input == "-":
@@ -78,39 +75,39 @@ def main(argv):
         return 2
 
     rows = parse(text)
-    per = summarize(rows)
-    agree = sum(c[0] for c in per.values())
-    dis = sum(c[1] for c in per.values())
+    counts = {v: 0 for v in VALUES}
+    bad = []
+    for name, f in rows:
+        v = f["agree"]
+        counts[v] = counts.get(v, 0) + 1
+        if v != "yes" and v not in allowed:
+            bad.append((name, f))
     reasons = []
     if not rows:
-        reasons.append("no AGREE/DISAGREE lines")
-    if dis > a.allow_disagree:
-        reasons.append("%d DISAGREE (allowed %d)" % (dis, a.allow_disagree))
-    if a.expect_profile and a.expect_profile not in per:
-        reasons.append("no line for profile %s" % a.expect_profile)
+        reasons.append("no CHECK lines")
+    if len(bad) > a.allow_disagree:
+        reasons.append("%d disallowed disagreement(s) (allowed %d)"
+                       % (len(bad), a.allow_disagree))
 
-    bad = [f for w, f in rows if w == "DISAGREE"]
     if a.markdown:
-        print("| profile | AGREE | DISAGREE |")
-        print("|---|---|---|")
-        for p in sorted(per):
-            print("| %s | %d | %d |" % (cell(p), per[p][0], per[p][1]))
+        print("| agree | count |")
+        print("|---|---|")
+        for v, n in counts.items():
+            print("| %s | %d |" % (cell(v), n))
         if bad:
             print()
-            print("| profile | frame | planner | kernel/errno | other |")
+            print("| check | agree | planner | test_only | note |")
             print("|---|---|---|---|---|")
-            for f in bad:
-                ke = f.get("kernel") or ("errno=" + f["errno"] if "errno" in f else "")
-                other = " ".join("%s=%s" % (k, v) for k, v in f.items() if k not in KEYS)
-                cols = (f.get("profile", "?"), f.get("frame", ""), f.get("planner", ""), ke, other)
+            for name, f in bad:
+                cols = (name, f["agree"], f.get("planner", ""),
+                        f.get("test_only", ""), f.get("note", ""))
                 print("| %s |" % " | ".join(cell(x) for x in cols))
         print()
     else:
-        for p in sorted(per):
-            print("profile=%s agree=%d disagree=%d" % (p, per[p][0], per[p][1]))
-        for f in bad:
-            print("DISAGREE " + " ".join("%s=%s" % kv for kv in f.items()))
-        print("total agree=%d disagree=%d" % (agree, dis))
+        print("total=%d %s" % (len(rows), " ".join("%s=%d" % kv for kv in counts.items())))
+        for name, f in bad:
+            print("DISAGREE %s agree=%s planner=%s test_only=%s" % (
+                name, f["agree"], f.get("planner", ""), f.get("test_only", "")))
     if reasons:
         print("VERDICT: FAIL (%s)" % "; ".join(reasons))
         return 1
