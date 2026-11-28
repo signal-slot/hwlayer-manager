@@ -1,0 +1,10 @@
+# imx95-observe: read-only snapshot
+# synthetic fixture (both required sections present, last record cut): no addresses, host names or device paths
+### remoteproc
+/sys/class/remoteproc/remoteproc0
+  name: imx-rproc
+  sta
+### device tree
+/soc/display-controller@0
+  compatible: example,dpu
+  stat

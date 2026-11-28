@@ -1,0 +1,8 @@
+# imx95-observe: read-only snapshot
+# synthetic fixture (truncated mid-record, no device tree): no addresses, host names or device paths
+### date
+Sat Nov 28 10:00:00 UTC 2026
+### remoteproc
+/sys/class/remoteproc/remoteproc0
+  name: imx-rproc
+  sta

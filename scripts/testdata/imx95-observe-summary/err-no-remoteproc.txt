@@ -1,0 +1,8 @@
+# imx95-observe: read-only snapshot
+# synthetic fixture: no addresses, host names or device paths
+### remoteproc
+### device tree
+/soc/display-controller@0
+  compatible: example,dpu
+  status: okay
+### dmesg
