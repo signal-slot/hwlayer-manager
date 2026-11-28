@@ -1,0 +1,10 @@
+# observed 2026-11-28, NanoPC-T6, kernel 6.18.55-current-rockchip64, master (no display owner active)
+# command: none. camera-check.py was NOT run: no picture was judged.
+# built from repository commit: 2d689bac9da2f51b0247e4aff5feef42bb511efb
+# edited: nothing removed
+profile_check --profile rk3588 --show 20 and twoplane --frames 600 both stopped before the
+first commit with "no primary plane with a linear 32-bit RGB format" (primary plane 33 lists
+AFBC modifiers only in IN_FORMATS), so the panel never showed the two-plane pattern. Neither
+run printed EXPECT lines, so scripts/twoplane-expect.py had nothing to convert.
+No KVM pictures were taken. No corners or rotation were chosen.
+VERDICT: not run (no camera-check verdict exists for this session)
