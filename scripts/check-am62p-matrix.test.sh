@@ -54,7 +54,7 @@ case_ r5fcol 's/^| Latch | follows the GO bit (`TP`)/| Latch | follows the GO bi
 # a leap day is real; "not observed" is no observation
 sed -e 's/2026-12-01/2024-02-29/' "$td/good.md" >"$tmp/leap.md"
 run_ --matrix "$tmp/leap.md" || bad "leap day rejected: $out"
-sed -e 's/observed (2026-12-01)/not observed/' "$td/good.md" >"$tmp/notobs.md"
+sed -e 's/observed (2026-12-01)/not observed, inferred/' "$td/good.md" >"$tmp/notobs.md"
 run_ --matrix "$tmp/notobs.md" || bad "'not observed' rejected: $out"
 run_ --matrix "$tmp/notobs.md" --require-observed --observed "$td/observed.md" &&
     bad "--require-observed accepted a matrix with no observed cell"

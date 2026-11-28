@@ -68,6 +68,7 @@ function validdate(d,  y, m, dd, mx) {
     cell = trim($col); row = trim($2)
     if (cell == "") { print "ERR line " NR ": empty AM62P cell (" row ")"; next }
     rest = cell; ok = 0; bad = 0
+    gsub(/`[^`]*`/, "", rest)   # file names such as docs/observed/x.md are no tag
     gsub(/not observed/, "", rest)
     while (match(rest, /observed[ \t]*\(?/)) {
         tok = substr(rest, RSTART, RLENGTH)
