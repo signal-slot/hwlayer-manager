@@ -66,6 +66,29 @@ echo 'EXPECT phase=normal "a" x=1 y=1 fx=0.5 fy=0.5 rgb=#zzzzzz' | py "$tool" --
 [ $? -eq 2 ] && ok "bad rgb is exit 2" || bad "bad rgb"
 if py "$tool" - --out "$root/s" < "$root/n.txt" > /dev/null && [ -f "$root/s/expect-normal.json" ]; then ok "stdin"; else bad "stdin"; fi
 
+# phase=commit (plane_commit): any phase name, skipped of any phase, mixed phases.
+cat > "$root/commit.txt" <<'T'
+EXPECT phase=commit "left" x=40 y=50 fx=0.2500 fy=0.5000 rgb=#ff0000
+EXPECT phase=commit "right" x=160 y=50 fx=0.7500 fy=0.5000 rgb=#0000ff
+T
+py "$tool" "$root/commit.txt" --out "$root/c" > "$root/c.log" || bad "commit exit"
+if [ -f "$root/c/expect-commit.json" ] && [ "$(ls "$root/c" | wc -l)" -eq 1 ] \
+    && py -c 'import json,sys; d=json.load(open(sys.argv[1])); assert [r["expect"] for r in d["regions"]]==[[255,0,0],[0,0,255]]' "$root/c/expect-commit.json"; then
+    ok "commit phase"
+else bad "commit phase"; fi
+echo 'EXPECT phase=commit skipped reason=no plane with alpha' > "$root/cs.txt"
+cat "$root/normal.txt" "$root/cs.txt" > "$root/ncs.txt"
+py "$tool" "$root/ncs.txt" --out "$root/d" > "$root/d.log" || bad "commit skipped exit"
+if [ -f "$root/d/expect-normal.json" ] && [ ! -e "$root/d/expect-commit.json" ] \
+    && grep -q 'skipped phase commit' "$root/d.log"; then ok "commit skipped"; else bad "commit skipped"; fi
+py "$tool" "$root/cs.txt" --out "$root/d2" > /dev/null 2>&1
+[ $? -eq 2 ] && ok "only skipped is exit 2" || bad "only skipped"
+cat "$root/ns.txt" "$root/commit.txt" > "$root/mix.txt"
+py "$tool" "$root/mix.txt" --out "$root/e" > /dev/null || bad "mixed exit"
+if [ -f "$root/e/expect-normal.json" ] && [ -f "$root/e/expect-swapped.json" ] && [ -f "$root/e/expect-commit.json" ]; then ok "mixed phases"; else bad "mixed phases"; fi
+echo 'EXPECT phase=../x "a" x=1 y=1 fx=0.5 fy=0.5 rgb=#000000' | py "$tool" --out "$root/f" > /dev/null 2>&1
+[ $? -eq 2 ] && ok "bad phase name is exit 2" || bad "bad phase name"
+
 # Round trip: a picture painted from the canned text, and one with a wrong colour.
 cat > "$root/mk.py" <<'P'
 import re, sys

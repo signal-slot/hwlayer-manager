@@ -4,9 +4,13 @@
   twoplane-expect.py [TWOPLANE_OUTPUT|-] --out DIR [--size F] [--tolerance N]
                      [--rotation N] [--panel full|corners] [--corners x,y,...]
 
-Reads twoplane stdout (file or stdin) and writes DIR/expect-<phase>.json for
-every phase that ran. A phase is skipped when one of its EXPECT lines carries
-the token `skipped`, or (for `swapped`) when a `SWAPZ skipped` line is present.
+Reads twoplane (or plane_commit) stdout (file or stdin) and writes
+DIR/expect-<phase>.json for every phase that ran. A phase name is any
+non-empty string of [a-z0-9_-] (twoplane: normal, swapped; plane_commit:
+commit); an EXPECT line with another phase name is an input error. A phase is
+skipped when one of its EXPECT lines carries the token `skipped` (e.g.
+`EXPECT phase=commit skipped reason=...`), or (for `swapped`) when a
+`SWAPZ skipped` line is present. Colours are written `rgb=#rrggbb`.
 Skipped phases get no file and are listed on stdout.
 Exit status: 0 = ok, 2 = input error. Python 3, standard library only.
 """
@@ -15,7 +19,8 @@ import os
 import re
 import sys
 
-EXPECT = re.compile(r'^EXPECT\s+phase=(\S+)\s+"([^"]*)"(.*)$')
+PHASE = r'([a-z0-9_-]+)'
+EXPECT = re.compile(r'^EXPECT\s+phase=' + PHASE + r'\s+"([^"]*)"(.*)$')
 FIELD = re.compile(r'\b(x|y|fx|fy|rgb)=(\S+)')
 
 
@@ -33,8 +38,10 @@ def parse(text):
             continue
         m = EXPECT.match(line)
         if not m:
-            m = re.match(r'^EXPECT\s+phase=(\S+)(.*)$', line)
-            if m and "skipped" in m.group(2).split():
+            m = re.match(r'^EXPECT\s+phase=' + PHASE + r'(\s.*)?$', line)
+            if not m and line.startswith("EXPECT phase="):
+                raise InputError("bad phase name: " + line)
+            if m and "skipped" in (m.group(2) or "").split():
                 skipped.add(m.group(1))
             continue
         phase, name, rest = m.groups()
