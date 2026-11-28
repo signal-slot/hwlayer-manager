@@ -53,6 +53,10 @@ else
     echo "check-test-data: note: $root is not in a git work tree; secrets check skipped" >&2
 fi
 
+tmpd=$(mktemp -d "${TMPDIR:-/tmp}/ctd.XXXXXX") || exit 2
+trap 'rm -rf "$tmpd"' EXIT HUP INT TERM
+filelist=$tmpd/files
+
 for dir in "$root"/*/; do
     [ -d "$dir" ] || continue
     soc=$(basename "$dir")
@@ -61,6 +65,7 @@ for dir in "$root"/*/; do
     if [ ! -f "$readme" ]; then
         problem "$soc/README.md" "missing README.md"
     fi
+    find "$dir" -type f | LC_ALL=C sort >"$filelist"
     while IFS= read -r f; do
         rel=${f#"$dir"}
         [ "$rel" = README.md ] && continue
@@ -82,7 +87,7 @@ for dir in "$root"/*/; do
         if [ "$size" -gt 1048576 ]; then
             problem "$label" "over 1 MiB ($size bytes)"
         fi
-    done < <(find "$dir" -type f | LC_ALL=C sort)
+    done <"$filelist"
 
     if [ -n "$secrets_out" ]; then
         hits=$(printf '%s\n' "$secrets_out" | grep -F -e ": $prefix$soc/")
