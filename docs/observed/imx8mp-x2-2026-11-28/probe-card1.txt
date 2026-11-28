@@ -1,0 +1,105 @@
+device /dev/dri/card1, driver imx-drm
+output 0: crtc 37 1920x1080 @ 60.000 Hz
+plane 35 Primary: outputs 0b1, zpos fixed 0, plane alpha false, blend [premultiplied], scaling not claimed
+  formats (7): XR24 AR24 RG16 XB24 AB24 AR15 XR15
+plane 32 Primary: outputs 0b0, zpos fixed 0, plane alpha false, blend [premultiplied], scaling not claimed
+  formats (7): XR24 AR24 RG16 XB24 AB24 AR15 XR15
+
+raw
+driver: name imx-drm version 1.0.0 date 0 description i.MX DRM graphics
+client caps: universal planes true, atomic true
+driver cap addfb2 modifiers: 0
+driver cap dumb buffers: 1
+driver cap dumb prefer shadow: 0
+driver cap cursor width: 64
+driver cap cursor height: 64
+driver cap async page flip: 0
+driver cap atomic async page flip: 0
+resources: 2 connectors, 2 crtcs, 2 encoders
+connectors
+connector 39 interface LVDS (7) state Disconnected
+  current encoder none
+  encoder 38 possible crtcs 0b1 (34)
+  modes (0):
+  properties:
+    EDID: immutable blob, unreadable value 0
+    DPMS: mutable enum [On=0, Standby=1, Suspend=2, Off=3] value 0
+    link-status: mutable enum [Good=0, Bad=1] value 0
+    non-desktop: immutable boolean value 0
+    TILE: immutable blob, unreadable value 0
+    CRTC_ID: mutable atomic value 0
+connector 41 interface HDMIA (11) state Connected
+  current encoder 40
+  encoder 40 possible crtcs 0b10 (37)
+  modes (15):
+    1920x1080 @ 60.000 Hz
+    1920x1080 @ 60.000 Hz
+    1920x1080 @ 59.940 Hz
+    1920x1080 @ 50.000 Hz
+    1280x1024 @ 75.024 Hz
+    1280x1024 @ 60.019 Hz
+    1280x720 @ 60.000 Hz
+    1280x720 @ 60.000 Hz
+    1280x720 @ 59.940 Hz
+    1280x720 @ 50.000 Hz
+    1024x768 @ 60.003 Hz
+    800x600 @ 60.316 Hz
+    640x480 @ 60.000 Hz
+    640x480 @ 59.940 Hz
+    640x480 @ 59.940 Hz
+  properties:
+    EDID: immutable blob, 256 bytes value 43
+    DPMS: mutable enum [On=0, Standby=1, Suspend=2, Off=3] value 0
+    link-status: mutable enum [Good=0, Bad=1] value 0
+    non-desktop: immutable boolean value 0
+    TILE: immutable blob, unreadable value 0
+    CRTC_ID: mutable atomic value 37
+    max bpc: mutable range 8..=16 value 0
+crtcs
+crtc 34 inactive
+  properties:
+    ACTIVE: mutable atomic boolean value 0
+    MODE_ID: mutable atomic blob, unreadable value 0
+    OUT_FENCE_PTR: mutable atomic range 0..=18446744073709551615 value 0
+    VRR_ENABLED: mutable boolean value 0
+crtc 37 active 1920x1080 @ 60.000 Hz
+  properties:
+    ACTIVE: mutable atomic boolean value 1
+    MODE_ID: mutable atomic blob, 68 bytes value 45
+    OUT_FENCE_PTR: mutable atomic range 0..=18446744073709551615 value 0
+    VRR_ENABLED: mutable boolean value 0
+planes
+plane 32 type primary possible crtcs 0b1 (34)
+  attached to none
+  formats (7): linear XR24 AR24 RG16 XB24 AB24 AR15 XR15
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic value 0
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 0
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 0
+    CRTC_H: mutable atomic range 0..=2147483647 value 0
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 0
+    SRC_H: mutable atomic range 0..=4294967295 value 0
+    zpos: immutable range 0..=0 value 0
+plane 35 type primary possible crtcs 0b10 (37)
+  attached to crtc 37
+  formats (7): linear XR24 AR24 RG16 XB24 AB24 AR15 XR15
+  properties:
+    type: immutable enum [Overlay=0, Primary=1, Cursor=2] value 1
+    FB_ID: mutable atomic value 44
+    IN_FENCE_FD: mutable atomic range -1..=2147483647 value 18446744073709551615
+    CRTC_ID: mutable atomic value 37
+    CRTC_X: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_Y: mutable atomic range -2147483648..=2147483647 value 0
+    CRTC_W: mutable atomic range 0..=2147483647 value 1920
+    CRTC_H: mutable atomic range 0..=2147483647 value 1080
+    SRC_X: mutable atomic range 0..=4294967295 value 0
+    SRC_Y: mutable atomic range 0..=4294967295 value 0
+    SRC_W: mutable atomic range 0..=4294967295 value 125829120
+    SRC_H: mutable atomic range 0..=4294967295 value 70778880
+    zpos: immutable range 0..=0 value 0

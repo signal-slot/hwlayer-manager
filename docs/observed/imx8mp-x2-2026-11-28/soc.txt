@@ -1,0 +1,138 @@
+== LCDIF CRTC components (sysfs)
+imx-lcdifv3-crtc.0: parent=32e90000.lcd-controller driver=imx-lcdifv3-crtc
+imx-lcdifv3-crtc.1: parent=32fc6000.lcd-controller driver=imx-lcdifv3-crtc
+32e80000.lcd-controller: no driver bound
+32e90000.lcd-controller: driver=imx-lcdifv3
+32fc6000.lcd-controller: driver=imx-lcdifv3
+== kernel log (display lines)
+[    0.070621] /ldb-display-controller/lvds-channel@0: Fixed dependency cycle(s) with /soc@0/bus@32c00000/lcd-controller@32e90000
+[    0.075444] /ldb-display-controller/lvds-channel@0: Fixed dependency cycle(s) with /lvds-panel
+[    0.075578] /lvds-panel: Fixed dependency cycle(s) with /ldb-display-controller/lvds-channel@0
+[    1.519508] imx8mp-ldb ldb-display-controller: Failed to create device link (0x180) with lvds-panel
+[    1.536332] imx8mp-ldb ldb-display-controller: Failed to create device link (0x180) with 32e90000.lcd-controller
+[    2.031091] Galcore version 6.4.11.p4.1190909
+[    2.053136] [drm] Initialized vivante 1.0.0 for 40000000.mix_gpu_ml on minor 0
+[    2.555628] imx8mp-ldb ldb-display-controller: Failed to create device link (0x180) with phy-lvds
+[    2.605739] dwhdmi-imx 32fd8000.hdmi: Detected HDMI TX controller v2.13a with HDCP (samsung_dw_hdmi_phy2)
+[    2.615868] dwhdmi-imx 32fd8000.hdmi: registered DesignWare HDMI I2C bus driver
+[    2.626835] imx-drm display-subsystem: bound imx-lcdifv3-crtc.0
+[    2.635024] imx-drm display-subsystem: bound imx-lcdifv3-crtc.1
+[    2.643331] [drm] forcing LVDS-1 connector off
+[    2.647978] imx-drm display-subsystem: bound ldb-display-controller
+[    2.656489] imx-drm display-subsystem: bound 32fd8000.hdmi
+[    2.664795] [drm] Initialized imx-drm 1.0.0 for display-subsystem on minor 1
+[    2.969395] imx-drm display-subsystem: [drm] fb0: imx-drmdrmfb frame buffer device
+== /etc/atmark-release
+3.24-at.3
+== /etc/alpine-release
+3.24.1
+== /sys/class/graphics
+fb0
+fbcon
+== containers (podman ps -a)
+slint-home-automation Exited (0) 292 years ago
+slint-launcher Exited (143) 44 hours ago
+== /proc/device-tree/compatible
+atmark,yakushima-es1 fsl,imx8mp 
+== /proc/device-tree/model
+Atmark-Techno Armadillo-X2 Board 
+== /sys/devices/soc0
+soc_id: i.MX8MP
+revision: 1.1
+family: Freescale i.MX
+machine: Atmark-Techno Armadillo-X2 Board
+== uname -r
+6.12.105-0-at
+== uname -v
+#1-Alpine SMP PREEMPT Mon Aug 24 07:48:35 UTC 2026
+== uname -m
+aarch64
+== /etc/os-release
+NAME="Alpine Linux"
+ID=alpine
+VERSION_ID=3.24.1
+PRETTY_NAME="Alpine Linux v3.24"
+HOME_URL="https://alpinelinux.org/"
+BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
+== ls -l /dev/dri
+/dev/dri:
+total 0
+drwxr-xr-x    2 root     root           100 Nov 28 09:11 by-path
+crw-rw----    1 root     video     226,   0 Nov 28 09:11 card0
+crw-rw----    1 root     video     226,   1 Nov 28 09:11 card1
+crw-rw-rw-    1 root     video     226, 128 Nov 28 09:11 renderD128
+
+/dev/dri/by-path:
+total 0
+lrwxrwxrwx    1 root     root             8 Nov 28 09:11 platform-40000000.mix_gpu_ml-card -> ../card0
+lrwxrwxrwx    1 root     root            13 Nov 28 09:11 platform-40000000.mix_gpu_ml-render -> ../renderD128
+lrwxrwxrwx    1 root     root             8 Nov 28 09:11 platform-display-subsystem-card -> ../card1
+== /sys/class/drm
+card0: device=40000000.mix_gpu_ml driver=galcore
+card1: device=display-subsystem driver=imx-drm
+renderD128: device=40000000.mix_gpu_ml driver=galcore
+== connector status
+card1-HDMI-A-1: status=connected enabled=enabled dpms=On
+    mode: 1920x1080
+    mode: 1920x1080
+    mode: 1920x1080
+    mode: 1920x1080
+    mode: 1280x1024
+card1-LVDS-1: status=disconnected enabled=disabled dpms=On
+== modules
+== display device-tree nodes (compatible, status)
+lcd-controller@32e90000: compatible=fsl,imx8mp-lcdif2  status=okay
+hdmiphy@32fdff00: compatible=fsl,imx8mp-hdmi-phy  status=okay
+hdmi@32fd8000: compatible=fsl,imx8mp-hdmi  status=okay
+sh: can't open /proc/device-tree/soc@0/bus@32c00000/blk-ctrl@32fc0000/status: no such file
+blk-ctrl@32fc0000: compatible=fsl,imx8mp-hdmi-blk-ctrl syscon  status=(none)
+hdmi-pai-pvi@32fc4000: compatible=fsl,imx8mp-hdmi-pavi  status=okay
+mipi_dsi@32e60000: compatible=fsl,imx8mp-mipi-dsim  status=disabled
+lcd-controller@32fc6000: compatible=fsl,imx8mp-lcdif1  status=okay
+lcd-controller@32e80000: compatible=fsl,imx8mp-lcdif1  status=disabled
+== services
+Runlevel: default
+ armadillo-twin-agentd                                 [  started 00:37:50 (0) ]
+ avahi-daemon                                                      [  started  ]
+ sshd                                                              [  started  ]
+ abos-web                                                          [  started  ]
+ buttond                                                           [  started  ]
+ chronyd                                                           [  started  ]
+ podman-atmark                                                     [  started  ]
+ reset_bootcount                                                   [  started  ]
+ zramswap                                                          [  started  ]
+ local                                                             [  started  ]
+Runlevel: boot
+ udev-trigger                                                      [  started  ]
+ sysctl                                                            [  started  ]
+ bootmisc                                                          [  started  ]
+ hostname                                                          [  started  ]
+ syslog                                                            [  started  ]
+ klogd                                                             [  started  ]
+ networkmanager                                        [  started 00:37:50 (0) ]
+ dnsmasq                                                           [  started  ]
+ micron-emmc-reten                                                 [  started  ]
+Runlevel: nonetwork
+Runlevel: shutdown
+ killprocs                                                         [  stopped  ]
+ mount-ro                                                          [  stopped  ]
+ indicator_signals                                                 [  stopped  ]
+Runlevel: sysinit
+ sysfs                                                             [  started  ]
+ cgroups                                                           [  started  ]
+ devfs                                                             [  started  ]
+ cryptsetup                                                        [  started  ]
+ fsck_atlog                                                        [  started  ]
+ osclock                                                           [  started  ]
+ udev                                                              [  started  ]
+ localmount                                                        [  started  ]
+ overlayfs                                                         [  started  ]
+Dynamic Runlevel: hotplugged
+Dynamic Runlevel: needed/wanted
+ fsck                                                              [  started  ]
+ root                                                              [  started  ]
+ dbus                                                              [  started  ]
+Dynamic Runlevel: manual
+== display processes
+== DRM fd holders
+== end
