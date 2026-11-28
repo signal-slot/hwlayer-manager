@@ -72,9 +72,11 @@ if [ "$rc" -ne 0 ] && [[ $err == *"not the pinned"* ]]; then
 	pass "case 3 git repo at another commit refused"
 else bad "case 3" "rc=$rc"; fi
 
-# 4: case 1 tree with --allow-other-commit: warns, no refusal (exit code free)
+# 4: case 1 tree with --allow-other-commit: warns, no refusal (exit code free).
+# The script's own WARNING line says "not the pinned", so the refusal is told
+# apart by its die() text "pass --allow-other-commit to build it anyway".
 run 4 --allow-other-commit "$t1"
-if [[ $err == *WARNING* ]] && [[ $err != *"not the pinned"* ]]; then
+if [[ $err == *WARNING* ]] && [[ $err != *"to build it anyway"* ]]; then
 	pass "case 4 --allow-other-commit warns"
 else bad "case 4" "rc=$rc"; fi
 
