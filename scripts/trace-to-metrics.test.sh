@@ -40,6 +40,22 @@ done
 $T /nonexistent >/dev/null 2>&1
 [ $? -eq 2 ] && ok "missing file exit 2" || bad "missing file exit 2"
 
+# --refresh-us: optional M-1.outliers / M-3.late; no flag = unchanged output
+$T --refresh-us 16667 $D/refresh-late.log >"$tmp/rf.txt" || bad "refresh exit"
+has "$tmp/rf.txt" 'id=M-1.outliers name="frame interval outliers" unit=intervals value=2' "refresh outliers"
+has "$tmp/rf.txt" 'id=M-3.late name="late latches" unit=intervals value=1' "refresh late"
+$T $D/refresh-late.log >"$tmp/norf.txt" || bad "no-refresh exit"
+lacks "$tmp/norf.txt" "id=M-1.outliers" "no flag: no outliers"
+lacks "$tmp/norf.txt" "id=M-3.late" "no flag: no late"
+grep -vE 'id=(M-1.outliers|M-3.late) ' "$tmp/rf.txt" | cmp -s - "$tmp/norf.txt" && ok "flag only adds lines" || bad "flag only adds lines"
+$T --refresh-us 16667 $D/zephyr-no-latch.log >"$tmp/rn.txt" || bad "refresh no-latch exit"
+lacks "$tmp/rn.txt" "id=M-1.outliers" "refresh without latches: no outliers"
+for v in 0 abc -5; do
+	$T --refresh-us $v $D/refresh-late.log >/dev/null 2>&1
+	[ $? -eq 2 ] && ok "refresh-us $v exit 2" || bad "refresh-us $v exit 2"
+done
+python3 -I m2-compare-report.py "$tmp/rf.txt" "$tmp/zephyr.txt" | grep -qF "M-3.late" && ok "report shows M-3.late" || bad "report shows M-3.late"
+
 out=$(python3 -I m2-compare-report.py "$tmp/linux.txt" "$tmp/zephyr.txt") || bad "report exit"
 rhas() { grep -qF -- "$1" <<<"$out" && ok "$2" || bad "$2"; }
 rhas "(measured on Linux 2026-01-02, Zephyr 2026-01-03)" "report dates"

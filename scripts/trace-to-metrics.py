@@ -2,7 +2,7 @@
 """Convert a trace log (docs/trace-format.md, CETRACE v=1) into the RUN and
 METRIC lines read by m2-compare-report.py. Standard library only.
 
-    python3 -I scripts/trace-to-metrics.py [--stage S] LOG > run.txt
+    python3 -I scripts/trace-to-metrics.py [--stage S] [--refresh-us N] LOG > run.txt
 
 Exit 0 ok, 2 input error (unreadable file, no date comment, no hdr line,
 unknown version, malformed CETRACE line). See trace-to-metrics-README.md.
@@ -122,7 +122,7 @@ def p95(v):
     return v[max(0, -(-95 * len(v) // 100) - 1)]  # nearest rank
 
 
-def derive(hdr, events):
+def derive(hdr, events, refresh_ns=None):
     metrics = []
 
     def add(id_, name, value, unit=""):
@@ -133,6 +133,7 @@ def derive(hdr, events):
     ended = set()
     latch_at = {}
     violations = 0
+    late = None
     submitted = latched = dropped = timeouts = 0
     first_assign = None
     prev_seq = None
@@ -173,6 +174,11 @@ def derive(hdr, events):
         if gaps:
             add("M-1.median", "frame interval median", ms(median(gaps)), "ms")
             add("M-1.max", "frame interval max", ms(max(gaps)), "ms")
+            if refresh_ns:
+                add("M-1.outliers", "frame interval outliers", str(
+                    sum(1 for g in gaps if 2 * abs(g - refresh_ns) > refresh_ns)),
+                    "intervals")
+                late = sum(1 for g in gaps if 2 * g > 3 * refresh_ns)
         lat = []
         for key, i in latch_at.items():
             if key not in commit_at:
@@ -189,6 +195,8 @@ def derive(hdr, events):
         add("M-3.dropped", "dropped frames", str(dropped), "frames")
         add("M-3.timeouts", "latch timeouts", str(timeouts), "events")
         add("M-3.pending", "pending at end of log", str(pending), "frames")
+        if late is not None:
+            add("M-3.late", "late latches", str(late), "intervals")
     if first_assign:
         parts = []
         for a in first_assign.split(";"):
@@ -204,11 +212,21 @@ def derive(hdr, events):
 
 def main(argv):
     stage = None
+    refresh_ns = None
     args = argv[1:]
-    if len(args) >= 2 and args[0] == "--stage":
-        stage, args = args[1], args[2:]
+    while len(args) >= 2 and args[0] in ("--stage", "--refresh-us"):
+        if args[0] == "--stage":
+            stage = args[1]
+        else:
+            if not args[1].isdigit() or int(args[1]) == 0:
+                sys.stderr.write("trace-to-metrics: --refresh-us needs a "
+                                 "positive integer\n")
+                return 2
+            refresh_ns = int(args[1]) * 1000
+        args = args[2:]
     if len(args) != 1:
-        sys.stderr.write("usage: trace-to-metrics.py [--stage S] LOG\n")
+        sys.stderr.write("usage: trace-to-metrics.py [--stage S] "
+                         "[--refresh-us N] LOG\n")
         return 2
     try:
         date, hdr, events = read(args[0])
@@ -219,7 +237,7 @@ def main(argv):
     if stage:
         run += " stage=%s" % stage
     print(run + " tool=trace-to-metrics")
-    for id_, name, unit, value in derive(hdr, events):
+    for id_, name, unit, value in derive(hdr, events, refresh_ns):
         print('METRIC id=%s name="%s"%s value=%s'
               % (id_, name, " unit=" + unit if unit else "", value))
     return 0
