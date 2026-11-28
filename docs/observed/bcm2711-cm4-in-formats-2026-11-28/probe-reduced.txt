@@ -1,0 +1,15 @@
+device /dev/dri/card0, driver vc4
+output 0: crtc 102 640x480 @ 75.000 Hz
+output 1: crtc 90 720x1280 @ 60.000 Hz
+plane 79 Primary: outputs 0b10, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12
+plane 91 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12
+plane 127 Overlay: outputs 0b11, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12
+plane 677 Cursor: outputs 0b10, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12
+plane 688 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12
+KEPT output=0 crtc=102 primary=91 overlay=127,138,149,160,171,182,193,204,215,226,237,248 cursor=688 dropped_reachable=259,270,281,292
+KEPT output=1 crtc=90 primary=79 overlay=127,138,149,160,171,182,193,204,215,226,237,248 cursor=677 dropped_reachable=259,270,281,292
