@@ -298,3 +298,25 @@ Even if met, only an M7 hello and an ownership probe follow. It does not put a Z
 Not run. The gate above reads "not met": check (c), evidence that the System Manager lets the Linux side start and stop `CPU_M7P`, is still open, and no planner decision has accepted a single `start` attempt as that evidence. The m7-run item therefore left the board untouched: no ssh session, no copy to `/tmp`, no write to `firmware_class.path` or to the remoteproc `firmware`/`state` attributes, and no build of `tests/board/imx95_m7` for the run. The values last observed (2026-11-27, section 2 and the table above) still stand: `remoteproc1` (`imx-rproc`) `offline`, `firmware_class.path` empty. Nothing was changed, so no restore check was needed.
 
 To run it later: close check (c) (item 1 of section 7), or record a planner decision that accepts one `start` attempt on the offline core as the evidence. Then follow "Load procedure (Linux remoteproc)" in [tests/board/imx95_m7/README.md](../tests/board/imx95_m7/README.md).
+
+### m7-run2 outcome: remoteproc load skipped (2026-11-28)
+
+Not run; nothing was loaded. The item was gated on a "Gate verdict for m7-run2" section that the sm-config-read item was to add to [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md). That section does not exist at the integration tip this item started from. sm-config-read could not read the Toradex Verdin SM configuration (its section 3.3 lists the Toradex-shipped SM config and the BSP 7.8.0 SRCREVs as still unread), and its handoff says to treat the gate as no-go. Check (c) of section 8, evidence that the System Manager lets the Linux side start and stop `CPU_M7P`, therefore stays open, and no planner decision accepts a single `start` attempt as that evidence.
+
+What was done on the board: one read-only ssh look, 2026-11-28 06:59 UTC (observed). No file was copied, and no sysfs attribute or other setting was written.
+
+```
+$ uname -r
+6.6.157-7.8.0
+$ systemctl is-active weston
+active
+/sys/class/remoteproc/remoteproc0 name=neutron-rproc state=offline fw=rproc-neutron-rproc-fw
+/sys/class/remoteproc/remoteproc1 name=imx-rproc state=offline fw=rproc-imx-rproc-fw
+/sys/module/firmware_class/parameters/path = (empty)
+```
+
+New against the 2026-11-27 observation (observed): `remoteproc1` (`imx-rproc`) has the default firmware name `rproc-imx-rproc-fw`, and there is a second remoteproc, `remoteproc0` (`neutron-rproc`, the NPU core, inferred from the name), also `offline` with its default name. A loader must select the M7 core by `name`, not by index.
+
+Post-run checks (observed in the same session; nothing was changed, so nothing had to be restored): `weston` is `active`; `remoteproc1` is `offline`; `firmware_class.path` is empty, as before; no files were left under `/tmp`, because none were written. `tests/board/imx95_m7` was not built for this item, and no Verdin overlay was added.
+
+To run it later: the same condition as in "M7 run (skipped 2026-11-28)" above applies. Either a re-run of sm-config-read records a go verdict from the Toradex SM config, or the planner records that one `start` attempt on the offline core is accepted as the evidence.
