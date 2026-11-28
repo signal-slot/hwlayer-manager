@@ -4,8 +4,8 @@ Runs a board program and stores its output as dated, scrubbed board data in the
 format `scripts/check-test-data.sh` expects.
 
 ```
-scripts/board-run-bundle.sh --soc rk3588|bcm2711|bcm2712 \
-    --kind sweep|verify|caps [--name NAME] [--hostname NAME]... --out DIR -- CMD...
+scripts/board-run-bundle.sh --soc rk3588|bcm2711|bcm2712|imx95 \
+    --kind sweep|verify|caps|scenarios [--name NAME] [--hostname NAME]... --out DIR -- CMD...
 ```
 
 1. Runs `CMD` (stdin closed) and captures stdout and stderr together.

@@ -1,7 +1,7 @@
 #!/bin/sh
 # board-run-bundle.sh - run a board program and store its output as dated,
 # scrubbed, checked board data. See board-run-bundle-README.md.
-# Usage: board-run-bundle.sh --soc rk3588|bcm2711|bcm2712 --kind sweep|verify|caps
+# Usage: board-run-bundle.sh --soc rk3588|bcm2711|bcm2712|imx95 --kind sweep|verify|caps|scenarios
 #            [--name NAME] [--hostname NAME]... --out DIR -- CMD...
 # Env: BOARD_RUN_BUNDLE_UNAME (replaces `uname -r`), BOARD_RUN_BUNDLE_DATE
 #      (replaces today's date), BOARD_RUN_BUNDLE_SCRUB, BOARD_RUN_BUNDLE_SECRETS
@@ -14,7 +14,7 @@ scrub=${BOARD_RUN_BUNDLE_SCRUB:-$here/scrub-kms-dump.py}
 secrets=${BOARD_RUN_BUNDLE_SECRETS:-$here/check-no-board-secrets.sh}
 
 usage() {
-    echo "usage: $0 --soc rk3588|bcm2711|bcm2712 --kind sweep|verify|caps [--name NAME] [--hostname NAME]... --out DIR -- CMD..." >&2
+    echo "usage: $0 --soc rk3588|bcm2711|bcm2712|imx95 --kind sweep|verify|caps|scenarios [--name NAME] [--hostname NAME]... --out DIR -- CMD..." >&2
     exit 2
 }
 
@@ -31,8 +31,8 @@ while [ $# -gt 0 ]; do
         *) usage ;;
     esac
 done
-case $soc in rk3588|bcm2711|bcm2712) ;; *) usage ;; esac
-case $kind in sweep|verify|caps) ;; *) usage ;; esac
+case $soc in rk3588|bcm2711|bcm2712|imx95) ;; *) usage ;; esac
+case $kind in sweep|verify|caps|scenarios) ;; *) usage ;; esac
 [ -n "$out" ] && [ $# -gt 0 ] || usage
 [ -n "$name" ] || name=$soc
 case $name in
