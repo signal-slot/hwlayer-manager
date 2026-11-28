@@ -1,0 +1,16 @@
+# observed
+# date: 2026-11-28
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B (BCM2712, HVS6), vc4 card, HDMI 1920x1080@60, no display manager or compositor running
+# repository commit: 8136775
+# command: python3 scripts/twoplane-expect.py <profile_check --profile hvs6 --show 20 output> --out . --panel full --rotation 0 --tolerance 60; python3 scripts/camera-check.py <KVM screenshot> expect-normal.json --rotation 0 --panel full
+# picture: KVM (HDMI capture) screenshot 1920x1080 taken during the 20 s show (the picture is not kept)
+PASS  background       measured ( 44.0, 44.0, 44.0) expected ( 32.0, 32.0, 32.0) distance   20.8 tol  60.0
+PASS  red block        measured (221.0,  0.0, 15.0) expected (255.0,  0.0,  0.0) distance   37.2 tol  60.0
+PASS  blue block       measured ( 18.0,  1.0,230.0) expected (  0.0,  0.0,255.0) distance   30.8 tol  60.0
+PASS  green block uncovered measured ( 29.0,255.0, 21.0) expected (  0.0,255.0,  0.0) distance   35.8 tol  60.0
+PASS  overlay opaque over green measured (234.0,250.0, 21.0) expected (255.0,255.0,  0.0) distance   30.1 tol  60.0
+PASS  overlay opaque over background measured (234.0,250.0, 21.0) expected (255.0,255.0,  0.0) distance   30.1 tol  60.0
+PASS  overlay translucent over green measured (125.0,125.0,125.0) expected (128.0,127.0,128.0) distance    4.7 tol  60.0
+PASS  overlay translucent over background measured (133.0,  9.0,139.0) expected (144.0, 16.0,144.0) distance   14.0 tol  60.0
+VERDICT: PASS

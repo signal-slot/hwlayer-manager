@@ -1,0 +1,40 @@
+# observed
+# date: 2026-11-28
+# kernel: 6.18.50+rpt-rpi-2712
+# board: Raspberry Pi 5 Model B (BCM2712, HVS6), vc4 card, HDMI 1920x1080@60, no display manager or compositor running
+# repository commit: 8136775
+# command: probe /dev/dri/<vc4 card>
+device /dev/dri/card1, driver vc4
+output 0: crtc 94 1920x1080 @ 60.000 Hz
+plane 83 Primary: outputs 0b1, zpos fixed 0, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 118 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 129 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 140 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 151 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 162 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 173 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 184 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 195 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 206 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 217 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 228 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 239 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 250 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
+plane 657 Cursor: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed
+  formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
