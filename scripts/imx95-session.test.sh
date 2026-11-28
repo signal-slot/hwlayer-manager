@@ -23,6 +23,7 @@ cat >"$bin/ssh" <<EOT
 # fake ssh: ... <dest> <command>
 for last; do :; done
 cmd=\$last
+echo "ssh-attempt" >>"$log"
 # like real ssh: refuse an empty destination (the argument before the command)
 eval "dst=\\\${\$(( \$# - 1 ))}"
 [ -n "\$dst" ] || { echo "ssh: empty destination" >&2; exit 255; }
@@ -61,6 +62,13 @@ cat >"$root/rbin/rm" <<EOT
 for a; do shift; case \$a in /tmp/*) a=$fake\$a ;; esac; set -- "\$@" "\$a"; done
 exec $realrm "\$@"
 EOT
+realchmod=$(command -v chmod)
+cat >"$root/rbin/chmod" <<EOT
+#!/bin/sh
+for a; do shift; case \$a in /tmp/*) a=$fake\$a ;; esac; set -- "\$@" "\$a"; done
+exec $realchmod "\$@"
+EOT
+chmod +x "$bin/ssh" "$root/rbin/chmod"
 chmod +x "$bin/ssh" "$bin/scp" "$bin/systemctl" "$root/rbin/rm"
 
 run() { PATH=$bin:$PATH bash "$script" "$@"; }
@@ -90,6 +98,14 @@ env -u IMX95_SSH PATH=$bin:$PATH bash "$script" display-owner status >"$root/o" 
 check "missing IMX95_SSH fails" [ $rc -ne 0 ]
 check "missing IMX95_SSH message" grep -q 'IMX95_SSH is not set' "$root/o"
 check "missing IMX95_SSH runs no ssh" [ "$(sshcalls)" = 0 ]
+check "missing IMX95_SSH never starts ssh at all" [ ! -s "$log" ]
+for args in "display-owner stop" "display-owner stop --then true" "display-owner start" "cleanup" "run x -- true"; do
+    reset
+    # shellcheck disable=SC2086
+    env -u IMX95_SSH PATH=$bin:$PATH bash "$script" --out "$root/logs-missing" $args >"$root/o" 2>&1; rc=$?
+    check "missing IMX95_SSH fails: '$args'" [ $rc -ne 0 ]
+    check "missing IMX95_SSH starts no ssh: '$args'" [ ! -s "$log" ]
+done
 
 # --- dry run ----------------------------------------------------------------
 reset
@@ -168,6 +184,36 @@ check "run saves stdout" grep -q "it's ok" "$root/logs/t1.stdout"
 check "run header has exit_status=0" grep -qx 'exit_status=0' "$root/logs/t1.header"
 run --out "$root/logs" run t2 -- false >/dev/null 2>&1; rc=$?
 check "run propagates failing exit" [ $rc -eq 1 ]
+
+# --- deploy records the manifest before the copy ------------------------------
+# A copy of the script with a fake cross build next to it, so deploy's real
+# path runs on the host. scp fails when $root/scp-fail exists.
+tree=$root/tree; mkdir -p "$tree/scripts"
+cp "$script" "$tree/scripts/"
+cat >"$tree/scripts/cross-aarch64.sh" <<'EOT'
+#!/bin/sh
+d=$(dirname "$0")/out; mkdir -p "$d"
+for last; do :; done
+printf '#!/bin/sh\n' >"$d/$last"; chmod +x "$d/$last"
+echo "$d/$last"
+EOT
+chmod +x "$tree/scripts/cross-aarch64.sh"
+cat >"$bin/scp" <<EOT
+#!/bin/sh
+echo "scp \$*" >>"$log"
+[ ! -e "$root/scp-fail" ] || exit 1
+for last; do :; done
+: >"$fake/tmp/\${last##*/}"
+exit 0
+EOT
+reset; touch "$root/scp-fail"
+PATH=$bin:$PATH bash "$tree/scripts/imx95-session.sh" deploy >"$root/o" 2>&1; rc=$?
+check "deploy with a failing scp fails" [ $rc -ne 0 ]
+check "failed copy is already in the manifest" grep -qx /tmp/probe "$fake/tmp/imx95-session.files"
+rm -f "$root/scp-fail"; reset
+PATH=$bin:$PATH bash "$tree/scripts/imx95-session.sh" deploy >"$root/o" 2>&1; rc=$?
+check "deploy exits 0" [ $rc -eq 0 ]
+check "deploy records both files once" [ "$(wc -l <"$fake/tmp/imx95-session.files")" = 2 ]
 
 # --- every remote path written is under /tmp --------------------------------
 reset; echo active >"$fake/svc"
