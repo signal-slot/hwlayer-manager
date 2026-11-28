@@ -1,0 +1,56 @@
+plane[31]: plane-0
+	crtc=crtc-0
+	fb=45
+		allocated by = synthetic
+		refcount=2
+		format=XR24 little-endian (0x34325258)
+		modifier=0x0
+		size=800x480
+		layers:
+			size[0]=800x480
+			pitch[0]=3200
+	crtc-pos=800x480+0+0
+	src-pos=800.000000x480.000000+0.000000+0.000000
+	rotation=1
+	normalized-zpos=0
+	color-encoding=ITU-R BT.601 YCbCr
+	color-range=YCbCr limited range
+plane[36]: plane-1
+	crtc=crtc-0
+	fb=46
+		allocated by = synthetic
+		refcount=2
+		format=AR24 little-endian (0x34325241)
+		modifier=0x0
+		size=200x100
+		layers:
+			size[0]=200x100
+			pitch[0]=800
+	crtc-pos=200x100+100+50
+	src-pos=200.000000x100.000000+0.000000+0.000000
+	rotation=1
+	normalized-zpos=1
+	color-encoding=ITU-R BT.601 YCbCr
+	color-range=YCbCr limited range
+plane[41]: plane-2
+	crtc=(null)
+	fb=0
+	crtc-pos=0x0+0+0
+	src-pos=0.000000x0.000000+0.000000+0.000000
+	rotation=1
+	normalized-zpos=2
+	color-encoding=ITU-R BT.601 YCbCr
+	color-range=YCbCr limited range
+crtc[44]: crtc-0
+	enable=1
+	active=1
+	self_refresh_active=0
+	planes_changed=0
+	mode_changed=0
+	active_changed=0
+	connectors_changed=0
+	color_mgmt_changed=0
+	plane_mask=3
+	connector_mask=1
+	encoder_mask=1
+	mode: "800x480": 60 33000 800 840 880 1056 480 484 488 525 0x48 0x9
