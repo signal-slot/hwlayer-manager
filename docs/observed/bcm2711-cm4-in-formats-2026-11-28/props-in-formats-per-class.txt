@@ -1,0 +1,39 @@
+plane 48: possible_crtcs 0b1 (crtc indices [0])  [class Primary]
+    IN_FORMATS (id 30): blob [immutable] = 49
+      IN_FORMATS: 35 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12
+    alpha (id 50): range 0..=65535 = 65535
+    pixel blend mode (id 51): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 52): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 1 (Primary)
+    zpos (id 58): range 0..=0 [immutable] = 0
+plane 127: possible_crtcs 0b111110 (crtc indices [1,2,3,4,5])  [class Overlay]
+    IN_FORMATS (id 30): blob [immutable] = 128
+      IN_FORMATS: 35 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12
+    alpha (id 129): range 0..=65535 = 65535
+    pixel blend mode (id 130): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 131): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 0 (Overlay)
+    zpos (id 137): range 1..=17 = 1
+plane 655: possible_crtcs 0b1 (crtc indices [0])  [class Cursor]
+    IN_FORMATS (id 30): blob [immutable] = 656
+      IN_FORMATS: 35 formats, 5 modifiers
+      modifier 0x0700000000000001: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15
+      modifier 0x0700000000000004: NV12 NV21 P030
+      modifier 0x0700000000000003: NV12 NV21
+      modifier 0x0700000000000005: NV12 NV21
+      modifier 0x0000000000000000: XR24 AR24 AB24 XB24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12 XB12 AB12 BX12 BA12 RX12 RA12
+    alpha (id 657): range 0..=65535 = 65535
+    pixel blend mode (id 658): enum {None=2, Pre-multiplied=0, Coverage=1} = 0 (Pre-multiplied)
+    rotation (id 659): bitmask = 1 (rotate-0)
+    type (id 8): enum {Overlay=0, Primary=1, Cursor=2} [immutable] = 2 (Cursor)
+    zpos (id 665): range 1..=17 = 17
