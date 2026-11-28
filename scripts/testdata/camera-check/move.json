@@ -1,0 +1,7 @@
+{"rotation": 0, "panel": "full",
+ "regions": [
+  {"name": "A_only", "rect": [0.15, 0.75, 0.30, 0.85]},
+  {"name": "B_edge", "rect": [0.91, 0.20, 0.94, 0.60]}],
+ "compare": [
+  {"region": "A_only", "expect": "same", "threshold": 30},
+  {"region": "B_edge", "expect": "changed", "threshold": 60}]}
