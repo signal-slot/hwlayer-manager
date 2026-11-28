@@ -30,13 +30,15 @@ numbers, so statements cite file and function.
 
 **Not read (limits):**
 
-- The Toradex tree (`linux-toradex`, the branch Torizon uses). The repository and branch names
-  tried returned 404, so there is no Toradex comparison and no Verdin AM62P device tree was read.
-  Whether the Toradex kernel has the `ti,dss-shared-mode*` code is unknown.
-- `ti-linux-6.6.y`, `ti-linux-6.1.y` and the `09.01.00.008` tag. Also `tidss_crtc.c`,
-  `tidss_plane.c`, `tidss_oldi.c` and `tidss_dispc.h`.
-- Mainline `torvalds/linux` `tidss_drv.c` (HTTP 429). Only the directory listing was read: it has
-  the same file set as TI's tree and no extra shared-mode file.
+- The Toradex tree (`git://git.toradex.com/linux-toradex.git`). **source**: Toradex's page
+  `https://developer.toradex.com/linux-bsp/os-development/build-u-boot-and-linux-kernel-from-source-code/build-linux-kernel-from-source-code/`
+  (accessed 2026-11-28) names branch `toradex_ti-linux-6.6.y` for TI AM62x, AM62Px and AM69, with
+  no SHA, and warns that a source-built kernel's graphics driver differs from the BSP build for
+  Verdin AM62 and AM62P. `git.toradex.com` answered with an anti-bot page, `github.com/toradex/linux`
+  returned 404, so no Toradex file and no Verdin AM62P device tree was read. Whether that kernel
+  has the `ti,dss-shared-mode*` code, or the Verdin `dss` node uses it, is unknown.
+- `ti-linux-6.6.y` and `ti-linux-6.1.y` source files. Also `tidss_crtc.c`, `tidss_plane.c`,
+  `tidss_oldi.c`, `tidss_dispc.h`, and mainline `tidss_dispc.c`.
 - The TI e2e forum, the TRM and the TISCI host-ID tables.
 
 ## (a) Can Linux tidss leave a VP, overlay or plane to another core?
@@ -68,13 +70,22 @@ numbers, so statements cite file and function.
 5. **source**: The AM62P compatibles in the OF match table are `ti,am62p51-dss` and
    `ti,am62p52-dss`. There is no `ti,am62p-dss`.
 6. **source**: The binding `ti,am65x-dss.yaml` in `ti-linux-6.12.y` does not list the
-   `ti,dss-shared-mode*` properties, although the schema has `additionalProperties: false`. The
-   SDK page points to the binding at the `09.01.00.008` tag, which could not be read.
-   **inferred**: the properties are TI-vendor and a schema check would flag them. Not checked.
+   `ti,dss-shared-mode*` properties, although the schema has `additionalProperties: false`.
+   **source**: the same binding at tag SDK 9.1 (blob `aceca6dc6cb7`, from
+   `https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/tree/Documentation/devicetree/bindings/display/ti/ti,am65x-dss.yaml?h=09%2E01%2E00%2E008`)
+   defines `ti,dss-shared-mode` (boolean, "TI DSS7 supports sharing of display between multiple
+   hosts"), `-planes` (`vidl`, `vid`), `-vp` (`vp1`, `vp2`), `-common` (`common`, `common1`),
+   `-vp-owned` (0, 1) and `-plane-zorder` (0, 1), lists `ti,am62p51-dss`, has a `common1` reg
+   entry, and requires `-planes`, `-vp`, `-plane-zorder` and `-vp-owned` together with
+   `ti,dss-shared-mode`. **inferred**: the 6.12 binding lost the entries; not checked why.
 7. **Versions.** **source**: present in `ti-linux-6.12.y`. **source**: the SDK docs point to the
-   `09.01.00.008` tag for the overlay. **inferred**: the feature exists from SDK 9.1 (kernel 6.6
-   era). **inferred**: mainline does not have it (the listing shows no extra file), but
-   `tidss_drv.c` was not read. Toradex: unknown (see Sources).
+   SDK 9.1 tag for the overlay, and **source**: that tag's binding has the properties, so the
+   feature is in SDK 9.1 (**inferred**: kernel 6.6 era; the tag's kernel version was not read).
+   **source**: mainline `tidss_drv.c` (master, 271 lines,
+   `https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/tidss/tidss_drv.c`, no SHA
+   shown) has no `shared_mode` and no `ti,dss-shared-mode`, and its OF table has no
+   `ti,am62p51-dss`. **inferred**: mainline lacks the feature; `tidss_dispc.c` was not read.
+   Toradex: unknown (see Sources).
 8. **source**: TI ships an overlay for the AM62P SK board, `k3-am62p5-sk-dss-shared-mode.dtso`,
    for the TI firmware `dss_display_share.wkup-r5f0_0.release.strip.out`. Its `&dss0` node sets
    `ti,dss-shared-mode`, `ti,dss-shared-mode-vp = "vp1"`, `ti,dss-shared-mode-vp-owned = <0>`,
@@ -193,6 +204,6 @@ There are two routes.
 
 These are not answered by the sources above.
 
-- Does the Toradex kernel for Torizon on the Verdin AM62P carry `ti,dss-shared-mode`?
+- Does the Toradex kernel for Torizon on the Verdin AM62P (`toradex_ti-linux-6.6.y` per Toradex's page) carry `ti,dss-shared-mode`? Mainline does not, per `tidss_drv.c`.
 - Can the MCU R5F reach the DSS registers and the framebuffer memory (firewall, TISCI host)?
 - Does a tidss re-bind after an R5F run recover without a reboot?
