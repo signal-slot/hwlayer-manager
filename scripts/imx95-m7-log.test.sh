@@ -51,6 +51,28 @@ cp "$fx/ttyRPMSG0" "$root/fxdev/"; cp "$fx/trace0" "$root/fxsys/kernel/debug/rem
 SYSFS_ROOT=$root/fxsys DEV_ROOT=$root/fxdev LOG_ROOT=$root/out sh "$script" 1 "$root/out/fx.txt" >/dev/null 2>&1
 if grep -Fq 'fixture tty line' "$root/out/fx.txt" && grep -Fq 'fixture trace line' "$root/out/fx.txt"; then ok "fixture capture"; else bad "fixture capture"; fi
 
+# D2: a tty that appears after the capture started is still read
+mkdir -p "$root/late"
+( sleep 1; printf 'late tty line\n' >"$root/late/ttyRPMSG0" ) &
+run 4 "$root/out/late.txt" "$root/late"; check "late tty exit" $? 0
+if grep -Fq 'late tty line' "$root/out/late.txt"; then ok "late tty content"; else bad "late tty content"; fi
+wait
+
+# a directory symlink leading out of LOG_ROOT is refused
+mkdir -p "$root/esc"; ln -s "$root/esc" "$root/out/escdir"
+run 1 "$root/out/escdir/x.txt"; check "dir symlink exit" $? 2
+if [ -e "$root/esc/x.txt" ]; then bad "dir symlink no write"; else ok "dir symlink no write"; fi
+run 1 "$root/out/nodir/x.txt"; check "missing dir exit" $? 2
+
+# D3: a TERM keeps the partial log, appends the trace, exits 2
+mkdir -p "$root/term"; : >"$root/term/ttyRPMSG0"
+SYSFS_ROOT=$root/sys DEV_ROOT=$root/term LOG_ROOT=$root/out sh "$script" 30 "$root/out/term.txt" >/dev/null 2>&1 &
+tp=$!; sleep 1; kill -TERM "$tp"; wait "$tp"; check "term exit" $? 2
+if grep -Fq 'interrupted' "$root/out/term.txt" && grep -Fq 'trace line one' "$root/out/term.txt"; then ok "term partial log"; else bad "term partial log"; fi
+
+# the output file is owner-only
+if [ "$(stat -c %a "$root/out/log.txt")" = 600 ]; then ok "mode 600"; else bad "mode 600"; fi
+
 # output path outside /tmp (default LOG_ROOT) is rejected
 SYSFS_ROOT=$root/sys DEV_ROOT=$root/dev sh "$script" 1 /var/imx95-m7-log-test.txt >/dev/null 2>"$root/stderr"
 check "outside /tmp exit" $? 2
