@@ -4,10 +4,10 @@
 //!
 //! Baseline tests: they pin the current behaviour so the later `Vc4Hvs5` and
 //! `Vc4Hvs6` profiles have something to differ from. Nothing here reads
-//! `docs/observed`; the data is copied into the fixtures below.
+//! `docs/`; the data is copied into the fixtures below.
 //!
 //! Evidence tags: *observed* = in the recorded output, *source* = read from
-//! the vc4 driver (`docs/observed/vc4-hvs-source.md`), *inferred* = derived,
+//! the vc4 driver (`docs/platform-capabilities.md`), *inferred* = derived,
 //! not measured.
 
 use composition_core::limits::MAX_FORMATS;
@@ -37,7 +37,7 @@ fn fourcc(s: &[u8; 4]) -> PixelFormat {
     PixelFormat::fourcc(s)
 }
 
-// Source: docs/observed/bcm2712-topology.md, "IN_FORMATS (identical on all
+// Source: docs/platform-capabilities.md, "IN_FORMATS (identical on all
 // five planes)", Raspberry Pi 5 (BCM2712), kernel 6.18.50+rpt-rpi-2712,
 // recorded 2026-11-28. The linear modifier lists 44 formats, in this order;
 // with P030 under SAND128 that is the blob's 45 formats.
@@ -57,7 +57,7 @@ const PI5_SAND64: [&[u8; 4]; 2] = [b"NV12", b"NV21"];
 const PI5_SAND128: [&[u8; 4]; 3] = [b"NV12", b"NV21", b"P030"];
 const PI5_SAND256: [&[u8; 4]; 2] = [b"NV12", b"NV21"];
 
-// Source: docs/observed/bcm2711-cm4.md and bcm2711-cm4-topology.md, reTerminal
+// Source: docs/platform-capabilities.md (BCM2711 section), reTerminal
 // (CM4, BCM2711), recorded 2026-11-28. The probe printed 32 linear formats and
 // no modifier column, so the CM4's `IN_FORMATS` modifiers were NOT recorded.
 // The modifier blocks used for it are inferred from the vc4 source (HVS5

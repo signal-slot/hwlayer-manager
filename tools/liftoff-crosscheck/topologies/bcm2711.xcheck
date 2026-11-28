@@ -1,7 +1,7 @@
 xcheck 1
-origin observed 2026-11-28 docs/observed/bcm2711-cm4-topology.md at commit eab4162; constraints read from hvs-backend-design.md
+origin observed 2026-11-28 docs/platform-capabilities.md at commit eab4162; constraints read from hvs-backend-design.md
 # Hand-written topology, not produced by the converter. No hardware claim.
-# Source: docs/observed/bcm2711-cm4-topology.md (probe output observed 2026-11-28), repository commit eab4162.
+# Source: docs/platform-capabilities.md (probe output observed 2026-11-28), repository commit eab4162.
 # Constraint lines are read from docs/hvs-backend-design.md; nothing was run for this file.
 # No frames in this file.
 # Planes are the 16 of probe's cut view (MAX_PLANES = 16), not the kernel's 60.

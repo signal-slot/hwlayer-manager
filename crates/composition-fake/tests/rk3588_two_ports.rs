@@ -6,7 +6,7 @@
 //!
 //! - Two CRTCs, `video_port0` (output 0) and `video_port1` (output 1), plane
 //!   ids 33, 39, 45, 51, 57, 63, 69, 75: observed 2026-11-28
-//!   (`docs/observed/rk3588-topology.md`, kernel 6.18.55). That probe lists
+//!   (`tests/data/rk3588/topology-2026-11-28.md`, kernel 6.18.55). That probe lists
 //!   only connected outputs, so it printed mask 0b0 for plane 39 and 0b1 for
 //!   the other seven.
 //! - Reach on `video_port1`: read from source (mainline 6.18

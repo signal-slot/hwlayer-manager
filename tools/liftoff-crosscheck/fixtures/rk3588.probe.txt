@@ -1,4 +1,4 @@
-# source: docs/observed/rk3588-topology.md
+# source: tests/data/rk3588/topology-2026-11-28.md
 # commit: db71077
 # observed: 2026-11-28
 # origin: observed

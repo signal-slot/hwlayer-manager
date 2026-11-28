@@ -1,7 +1,7 @@
 //! The loader of recorded probe text (`tests/common/recorded.rs`).
 //!
 //! The samples below are copies of board output; each names its source file
-//! and date. Nothing here reads `docs/observed`.
+//! and date. Nothing here reads `docs/`.
 
 mod common;
 
@@ -28,7 +28,7 @@ fn plane(caps: &Capabilities, id: u32) -> &PlaneCaps {
     caps.planes.iter().find(|p| p.id.0 == id).unwrap()
 }
 
-// Source: docs/observed/rk3588-topology.md, "Raw probe output", observed
+// Source: tests/data/rk3588/topology-2026-11-28.md, "Raw probe output", observed
 // 2026-11-28 (NanoPC-T6, kernel 6.18.55-current-rockchip64). The `(identical
 // to plane 33)` form is the doc's own shortening of the repeated lists.
 const RK3588_PROBE: &str = r#"
@@ -52,7 +52,7 @@ plane 75 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premul
   formats (21): (identical to plane 57)
 "#;
 
-// Source: docs/observed/bcm2712.md, probe on a Raspberry Pi 5 (vc4), observed
+// Source: docs/platform-capabilities.md, probe on a Raspberry Pi 5 (vc4), observed
 // 2026-11-28: the output, four primaries and the first overlay.
 const BCM2712_PROBE: &str = r#"
 output 0: crtc 94 1920x1080 @ 60.000 Hz
@@ -68,7 +68,7 @@ plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, prem
   formats (32): XR24 AR24 AB24 XB24 RX24 RA24 BX24 BA24 RG16 BG16 AR15 XR15 RG24 BG24 YU16 YV16 YU24 YV24 YU12 YV12 NV12 NV21 NV16 NV61 XR30 AR30 AB30 XB30 RGB8 BGR8 XR12 AR12
 "#;
 
-// Source: docs/observed/bcm2711-cm4.md, probe on a reTerminal (CM4), observed
+// Source: docs/platform-capabilities.md, probe on a reTerminal (CM4), observed
 // 2026-11-28: the output and the first four primaries.
 const BCM2711_PROBE: &str = r#"
 output 0: crtc 90 720x1280 @ 60.000 Hz
@@ -222,7 +222,7 @@ fn modifier_names_and_values() {
 
 #[test]
 fn broadcom_modifiers_parse() {
-    // Shaped after the modifier table of docs/observed/bcm2712-topology.md
+    // Shaped after the modifier table of docs/platform-capabilities.md
     // (observed 2026-11-28), written as the probe prints a plane.
     let text = "output 0: crtc 94 1920x1080 @ 60.000 Hz\n\
         plane 107 Overlay: outputs 0b1, zpos 1..=17, plane alpha true, blend [none, coverage], scaling not claimed\n\
@@ -255,7 +255,7 @@ fn broadcom_modifiers_parse() {
 
 #[test]
 fn twoplane_form() {
-    // Shape of the PLANE lines in docs/observed/bcm2711-cm4.md (twoplane,
+    // Shape of the PLANE lines in docs/platform-capabilities.md (twoplane,
     // 2026-11-27), with the format list written out.
     let text = "MODE 720x1280@60.000Hz output 0 (crtc 90) of 1\n\
         PLANE index 2 id 79 Primary zpos fixed 0 plane-alpha true blend [none,premultiplied,coverage] scaling none transforms 0x0 formats XR24 NV12:0x700000000000003\n\

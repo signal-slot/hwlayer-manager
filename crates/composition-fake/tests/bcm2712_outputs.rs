@@ -3,12 +3,12 @@
 //!
 //! This is a MODEL, not a hardware result. Only one CRTC was active when the
 //! topology was recorded, so the second active output is inferred from the
-//! recorded masks: `docs/observed/bcm2712-topology.md` (observed 2026-11-28,
+//! recorded masks: `docs/platform-capabilities.md` (observed 2026-11-28,
 //! kernel 6.18.50+rpt-rpi-2712) lists four primaries (ids 48, 67, 83, 95, one
 //! per CRTC, fixed zpos 0) and 16 overlays (ids 107, 118, ... 272, step 11,
 //! zpos 1..=17) that reach CRTCs 1, 2 and 3. The test uses CRTC 1 (primary 67)
 //! as output 0 and CRTC 2 (primary 83, the one that was active) as output 1.
-//! The data is copied below; nothing reads docs/observed at run time.
+//! The data is copied below; nothing reads docs/ at run time.
 //!
 //! Plane budget: the two primaries plus the 16 shared overlays are 18 planes
 //! (the 34 CRTC-0-only planes and the per-CRTC extra planes are left out).

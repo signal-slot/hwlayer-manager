@@ -3,7 +3,7 @@
 //!
 //! This is a MODEL, not a hardware result: the fake backend has no VOP2, no
 //! kernel and no `TEST_ONLY`. The constants below are copied from recorded
-//! data, because `docs/observed` is going away and nothing here reads it at
+//! data, because `docs/` is going away and nothing here reads it at
 //! runtime:
 //!
 //! - `docs/linux-board-scenarios.md` (plan #457 scen-t6 handoff), observed
@@ -12,7 +12,7 @@
 //!   and 69 cannot reach `video_port0`, the kernel lease holds primary 33 and
 //!   overlays 45, 51, 57, 63, 69, 75 (69 is leased but unusable on
 //!   `video_port0`, so the planner sees six usable planes).
-//! - `docs/observed/rk3588-topology.md`, probe output observed 2026-11-28 on
+//! - `tests/data/rk3588/topology-2026-11-28.md`, probe output observed 2026-11-28 on
 //!   the same kernel: ids, Cluster/Esmart split, 1920x1080 at 60 Hz, the
 //!   format lists (the probe cuts the Cluster lists at 32 pairs, so the
 //!   Cluster planes are modelled with the AFBC pairs it printed. Plane 33

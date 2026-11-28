@@ -3,14 +3,14 @@
 //! Baseline tests: they pin what the generic planner does with the recorded
 //! data, so that the later `Rk3588Vop2` tests show the difference.
 //!
-//! Fixture data, copied here so that nothing reads `docs/observed`:
-//! - `docs/observed/rk3588-topology.md`, observed 2026-11-28 (kernel
+//! Fixture data, copied here so that nothing reads `docs/`:
+//! - `tests/data/rk3588/topology-2026-11-28.md`, observed 2026-11-28 (kernel
 //!   6.18.55-current-rockchip64): plane kinds, outputs masks, zpos 0..=7, plane
 //!   alpha, blend modes (none, premultiplied, coverage), and the probe's format
 //!   lists (the probe prints at most 32 pairs per plane, so the Cluster lists
 //!   are cut: they hold no linear pair and only the first four formats of the
 //!   third AFBC group).
-//! - `docs/observed/rk3588-source.md`, read 2026-11-28 (vendor develop-6.1):
+//! - `tests/data/rk3588/source-2026-11-28.md`, read 2026-11-28 (vendor develop-6.1):
 //!   the Esmart planes list linear only; AFBC only on Cluster planes.
 //! - Plan #457 scen-t6 handoff, observed 2026-11-27 (kernel
 //!   6.18.55-current-rockchip64): 8 planes, zpos 0..7 on every plane, no plane

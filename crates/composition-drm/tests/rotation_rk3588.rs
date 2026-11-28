@@ -6,13 +6,13 @@
 //! the difference. The fixture is the one of `generic_rk3588.rs`, copied again
 //! so that this file stands alone.
 //!
-//! Fixture data, copied here so that nothing reads `docs/observed`:
-//! - `docs/observed/rk3588-topology.md`, observed 2026-11-28 (kernel
+//! Fixture data, copied here so that nothing reads `docs/`:
+//! - `tests/data/rk3588/topology-2026-11-28.md`, observed 2026-11-28 (kernel
 //!   6.18.55-current-rockchip64): plane kinds, outputs masks, zpos 0..=7, plane
 //!   alpha, blend modes, and the probe's format lists (at most 32 pairs per
 //!   plane, so the Cluster lists hold no linear pair). The state dump reads
 //!   `rotation=1` (none) on every plane; the property's bitmask was not read.
-//! - `docs/observed/rk3588-source.md`, read 2026-11-28 (vendor develop-6.1):
+//! - `tests/data/rk3588/source-2026-11-28.md`, read 2026-11-28 (vendor develop-6.1):
 //!   ROTATE_90/270 and REFLECT_X/Y exist on Cluster main windows only, none on
 //!   Esmart. A Cluster window without AFBC rejects REFLECT_X, ROTATE_90 and
 //!   ROTATE_270; ROTATE_90 together with ROTATE_270 is rejected.

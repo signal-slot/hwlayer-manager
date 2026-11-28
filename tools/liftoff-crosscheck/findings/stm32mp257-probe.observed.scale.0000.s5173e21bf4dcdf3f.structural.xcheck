@@ -2,7 +2,7 @@
 # GEN_VERSION=1 seed=0x5eed11f70ffc4226 case_seed=0x5173e21bf4dcdf3f
 # family=scale index=0000 topology=stm32mp257-probe model=structural
 xcheck 1
-origin observed 2026-11-28 probe text of docs/observed/stm32mp257-topology.md at commit 20df182, recorded, no claim about any other board or kernel
+origin observed 2026-11-28 probe text of docs/platform-capabilities.md at commit 20df182, recorded, no claim about any other board or kernel
 profile generic
 output 41 1920 1080 60000
 plane 34 kind=primary outputs=0x1 zpos=0..2 zpos_now=0 alpha=1 blend=premul transforms=normal scaling=none max_source=none full_output=0

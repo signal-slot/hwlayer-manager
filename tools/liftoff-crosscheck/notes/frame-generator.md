@@ -13,7 +13,7 @@ proposals; no run time is measured.
 
 The unit is a *case*: topology, model setting (`structural` or `full`, design section 6) and one
 frame (or a short sequence, section 5). The generator is a pure function of
-`(topology, seed, bounds)`. It reads topology files from the crate (never `docs/observed/`).
+`(topology, seed, bounds)`. It reads topology files from the crate (never `docs/`).
 
 Engine limits (`crates/composition-core/src/limits.rs`): `MAX_LAYERS = 16`, `MAX_BUFFERS = 64`,
 `MAX_PLANES = 16`, `MAX_FORMATS = 32`. A frame the reader would refuse is a generator bug.

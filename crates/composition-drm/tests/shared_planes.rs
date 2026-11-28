@@ -10,7 +10,7 @@
 //! "Per-VP assignment" and §6 item 3, docs/hvs-backend-design.md §7 Q9). A
 //! later fix, such as a cross-output claim set, will make them fail and show
 //! as a visible diff. The fixtures are hand-built from the recorded shapes;
-//! nothing reads docs/observed at runtime.
+//! nothing reads docs/ at runtime.
 
 use composition_core::limits::MAX_PLANES;
 use composition_core::planner::{plan, BufferLookup};
@@ -74,7 +74,7 @@ fn with_outputs(mut caps: Capabilities) -> Capabilities {
 }
 
 /// VOP2-like: the NanoPC-T6 (RK3588) topology, observed 2026-11-28, recorded
-/// in docs/observed/rk3588-topology.md. Eight planes, every plane reaching two
+/// in tests/data/rk3588/topology-2026-11-28.md. Eight planes, every plane reaching two
 /// outputs (the outputs mask covers both), zpos 0..=7 on every plane.
 fn vop2_caps() -> Capabilities {
     let mut caps = Capabilities::default();
@@ -92,7 +92,7 @@ fn vop2_caps() -> Capabilities {
 }
 
 /// HVS-like: the Raspberry Pi 5 (BCM2712) shared overlay pool, observed
-/// 2026-11-28, recorded in docs/observed/bcm2712.md. Each output has its own
+/// 2026-11-28, recorded in docs/platform-capabilities.md. Each output has its own
 /// primary at fixed zpos 0; the overlays form one pool whose mask covers both
 /// outputs, zpos 1..=17. The recorded list is longer than `MAX_PLANES`, so the
 /// pool is cut to what fits next to the two primaries.

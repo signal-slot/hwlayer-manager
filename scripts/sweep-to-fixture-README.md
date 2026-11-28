@@ -2,7 +2,7 @@
 
 Turns `scale_probe` and `kms_sweep` output lines into Rust source: a
 provenance comment and `const` arrays of structs. Tests paste the output into a
-test file; code never reads `docs/observed` or the run file at runtime.
+test file; code never reads `docs/` or the run file at runtime.
 Python 3, standard library only.
 
     python3 -I scripts/sweep-to-fixture.py --source PATH --date YYYY-MM-DD [FILE...]

@@ -20,13 +20,13 @@
 //! `Some(ScaleLimits::default())` (the text does not carry the limits),
 //! `not claimed` becomes `None`. `PLANE` form: `none` becomes `None`;
 //! `up U down D` becomes the limits in 16.16 (`round(U * 65536)`).
-//! Doc-shortened lines such as `formats (same 32)` in docs/observed are not
+//! Doc-shortened lines such as `formats (same 32)` in docs/ are not
 //! loadable: write fixtures out in full. Fields the text does not show (`max_source`, `full_output_only`,
 //! and `transforms` in the probe form) stay at their defaults. The `PLANE`
 //! form does not show the outputs mask either; it gets `0b1`.
 //!
 //! Callers read recorded files (`include_str!` of a file under `tests/data/`,
-//! or text embedded in the test), never from `docs/observed`.
+//! or text embedded in the test), never from `docs/`.
 
 use composition_core::{
     BlendMode, Capabilities, FormatModifier, Modifier, OutputCaps, OutputId, PixelFormat,

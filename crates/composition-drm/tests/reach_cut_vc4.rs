@@ -11,9 +11,9 @@
 //! rule on recorded topologies, and the survivors go through the public
 //! `Capabilities` types. If `src/lib.rs` changes the rule, this mirror must
 //! change with it (the unit tests in `src/lib.rs` cover the real function on
-//! a synthetic shape). Nothing reads docs/observed at runtime.
+//! a synthetic shape). Nothing reads docs/ at runtime.
 //!
-//! Difference from the recorded observation: docs/observed/bcm2711-cm4.md
+//! Difference from the recorded observation: docs/platform-capabilities.md
 //! (2026-11-28) shows the engine keeping 6 primaries and 10 overlays, five
 //! primaries of unreachable CRTCs among them, so output 0 saw 11 planes. That
 //! was the cut before plan #457 fix-x09. The code now sorts reachable planes
@@ -82,7 +82,7 @@ fn shared_overlays(first: u32, count: u32, mask: u32) -> Vec<PlaneCaps> {
 /// BCM2711 (CM4, reTerminal), 60 planes in the kernel's device order, one
 /// probed output (DSI-1 on pixelvalve-1, output 0).
 ///
-/// Source: docs/observed/bcm2711-cm4.md, observed 2026-11-28 ("Topology":
+/// Source: docs/platform-capabilities.md, observed 2026-11-28 ("Topology":
 /// ids 48..710 step 11, plane-0..5 primaries, plane-6..21 16 shared overlays,
 /// plane-22..53 32 TXP overlays, plane-54..59 cursors). Primary ids 48, 67,
 /// 79, 91, 103, 115 and overlay ids 127..292 are recorded. The TXP overlay
@@ -107,7 +107,7 @@ fn bcm2711() -> Vec<PlaneCaps> {
 /// BCM2712 (Raspberry Pi 5), 56 planes, one probed output (HDMI-A-1 on CRTC
 /// index 2, output 0).
 ///
-/// Source: docs/observed/bcm2712-topology.md, observed 2026-11-28: primaries
+/// Source: docs/platform-capabilities.md, observed 2026-11-28: primaries
 /// 48, 67, 83, 95 (own CRTC each), 16 shared overlays 107..272 reaching CRTC
 /// 1, 2, 3, CRTC-0-only planes (ids not listed except 382), cursors 646, 657,
 /// 668 (inferred to be cursors) one per CRTC 1, 2, 3. The note counts 34

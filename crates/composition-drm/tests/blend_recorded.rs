@@ -12,13 +12,13 @@
 //! fully covered, or an opaque layer on top of a translucent one, is placed
 //! like any other. The tests below pin exactly that.
 //!
-//! Fixture data, copied here so that nothing reads `docs/observed`:
-//! - `docs/observed/rk3588-topology.md`, observed 2026-11-28 (kernel
+//! Fixture data, copied here so that nothing reads `docs/`:
+//! - `tests/data/rk3588/topology-2026-11-28.md`, observed 2026-11-28 (kernel
 //!   6.18.55-current-rockchip64): all eight planes report plane alpha true,
 //!   blend [none, premultiplied, coverage], zpos 0..=7, scaling not claimed;
 //!   the probe's format lists (Cluster planes list AFBC pairs only in the
 //!   first 32; Esmart planes list 21 linear pairs).
-//! - `docs/observed/bcm2712.md`, observed 2026-11-28 (kernel
+//! - `docs/platform-capabilities.md`, observed 2026-11-28 (kernel
 //!   6.18.50+rpt-rpi-2712): primaries zpos fixed 0, overlays 1..=17, every
 //!   plane alpha true and blend [none, premultiplied, coverage]; the 32 linear
 //!   pairs of the probe; the connected output (1920x1080) reaches primary 83

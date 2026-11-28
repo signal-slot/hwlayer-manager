@@ -1,5 +1,5 @@
 # Hand-written fixture; line formats copied from probe.rs (read 2026-11-28) and the
-# probe output recorded in docs/observed/rk3588-topology.md (2026-11-28). Not a full dump.
+# probe output recorded in tests/data/rk3588/topology-2026-11-28.md (2026-11-28). Not a full dump.
 device /dev/dri/card0, driver rockchip
 output 0: crtc 81 1920x1080 @ 60.000 Hz
 plane 33 Primary: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied], scaling not claimed

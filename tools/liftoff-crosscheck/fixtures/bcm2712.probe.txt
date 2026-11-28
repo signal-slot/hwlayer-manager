@@ -1,4 +1,4 @@
-# source: docs/observed/bcm2712-topology.md
+# source: docs/platform-capabilities.md
 # commit: 5d30922
 # observed: 2026-11-28
 # origin: observed
