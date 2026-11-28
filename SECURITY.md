@@ -53,23 +53,27 @@ for `unsafe_code` is `deny`; `composition-ffi` opts out with
   The engine does not allocate it. `ce_engine_init` returns null if `storage`
   or `ops` is null, if `size` is smaller than the engine, or if `storage` is
   misaligned. It does not check that the pointers are otherwise valid.
-- Every `extern "C"` function except `ce_abi_check` is `unsafe` and documents
-  a `# Safety` contract. Null `engine`, `info` or `frame` pointers are
-  checked and reported as `CE_ERR_INVALID_ARGUMENT` (or a null/zero result
-  for the query functions). Beyond null, the library cannot verify pointers:
-  an `engine` that did not come from `ce_engine_init`, a dangling or
-  too-short `layers` array in `ce_present`, or a function table whose
+- Every `extern "C"` function except `ce_abi_check` and `ce_abi_check_advise`
+  is `unsafe` and documents a `# Safety` contract. Null `engine`, `info` or
+  `frame` pointers are checked and reported as `CE_ERR_INVALID_ARGUMENT` (or
+  a null/zero result for the query functions). Beyond null, the library
+  cannot verify pointers: an `engine` that did not come from
+  `ce_engine_init`, a dangling or too-short `layers` array in `ce_present` or
+  `ce_advise`, or a function table whose
   functions are unsafe to call with the given context is undefined behaviour,
   and it is the caller's responsibility.
 - `ce_present` copies the caller's layers into a fixed-size local array
   (`layer_count` above the engine limit is rejected with
   `CE_ERR_TOO_MANY_LAYERS`) and validates the `blend` and `transform` values
-  before planning. Unknown event kinds from a C backend's `poll_event` are
-  skipped.
+  before planning. `ce_advise` does the same with its frame, and also
+  checks its `options`, `caps` and `advice` pointers and its buffer table
+  (null with a non-zero count is `CE_ERR_INVALID_ARGUMENT`). Unknown event
+  kinds from a C backend's `poll_event` are skipped.
 - Calls into the C backend (`capabilities`, `check`, `commit`, `poll_event`)
   are made with pointers to live locals or to the engine's own storage; the
   backend's functions are trusted to honour their contract.
-- `ce_abi_check` lets a C program compare its structure sizes with the
+- `ce_abi_check` (and `ce_abi_check_advise` for the `ce_advise`
+  structures) lets a C program compare its structure sizes with the
   library's. The header is written by hand, so a mismatch between header and
   library is possible if they are changed separately; that is why they change
   in the same commit. The check covers sizes only, not field layout or
