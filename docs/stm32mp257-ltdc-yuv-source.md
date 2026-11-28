@@ -8,28 +8,29 @@ Date of reading: 2026-11-28. **Nothing here is a board measurement.** Every row 
 | --- | --- | --- |
 | Tree | `STMicroelectronics/linux`, branch `v6.6-stm32mp`, tip commit `548f960c059bc4b9165cb69895fd67551f6061ca` (the same commit the 6.6 comparison in `stm32mp257-ltdc-source-diff-6.6.md` pins; its `Makefile` says 6.6.129, the board's version) | read from source |
 | Files | `drivers/gpu/drm/stm/ltdc.c`, `drivers/gpu/drm/stm/ltdc.h` | read from source |
-| How | Fetched as `raw.githubusercontent.com/.../v6.6-stm32mp/...` through a web-fetch agent. The shell could not clone or `curl` (worker permission layer), so there was **no `git show` / `grep -n` on a checkout**. The tool delivered the first ~78.7k of 90.4k characters of `ltdc.c` verbatim, which includes every YCbCr line below. | read from source |
-| Line numbers | Counted by hand on the verbatim text: **accurate to about ±3 lines**, marked `~`. Names and code are quoted verbatim. Re-check with `grep -n 'CYR0R\|ycbcr2rgb\|ltdc_set_ycbcr' ltdc.c` on a checkout before quoting a line number elsewhere. | read from source |
-| Not read | The tail of `ltdc_get_caps` (per hardware version `ycbcr_input = true`). That `ycbcr_input` is true on the board is from [`stm32mp257-ltdc-source-diff-6.6.md`](stm32mp257-ltdc-source-diff-6.6.md) (item 4: "`ycbcr_input` is true" on this board). Whether the board kernel has the same `ltdc.c` as the branch tip is **inferred**, as stated there. | inferred |
+| How | `curl` of `raw.githubusercontent.com/STMicroelectronics/linux/v6.6-stm32mp/drivers/gpu/drm/stm/ltdc.c` on 2026-11-28 (the branch name resolved to the tip above at that time; the commit SHA was not re-queried). The file has 2943 lines, the same count the 6.6 comparison reports for `548f960c`. | read from source |
+| Line numbers | Exact, counted with `grep -n` / `sed -n` on that file. Re-check with `grep -n 'CYR0R\|ycbcr2rgb\|ltdc_set_ycbcr' ltdc.c`. | read from source |
+| `ycbcr_input` per version | `ltdc_get_caps` sets `ycbcr_input = true` and `ycbcr_output = true` for `HWVER_40100` and `HWVER_40101` (`ltdc.c` 2552-2564) and `false` for the older versions (`ltdc.c` 2497, 2523, 2543). | read from source |
+| Board kernel | Whether the board kernel (6.6.129) has the same `ltdc.c` as the branch tip is **inferred**, as stated in `stm32mp257-ltdc-source-diff-6.6.md`. | inferred |
 
 ## How the driver programs the conversion
 
 | Fact | Detail (6.6, `548f960c`) | Tag | Where |
 | --- | --- | --- | --- |
-| Registers | `LTDC_L1CYR0R` ("L1 Conversion YCbCr RGB 0") and `LTDC_L1CYR1R` ("L1 Conversion YCbCr RGB 1"), per layer; layer register slots 27 and 28; offsets `0x16c` and `0x170` in the layer table `ltdc_layer_regs_a2` (slots 29 and 30 are the flexible pixel format registers `0x174`, `0x178`). The other two tables (`a0`, `a1`) mark them `0x00 /* not available */`. | read from source | `ltdc.c` ~124-125 (macros), ~489-490 (a2 offsets), ~393-459 (a0/a1) |
-| Where the layer offset comes from | `lofs = plane->index * LAY_OFS`, so every plane has its own coefficient pair | read from source | `ltdc.c` ~978-1002 |
-| Access | The regmap allows `LTDC_L1CYR0R/1R` only for hardware versions `HWVER_40100` and `HWVER_40101` | read from source | `ltdc.c` ~609-611 (readable), ~727-729 (writeable) |
-| Coefficient table | `static const u32 ltdc_ycbcr2rgb_coeffs[DRM_COLOR_ENCODING_MAX][DRM_COLOR_RANGE_MAX][2]`; index `[0]` is written to `CYR0R`, index `[1]` to `CYR1R`. Four entries, see next table. `/* BT2020 not supported */` | read from source | `ltdc.c` ~782-800 |
-| Programming | `ltdc_set_ycbcr_coeffs(plane)` reads `plane->state->color_encoding` and `color_range` and writes the two table words | read from source | `ltdc.c` ~978-1002 |
-| Fallback | an encoding that is neither BT.601 nor BT.709: log "color encoding %d not supported, use bt601 by default", use BT.601. A range that is neither limited nor full: log "color range %d not supported, use limited range by default", use limited | read from source | `ltdc.c` ~986-996 |
-| Mode register | `ltdc_set_ycbcr_config(plane, fourcc)` writes `LTDC_L1PCR` (layer planar configuration): `YCM` (bits 5:4) = `YCM_I` 0 interleaved 4:2:2, `YCM_SP` 1 semi-planar 4:2:0, `YCM_FP` 2 full-planar 4:2:0; `LxPCR_YCEN` (bit 3) "YCbCr-to-RGB Conversion Enable"; `LxPCR_YF` (bit 6) Y first; `LxPCR_CBF` (bit 7) CB first; `LxPCR_OF` (bit 8) odd pixel first; `LxPCR_YREN` (bit 9) "Y Rescale Enable for the color dynamic range" | read from source | `ltdc.c` ~243-251 (bits), ~932-975 (function) |
-| Format to mode | YUYV: `YCM_I`, `YF`, `CBF`. YVYU: `YCM_I`, `YF`. UYVY: `YCM_I`, `CBF`. VYUY: `YCM_I`. NV12: `YCM_SP`, `CBF`. NV21: `YCM_SP`. YUV420 (YU12) and YVU420 (YV12): `YCM_FP` (YV12 swaps the two chroma planes in the address programming instead). Any other format: `DRM_ERROR("Unsupported pixel format")`, return | read from source | `ltdc.c` ~940-961 |
-| Range handling | After the switch: `if (state->color_range == DRM_COLOR_YCBCR_LIMITED_RANGE) val |= LxPCR_YREN;` then `val |= LxPCR_YCEN;`, then write `LTDC_L1PCR`. So `YREN` (Y rescale) is set exactly when the range is **limited**. Full range clears it. | read from source | `ltdc.c` ~969-975 |
-| When it runs | In `ltdc_plane_update`, inside `if (ldev->caps.ycbcr_input)`: if `fb->format->is_yuv`, `ltdc_set_ycbcr_coeffs(plane)` and `ltdc_set_ycbcr_config(plane, fb->format->format)` run on every commit that has a YUV framebuffer; for an RGB framebuffer `LTDC_L1PCR` is written 0 ("disable ycbcr conversion") | read from source | `ltdc.c` ~1871-1873, ~1951-1960 |
-| Properties honoured | **Yes, both.** `drm_plane_create_color_properties(plane, BIT(BT601)\|BIT(BT709), BIT(LIMITED_RANGE)\|BIT(FULL_RANGE), DRM_COLOR_YCBCR_BT601, DRM_COLOR_YCBCR_LIMITED_RANGE)` is called when `ycbcr_input` and the layer reports `YIA`, `YSPA` or `YFPA`; the driver reads the plane state values at commit (row above). Nothing is hard-coded except the fallbacks. | read from source | `ltdc.c` ~2214-2223 |
-| Defaults | **BT.601, limited range** (the `default_encoding`/`default_range` arguments above, and the fallbacks) | read from source | `ltdc.c` ~2214-2223, ~986-996 |
-| Supported choices | BT.601, BT.709; limited, full. No BT.2020. | read from source | `ltdc.c` ~2214-2223 |
-| Output side (not used for planes) | `if (ldev->caps.ycbcr_output)` in `ltdc_crtc_atomic_enable` selects an RGB-to-YCbCr output converter by CEA VIC (BT.601 for VIC 6, 7, 21, 22, 2, 3, 17, 18, else BT.709) when the bus format is `YUYV8_1X16` or `YVYU8_1X16` (`EDCR_OCYEN`, `EDCR_OCYSEL`, `EDCR_OCYCO`). Not relevant to the DSI/HDMI/LVDS RGB paths of this board. | read from source (relevance: inferred) | `ltdc.c` ~1232 and the `EDCR_*` defines ~207-209 |
+| Registers | `LTDC_L1CYR0R` ("L1 Conversion YCbCr RGB 0") and `LTDC_L1CYR1R` ("L1 Conversion YCbCr RGB 1"), per layer; layer register slots 27 and 28; offsets `0x16c` and `0x170` in the layer table `ltdc_layer_regs_a2` (slots 29 and 30 are the flexible pixel format registers `0x174`, `0x178`). The other two tables (`a0`, `a1`) mark them `0x00 /* not available */`. | read from source | `ltdc.c` 124-125 (macros), 489-491 (a2 offsets), 393-459 (a0/a1) |
+| Where the layer offset comes from | `lofs = plane->index * LAY_OFS`, so every plane has its own coefficient pair | read from source | `ltdc.c` 978-1002 |
+| Access | The regmap allows `LTDC_L1CYR0R/1R` only for hardware versions `HWVER_40100` and `HWVER_40101` | read from source | `ltdc.c` 609-611 (readable), 727-729 (writeable) |
+| Coefficient table | `static const u32 ltdc_ycbcr2rgb_coeffs[DRM_COLOR_ENCODING_MAX][DRM_COLOR_RANGE_MAX][2]`; index `[0]` is written to `CYR0R`, index `[1]` to `CYR1R`. Four entries, see next table. `/* BT2020 not supported */` | read from source | `ltdc.c` 782-800 |
+| Programming | `ltdc_set_ycbcr_coeffs(plane)` reads `plane->state->color_encoding` and `color_range` and writes the two table words | read from source | `ltdc.c` 978-1002 |
+| Fallback | an encoding that is neither BT.601 nor BT.709: log "color encoding %d not supported, use bt601 by default", use BT.601. A range that is neither limited nor full: log "color range %d not supported, use limited range by default", use limited | read from source | `ltdc.c` 986-996 |
+| Mode register | `ltdc_set_ycbcr_config(plane, fourcc)` writes `LTDC_L1PCR` (layer planar configuration): `YCM` (bits 5:4) = `YCM_I` 0 interleaved 4:2:2, `YCM_SP` 1 semi-planar 4:2:0, `YCM_FP` 2 full-planar 4:2:0; `LxPCR_YCEN` (bit 3) "YCbCr-to-RGB Conversion Enable"; `LxPCR_YF` (bit 6) Y first; `LxPCR_CBF` (bit 7) CB first; `LxPCR_OF` (bit 8) odd pixel first; `LxPCR_YREN` (bit 9) "Y Rescale Enable for the color dynamic range" | read from source | `ltdc.c` 243-251 (bits), 932-975 (function) |
+| Format to mode | YUYV: `YCM_I`, `YF`, `CBF`. YVYU: `YCM_I`, `YF`. UYVY: `YCM_I`, `CBF`. VYUY: `YCM_I`. NV12: `YCM_SP`, `CBF`. NV21: `YCM_SP`. YUV420 (YU12) and YVU420 (YV12): `YCM_FP` (YV12 swaps the two chroma planes in the address programming instead). Any other format: `DRM_ERROR("Unsupported pixel format")`, return | read from source | `ltdc.c` 940-960 |
+| Range handling | After the switch: `if (state->color_range == DRM_COLOR_YCBCR_LIMITED_RANGE) val |= LxPCR_YREN;` then `val |= LxPCR_YCEN;`, then write `LTDC_L1PCR`. So `YREN` (Y rescale) is set exactly when the range is **limited**. Full range clears it. | read from source | `ltdc.c` 969-973 (write follows) |
+| When it runs | In `ltdc_plane_update`, inside `if (ldev->caps.ycbcr_input)`: if `fb->format->is_yuv`, `ltdc_set_ycbcr_coeffs(plane)` and `ltdc_set_ycbcr_config(plane, fb->format->format)` run on every commit that has a YUV framebuffer; for an RGB framebuffer `LTDC_L1PCR` is written 0 ("disable ycbcr conversion") | read from source | `ltdc.c` 1872-1873, 1953-1956, else branch 1957-1960 |
+| Properties honoured | **Yes, both.** `drm_plane_create_color_properties(plane, BIT(BT601)\|BIT(BT709), BIT(LIMITED_RANGE)\|BIT(FULL_RANGE), DRM_COLOR_YCBCR_BT601, DRM_COLOR_YCBCR_LIMITED_RANGE)` is called when `ycbcr_input` and the layer reports `YIA`, `YSPA` or `YFPA`; the driver reads the plane state values at commit (row above). Nothing is hard-coded except the fallbacks. | read from source | `ltdc.c` 2215-2224 |
+| Defaults | **BT.601, limited range** (the `default_encoding`/`default_range` arguments above, and the fallbacks) | read from source | `ltdc.c` 2215-2224, 986-996 |
+| Supported choices | BT.601, BT.709; limited, full. No BT.2020. | read from source | `ltdc.c` 2215-2224 |
+| Output side (not used for planes) | `if (ldev->caps.ycbcr_output)` in `ltdc_crtc_atomic_enable` selects an RGB-to-YCbCr output converter by CEA VIC (BT.601 for VIC 6, 7, 21, 22, 2, 3, 17, 18, else BT.709) when the bus format is `YUYV8_1X16` or `YVYU8_1X16` (`EDCR_OCYEN`, `EDCR_OCYSEL`, `EDCR_OCYCO`). Not relevant to the DSI/HDMI/LVDS RGB paths of this board. | read from source (relevance: inferred) | `ltdc.c` 1233-1253 and the `EDCR_*` defines 207-209 |
 | `ltdc.h` | Only `ycbcr_input` and `ycbcr_output` booleans in `struct ltdc_caps`. No register offsets, no coefficients. | read from source | `ltdc.h` (`struct ltdc_caps`) |
 
 ### The coefficient words
@@ -38,10 +39,10 @@ Each word packs two 11-bit-ish values (high half and low half); the driver's own
 
 | Encoding, range | `CYR0R` (b_cb / r_cr) | `CYR1R` (g_cb / g_cr) | Tag | Where |
 | --- | --- | --- | --- | --- |
-| BT.601, limited | `0x02040199` (516 / 409) | `0x006400D0` (100 / 208) | read from source | `ltdc.c` ~783-786 |
-| BT.601, full | `0x01C60167` (454 / 359) | `0x005800B7` (88 / 183) | read from source | `ltdc.c` ~787-790 |
-| BT.709, limited | `0x021D01CB` (541 / 459) | `0x00370089` (55 / 137) | read from source | `ltdc.c` ~791-794 |
-| BT.709, full | `0x01DB0193` (475 / 403) | `0x00300078` (48 / 120) | read from source | `ltdc.c` ~795-798 |
+| BT.601, limited | `0x02040199` (516 / 409) | `0x006400D0` (100 / 208) | read from source | `ltdc.c` 783-785 |
+| BT.601, full | `0x01C60167` (454 / 359) | `0x005800B7` (88 / 183) | read from source | `ltdc.c` 787-789 |
+| BT.709, limited | `0x021D01CB` (541 / 459) | `0x00370089` (55 / 137) | read from source | `ltdc.c` 791-793 |
+| BT.709, full | `0x01DB0193` (475 / 403) | `0x00300078` (48 / 120) | read from source | `ltdc.c` 795-797 |
 
 ### Reading the coefficients (inferred)
 
