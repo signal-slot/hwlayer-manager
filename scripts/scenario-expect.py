@@ -2,14 +2,20 @@
 """Print a camera-check EXPECT JSON for the picture of a drm-harness scenario.
 
   scenario-expect.py --scenario NAME [--step STEP] [--after SCENARIO]
+                     [--phase before|after] [--modeset-compare changed|drawing]
                      [--width W] [--height H] [--rotation N] [--tolerance N]
                      [--threshold N] [--panel full|auto|corners]
                      [--corners x,y,...]
   scenario-expect.py --list
 
 Scenarios of tools/drm-harness today: combos, two-planes, zorder-alpha, move,
-rotate, revoke. Phases without a drawing of their own: stop, modeset, recovery
-(a 'changed' compare against the hold picture, no colours). The JSON goes to
+rotate, revoke, modeset, recovery. The stop phase has no drawing of its own (a
+'changed' compare against the hold picture, no colours). modeset draws the
+two-planes picture in both modes: by default a 'changed' compare against the
+picture before the switch, with --modeset-compare drawing the two-planes colours
+(for a sink that scales both modes to the full screen, so that the pictures look
+alike). recovery draws two-planes before the loss (--phase before) and a green
+and yellow picture after it (--phase after, the default). The JSON goes to
 stdout; judge a picture with
   camera-check.py PICTURE EXPECT.json [--compare PICTURE2]
 Exit status: 0 = ok, 2 = input error. Python 3, standard library only.
@@ -26,6 +32,7 @@ import sys
 BLUE = (0x00, 0x20, 0x80)
 RED = (0xE0, 0x10, 0x10)
 GREEN = (0x10, 0xC0, 0x10)
+YELLOW = (0xF0, 0xE0, 0x00)
 WHITE = (0xFF, 0xFF, 0xFF)
 BLACK = (0x00, 0x00, 0x00)
 GREY = (0x60, 0x60, 0x60)
@@ -47,11 +54,20 @@ def mix(a, b, t):
     return tuple(round(t * x + (1 - t) * y) for x, y in zip(a, b))
 
 
-def two_planes(w, h):
+def two_planes(w, h, bottom=BLUE, top=RED, names=("blue", "red")):
     # scenarios.rs two_planes(): bottom = whole screen, BLUE, WHITE frame; top =
     # (w/2, h/2) at (w/4, h/4), RED, YELLOW frame, above the bottom plane.
-    return [("blue bottom plane", [0.06, 0.06, 0.20, 0.20], BLUE),
-            ("red top plane", [0.35, 0.35, 0.65, 0.65], RED)]
+    # The same layout and frame widths hold for TWO_PLANES and RECOVERED, the
+    # pictures of commit_for(), with other fill colours.
+    return [("%s bottom plane" % names[0], [0.06, 0.06, 0.20, 0.20], bottom),
+            ("%s top plane" % names[1], [0.35, 0.35, 0.65, 0.65], top)]
+
+
+def recovered(w, h):
+    # scenarios.rs RECOVERED: the picture of the new run after the loss, drawn
+    # by commit_for() in the two-planes layout: bottom GREEN with WHITE frame,
+    # top YELLOW with BLUE frame.
+    return two_planes(w, h, GREEN, YELLOW, ("green", "yellow"))
 
 
 def zorder_alpha(w, h, step):
@@ -118,11 +134,16 @@ def bar_tolerance(w):
 
 COLOURED = ("two-planes", "zorder-alpha", "move", "rotate", "revoke")
 SCENARIOS = ("combos",) + COLOURED + ("stop", "modeset", "recovery")
+PHASES = ("before", "after")
+MODESET_COMPARES = ("changed", "drawing")
 
 
-def pictures(name, step, w, h):
+def pictures(name, step, w, h, phase="after"):
     if name == "two-planes":
         return two_planes(w, h)
+    if name == "recovery":
+        # recovery-before commits TWO_PLANES, recovery-after commits RECOVERED.
+        return two_planes(w, h) if phase == "before" else recovered(w, h)
     if name == "zorder-alpha":
         return zorder_alpha(w, h, step or STEPS[0])
     if name == "move":
@@ -144,13 +165,17 @@ def build(args):
     w, h = args["width"], args["height"]
     tol, thr = args["tolerance"], args["threshold"]
     exp = {"rotation": args["rotation"], "panel": args["panel"]}
-    if name in COLOURED:
+    # modeset-before and modeset-after both commit TWO_PLANES, on the original
+    # and on the new mode; 'drawing' judges those colours instead of a change.
+    if name == "modeset" and args["modeset_compare"] == "drawing":
+        name = "two-planes"
+    if name in COLOURED or name == "recovery":
         if tol is None:
             tol = bar_tolerance(w) if name in ("rotate", "revoke") else DEFAULT_TOL
         exp["tolerance"] = tol
         exp["regions"] = [{"name": n, "rect": [round(v, 4) for v in r],
                            "expect": list(c)}
-                          for n, r, c in pictures(name, args["step"], w, h)]
+                          for n, r, c in pictures(name, args["step"], w, h, args["phase"])]
         return exp
     if tol is not None:
         exp["tolerance"] = tol
@@ -161,9 +186,9 @@ def build(args):
         want = "same"
         thr = 30 if thr is None else thr
     else:
-        # stop (after the harness exits), modeset and recovery (scenarios the
-        # harness does not have yet): the regions of the hold picture must differ
-        # from the picture taken after the event. Colours are not stated.
+        # stop (after the harness exits) and modeset with the default compare:
+        # the regions of the hold picture must differ from the picture taken
+        # after the event. Colours are not stated.
         base = args["after"]
         if base in COLOURED:
             rows = [(n, r) for n, r, _ in pictures(base, args["step"], w, h)]
@@ -181,13 +206,15 @@ def build(args):
 def parse(argv):
     a = {"scenario": None, "step": None, "after": "two-planes", "width": 1920,
          "height": 1080, "rotation": 0, "tolerance": None, "threshold": None,
-         "panel": "full", "corners": None}
+         "panel": "full", "corners": None, "phase": "after",
+         "modeset_compare": "changed"}
     keys = {"--scenario": ("scenario", str), "--step": ("step", str),
             "--after": ("after", str), "--width": ("width", int),
             "--height": ("height", int), "--rotation": ("rotation", int),
             "--tolerance": ("tolerance", float),
             "--threshold": ("threshold", float), "--panel": ("panel", str),
-            "--corners": ("corners", str)}
+            "--corners": ("corners", str), "--phase": ("phase", str),
+            "--modeset-compare": ("modeset_compare", str)}
     i = 0
     try:
         while i < len(argv):
@@ -206,10 +233,16 @@ def parse(argv):
         raise InputError("usage: scenario-expect.py --scenario NAME [--step S] "
                          "[--after SCENARIO] [--width W] [--height H] "
                          "[--rotation N] [--tolerance N] [--threshold N] "
-                         "[--panel full|auto|corners] [--corners x,y,...] | "
+                         "[--panel full|auto|corners] [--corners x,y,...] "
+                         "[--phase before|after] "
+                         "[--modeset-compare changed|drawing] | "
                          "--list; scenarios: " + " ".join(SCENARIOS))
     if a["step"] is not None and a["step"] not in STEPS:
         raise InputError("--step must be one of " + ", ".join(STEPS))
+    if a["phase"] not in PHASES:
+        raise InputError("--phase must be before or after")
+    if a["modeset_compare"] not in MODESET_COMPARES:
+        raise InputError("--modeset-compare must be changed or drawing")
     if a["after"] not in ("combos",) + COLOURED:
         raise InputError("--after must name a harness scenario")
     if a["width"] < 64 or a["height"] < 64:

@@ -70,12 +70,38 @@ for st in $steps; do
 done
 py "$tool" --scenario combos > "$root/combos.json" || bad "combos exit"
 if py "$root/chk.py" "$root/combos.json" 0 compare same; then ok "combos json (compare same)"; else bad "combos json"; fi
-for s in stop modeset recovery; do
+for s in stop modeset; do
     py "$tool" --scenario "$s" > "$root/$s.json" || bad "$s exit"
     if py "$root/chk.py" "$root/$s.json" 0 compare changed; then ok "$s json (compare changed)"; else bad "$s json"; fi
 done
 py "$tool" --scenario stop --after rotate > "$root/stop-rotate.json" && py "$root/chk.py" "$root/stop-rotate.json" 0 compare changed \
     && grep -q 'red top plane' "$root/stop-rotate.json" && ok "stop --after rotate" || bad "stop --after rotate"
+
+# recovery: colour EXPECTs, before the loss (two-planes) and after it (RECOVERED:
+# green and yellow), no compare.
+py "$tool" --scenario recovery > "$root/recovery.json" || bad "recovery exit"
+py "$tool" --scenario recovery --phase after > "$root/recovery-after.json" || bad "recovery after exit"
+py "$tool" --scenario recovery --phase before > "$root/recovery-before.json" || bad "recovery before exit"
+for f in recovery recovery-after recovery-before; do
+    if py "$root/chk.py" "$root/$f.json" 0 colours; then ok "$f json (colours)"; else bad "$f json"; fi
+done
+cmp -s "$root/recovery.json" "$root/recovery-after.json" && ok "recovery defaults to --phase after" || bad "recovery default phase"
+cmp -s "$root/recovery-before.json" "$root/two-planes.json" && ok "recovery --phase before is two-planes" || bad "recovery before = two-planes"
+if python3 -c '
+import json, sys
+d = json.load(open(sys.argv[1]))
+c = {r["name"]: r["expect"] for r in d["regions"]}
+assert c == {"green bottom plane": [16, 192, 16], "yellow top plane": [240, 224, 0]}, c' "$root/recovery-after.json"; then ok "recovery after colours (green, yellow)"; else bad "recovery after colours"; fi
+
+# modeset: --modeset-compare changed (default) or drawing.
+py "$tool" --scenario modeset --modeset-compare changed > "$root/modeset-changed.json" || bad "modeset changed exit"
+py "$tool" --scenario modeset --modeset-compare drawing > "$root/modeset-drawing.json" || bad "modeset drawing exit"
+cmp -s "$root/modeset.json" "$root/modeset-changed.json" && ok "modeset default is --modeset-compare changed" || bad "modeset default compare"
+if py "$root/chk.py" "$root/modeset-drawing.json" 0 colours; then ok "modeset drawing json (colours, no compare)"; else bad "modeset drawing json"; fi
+cmp -s "$root/modeset-drawing.json" "$root/two-planes.json" && ok "modeset drawing is the two-planes drawing" || bad "modeset drawing = two-planes"
+# --modeset-compare only changes modeset.
+py "$tool" --scenario two-planes --modeset-compare drawing > "$root/tp-drawing.json"
+cmp -s "$root/tp-drawing.json" "$root/two-planes.json" && ok "--modeset-compare leaves other scenarios alone" || bad "--modeset-compare other"
 
 # Options.
 py "$tool" --scenario two-planes --rotation 180 --width 1280 --height 720 > "$root/r180.json" \
@@ -99,9 +125,14 @@ py "$tool" --scenario zorder-alpha --step c-over-d > /dev/null 2>&1
 py "$tool" --scenario two-planes --panel corners > /dev/null 2>&1
 [ $? -eq 2 ] && ok "corners without --corners is exit 2" || bad "corners"
 
+for o in "--phase middle" "--phase" "--modeset-compare same" "--modeset-compare"; do
+    py "$tool" --scenario recovery $o > /dev/null 2>&1
+    [ $? -eq 2 ] && ok "bad option '$o' is exit 2" || bad "bad option '$o'"
+done
+
 # Round trip: camera-check accepts every coloured scenario's file, passes a
 # matching picture and fails one with a wrong colour.
-for s in two-planes zorder-alpha move rotate revoke $(for st in $steps; do echo "z-$st"; done); do
+for s in two-planes zorder-alpha move rotate revoke recovery recovery-before modeset-drawing $(for st in $steps; do echo "z-$st"; done); do
     py "$root/mk.py" "$root/$s.json" "$root/$s-good.ppm" good
     py "$root/mk.py" "$root/$s.json" "$root/$s-wrong.ppm" wrong
     py "$cam" "$root/$s-good.ppm" "$root/$s.json" > "$root/g.log" 2>&1
@@ -115,12 +146,18 @@ done
 py "$root/mk.py" "$root/stop.json" "$root/hold.ppm" good
 py "$root/mk.py" "$root/two-planes.json" "$root/hold.ppm" good
 py "$root/mk.py" "$root/stop.json" "$root/blank.ppm" blank
-for s in stop modeset recovery; do
+for s in stop modeset; do
     py "$cam" "$root/hold.ppm" "$root/$s.json" --compare "$root/blank.ppm" > "$root/g.log" 2>&1
     if grep -q 'VERDICT: PASS' "$root/g.log"; then ok "$s: changed picture passes"; else bad "$s: changed picture"; cat "$root/g.log"; fi
     py "$cam" "$root/hold.ppm" "$root/$s.json" --compare "$root/hold.ppm" > "$root/w.log" 2>&1
     if grep -q 'VERDICT: FAIL' "$root/w.log"; then ok "$s: unchanged picture fails"; else bad "$s: unchanged picture"; fi
 done
+# modeset --modeset-compare drawing: the same drawing passes in both modes
+# (identical pictures), a blank picture fails.
+py "$cam" "$root/hold.ppm" "$root/modeset-drawing.json" > "$root/g.log" 2>&1
+if grep -q 'VERDICT: PASS' "$root/g.log"; then ok "modeset drawing: drawn picture passes"; else bad "modeset drawing: drawn picture"; fi
+py "$cam" "$root/blank.ppm" "$root/modeset-drawing.json" > "$root/w.log" 2>&1
+if grep -q 'VERDICT: FAIL' "$root/w.log"; then ok "modeset drawing: blank picture fails"; else bad "modeset drawing: blank picture"; fi
 py "$cam" "$root/hold.ppm" "$root/combos.json" --compare "$root/hold.ppm" > "$root/g.log" 2>&1
 if grep -q 'VERDICT: PASS' "$root/g.log"; then ok "combos: same picture passes"; else bad "combos: same picture"; fi
 py "$cam" "$root/hold.ppm" "$root/combos.json" --compare "$root/blank.ppm" > "$root/w.log" 2>&1

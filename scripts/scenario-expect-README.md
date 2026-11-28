@@ -7,6 +7,7 @@ standard library only, same style as `twoplane-expect.py`.
 
 ```
 python3 scripts/scenario-expect.py --scenario NAME [--step STEP] [--after SCENARIO]
+        [--phase before|after] [--modeset-compare changed|drawing]
         [--width W] [--height H] [--rotation N] [--tolerance N] [--threshold N]
         [--panel full|auto|corners] [--corners x,y,x,y,x,y,x,y]
 python3 scripts/scenario-expect.py --list
@@ -29,7 +30,8 @@ and `scenarios.rs`; the comments in the script name the function for each.
 | `revoke` | `revoke()`: as `rotate`, frozen at the last frame after the revoke | same as `rotate` |
 | `combos` | `combos()`: only TEST_ONLY, nothing is committed | `compare` **same** against the picture before the run |
 | `stop` | after the harness stopped: no pattern | regions of `--after` (default `two-planes`), `compare` **changed** against the hold picture |
-| `modeset`, `recovery` | no harness scenario yet | as `stop`: `compare` **changed** against the hold picture, no colours |
+| `modeset` | `modeset()`: `modeset-before` and `modeset-after` both draw the two-planes picture, on the original and on the new mode | `--modeset-compare changed` (default): as `stop`, `compare` **changed** against the picture before the switch, no colours. `drawing`: the `two-planes` colours, no compare |
+| `recovery` | `recovery()`: `recovery-before` draws the two-planes picture (`TWO_PLANES`); the new run after the loss draws `RECOVERED`: GREEN full screen, YELLOW rectangle with BLUE frame, same layout. `--phase before` or `after` (default) picks the picture | colour regions: blue/red (before) or green/yellow (after) |
 
 `move`, `rotate` and `revoke` have no `--seconds` hold: the picture is taken
 during the run, so give them a `--frames` large enough to last (the bar and the
@@ -39,8 +41,12 @@ only move the margins, which keep three frame widths (24 px) from every edge.
 
 The `changed` entries use threshold 60 (`--threshold`); each listed region must
 differ, so after the stop the screen must not show the pattern's colours there.
-For `modeset` and `recovery` the real pictures are not known yet; use
-`--after` to choose the base drawing and revisit when the scenarios exist.
+For `modeset`, `changed` assumes the picture differs between the modes. A sink
+that scales both modes to the full screen shows the same picture twice, so use
+`--modeset-compare drawing`: the two-planes colours must be seen in the picture
+taken in each mode (judge both pictures with the same file, no `--compare`).
+`--after` only applies to `stop`, `--phase` only to `recovery` and
+`--modeset-compare` only to `modeset`.
 
 ## Using it
 
