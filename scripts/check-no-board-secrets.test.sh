@@ -106,6 +106,27 @@ run ml-ip-still-flagged 1 a.txt "dri-devel@lists.freedesktop.org $ip"
 run mac-time-range 0 a.txt "19:44:22-19:45:12 UTC"
 run mac-dash 1 a.txt "eth $macdash"
 run tty-rpmsg 0 a.txt "cat /dev/ttyRPMSG0"
+# AM62P session identifiers (serial number, MAC, ssh destination, UART path).
+sn="1234""5678"
+run serial-number 1 a.txt "Serial Number: $sn"
+run serial-lower 1 a.txt "serial=$sn"
+run serial-devicetree 1 a.txt "/proc/device-tree/serial-number shows serial $sn"
+run serial-placeholder 0 a.txt "Serial Number: <serial> and serial=\$SERIAL"
+run serial-short-number 0 a.txt "serial 12345 and serial port 115200"
+run serial-dt-unit-address 0 a.txt 'lpuart3 is serial@42570000'
+run serial-long-digits 0 a.txt "serial 1234567890123"
+run mac-sysfs 1 a.txt "cat /sys/class/net/eth0/address: $mac"
+run ssh-torizon-host 1 a.txt "ssh tori""zon@verdin-am62p-0""1 true"
+run ssh-torizon-ip 1 a.txt "ssh tori""zon@192.168.""7.9"
+run ssh-lease-placeholder 0 a.txt 'ssh torizon@<lease dest> true'
+run ssh-env-placeholder 0 a.txt 'ssh "$AM62P_SSH_DEST" true; ssh torizon@$AM62P_HOST true'
+run tty-usb 1 a.txt "console /dev/tty""USB1"
+run tty-acm 1 a.txt "console /dev/tty""ACM0"
+run tty-acm-end 1 a.txt "console /dev/tty""ACM"
+run tty-placeholder-angle 0 a.txt "console /dev/<uart> or /dev/ttyUSB<n> or /dev/ttyACM<n>"
+run tty-placeholder-var 0 a.txt 'console /dev/ttyACM$N and /dev/ttyUSB${N}'
+run tty-placeholder-plus-real 1 a.txt "/dev/ttyUSB<n> and $tty"
+run sysfs-remoteproc-generic 0 a.txt "cat /sys/class/remoteproc/remoteproc2/state; echo start > /sys/class/remoteproc/remoteprocN/state"
 run tty-fixture-elsewhere-flagged 1 scripts/other.test.sh "echo $tty"
 run fixture-zephyr-allowed 0 scripts/check-zephyr-apps.test.sh "echo $tty"
 
