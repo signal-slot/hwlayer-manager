@@ -4,7 +4,8 @@ METRIC lines read by m2-compare-report.py. Standard library only.
 
     python3 -I scripts/trace-to-metrics.py [--stage S] [--refresh-us N] LOG > run.txt
 
-Exit 0 ok, 2 input error (unreadable file, no date comment, no hdr line,
+A log whose RUN line has alpha= is a variant run: nothing on stdout, a note on
+stderr, exit 0. Exit 0 ok, 2 input error (unreadable file, no date comment, no hdr line,
 unknown version, malformed CETRACE line). See trace-to-metrics-README.md.
 """
 import re
@@ -42,6 +43,7 @@ def read(path):
     date = None
     hdr = None
     events = []
+    variant = None
     try:
         fh = open(path, encoding="utf-8", errors="replace")
     except OSError as e:
@@ -54,6 +56,11 @@ def read(path):
                 if date and date != m.group(1):
                     raise Bad("line %d: two different dates" % n)
                 date = m.group(1)
+                continue
+            if line.startswith("RUN "):
+                m = re.search(r"\salpha=(\S+)", line)
+                if m:
+                    variant = m.group(1)
                 continue
             if not line.startswith("CETRACE"):
                 continue
@@ -70,7 +77,7 @@ def read(path):
         raise Bad("no CETRACE ev=hdr line")
     if hdr.get("src") not in ("linux", "zephyr"):
         raise Bad("hdr src= must be linux or zephyr")
-    return date, hdr, events
+    return date, hdr, events, variant
 
 
 def clock_ns(hdr, events):
@@ -229,10 +236,15 @@ def main(argv):
                          "[--refresh-us N] LOG\n")
         return 2
     try:
-        date, hdr, events = read(args[0])
+        date, hdr, events, variant = read(args[0])
     except Bad as e:
         sys.stderr.write("trace-to-metrics: %s\n" % e)
         return 2
+    if variant:
+        sys.stderr.write("trace-to-metrics: %s: variant run (RUN alpha=%s), "
+                         "not the WP3 scene; no RUN/METRIC lines written\n"
+                         % (args[0], variant))
+        return 0
     run = "RUN date=%s side=%s" % (date, hdr["src"])
     if stage:
         run += " stage=%s" % stage
