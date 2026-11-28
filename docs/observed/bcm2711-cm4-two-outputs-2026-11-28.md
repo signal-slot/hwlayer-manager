@@ -93,8 +93,9 @@ Configuration `dlm-b.toml`: lease `hdmi` = HDMI-A-1 with planes 91, 237; lease `
 list is explicit (`lease-manager.c:lease_add_planes`, `allow_shared`), and it creates a lease only when a
 client asks (read from source, drm-lease-manager `68c48758c46d93c8e83abb2fb1ec168fa13d1a53`). The kernel
 refuses a lease object that the lessor has already leased to someone else: `drm_lease.c:drm_lease_create`
-returns `-EBUSY` when `_drm_has_leased()` is true for an object (read from source, `rpi-linux-6.12` tree in the dependency cache;
-the commit of that tree was not recorded).
+returns `-EBUSY` when `_drm_has_leased()` is true for an object (read from source, `raspberrypi/linux` `rpi-6.12.y` at
+`8f5f2e15840330091c7116b2ef9454108d4bc423`, commit date 2026-11-23; later than the CM4's 6.12.47 build, so
+evidence for the series, not proof for that build).
 
 | Step | Result | Tag |
 |---|---|---|
@@ -115,7 +116,7 @@ It moves between CRTCs once the holder lets go. On this hardware, the overlay po
 |---|---|---|
 | C1: `twoplane /dev/dri/card0 --output 0 --frames 2400` (HDMI-A-1) | `MODE 640x480@75.000Hz output 0 (crtc 102) of 2`; layer 0 → primary 91, layer 1 → **overlay 127**; `RESULT frames=2400 committed=2400 latched=2400 released=4798 dropped=0 late=0`; `VERDICT twoplane: PASS` | observed 2026-11-28 |
 | C1 debugfs (10:37:20Z) | Plane 79 on `[fbcon]` on CRTC 90 (DSI stays active); planes 91 (640x480) and 127 (128x240, zpos 1) on CRTC 102, `allocated by = twoplane`; `hvs_underrun` 0; allocations 22 + 9 + four 17-word nodes = 99 words, one stale (`channel 1`). `hvs_dlists` printed `HVS chan 1 disabled` in this snapshot | observed 2026-11-28 |
-| Why `chan 1 disabled` | The debugfs dump prints "disabled" when the channel's `SCALER_DISPSTATX` mode is `DISABLED` **or `EOF`** (`vc4_hvs.c:vc4_hvs_debugfs_dlist`, rpi-6.12.y raw file in the dependency cache). The read probably fell between end of frame and the next start. The CRTC was active and every frame latched | read from source; the timing explanation is inferred |
+| Why `chan 1 disabled` | The debugfs dump prints "disabled" when the channel's `SCALER_DISPSTATX` mode is `DISABLED` **or `EOF`** (`vc4_hvs.c:vc4_hvs_debugfs_dlist`, `rpi-6.12.y` at `8f5f2e15840330091c7116b2ef9454108d4bc423`). The read probably fell between end of frame and the next start. The CRTC was active and every frame latched | read from source; the timing explanation is inferred |
 | C2: `twoplane /dev/dri/card0 --output 1 --frames 1800` (DSI-1) | `MODE 720x1280@60.000Hz output 1 (crtc 90) of 2`; layer 0 → primary 79, layer 1 → **overlay 127** (144x640 at 360,320); `RESULT frames=1800 committed=1800 latched=1800 released=3598 dropped=0 late=0`; `VERDICT twoplane: PASS` | observed 2026-11-28 |
 | C2 debugfs (10:38:03Z) | Planes 79 and 127 on CRTC 90 (`twoplane`); plane 91 on `[fbcon]` on CRTC 102; channel 0 17 words, channel 1 9 words; `hvs_underrun` 0 | observed 2026-11-28 |
 | Planner pick in master mode | With the full plane list, the planner takes the lowest-numbered overlay that reaches the output, 127, for either output. Two engine processes cannot both be master, so this route never has the engine on both outputs (inferred, from C1 and C2) | observed 2026-11-28 (picks); rest inferred |
