@@ -145,6 +145,86 @@ was not used is shown by the commit's plane assignment and by the producers
 updating only one buffer; the picture is the visual half of that evidence.
 Take the two pictures with the same camera position and exposure.
 
+## Using a KVM capture instead of a camera
+
+Status: this section is a procedure, not a result. As of this writing no KVM
+frame from the STM32MP257F-DK has been checked with `camera-check.py`; the
+capture there did not work and the script ran only its self-test
+(see [`docs/observed/stm32mp257-kvm.md`](../docs/observed/stm32mp257-kvm.md)).
+Nothing below says a KVM frame passed or failed.
+
+On boards with a NanoKVM (HDMI capture) the picture of the physical output is a
+frame of the HDMI signal, not a photograph of a panel. It shows the screen edge
+to edge, with no perspective, no surround, no camera blur and no room light. It
+is scaled to the KVM's capture size and may carry compression artifacts.
+
+**Passing a frame.** Save the frame as a file and pass it like a camera picture:
+`python3 scripts/camera-check.py frame.png expect.json --panel full --rotation 0`.
+PNG and PPM load without Pillow. A JPEG frame (the usual KVM stream format)
+needs Pillow, or convert it to PNG first. If the KVM serves only a stream, save
+one frame per phase; the file names go into the report with the verdict. Take
+the frame while the harness holds the pattern, and note the host UTC time.
+
+**Options that suit a direct capture.**
+
+- `--panel full` (or `"panel": "full"` in the file): the frame's own corners.
+  Do not use `auto` on a full frame. It needs a dark surround and a lit
+  background, and a KVM frame has neither.
+- `--rotation 0` (or `"rotation": 0`): the default of 180 is for the board
+  camera that sees the panel upside down. A KVM frame is upright.
+- Regions are fractions of the frame, so the capture size does not matter: the
+  same `rect` values work at any scale. Scaling and compression blur plane
+  edges, so keep regions well inside one plane's area, away from edges, and
+  on solid areas (for example the middle of a quadrant), not on thin lines or
+  text. The tighter edge margin of a direct capture allows regions closer to
+  the edge than for a camera, but not on it.
+- Tolerance: the capture has no room light or camera colour response, so
+  solid colours should land near the commanded value. Compression and a
+  possible limited-range conversion in the KVM still shift them. Start from
+  the camera tolerance (60), look at the distance column of a first run on a
+  known solid pattern, and only then tighten. Do not tighten before a
+  calibration frame of the same KVM exists. Record the measured colours of
+  that frame; do not assume them.
+- For `--compare` (move tests) the KVM does not move, so the same-corner rule
+  holds trivially. A `changed` threshold of 60 or more is still a good choice
+  while compression noise is unmeasured.
+
+**What a capture cannot show.**
+
+- The panel itself. The sink is the KVM, so panel timing, backlight, the
+  panel's own colour response, DSI or LVDS signalling and anything after the
+  HDMI encoder are not covered. A KVM frame tells what the display pipeline
+  sent to its HDMI output, not what a panel would show.
+- Which connector it came from, if the board has more than one output. State
+  in the log which connector the harness drove.
+- Exact pixel values. Scaling and compression make the picture a check of
+  colour regions and layout, not a bit-exact readback.
+- That one plane per layer was used. As above, a picture alone cannot exclude
+  a flattened buffer.
+
+**The picture-and-log rule stays.** A KVM frame is the visual half of the
+evidence only. Keep the harness log (plane assignment, commit status, latched
+or presented counts) with each frame, as in
+[`docs/m3-am62p-test-plan.md`](../docs/m3-am62p-test-plan.md) section 3. A pass
+needs a log that shows the intended planes and a verdict `PASS` for the frame; a
+picture without the log, or a log without the picture, is not a pass.
+
+**Open points (the script is not changed here).**
+
+- The script has no crop option. A KVM frame that includes a border or an
+  overlay outside the screen area (for example a letterboxed capture, or a
+  capture size with a different aspect ratio than the mode) would need
+  explicit corners, which works today in pixels or `frac`. Whether a KVM frame
+  needs that is not known until one is captured.
+- If the KVM scales a mode to its own capture size, region fractions still hold
+  but the scaling filter is unmeasured.
+- The script does not report the frame size or the colour range assumption.
+  If a KVM turns out to give limited-range RGB, an optional range
+  conversion would be a code change; it is not needed or proposed until a
+  calibration frame shows the offset.
+- Self-test coverage of `--panel full` exists on synthetic frames only; it is not
+  evidence about a real KVM.
+
 ## Notes
 
 - Without Pillow the PNG decoder is pure Python and slow: a full-resolution camera
