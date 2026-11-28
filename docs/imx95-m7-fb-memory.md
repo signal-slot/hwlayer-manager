@@ -145,23 +145,37 @@ All of this is inferred from the engine's state model and the driver source.
 The Toradex Linux on the same board (observed 2026-11-27, from
 `docs/imx95-zephyr/observed-2026-11-27.txt`, a read-only snapshot):
 
-- `reserved-memory/memory@80000000`: 16 MiB, `no-map`, at the bottom of DDR.
-- `reserved-memory/vdev0vring0@88000000`, `vdev0vring1`, `vdev1vring0`,
-  `vdev1vring1`, `vdevbuffer@88020000` (1 MiB shared-dma-pool), and
-  `rsc-table@88220000` (1 MiB), all `no-map`.
-- `linux,cma`: 960 MiB shared-dma-pool, `reusable`, `alloc-ranges` starting at
-  0x80000000.
-- The `remoteproc-cm7` node (`fsl,imx95-cm7`) lists seven `memory-region`
-  phandles. The phandle numbers are in the snapshot; which regions they name
-  was **not resolved** (no decompiled DT on the board).
+- `reserved-memory/memory@80000000`: 0x1000000 (16 MiB), `no-map`, at the bottom
+  of DDR (observed 2026-11-27; the Toradex source names it `m7_reserved`, read
+  from source in [`imx95-m7-memory-map.md`](imx95-m7-memory-map.md)).
+- `vdev0vring0@88000000`, `vdev0vring1@88008000`, `vdev1vring0@88010000`,
+  `vdev1vring1@88018000` (each 0x8000, 32 KiB), `vdevbuffer@88020000`
+  (0x100000, 1 MiB, `shared-dma-pool`) and `rsc-table@88220000` (0x1000,
+  **4 KiB**), all `no-map` (observed 2026-11-27, `reg` bytes in the snapshot).
+- `memory@9c300000` (0x100000, 1 MiB, `shared-dma-pool`, `no-map`),
+  `optee_core@8c000000` (0x2000000, 32 MiB, `no-map`),
+  `optee_shm@8e000000` (0x200000, 2 MiB, `no-map`) and `vpu_boot@a0000000`
+  (0x100000, 1 MiB, `no-map`) (observed 2026-11-27); `npu-dma` is a reusable
+  `shared-dma-pool` of 0x8000000 (128 MiB, no fixed address).
+- `linux,cma`: 0x3c000000 (960 MiB) `shared-dma-pool`, `reusable`,
+  `alloc-ranges` 0x80000000 + 0x7f00000000 (observed 2026-11-27).
+- The `remoteproc-cm7` node (`fsl,imx95-cm7`) has seven `memory-region`
+  phandles, 0xa0 to 0xa6 (observed 2026-11-27). The snapshot has no phandle
+  values for the reserved-memory nodes, so the mapping is not observed; the
+  Toradex source lists, in order, `vdevbuffer`, `vdev0vring0`, `vdev0vring1`,
+  `vdev1vring0`, `vdev1vring1`, `rsc_table`, `m7_reserved` (read from source,
+  [`imx95-m7-memory-map.md`](imx95-m7-memory-map.md)); that the board's
+  phandles follow that order is inferred.
 - `remoteproc-cm7` was reported `unsupported` for runtime PM and no
-  `/lib/firmware` M7 image existed on that board.
+  `/lib/firmware` M7 image existed on that board (observed 2026-11-27).
 
 Inferred consequences (nothing below was read from the kernel DT source):
 
 - The `…/m7/ddr` board links the Zephyr image into 42 MiB starting at
   0x80000000. Linux has a 16 MiB `no-map` region there, so the first 16 MiB
-  plausibly is the M7's code area in this BSP, but this is unconfirmed. The
+  is the `m7_reserved` carve-out the BSP source assigns to the M7's
+  `memory-region` (observed 2026-11-27 for the 16 MiB `no-map` node; its role
+  is read from source; that it is the code area the loader uses is inferred). The
   remaining 26 MiB of the Zephyr window lies where Linux's CMA may hand out
   pages. **A Zephyr image or framebuffer there can corrupt Linux, or be
   corrupted by it,** unless the memory map is changed to fit the BSP's
