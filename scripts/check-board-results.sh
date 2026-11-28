@@ -24,7 +24,8 @@ for f in "$@"; do
     BEGIN { nb = 0; board = "" }
     {
         l = tolower($0)
-        if (l ~ /portability evidence/ && l ~ /never count toward m1, m2 or m3/) disc = 1
+        if (l ~ /never count toward m1, m2 or m3/ &&
+            (l ~ /portability evidence/ || l ~ /x-02\/x-03 evidence/ || l ~ /x-02 and x-03 evidence/)) disc = 1
     }
     /^#+[ \t]/ {
         close_board()
@@ -58,7 +59,7 @@ for f in "$@"; do
     END {
         close_board()
         if (!nb) printf "%s:1: no board section (\"## Board: NAME\")\n", F
-        if (!disc) printf "%s:1: missing disclaimer (portability evidence ... never count toward M1, M2 or M3)\n", F
+        if (!disc) printf "%s:1: missing disclaimer (\"portability evidence\" or \"X-02/X-03 evidence\", with \"never count toward M1, M2 or M3\", on one line)\n", F
     }' "$f")
     if [ -n "$out" ]; then
         printf '%s\n' "$out"

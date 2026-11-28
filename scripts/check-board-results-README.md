@@ -13,6 +13,7 @@ Self-test: `sh scripts/check-board-results.test.sh` (fixtures in
 1. **Disclaimer.** One line (case-insensitive) containing both
    `portability evidence` and `never count toward M1, M2 or M3`, e.g.
    `These runs are portability evidence and never count toward M1, M2 or M3.`
+   Primary-path (i.MX95) pages may say `X-02/X-03 evidence` (or `X-02 and X-03 evidence`) instead of `portability evidence`.
 2. **Board sections.** One level-2 heading `## Board: NAME` per board, at
    least one. The section runs to the next heading of any level.
 3. **Rows.** Inside a board section, one table row per scenario with the
