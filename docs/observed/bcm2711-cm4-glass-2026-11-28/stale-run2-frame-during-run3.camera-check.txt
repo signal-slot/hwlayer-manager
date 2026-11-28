@@ -1,0 +1,9 @@
+PASS  background       measured ( 44.0, 44.0, 44.0) expected ( 32.0, 32.0, 32.0) distance   20.8 tol  40.0
+PASS  red block        measured (221.0,  0.0, 15.0) expected (255.0,  0.0,  0.0) distance   37.2 tol  40.0
+PASS  blue block       measured ( 18.0,  1.0,230.0) expected (  0.0,  0.0,255.0) distance   30.8 tol  40.0
+PASS  green block uncovered measured ( 29.0,255.0, 21.0) expected (  0.0,255.0,  0.0) distance   35.8 tol  40.0
+FAIL  overlay opaque over green measured (132.0,254.0, 21.0) expected (255.0,255.0,  0.0) distance  124.8 tol  40.0
+FAIL  overlay opaque over background measured (138.0,147.0, 32.0) expected (255.0,255.0,  0.0) distance  162.4 tol  40.0
+FAIL  overlay translucent over green measured ( 77.0,201.0, 71.0) expected (255.0,  0.0,255.0) distance  325.5 tol  40.0
+FAIL  overlay translucent over background measured ( 88.0, 26.0, 93.0) expected (255.0,  0.0,255.0) distance  234.1 tol  40.0
+VERDICT: FAIL

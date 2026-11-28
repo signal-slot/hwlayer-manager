@@ -1,0 +1,22 @@
+DATE 2026-11-28T12:22:04Z
+KERNEL 6.12.47+rpt-rpi-v8
+DEVICE /dev/dri/card0
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+MODE 1920x1080@60Hz connector 33 crtc 102 (running mode, no modeset)
+START crtc_active=1 primary=91 primary_fb=0
+LAYER plane=91 format=XR24 src=1920x1080 dst=0,0,1920x1080 zpos=none rotation=none alpha=none pattern=quadrants
+LAYER plane=127 format=XR24 src=800x400 dst=400,200,800x400 zpos=3 rotation=none alpha=none pattern=quadrants
+LAYER plane=138 format=XR24 src=800x400 dst=800,400,800x400 zpos=2 rotation=none alpha=none pattern=quadrants
+TEST_ONLY ok
+COMMIT ok
+EXPECT phase=commit "91-tr" x=1440 y=270 fx=0.7500 fy=0.2500 rgb=#00ff00
+EXPECT phase=commit "91-bl" x=480 y=810 fx=0.2500 fy=0.7500 rgb=#0000ff
+EXPECT phase=commit "91-br" x=1440 y=810 fx=0.7500 fy=0.7500 rgb=#ffffff
+HOLD ms=30000
+STATE plane=91 fb=727 zpos=0 rotation=0x1 alpha=65535
+STATE plane=127 fb=728 zpos=3 rotation=0x1 alpha=65535
+STATE plane=138 fb=729 zpos=2 rotation=0x1 alpha=65535
+CRTC active=1
+RECOVER ok
+RESTORE ok
+VERDICT plane_commit: DONE

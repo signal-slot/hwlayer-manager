@@ -1,0 +1,139 @@
+{
+ "rotation": 0,
+ "panel": {
+  "corners": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "unit": "frac"
+ },
+ "tolerance": 40,
+ "regions": [
+  {
+   "name": "background",
+   "rect": [
+    0.04,
+    0.69,
+    0.06,
+    0.71
+   ],
+   "expect": [
+    32,
+    32,
+    32
+   ]
+  },
+  {
+   "name": "red block",
+   "rect": [
+    0.19,
+    0.365,
+    0.21,
+    0.385
+   ],
+   "expect": [
+    255,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "blue block",
+   "rect": [
+    0.79,
+    0.365,
+    0.81,
+    0.385
+   ],
+   "expect": [
+    0,
+    0,
+    255
+   ]
+  },
+  {
+   "name": "green block uncovered",
+   "rect": [
+    0.44,
+    0.365,
+    0.46,
+    0.385
+   ],
+   "expect": [
+    0,
+    255,
+    0
+   ]
+  },
+  {
+   "name": "overlay opaque over green",
+   "rect": [
+    0.54,
+    0.365,
+    0.56,
+    0.385
+   ],
+   "expect": [
+    128,
+    255,
+    0
+   ]
+  },
+  {
+   "name": "overlay opaque over background",
+   "rect": [
+    0.64,
+    0.365,
+    0.66,
+    0.385
+   ],
+   "expect": [
+    144,
+    144,
+    16
+   ]
+  },
+  {
+   "name": "overlay translucent over green",
+   "rect": [
+    0.54,
+    0.552,
+    0.56,
+    0.572
+   ],
+   "expect": [
+    64,
+    191,
+    64
+   ]
+  },
+  {
+   "name": "overlay translucent over background",
+   "rect": [
+    0.64,
+    0.615,
+    0.66,
+    0.635
+   ],
+   "expect": [
+    88,
+    24,
+    88
+   ]
+  }
+ ]
+}
