@@ -23,6 +23,7 @@ use crate::record::{list, Record};
 use crate::recovery::Loss;
 use crate::source::{Holder, Source};
 use crate::stats::micros;
+use crate::trace::SharedTrace;
 
 /// How long a commit may take to be latched before it counts as lost.
 pub const LATCH_TIMEOUT: Duration = Duration::from_secs(1);
@@ -100,7 +101,7 @@ pub struct Shown {
 /// The engine on one output of one descriptor.
 pub struct Session {
     /// The engine.
-    pub engine: Box<Engine<DrmBackend>>,
+    pub engine: Box<Engine<DrmBackend, SharedTrace>>,
     /// The output driven.
     pub output: OutputId,
     /// Its resolution.
@@ -289,7 +290,7 @@ impl Session {
             ));
         }
 
-        let engine = Box::new(Engine::new(backend));
+        let engine = Box::new(Engine::new(backend).with_trace(SharedTrace));
         let caps = engine.capabilities();
         let mut selected = None;
         for (index, out) in caps.outputs.iter().enumerate() {
@@ -439,7 +440,7 @@ impl Session {
             },
         )
         .map_err(|e| os("DRM backend", e))?;
-        let engine = Box::new(Engine::new(backend));
+        let engine = Box::new(Engine::new(backend).with_trace(SharedTrace));
         let out = engine
             .capabilities()
             .outputs

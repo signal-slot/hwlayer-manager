@@ -21,6 +21,7 @@ mod session;
 mod source;
 mod stats;
 mod stop;
+mod trace;
 mod wire;
 
 use std::path::PathBuf;
@@ -153,7 +154,16 @@ fn usage() -> String {
          \x20                         master   the engine's descriptor drops DRM master; a second\n\
          \x20                                  descriptor takes it and turns the CRTC off (ACTIVE=0)\n\
          \x20                         disable  the CRTC is turned off on the engine's descriptor\n\
+         \x20 --trace <FILE>        write the engine's trace to FILE, one `CETRACE` line per entry\n\
+         \x20                       (docs/trace-format.md), flushed at exit, also after SIGTERM;\n\
+         \x20                       a `trace lines=N failed=M` record ends the output\n\
          \x20 -h, --help            print this help\n\
+         \n\
+         Trace check: drm-harness trace-check <FILE>\n\
+         \x20 Parses FILE (a trace, or a log holding trace lines) strictly; prints\n\
+         \x20 `TRACE <type> <count>` lines (lines hdr check validate commit commit_ok commit_err\n\
+         \x20 latched released dropped dropped_replaced dropped_device_lost latch_timeout\n\
+         \x20 device_lost caps_changed). Exit 1 on a malformed line or no trace line, 2 if unreadable.\n\
          \n\
          Lessor: drm-harness lessor --lease <NAME> --dlm-dir <DIR> [--device <PATH>]\n\
          \x20       [--connector <NAME>] [--planes <IDS>] [--once]\n\
@@ -179,7 +189,8 @@ fn usage() -> String {
 /// What the command line asks for.
 enum Command {
     Help,
-    Run(Box<Options>, String),
+    Run(Box<Options>, String, Option<PathBuf>),
+    TraceCheck(PathBuf),
     Lessor(lessor::LessorOptions),
     Producer { device: PathBuf, layer: u32 },
 }
@@ -199,6 +210,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
     let (mode, args) = match args.first().map(String::as_str) {
         Some("lessor") => ("lessor", &args[1..]),
         Some("producer") => ("producer", &args[1..]),
+        Some("trace-check") => ("trace-check", &args[1..]),
         _ => ("run", args),
     };
     let mut device = PathBuf::from("/dev/dri/card0");
@@ -214,6 +226,8 @@ fn parse(args: &[String]) -> Result<Command, String> {
     let mut producers = "local".to_string();
     let mut loss = Loss::default();
     let mut once = false;
+    let mut trace = None;
+    let mut check_file = None;
     let mut layer = None;
     let mut scenario = None;
     let mut iter = args.iter();
@@ -248,6 +262,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
                 let n = number(key, value(key)?)?;
                 layer = Some(u32::try_from(n).map_err(|_| "--layer: too large".to_string())?);
             }
+            "--trace" if mode == "run" => trace = Some(PathBuf::from(value(key)?)),
             "--source" => source = value(key)?,
             "--producers" => producers = value(key)?,
             "--loss" => loss = Loss::parse(&value(key)?)?,
@@ -277,6 +292,12 @@ fn parse(args: &[String]) -> Result<Command, String> {
             }
             other if other.starts_with('-') => return Err(format!("unknown option {other}")),
             other => {
+                if mode == "trace-check" {
+                    if check_file.replace(PathBuf::from(other)).is_some() {
+                        return Err("trace-check: give one file".into());
+                    }
+                    continue;
+                }
                 if mode != "run" {
                     return Err(format!("{mode}: unexpected argument {other}"));
                 }
@@ -292,6 +313,10 @@ fn parse(args: &[String]) -> Result<Command, String> {
         overlays: planes.clone(),
     };
     match mode {
+        "trace-check" => {
+            let file = check_file.ok_or("trace-check: give the file to check")?;
+            return Ok(Command::TraceCheck(file));
+        }
         "producer" => {
             let layer = layer.ok_or("producer: --layer is required")?;
             return Ok(Command::Producer { device, layer });
@@ -349,6 +374,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
             loss,
         }),
         scenario,
+        trace,
     ))
 }
 
@@ -412,6 +438,7 @@ fn run(options: &Options, scenario: &str, args: &[String]) -> ExitCode {
         if scenario != "all" && scenario != *name {
             continue;
         }
+        trace::flush();
         let problems_before = producer::PROBLEMS.load(Ordering::Relaxed);
         let usage = Usage::now();
         let mut stopped = false;
@@ -503,12 +530,26 @@ fn main() -> ExitCode {
             print!("{}", usage());
             ExitCode::SUCCESS
         }
-        Command::Run(options, scenario) => {
+        Command::Run(options, scenario, trace_file) => {
             if let Err(error) = stop::install() {
                 eprintln!("drm-harness: cannot handle SIGTERM: {error}");
             }
-            run(&options, &scenario, &args)
+            if let Some(path) = &trace_file {
+                if let Err(error) = trace::enable(path) {
+                    eprintln!("drm-harness: {error}");
+                    return ExitCode::from(2);
+                }
+            }
+            let status = run(&options, &scenario, &args);
+            if let Some((lines, failed)) = trace::finish() {
+                Record::new("trace")
+                    .field("lines", lines)
+                    .field("failed", failed)
+                    .emit();
+            }
+            status
         }
+        Command::TraceCheck(path) => trace::check_file(&path),
         Command::Lessor(options) => match lessor::run_lessor(&options) {
             Ok(()) => ExitCode::SUCCESS,
             Err(error) => {
@@ -536,7 +577,7 @@ mod tests {
 
     fn options(text: &str) -> (Options, String) {
         match parse(&args(text)).unwrap() {
-            Command::Run(options, scenario) => (*options, scenario),
+            Command::Run(options, scenario, _) => (*options, scenario),
             _ => panic!("not a run: {text}"),
         }
     }
@@ -569,6 +610,32 @@ mod tests {
                 assert_eq!(device, PathBuf::from("/dev/dri/card1"))
             }
             other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn trace_options_parse() {
+        match parse(&args("--trace /x/t.log two-planes")).unwrap() {
+            Command::Run(_, scenario, trace) => {
+                assert_eq!(scenario, "two-planes");
+                assert_eq!(trace, Some(PathBuf::from("/x/t.log")));
+            }
+            _ => panic!("not a run"),
+        }
+        match parse(&args("two-planes")).unwrap() {
+            Command::Run(_, _, trace) => assert_eq!(trace, None),
+            _ => panic!("not a run"),
+        }
+        match parse(&args("trace-check /x/t.log")).unwrap() {
+            Command::TraceCheck(p) => assert_eq!(p, PathBuf::from("/x/t.log")),
+            _ => panic!("not a trace-check"),
+        }
+        for bad in [
+            "trace-check",
+            "trace-check a b",
+            "lessor --trace x --lease l --dlm-dir d",
+        ] {
+            assert!(parse(&args(bad)).is_err(), "{bad}");
         }
     }
 
