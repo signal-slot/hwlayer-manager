@@ -388,6 +388,18 @@ enum SwapPlan {
     Skipped,
 }
 
+/// The `swapz=` field at the end of the VERDICT line: whether the z swap of
+/// `--swap-z` was not asked for, ran, was skipped, or was planned but never
+/// reached (the run ended first).
+fn swapz_field(plan: SwapPlan, swapped: bool) -> &'static str {
+    match (plan, swapped) {
+        (SwapPlan::Off, _) => "swapz=off",
+        (SwapPlan::Skipped, _) => "swapz=skipped(fixed-zpos)",
+        (SwapPlan::Runs, true) => "swapz=ran",
+        (SwapPlan::Runs, false) => "swapz=not-reached",
+    }
+}
+
 /// The swap can run when every plane of the plan has a settable zpos.
 fn swap_plan(requested: bool, zpos: &[Zpos]) -> SwapPlan {
     if !requested {
@@ -1589,6 +1601,7 @@ fn main() -> ExitCode {
     let mut first_plan_checked = false;
     let started = Instant::now();
     let mut swapped_at = None;
+    let mut swap_state = SwapPlan::Off;
     for frame_no in 0..options.frames {
         if swap_pending && frame_no == options.frames / 2 {
             swap_pending = false;
@@ -1711,6 +1724,7 @@ fn main() -> ExitCode {
                 .filter_map(|a| caps.planes.get(a.plane_index).map(|p| p.zpos))
                 .collect();
             let swap = swap_plan(swap_pending, &zpos);
+            swap_state = swap;
             if swap == SwapPlan::Skipped {
                 println!("SWAPZ skipped: a plane of the plan has a fixed zpos");
                 swap_pending = false;
@@ -1837,16 +1851,17 @@ fn main() -> ExitCode {
 
     cleanup(&mut engine, &lookup);
     errors.append(&mut tracker.errors);
+    let swapz = swapz_field(swap_state, swapped_at.is_some());
 
     if errors.is_empty() && options.frames == 0 {
         println!(
-            "VERDICT twoplane: PASS no frames requested, nothing presented, {}",
+            "VERDICT twoplane: PASS no frames requested, nothing presented, {}, {swapz}",
             summary("").trim_start()
         );
         ExitCode::SUCCESS
     } else if errors.is_empty() && tracker.committed == u64::from(options.frames) {
         println!(
-            "VERDICT twoplane: PASS {} frames on two planes, {run_latched} latched, {run_released} released, {late} late, {}",
+            "VERDICT twoplane: PASS {} frames on two planes, {run_latched} latched, {run_released} released, {late} late, {}, {swapz}",
             options.frames,
             summary("")
                 .trim_start()
@@ -1861,7 +1876,7 @@ fn main() -> ExitCode {
             .cloned()
             .unwrap_or_else(|| "incomplete run".into());
         fail(format!(
-            "{first} ({} error(s)), {}",
+            "{first} ({} error(s)), {}, {swapz}",
             errors.len(),
             summary("").trim_start()
         ))
@@ -1918,6 +1933,28 @@ mod tests {
         assert_eq!(swap_plan(false, &[Zpos::Fixed(0)]), SwapPlan::Off);
         assert_eq!(swap_plan(true, &[RANGE, RANGE]), SwapPlan::Runs);
         assert_eq!(swap_plan(true, &[Zpos::Fixed(0), RANGE]), SwapPlan::Skipped);
+    }
+
+    #[test]
+    fn swapz_field_names_every_case() {
+        assert_eq!(swapz_field(SwapPlan::Off, false), "swapz=off");
+        assert_eq!(swapz_field(SwapPlan::Runs, true), "swapz=ran");
+        assert_eq!(
+            swapz_field(SwapPlan::Skipped, false),
+            "swapz=skipped(fixed-zpos)"
+        );
+        assert_eq!(swapz_field(SwapPlan::Runs, false), "swapz=not-reached");
+    }
+
+    #[test]
+    fn swapz_field_follows_swap_plan() {
+        let field = |req, z: &[Zpos]| swapz_field(swap_plan(req, z), true);
+        assert_eq!(field(false, &[RANGE, RANGE]), "swapz=off");
+        assert_eq!(field(true, &[RANGE, RANGE]), "swapz=ran");
+        assert_eq!(
+            field(true, &[Zpos::Fixed(1), RANGE]),
+            "swapz=skipped(fixed-zpos)"
+        );
     }
 
     #[test]
