@@ -120,9 +120,12 @@ pub enum DriverProfile {
     ///   factors (`BF1_PAXCA`) are programmed for every layer, so planes 34
     ///   and 49, not measured, are inferred to blend alike. Plane alpha stays
     ///   as KMS reports it.
-    /// - Transforms and formats are left as KMS reports them: the session
-    ///   of 2026-11-27 did not run Q6 (rotation, reflections) or Q9 (NV12),
-    ///   so nothing observed calls for a change (inferred).
+    /// - Transforms and formats are left as KMS reports them: neither the
+    ///   session of 2026-11-27 nor session C (observed 2026-11-28, no
+    ///   picture: the KVM capture failed) ran Q6 (rotation, reflections) or
+    ///   NV12, so nothing observed calls for a change (inferred). Never
+    ///   claim 90/270. Pinned by the host test
+    ///   `stm32_ltdc_adds_no_transform_claims`.
     /// - YUV formats cannot be scaled on any plane (source,
     ///   `ltdc.c:1585-1600`); that is **not modelled** here and is left to
     ///   `TEST_ONLY`.
@@ -219,6 +222,7 @@ impl DriverProfile {
 mod tests {
     use super::*;
     use composition_core::planner::{plan, BufferLookup};
+    use composition_core::Transform;
     use composition_core::{
         BlendMode, BufferId, BufferInfo, FormatModifier, Frame, Layer, Modifier, OutputCaps,
         OutputId, PixelFormat, PlanError, PlaneCaps, PlaneId, Rect, RejectReasons, Zpos,
@@ -385,5 +389,59 @@ mod tests {
         let mut caps = Capabilities::default();
         DriverProfile::Generic.apply(&mut caps);
         assert_eq!(caps, Capabilities::default());
+    }
+
+    /// Session C produced no picture, so the profile adds no transform claim
+    /// and a layer asking for a transform KMS did not report is refused.
+    #[test]
+    fn stm32_ltdc_adds_no_transform_claims() {
+        let mut caps = Capabilities::default();
+        caps.outputs
+            .push(OutputCaps {
+                id: OUT,
+                size: Size::new(1920, 1080),
+                refresh_mhz: 60_000,
+            })
+            .unwrap();
+        for (index, kind) in [PlaneKind::Primary, PlaneKind::Overlay, PlaneKind::Overlay]
+            .into_iter()
+            .enumerate()
+        {
+            let mut plane = PlaneCaps {
+                id: PlaneId(34 + index as u32),
+                kind,
+                outputs: 1,
+                transforms: Transform::Normal.mask(),
+                ..PlaneCaps::default()
+            };
+            plane
+                .formats
+                .push(FormatModifier::linear(PixelFormat::ARGB8888))
+                .unwrap();
+            caps.planes.push(plane).unwrap();
+        }
+        DriverProfile::Stm32Ltdc.apply(&mut caps);
+        for plane in caps.planes.as_slice() {
+            assert_eq!(plane.transforms, Transform::Normal.mask());
+        }
+        for transform in [
+            Transform::FlipH,
+            Transform::FlipV,
+            Transform::Rotate90,
+            Transform::Rotate180,
+            Transform::Rotate270,
+        ] {
+            let mut layer = full(RGB, 0);
+            layer.transform = transform;
+            layer.blend = BlendMode::Coverage;
+            let frame = Frame {
+                output: OUT,
+                layers: &[layer],
+            };
+            let Err(PlanError::NoPlane { reasons, .. }) = plan(&frame, &caps, &Buffers) else {
+                panic!("{transform:?} must be refused");
+            };
+            assert!(reasons.contains(RejectReasons::TRANSFORM), "{transform:?}");
+        }
     }
 }
