@@ -37,6 +37,24 @@ if python3 "$py" --hostname testboard1 "$work/out" 2>/dev/null | cmp -s - "$work
 printf 'plane 33: zpos range 0..=7 = 0\r\nmodifier 0x0800000000000001: XR24\nno newline' >"$work/plain"
 if python3 "$py" "$work/plain" 2>/dev/null | cmp -s - "$work/plain"; then ok "clean text byte-identical"; else bad "clean text changed"; fi
 
+# Toradex default host names '<family>-<soc>-<8 digits>' go without --hostname.
+# Only made-up digits here.
+printf 'root@%s:~# id\n' verdin-imx95-12345678 >"$work/tdx"
+cat >>"$work/tdx" <<'EOF'
+Nov 28 10:00:00 verdin-imx95-12345678 systemd[1]: Started Weston.
+Linux colibri-imx8x-87654321 6.6.0 #1 SMP PREEMPT aarch64 GNU/Linux
+VERDIN-IMX95-12345678 and apalis-imx8-00000001.
+verdin-imx95
+resource verdin-imx95
+imx95-12345678
+EOF
+python3 "$py" "$work/tdx" >"$work/tdx.out" 2>/dev/null
+if ! grep -qiE '(verdin|colibri|apalis)-[a-z0-9]+-[0-9]{8}' "$work/tdx.out" &&
+    [ "$(grep -c '<host>' "$work/tdx.out")" -ge 3 ]; then ok "Toradex default host names scrubbed"; else bad "Toradex host leak"; fi
+if grep -qx 'verdin-imx95' "$work/tdx.out" && grep -qx 'resource verdin-imx95' "$work/tdx.out" &&
+    grep -qx 'imx95-12345678' "$work/tdx.out"; then ok "names without family+serial kept"; else bad "over-scrubbed Toradex lookalikes"; fi
+if grep -q 'Linux <host> 6.6.0' "$work/tdx.out"; then ok "uname -a scrubbed"; else bad "uname line"; fi
+
 python3 "$py" --bogus >/dev/null 2>&1
 if [ $? -eq 2 ]; then ok "bad option exits 2"; else bad "bad option status"; fi
 python3 "$py" "$work/missing" >/dev/null 2>&1

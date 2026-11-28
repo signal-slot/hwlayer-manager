@@ -30,6 +30,7 @@ replacements goes to stderr.
 | `user@host` (not git@github.com, noreply, example addresses) | `<user@host>` |
 | the value of `password=`, `passwd=`, `token=`, `secret=`, `api_key=` | `<redacted>` |
 | names given with `--hostname` | `<host>` |
+| Toradex default host names `<family>-<soc>-<8 digits>` (family verdin, colibri, apalis, aquila or smarc; case-insensitive), always, without `--hostname` | `<host>` |
 
 Everything else is kept byte-identical, including line endings.
 
@@ -38,7 +39,10 @@ Everything else is kept byte-identical, including line endings.
 - The `props` example prints only the blob id of `EDID` and `PATH`, not the
   contents; the blob rules matter for dumps from other tools. Its decoded
   `IN_FORMATS` lines are kept.
-- Host names are only found when listed with `--hostname`. Read the scrubbed
+- Other host names are only found when listed with `--hostname`; the Toradex
+  default form (`verdin-imx95-12345678`, whose last part is the board serial
+  number) is replaced without it. `verdin-imx95` alone or `imx95-12345678`
+  alone is kept. Read the scrubbed
   file before committing; the script lowers the risk, it does not prove a dump
   clean. `scripts/check-no-board-secrets.sh` is the project check.
 - Any dotted quad is replaced, also a four-part version number.
