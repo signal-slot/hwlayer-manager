@@ -2,7 +2,7 @@
 
 `tests/board/am62p_r5f/` is a Zephyr application for the MCU Cortex-R5F of a Toradex Verdin AM62P. It drives the board's display through the engine's C API (`composition_engine.h`) and the two-plane backend (`backends/twoplane/ce_twoplane.c`, compiled from this repository). It uses no Slint and none of the demo's application code.
 
-**Status (2026-11-27): not run on the board, and the firmware does not build yet.** The binding of `struct ce_twoplane_hw` to the demo's DSS driver (`src/hw_am62p.c`) is not written. It stops the build with `#error`. It was not written because the demo checkout (`MCUI_SHOWCASE_DIR`) was not available where this was written, and the driver's calls were not guessed. The scene sequence, the backend and the engine have been built and run on the host. They have also been compiled for the R5F, but not linked or run there. See [What was checked](#what-was-checked-2026-11-27).
+**Status (2026-11-28): not run on a board; not built from this repository's `main`.** The binding of `struct ce_twoplane_hw` to the demo's DSS driver (`src/hw_am62p.c`) is written, and `prj.conf` is configured for the remoteproc route. The commit that wrote them (the owner's `361e31f`, 2026-11-27) states that the image builds. That build was not repeated here: this branch was rebased onto the current `main` without building the Zephyr image or running anything on a board. The scene sequence, the backend and the engine run on the host behind a fake panel. See [What was checked](#what-was-checked-2026-11-27).
 
 ## Layout
 
@@ -10,9 +10,9 @@
 | --- | --- |
 | `src/scenes.c`, `src/scenes.h` | The test: the scene sequence and what the firmware judges by itself. Uses only `<stdbool.h>`, `<stddef.h>`, `<stdint.h>`, the engine and the backend. The system and the driver come through `struct scenes_env`. |
 | `src/main.c` | Zephyr: the port (`irq_lock`, `k_sem_give` at every vsync, `device_is_ready`), the display device (`DT_CHOSEN(zephyr_display)`), the two application buffers, `printk` as the console. After the sequence it idles with the last scene on the panel. |
-| `src/hw_am62p.c` | `struct ce_twoplane_hw` bound to the demo module's driver (`include/mcui/am62p_dss.h`). **Not written**: the file lists what each member must do. |
+| `src/hw_am62p.c` | `struct ce_twoplane_hw` bound to the demo module's driver (`include/mcui/am62p_dss.h`). Written; see the status above. |
 | `CMakeLists.txt` | Builds the engine with Cargo and compiles the backend from `backends/twoplane`. |
-| `prj.conf` | Configuration. Not yet compared with the demo firmware's fragments. |
+| `prj.conf` | Configuration for the remoteproc route. |
 | `host/fake_panel.c` | The same sequence on the host, behind a fake driver and a fake panel (see below). |
 
 ### The engine: why the static library
@@ -87,7 +87,6 @@ Use the remoteproc route of `$MCUI_SHOWCASE_DIR/docs/remoteproc-bringup.md`. Ins
 - **Engine library for the R5F:** `cargo build --locked -p composition-ffi-staticlib --no-default-features --features panic-handler --target armv7r-none-eabihf --release` built with stable rustc 1.99.0. Only `rustup target add armv7r-none-eabihf` was needed. The library defines every engine symbol the test calls. It also defines `__aeabi_memclr4` and `memcpy` as weak symbols, from compiler_builtins.
 - **C for the R5F:** `src/scenes.c` and `backends/twoplane/ce_twoplane.c` compiled without warnings with clang 23. The flags were `--target=armv7r-none-eabihf -mcpu=cortex-r5 -mfpu=vfpv3-d16 -mfloat-abi=hard -std=c11 -Wall -Wextra -Werror -pedantic -ffreestanding -nostdinc -O2`, with clang's own headers. The objects need nothing beyond the engine, the backend and `__aeabi_memclr4`. They were not linked: there was no Arm linker that could be run.
 - **Not checked:**
-  - The Zephyr build: there was no demo module, and `hw_am62p.c` is not written.
-  - `main.c`, `CMakeLists.txt` and `prj.conf`: never compiled or configured.
+  - The Zephyr build from this repository's `main`: not run (the owner's commit `361e31f` reports that the image builds; that is not a result of this repository's checks).
   - `arm-zephyr-eabi-gcc`: present in the SDK, but not run.
   - Anything on the board or the panel: no scene was run there, so there are no photographs and no console lines from hardware.

@@ -13,7 +13,7 @@ Both run on the host only. The tests do not compile for Arm. Done by hand once (
 
 ## What a board test needs and does not have yet
 
-No board run has been made from this repository. Nothing about the backend on hardware has been measured here. `tests/board/am62p_r5f/` is the board test's application for the AM62P's R5F. Its binding to the demo's driver is not written yet, and it has run only on the host ([board-test-am62p-r5f.md](board-test-am62p-r5f.md)).
+No board run has been made from this repository. Nothing about the backend on hardware has been measured here. `tests/board/am62p_r5f/` is the board test's application for the AM62P's R5F. Its binding to the demo's driver is written, the image has not been built from this repository's `main`, and the test has run only on the host ([board-test-am62p-r5f.md](board-test-am62p-r5f.md)).
 
 A board test needs a firmware that provides the following. None of it is in this repository.
 
