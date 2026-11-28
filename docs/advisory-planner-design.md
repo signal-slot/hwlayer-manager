@@ -351,6 +351,8 @@ Each item keeps the question as proposed and then states what was taken (**read 
 11. **Capability source for a non-engine caller.** **Taken:** the caller's `&Capabilities` as for `plan()`; no smaller input form. A smaller form is **not decided** and would be a separate API.
 12. **Name and place.** **Taken:** function `advise` in module `composition_core::advise` (`crates/composition-core/src/advise.rs`; the sketch said `advisory.rs`), no separate crate.
 
+13. **Frame refused entirely, no composition target.** **Taken:** `Ok` advice, not an error and not a new `Blocker`: with `compose: None` every shown layer is `Placement::Compose` with its blocker (`Backend` when the caller's check refused), `compose()` and `compose_run()` are `None`. Pinned by `refused_frame_without_target_is_ok_and_all_composed`. A caller must read `compose().is_none()` together with `Placement::Compose` as "nothing can be done without a target"; an error such as `NoComposePlane` for this case is the alternative.
+
 Further choices the proposal left open or that differ from its sketch, also for the owner to revisit (**read from source**, `03fda2d`): `accept` is `FnMut(&Plan, Option<usize>) -> Verdict`; steps are bounded per candidate, not shared; a candidate cut by its step limit does not end the search (`Blocker::Budget` or `LimitExceeded`); `Blocker::Static` is the intersection over the planes that reach the output; `compose: None` plans only the frame as it is; `advise.rs` holds a copy of the planner's private `clip_to_output`, checked against the planner by a test on 5000 cases; `static_reasons` became `pub(crate)` and nothing else in `planner.rs` changed.
 
 ## 7. What this note does not claim
