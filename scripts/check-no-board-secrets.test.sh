@@ -65,6 +65,8 @@ run user-at-host 1 a.txt "ssh $uh"
 run mode-wxh-hz 0 a.txt "modes use WxH@Hz notation"
 run mode-concrete 0 a.txt "set 1920x1080@60 and 1280x720@59.94"
 run mode-wxh-r 0 a.txt 'format `WxH@R`'
+run mode-name-hz 0 a.txt "usage: [--mode NAME@HZ]"
+run mode-name-real 1 a.txt "ssh NAME@""boardhost"
 run mode-real-root 1 a.txt "ssh root@""boardhost"
 run mode-real-ip 1 a.txt "ssh user@""10.0.0.""1"
 run mode-real-local 1 a.txt "ssh admin@""host.local"
@@ -129,6 +131,8 @@ run tty-placeholder-plus-real 1 a.txt "/dev/ttyUSB<n> and $tty"
 run sysfs-remoteproc-generic 0 a.txt "cat /sys/class/remoteproc/remoteproc2/state; echo start > /sys/class/remoteproc/remoteprocN/state"
 run tty-fixture-elsewhere-flagged 1 scripts/other.test.sh "echo $tty"
 run fixture-zephyr-allowed 0 scripts/check-zephyr-apps.test.sh "echo $tty"
+run fixture-mode-test-own-file 0 crates/composition-drm/examples/mode_test.rs 'args("--mode x@'"fast\")"
+run fixture-mode-test-other-file 1 a.txt 'args("--mode x@'"fast\")"
 
 # Hits are reported as file:line.
 run line 1 d/a.txt "x

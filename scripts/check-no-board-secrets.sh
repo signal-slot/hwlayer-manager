@@ -56,7 +56,7 @@
 #   - A YAML step line "uses: owner/repo[/path]@ref" (GitHub Actions) is
 #     skipped as a whole. A line that runs ssh to a host is not.
 #   - "actions/NAME@vN" anywhere (prose in commit messages, for example).
-#   - Display-mode strings: "WxH@Hz", "WxH@R" and "<digits>x<digits>@<digits>[.<digits>]"
+#   - Display-mode strings: "WxH@Hz", "WxH@R", "NAME@HZ" and "<digits>x<digits>@<digits>[.<digits>]"
 #     (1920x1080@60, 1280x720@59.94). Only a user part that is a mode spec and
 #     a host part that is a rate match; "root@board7" is still flagged.
 #   - Literal placeholders: "user@host", "repo@commit", "repo@pin", "a@b.c", and any @example.com,
@@ -231,6 +231,7 @@ scripts/check-no-farm-ids.test.sh|1\.2\.3\.4|lockfile version that must not be f
 scripts/check-no-farm-ids.test.sh|password=changeme|placeholder credential sample
 scripts/check-no-farm-ids.test.sh|let token = abc123|credential sample that must stay flagged
 scripts/check-no-farm-ids.test.sh|dri-devel@lists|mailing-list address next to an ssh target sample
+crates/composition-drm/examples/mode_test.rs|"--mode x@fast"|bad mode spec the argument parser test must reject
 scripts/check-m3-report.test.sh|10\.20\.30\.40|fake address the M3 report check must reject
 scripts/check-m3-report.test.sh|aa:bb:cc:dd:ee:ff|fake MAC the M3 report check must reject
 scripts/check-m3-report.test.sh|root@verdinhost|fake ssh target the M3 report check must reject'
@@ -258,6 +259,7 @@ s#(^|[^A-Za-z0-9_])(user@host|repo@commit|repo@pin)'"$B"'# #g;
 s#[A-Za-z0-9_.-]+@example\.(com|org|net|invalid)# #g;
 s#[A-Za-z0-9_.-]+@b\.c# #g;
 s#(^|[^A-Za-z0-9_.-])(WxH|[0-9]+x[0-9]+)@(Hz|R|[0-9]+(\.[0-9]+)?)'"$B"'#\1 #g;
+s#(^|[^A-Za-z0-9_.-])NAME@HZ'"$B"'#\1 #g;
 s#https?://lore\.kernel\.[A-Za-z0-9./-]*/[^ ]*@[A-Za-z0-9.-]+# #g'
 # Public mailing-list and archive hosts (exact domains; a sub-domain or a
 # longer name does not match). Like shape_sed, not applied to ssh lines.
