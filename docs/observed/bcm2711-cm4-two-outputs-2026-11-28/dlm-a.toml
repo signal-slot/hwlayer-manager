@@ -1,0 +1,14 @@
+# Q7 phase A: one lease per connector, disjoint overlay lists (cursor included)
+[[lease]]
+name = "hdmi"
+connectors = ["HDMI-A-1"]
+
+[[lease]]
+name = "dsi"
+connectors = ["DSI-1"]
+
+[HDMI-A-1]
+planes = [91, 204, 215, 226, 237, 248, 259, 270, 281, 292, 688]
+
+[DSI-1]
+planes = [79, 127, 138, 149, 160, 171, 182, 193, 677]
