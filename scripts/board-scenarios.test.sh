@@ -12,6 +12,8 @@
 #                 noafter | norestore | exit1 | noverdict
 #   MOCK_CONN     connector name of the selected output (default HDMI-A-1;
 #                 the real harness prints e.g. HDMIA-1, DisplayPort-2)
+#   MOCK_REC      recovery: ok | fail | noverdict | stall | passbusy |
+#                 norelatch | late | crtcoff
 
 here=$(cd "$(dirname "$0")" && pwd)
 script=$here/board-scenarios.sh
@@ -130,6 +132,42 @@ modeset)
 	[ "$mode" = exit1 ] && { verdict modeset FAIL "no latch after the switch to 1920x1080@50"; exit 1; }
 	verdict modeset PASS "1920x1080@60 -> 1920x1080@50: 2 commits latched before, $al after the switch; 1920x1080@60 restored"
 	;;
+recovery)
+	# Records as the real harness prints them on vkms.
+	mode=${MOCK_REC:-ok}
+	lossm=master; prev=
+	for a; do [ "$prev" = --loss ] && lossm=$a; prev=$a; done
+	echo "hold step=recovery-before seconds=$secs"
+	echo "step label=recovery-before width=1920 height=1080 seconds=$secs expect=\"blue full screen\""
+	echo "commit step=recovery-before submission=1 validate_us=100 commit_us=30000 latency_us=30100"
+	echo "commit step=recovery-before submission=2 validate_us=100 commit_us=200 latency_us=16700"
+	echo "before_loss commits=2 latched=2 on_screen=7,8"
+	echo "loss method=$lossm crtc=40 result=ok crtc_active=false"
+	[ "$mode" = late ] && echo "commit step=recovery-before submission=3 validate_us=1 commit_us=1 latency_us=1"
+	first="error:validate:Backend(Platform(13))"; rep=true; busy=-; rl=2; act=true
+	case $mode in
+	stall) first=silent; rep=false ;;
+	fail|passbusy) busy=7,8 ;;
+	norelatch) rl=0 ;;
+	crtcoff) act=false ;;
+	esac
+	echo "loss_attempt step=after-loss report=$first after_ms=0 backend_failures=NotMaster{operation:Check,errno:13} device_lost=false pending_latch=false events=-"
+	echo "master_back other_closed=true result=ok"
+	echo "buffers_after_loss states=7:Scanning,8:Scanning,9:Ready busy=$busy"
+	echo "hold step=recovery-after seconds=$secs"
+	if [ "$rl" -gt 0 ]; then
+		echo "commit step=recovery-after submission=1 validate_us=100 commit_us=17000 latency_us=17100"
+		echo "commit step=recovery-after submission=2 validate_us=100 commit_us=200 latency_us=16700"
+	fi
+	echo "recovery_result loss=$lossm made=ok first=$first first_ms=0 reported=$rep second=error:commit:Backend(Rejected) still_busy=$busy master_back=ok relatched=$rl crtc_active_end=$act"
+	echo "resources scenario=recovery wall_ms=2211 cpu_user_ms=0 cpu_sys_ms=140 cpu_pct=6.3 rss_kib=1060 peak_rss_kib=1080"
+	case $mode in
+	noverdict) exit 1 ;;
+	fail) verdict recovery FAIL "buffers 7,8 still submitted or scanning after the loss was reported: the engine did not release them"; exit 1 ;;
+	stall) verdict recovery FAIL "no error, DeviceLost or LatchTimeout within 2000 ms of the loss: the engine stalled silently"; exit 1 ;;
+	esac
+	verdict recovery PASS "$lossm loss reported as $first after 0 ms; no buffer held; a new run latched $rl commits"
+	;;
 esac
 exit 0
 EOF
@@ -236,6 +274,41 @@ t "A5 passes device and connector" A5 "SCENARIO modeset PASS" 0 --device /dev/dr
 grep -q -- '--device /dev/dri/card1 --connector DP-2 --source master' "$T/out/A5/modeset.log" && ok ||
 	bad "A5 lacks --device and --connector"
 
+# ---- A6: the harness's recovery scenario
+t "A6 pass" A6 "SCENARIO display-recovery PASS" 0
+has A6 "VERDICT recovery PASS"
+has A6 "loss=master made=ok crtc_active_after_loss=false"
+has A6 "first=error:validate:Backend(Platform(13)) first_ms=0"
+has A6 "reported=true still_busy=- relatched=2 crtc_active_end=true"
+has A6 "recovery-before: commits=2 latched=2"
+has A6 "recovery-after: commits=2 latched=2"
+grep -q -- '--source master --seconds 0 recovery' "$T/out/A6/recovery.log" && ok ||
+	bad "A6 does not run recovery --source master with the given --seconds"
+E="MOCK_REC=fail"; t "A6 harness FAIL" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "recovery: exit status 1"
+has A6 "recovery: VERDICT recovery FAIL buffers 7,8 still submitted or scanning"
+has A6 "buffers still held after the loss: 7,8"
+E="MOCK_REC=noverdict"; t "A6 no VERDICT" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "recovery: no VERDICT line"
+E="MOCK_REC=stall"; t "A6 silent stall" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "the engine did not report the loss (first=silent)"
+# The script's own checks hold even when the harness says PASS.
+E="MOCK_REC=passbusy"; t "A6 PASS with buffers held" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "buffers still held after the loss: 7,8"
+E="MOCK_REC=norelatch"; t "A6 no latch after the recovery" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "the new run latched no commit"
+has A6 "recovery-after: latched=0 of commits=0"
+E="MOCK_REC=late"; t "A6 commit after the loss" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "1 commits of the first run after the loss"
+E="MOCK_REC=crtcoff"; t "A6 CRTC left off" A6 "SCENARIO display-recovery FAIL" 1
+has A6 "CRTC not on at the end (crtc_active_end=false)"
+# --loss, --device and --connector reach the recovery run.
+t "A6 loss disable" A6 "SCENARIO display-recovery PASS" 0 --loss disable --device /dev/dri/card1 --connector DP-2
+grep -q -- '--device /dev/dri/card1 --connector DP-2 --source master --seconds 0 --loss disable recovery' \
+	"$T/out/A6/recovery.log" && ok || bad "A6 lacks --device, --connector or --loss"
+has A6 "loss=disable made=ok"
+sh "$script" --loss unplug --rows A6 "$T/harness" > /dev/null 2>&1; [ $? -eq 2 ] && ok || bad "bad loss exit"
+
 # ---- picture hooks: ROW PHASE LABEL per call; A3 has post-stop and restart
 # phases.
 printf '#!/bin/sh\necho "$1 $2 ${3:--}" >> "%s/hook3.log"\n' "$T" > "$T/hook3"
@@ -269,6 +342,21 @@ hookrun A5 modeset
 [ "$(cat "$T/hook3.log")" = "A5 hold-start -
 A5 hold-end -" ] && ok || { bad "A5 hook calls"; cat "$T/hook3.log" >&2; }
 rm -f "$T/hook3.log"
+hookrun A6 display-recovery
+[ "$(cat "$T/hook3.log")" = "A6 hold-start -
+A6 hold-end -
+A6 hold-start -
+A6 hold-end -" ] && ok || { bad "A6 hook calls"; cat "$T/hook3.log" >&2; }
+rm -f "$T/hook3.log"
+E="MOCK_REC=noverdict"; t "hooks A6 no VERDICT" A6 "SCENARIO display-recovery FAIL" 1 --hook "$T/hook3"
+[ "$(wc -l < "$T/hook3.log")" -eq 4 ] && ok || { bad "A6 hook calls without VERDICT"; cat "$T/hook3.log" >&2; }
+# Each A6 hold-start comes once its hold is under way: the first after a
+# commit before the loss, the second after a commit of the new run.
+printf '#!/bin/sh\n[ "$2" = hold-start ] && grep -c "^commit .*step=recovery-after" "%s/out/$1/recovery.log" >> "%s/hook6.log"\nexit 0\n' "$T" "$T" > "$T/hook6"
+chmod +x "$T/hook6"; rm -f "$T/hook6.log"
+t "A6 hold-start order" A6 "SCENARIO display-recovery PASS" 0 --hook "$T/hook6"
+[ "$(sed -n 2p "$T/hook6.log")" -ge 1 ] 2>/dev/null && ok || bad "A6 second hold-start before the new run's commit"
+rm -f "$T/hook3.log"
 E="MOCK_MS=blocked"; t "hooks A5 blocked" A5 "SCENARIO modeset BLOCKED" 3 --hook "$T/hook3"
 [ "$(cat "$T/hook3.log")" = "A5 hold-start -
 A5 hold-end -" ] && ok || { bad "A5 blocked hook calls"; cat "$T/hook3.log" >&2; }
@@ -297,7 +385,8 @@ sh "$script" --out "$T/out" --rows A1,A4 --seconds 0 "$T/harness" > "$T/stdout" 
 rc=$?
 [ "$rc" -eq 0 ] && ok || bad "A1,A4 rc=$rc"
 grep -q '^A1 startup PASS$' "$T/stdout" && grep -q '^A4 lease-loss PASS$' "$T/stdout" &&
-	grep -q '^A2 steady-state NOT-RUN$' "$T/stdout" && ok || bad "summary lines"
+	grep -q '^A2 steady-state NOT-RUN$' "$T/stdout" &&
+	grep -q '^A6 display-recovery NOT-RUN$' "$T/stdout" && ok || bad "summary lines"
 [ "$(sed -n 1p "$T/out/A2/result.txt")" = "SCENARIO steady-state NOT-RUN" ] && ok || bad "A2 NOT-RUN file"
 
 printf '#!/bin/sh\necho "$1 $2" >> "%s/hook.log"\n' "$T" > "$T/hook"

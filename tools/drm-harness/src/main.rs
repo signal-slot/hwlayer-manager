@@ -15,6 +15,7 @@ mod lessor;
 mod modeset;
 mod producer;
 mod record;
+mod recovery;
 mod scenarios;
 mod session;
 mod source;
@@ -30,6 +31,7 @@ use composition_drm::DriverProfile;
 
 use crate::lease::LeaseRequest;
 use crate::record::{blocked_line, verdict_line, Record};
+use crate::recovery::Loss;
 use crate::scenarios::{Outcome, MOVE_FRAMES, REVOKE_FRAMES, ROTATE_FRAMES};
 use crate::session::{Options, ProducerMode};
 use crate::source::Source;
@@ -76,13 +78,22 @@ const LEASE_SCENARIOS: [(&str, Scenario, &str); 1] = [(
      \x20               the engine must report DeviceLost once and release what was shown",
 )];
 
-/// Scenarios that change the output's mode; `all` never runs them.
-const MODE_SCENARIOS: [(&str, Scenario, &str); 1] = [(
-    "modeset",
-    scenarios::modeset,
-    "commit on the current mode, switch to the first other mode the sink offers,\n\
-     \x20               re-plan and commit for --seconds, restore the mode; BLOCKED with one mode",
-)];
+/// Scenarios that change the output's mode or take the display away; `all`
+/// never runs them.
+const MODE_SCENARIOS: [(&str, Scenario, &str); 2] = [
+    (
+        "modeset",
+        scenarios::modeset,
+        "commit on the current mode, switch to the first other mode the sink offers,\n\
+         \x20               re-plan and commit for --seconds, restore the mode; BLOCKED with one mode",
+    ),
+    (
+        "recovery",
+        scenarios::recovery,
+        "commit for --seconds, lose the display (--loss); the engine must report it and\n\
+         \x20               hold no buffer; then a new run must latch, for --seconds",
+    ),
+];
 
 fn usage() -> String {
     let mut text = String::from(
@@ -102,8 +113,8 @@ fn usage() -> String {
         text.push_str(&format!("  {name:<14}{help}\n"));
     }
     text.push_str(&format!(
-        "  {:<14}all of the above but modeset, in this order (revoke only with\n\
-         \x20               --source kernel-lease)\n\
+        "  {:<14}all of the above but modeset and recovery, in this order (revoke\n\
+         \x20               only with --source kernel-lease)\n\
          \n\
          Options:\n\
          \x20 --source <SOURCE>     where the DRM descriptor comes from [default: master]:\n\
@@ -132,11 +143,16 @@ fn usage() -> String {
          \x20                                   has passed on the engine's release\n\
          \x20 --profile <PROFILE>   driver profile: generic or imx95 [default: generic]\n\
          \x20 --seconds <N>         how long to hold each picture for a camera, and the screen after the\n\
-         \x20                       revocation in revoke, and the commits after the switch in modeset\n\
+         \x20                       revocation in revoke, the commits after the switch in modeset, and\n\
+         \x20                       the commits before the loss and after it in recovery\n\
          \x20                       [default: 5, at most 86400]\n\
          \x20 --frames <N>          frames for move [default: {MOVE_FRAMES}], rotate [default: {ROTATE_FRAMES}]\n\
          \x20                       and revoke, before the revocation [default: {REVOKE_FRAMES}]\n\
          \x20 --buffers <K>         buffers per plane in rotate and revoke, at least 3 [default: 3]\n\
+         \x20 --loss <LOSS>         how recovery loses the display [default: master]:\n\
+         \x20                         master   the engine's descriptor drops DRM master; a second\n\
+         \x20                                  descriptor takes it and turns the CRTC off (ACTIVE=0)\n\
+         \x20                         disable  the CRTC is turned off on the engine's descriptor\n\
          \x20 -h, --help            print this help\n\
          \n\
          Lessor: drm-harness lessor --lease <NAME> --dlm-dir <DIR> [--device <PATH>]\n\
@@ -196,6 +212,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
     let mut lease_name = None;
     let mut dlm_dir = None;
     let mut producers = "local".to_string();
+    let mut loss = Loss::default();
     let mut once = false;
     let mut layer = None;
     let mut scenario = None;
@@ -233,6 +250,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
             }
             "--source" => source = value(key)?,
             "--producers" => producers = value(key)?,
+            "--loss" => loss = Loss::parse(&value(key)?)?,
             "--profile" => {
                 profile = match value(key)?.as_str() {
                     "generic" => DriverProfile::Generic,
@@ -328,6 +346,7 @@ fn parse(args: &[String]) -> Result<Command, String> {
             frames,
             buffers,
             producers,
+            loss,
         }),
         scenario,
     ))
@@ -663,6 +682,46 @@ mod tests {
     }
 
     #[test]
+    fn recovery_parses_with_its_loss() {
+        let (o, scenario) = options("--seconds 25 recovery");
+        assert_eq!(scenario, "recovery");
+        assert_eq!(o.loss, Loss::Master);
+        assert_eq!(o.seconds, 25);
+        assert!(matches!(o.source, Source::Master { .. }));
+        let (o, _) = options("--loss disable --connector HDMI-A-1 recovery");
+        assert_eq!(o.loss, Loss::Disable);
+        let (o, _) = options("--loss=master recovery");
+        assert_eq!(o.loss, Loss::Master);
+        for bad in [
+            "--loss unplug recovery",
+            "--loss recovery",
+            "recovery --loss",
+            "recovery modeset",
+        ] {
+            assert!(parse(&args(bad)).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn all_never_runs_recovery() {
+        assert!(MODE_SCENARIOS
+            .iter()
+            .any(|(name, _, _)| *name == "recovery"));
+        assert!(!SCENARIOS
+            .iter()
+            .chain(LEASE_SCENARIOS.iter())
+            .any(|(name, _, _)| *name == "recovery"));
+    }
+
+    #[test]
+    fn a_master_loss_needs_a_master_source() {
+        // Refused before anything is opened.
+        let (o, _) = options("--source dlm --lease l --dlm-dir /nonexistent recovery");
+        let error = scenarios::recovery(&o).err().unwrap();
+        assert!(error.contains("needs --source master"), "{error}");
+    }
+
+    #[test]
     fn blocked_is_its_own_end_and_exit_status() {
         let blocked = Outcome::blocked("the connector offers only one mode".into());
         assert_eq!(
@@ -686,6 +745,8 @@ mod tests {
             "revoke",
             "lessor",
             "modeset",
+            "recovery",
+            "--loss",
             "BLOCKED",
         ] {
             assert!(text.contains(needle), "{needle}");

@@ -20,6 +20,7 @@ use drm::Device as BasicDevice;
 use crate::draw::{self, Op};
 use crate::producer::Producers;
 use crate::record::{list, Record};
+use crate::recovery::Loss;
 use crate::source::{Holder, Source};
 use crate::stats::micros;
 
@@ -43,6 +44,8 @@ pub struct Options {
     pub buffers: u32,
     /// Who allocates and draws the buffers.
     pub producers: ProducerMode,
+    /// How `recovery` takes the display away.
+    pub loss: Loss,
 }
 
 /// Who allocates and draws the buffers.
@@ -492,6 +495,13 @@ impl Session {
     /// The metadata of every buffer registered so far.
     pub fn infos(&self) -> &Infos {
         &self.infos
+    }
+
+    /// Every buffer registered with this engine, by id.
+    pub fn buffer_ids(&self) -> Vec<BufferId> {
+        let mut ids: Vec<BufferId> = self.infos.0.keys().copied().collect();
+        ids.sort_unstable();
+        ids
     }
 
     /// A frame on the selected output.

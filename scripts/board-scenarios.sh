@@ -1,20 +1,22 @@
 #!/bin/sh
-# Run rows A1-A5 of docs/board-scenarios.md on a Linux board with no
+# Run rows A1-A6 of docs/board-scenarios.md on a Linux board with no
 # compositor, by driving the drm-harness binary and judging its records.
 #
 # usage: board-scenarios.sh [options] HARNESS
 #   HARNESS         path of the drm-harness binary (built for the board)
 #   --out DIR       result directory (default /tmp/board-scenarios); the only
 #                   place the script writes to
-#   --rows LIST     comma-separated rows to run, default A1,A2,A3,A4,A5;
+#   --rows LIST     comma-separated rows to run, default A1,A2,A3,A4,A5,A6;
 #                   the others get NOT-RUN
 #   --hold SECS     A2 steady-state hold (default 10 seconds); with --fps
 #                   (default 60, assumed, not read from the sink) it gives
 #                   `rotate --frames HOLD*FPS --buffers 3`
 #   --frames N      A2 frame count, overrides --hold/--fps
-#   --seconds N     how long each picture is held in A1, A3, A4, A5 (default
-#                   3); a hold that a picture is taken 20 s or more into
-#                   needs --seconds of 25 or more
+#   --seconds N     how long each picture is held in A1, A3, A4, A5, A6
+#                   (default 3); a hold that a picture is taken 20 s or more
+#                   into needs --seconds of 25 or more
+#   --loss NAME     A6: how the harness loses the display, master or disable
+#                   (default: the harness's, master)
 #   --allow-drops N dropped frames A2 may report (default 0)
 #   --stop-wait N   seconds to wait for a signalled run to exit (default 10)
 #   --device PATH, --connector NAME, --profile NAME
@@ -40,6 +42,10 @@
 #                         comes with its first commit on the original mode,
 #                         about 1 s before the switch, so a picture taken
 #                         20 s in shows the second mode if --seconds >= 25
+#                     A6  hold-start/hold-end twice: first the hold before
+#                         the loss (from the first commit; hold-end once the
+#                         loss is made), then the new run's hold after the
+#                         recovery (from its first commit to the exit)
 #
 # Rows (each writes OUT/ROW/result.txt: first line
 # `SCENARIO <name> PASS|FAIL|BLOCKED|NOT-RUN`, then the evidence lines, and
@@ -68,20 +74,30 @@
 #                    modeset_result restored= the original mode. VERDICT
 #                    BLOCKED (exit 3; the connector offers one mode):
 #                    BLOCKED with the harness's reason. Anything else: FAIL.
+#   A6 display-recovery
+#                    recovery --source master --seconds N [--loss NAME]: the
+#                    harness commits for N seconds, loses the display (master
+#                    taken by a second descriptor that turns the CRTC off, or
+#                    the CRTC turned off), checks that the engine reports it
+#                    and holds no buffer, then a new run commits for N
+#                    seconds. PASS: exit 0, VERDICT PASS, recovery_result with
+#                    reported=true, still_busy=-, relatched >= 1 and
+#                    crtc_active_end=true, commits before the loss and after
+#                    the recovery all latched, no commit of the first run
+#                    after the loss record, and a resources record.
 #
 # Never starts or stops a display manager, never touches DRM, udev or seat
 # configuration: stop the compositor yourself before, restore it after. The
-# A5 mode switch is a commit of the harness on its own master descriptor,
-# undone before it exits. Only
-# --source master and kernel-lease are used. A6 (display recovery) is not
-# covered.
+# A5 mode switch and the A6 CRTC off are commits of the harness on the
+# device it was given, undone before it exits. Only --source master and
+# kernel-lease are used.
 #
 # Prints one `ROW name RESULT` summary line per row. Exit: 0 every selected
 # row PASS, 1 a row FAILed, 2 usage, 3 no FAIL but a row is BLOCKED or
 # NOT-RUN among the selected ones.
 
 out=/tmp/board-scenarios
-rows=A1,A2,A3,A4,A5
+rows=A1,A2,A3,A4,A5,A6
 hold=10
 fps=60
 frames=
@@ -91,6 +107,7 @@ stop_wait=10
 hook=
 common=
 seconds_given=
+loss=
 while [ $# -gt 0 ]; do
 	case $1 in
 	--out) shift; out=${1:-} ;;
@@ -102,6 +119,7 @@ while [ $# -gt 0 ]; do
 	--allow-drops) shift; allow_drops=${1:-} ;;
 	--stop-wait) shift; stop_wait=${1:-} ;;
 	--hook) shift; hook=${1:-} ;;
+	--loss) shift; loss=${1:-} ;;
 	--device) shift; common="$common --device ${1:-}" ;;
 	--connector) shift; common="$common --connector ${1:-}" ;;
 	--profile) shift; common="$common --profile ${1:-}" ;;
@@ -119,8 +137,9 @@ for n in "$hold" "$fps" "$seconds" "$allow_drops" "$stop_wait" $frames; do
 	case $n in ''|*[!0-9]*) echo "not a number: $n" >&2; exit 2 ;; esac
 done
 for r in $(echo "$rows" | tr ',' ' '); do
-	case $r in A1|A2|A3|A4|A5) ;; *) echo "unknown row: $r" >&2; exit 2 ;; esac
+	case $r in A1|A2|A3|A4|A5|A6) ;; *) echo "unknown row: $r" >&2; exit 2 ;; esac
 done
+case $loss in ''|master|disable) ;; *) echo "unknown loss: $loss" >&2; exit 2 ;; esac
 [ -n "$frames" ] || frames=$((hold * fps))
 mkdir -p "$out" || exit 2
 
@@ -372,12 +391,74 @@ row_a5() {
 		fail "original mode ${from:-?} not restored (restored=${restored:-?})"
 }
 
+# wait_line LOG PID PATTERN SECS: until a line of LOG matches PATTERN, PID
+# has exited or SECS have passed.
+wait_line() {
+	t=0
+	while ! grep -q "$3" "$1" && kill -0 "$2" 2>/dev/null \
+		&& [ "$t" -lt $(($4 * 10)) ]; do
+		sleep 0.1; t=$((t + 1))
+	done
+}
+
+# latched_step LOG STEP: "commits latched" of the commit records of STEP.
+latched_step() {
+	awk -v s="step=$2" '$1 == "commit" { m = 0
+		for (i = 2; i <= NF; i++) { if ($i == s) m = 1 }
+		if (!m) next; c++
+		for (i = 2; i <= NF; i++) if ($i ~ /^latency_us=[0-9]+$/) l++ }
+		END { print c + 0, l + 0 }' "$1"
+}
+
+row_a6() {
+	d=$out/A6; mkdir -p "$d"; f=$d/recovery.log
+	# shellcheck disable=SC2086
+	"$harness" $common --source master --seconds "$seconds" ${loss:+--loss "$loss"} \
+		recovery > "$f" 2>&1 &
+	pid=$!
+	limit=$((seconds + stop_wait))
+	wait_line "$f" "$pid" '^commit .*step=recovery-before' "$stop_wait"
+	runhook A6 hold-start
+	wait_line "$f" "$pid" '^loss ' "$limit"
+	runhook A6 hold-end
+	wait_line "$f" "$pid" '^commit .*step=recovery-after' "$limit"
+	runhook A6 hold-start
+	wait "$pid"
+	rc=$?
+	runhook A6 hold-end
+	check_verdict "$f" recovery "$rc"
+	rr=recovery_result
+	note "loss=$(fld "$f" loss method) made=$(fld "$f" "$rr" made) crtc_active_after_loss=$(fld "$f" loss crtc_active)"
+	note "first=$(fld "$f" "$rr" first) first_ms=$(fld "$f" "$rr" first_ms) second=$(fld "$f" "$rr" second) master_back=$(fld "$f" "$rr" master_back)"
+	rep=$(fld "$f" "$rr" reported)
+	busy=$(fld "$f" "$rr" still_busy)
+	rl=$(fld "$f" "$rr" relatched)
+	act=$(fld "$f" "$rr" crtc_active_end)
+	note "reported=$rep still_busy=$busy relatched=$rl crtc_active_end=$act"
+	if ! grep -q "^$rr " "$f"; then fail "no $rr record"; return; fi
+	[ "$rep" = true ] || fail "the engine did not report the loss (first=$(fld "$f" "$rr" first))"
+	[ "$busy" = - ] || fail "buffers still held after the loss: $busy"
+	is_num "$rl" && [ "$rl" -ge 1 ] || fail "the new run latched no commit"
+	[ "$act" = true ] || fail "CRTC not on at the end (crtc_active_end=$act)"
+	for step in recovery-before recovery-after; do
+		cl=$(latched_step "$f" "$step")
+		c=${cl% *} l=${cl#* }
+		note "$step: commits=$c latched=$l"
+		[ "$c" -ge 1 ] && [ "$l" -eq "$c" ] || fail "$step: latched=$l of commits=$c"
+	done
+	# The first run commits nothing once the display is lost.
+	late=$(awk '/^loss /{s=1; next} s && $1 == "commit" && / step=recovery-before / {n++}
+		END{print n+0}' "$f")
+	[ "$late" -eq 0 ] || fail "$late commits of the first run after the loss"
+	grep -q '^resources scenario=recovery ' "$f" || fail "no resources record"
+}
+
 sel=",$rows,"
 overall=0
-for r in A1 A2 A3 A4 A5; do
+for r in A1 A2 A3 A4 A5 A6; do
 	case $r in
 	A1) name=startup ;; A2) name=steady-state ;; A3) name=stop-restart ;;
-	A4) name=lease-loss ;; A5) name=modeset ;;
+	A4) name=lease-loss ;; A5) name=modeset ;; A6) name=display-recovery ;;
 	esac
 	ev= bad= forced=
 	case $sel in

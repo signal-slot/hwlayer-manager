@@ -1359,29 +1359,49 @@ struct Phase {
     plan_failures: Vec<String>,
 }
 
-/// Commits the two-planes picture on the session's current size, flipping
-/// between two buffers per layer, until `seconds` have passed (at least
-/// one commit), and waits for each latch. Prints a `commit` record per
-/// latched frame.
-fn commit_for(s: &mut Session, step: &str, seconds: u64) -> Result<Phase, String> {
+/// A two-layer picture of [`commit_for`]: a framed full-screen bottom
+/// buffer and a framed half-size top one in the middle.
+struct Picture {
+    /// Fill and edge of the bottom buffer.
+    bottom: (u32, u32),
+    /// Fill and edge of the top buffer.
+    top: (u32, u32),
+    /// What should be seen, for the `step` record.
+    expect: &'static str,
+}
+
+/// The `two-planes` picture.
+const TWO_PLANES: Picture = Picture {
+    bottom: (colour::BLUE, colour::WHITE),
+    top: (colour::RED, colour::YELLOW),
+    expect: "blue full screen with white edge, red rectangle with yellow edge on top in the middle",
+};
+
+/// Commits `picture` on the session's current size, flipping between two
+/// buffers per layer, until `seconds` have passed (at least one commit),
+/// and waits for each latch. Prints a `commit` record per latched frame.
+fn commit_for(
+    s: &mut Session,
+    step: &str,
+    seconds: u64,
+    picture: &Picture,
+) -> Result<Phase, String> {
     let size = s.size;
     let (w, h) = (size.width, size.height);
     let top_size = Size::new(w / 2, h / 2);
+    let ((bottom, bottom_edge), (top, top_edge)) = (picture.bottom, picture.top);
     // Two buffers per layer: [bottom, top] of even frames, then of odd ones.
     let mut pairs = [[BufferId(0); 2]; 2];
     for pair in &mut pairs {
-        pair[0] = framed(s, 0, size, XRGB, colour::BLUE, colour::WHITE)?;
-        pair[1] = framed(s, 1, top_size, XRGB, colour::RED, colour::YELLOW)?;
+        pair[0] = framed(s, 0, size, XRGB, bottom, bottom_edge)?;
+        pair[1] = framed(s, 1, top_size, XRGB, top, top_edge)?;
     }
     Record::new("step")
         .field("label", step)
         .field("width", w)
         .field("height", h)
         .field("seconds", seconds)
-        .field(
-            "expect",
-            "blue full screen with white edge, red rectangle with yellow edge on top in the middle",
-        )
+        .field("expect", picture.expect)
         .emit();
     let mut phase = Phase::default();
     let deadline = Instant::now() + Duration::from_secs(seconds.min(crate::stop::MAX_SECONDS));
@@ -1536,7 +1556,12 @@ pub fn modeset(o: &Options) -> Result<Outcome, String> {
     let wanted = ModeKey::of(&target);
 
     let mut failures = Vec::new();
-    let before = commit_for(&mut s, "modeset-before", MODESET_BEFORE_SECONDS)?;
+    let before = commit_for(
+        &mut s,
+        "modeset-before",
+        MODESET_BEFORE_SECONDS,
+        &TWO_PLANES,
+    )?;
     failures.extend(before.plan_failures.iter().cloned());
     failures.extend(before.error.iter().cloned());
     if before.latched == 0 && !before.stopped && failures.is_empty() {
@@ -1568,7 +1593,7 @@ pub fn modeset(o: &Options) -> Result<Outcome, String> {
                     wanted.text()
                 ));
             }
-            commit_for(&mut s, "modeset-after", o.seconds)
+            commit_for(&mut s, "modeset-after", o.seconds, &TWO_PLANES)
         });
         match replanned {
             Ok(phase) => after = phase,
@@ -1635,6 +1660,350 @@ pub fn modeset(o: &Options) -> Result<Outcome, String> {
     ))
 }
 
+/// How long the engine has to report the loss of the display, from the
+/// frame offered after it.
+pub const RECOVERY_BUDGET: Duration = Duration::from_secs(2);
+
+/// The engine's own latch timeout in `recovery`, in milliseconds of the
+/// harness's clock (`Engine::advance_time`), well inside the budget.
+pub const RECOVERY_LATCH_TIMEOUT_MS: u64 = 500;
+
+/// The picture of the run after the recovery, unlike the one before the
+/// loss, so that a picture tells the two apart.
+const RECOVERED: Picture = Picture {
+    bottom: (colour::GREEN, colour::WHITE),
+    top: (colour::YELLOW, colour::BLUE),
+    expect:
+        "green full screen with white edge, yellow rectangle with blue edge on top in the middle",
+};
+
+/// Milliseconds since `clock`, the time the engine is told.
+fn ticks(clock: Instant) -> u64 {
+    u64::try_from(clock.elapsed().as_millis()).unwrap_or(u64::MAX)
+}
+
+/// Offers one frame of `buffers` (bottom, top) after the loss and waits up
+/// to [`RECOVERY_BUDGET`] for the engine's answer, telling it the time as
+/// it goes so that its latch timeout can fire. Prints a `loss_attempt`
+/// record; returns the answer and how long it took in milliseconds.
+fn loss_attempt(
+    s: &mut Session,
+    step: &str,
+    clock: Instant,
+    buffers: [BufferId; 2],
+) -> (crate::recovery::Report, u64) {
+    use crate::recovery::{report_of, Report};
+
+    let size = s.size;
+    let (w, h) = (size.width, size.height);
+    let top_size = Size::new(w / 2, h / 2);
+    let layers = [
+        Layer::new(buffers[0], whole(size), whole(size), 0),
+        Layer::new(buffers[1], whole(top_size), at(w / 4, h / 4, top_size), 1),
+    ];
+    let started = Instant::now();
+    s.engine.advance_time(ticks(clock));
+    let frame = s.frame(&layers);
+    let committed = match s.engine.validate(&frame) {
+        Err(e) => Err(format!("validate: {}", describe(&e))),
+        Ok(plan) => s
+            .engine
+            .commit(&frame, &plan)
+            .map_err(|e| format!("commit: {}", describe(&e))),
+    };
+    let mut events = Vec::new();
+    let report = match committed {
+        Err(e) => Report::Error(e),
+        Ok(submission) => loop {
+            s.engine.advance_time(ticks(clock));
+            match s.drain() {
+                Ok(seen) => events.extend(seen),
+                Err(e) => break Report::Error(e),
+            }
+            if let Some(report) = report_of(submission, &events) {
+                break report;
+            }
+            let deadline = started + RECOVERY_BUDGET;
+            let now = Instant::now();
+            if now >= deadline {
+                break Report::Silent;
+            }
+            let slice = (deadline - now).min(LATCH_TIMEOUT / 10);
+            if let Err(e) = s.engine.backend().wait_for_events(Some(slice)) {
+                break Report::Error(format!("poll: {e}"));
+            }
+        },
+    };
+    let after_ms = micros(started.elapsed()) / 1000;
+    // What came with the error (a DeviceLost, releases), for the record.
+    events.extend(s.drain().unwrap_or_default());
+    let failures: Vec<String> = s
+        .engine
+        .backend_mut()
+        .take_failures()
+        .map(|f| format!("{f:?}").replace(' ', ""))
+        .collect();
+    let backend = s.engine.backend();
+    Record::new("loss_attempt")
+        .field("step", step)
+        .field("report", report.text())
+        .field("after_ms", after_ms)
+        .field("backend_failures", list(failures.iter()))
+        .field("device_lost", backend.is_lost())
+        .field("pending_latch", backend.pending_latch(s.output).is_some())
+        .field(
+            "events",
+            list(events.iter().map(|e| format!("{e:?}").replace(' ', ""))),
+        )
+        .emit();
+    (report, after_ms)
+}
+
+/// Turns the CRTC of `pairing` back on with its original mode if it is
+/// off, with the `modeset` scenario's own commit (a black buffer on the
+/// primary plane). Returns whether it is on afterwards, `None` if that
+/// cannot be read.
+fn ensure_on(card: &composition_drm::Card, pairing: &crate::session::Pairing) -> Option<bool> {
+    use crate::recovery::crtc_active;
+
+    let active = crtc_active(card, pairing.crtc).ok();
+    if active != Some(false) {
+        return active;
+    }
+    let black = [fill(whole(mode_size(&pairing.mode)), colour::BLACK)];
+    match crate::modeset::Switcher::new(card, pairing) {
+        Ok(mut switcher) => {
+            let switched = switcher.switch(card, "restore", &pairing.mode, &black);
+            switcher.release(card, switched.is_ok());
+        }
+        Err(e) => Record::new("error")
+            .field("scenario", "recovery")
+            .field("message", format!("restore the CRTC: {e}"))
+            .emit(),
+    }
+    crtc_active(card, pairing.crtc).ok()
+}
+
+/// `recovery`: commit the two-planes picture for `--seconds`, lose the
+/// display (`--loss master`: another descriptor takes DRM master and turns
+/// the CRTC off; `--loss disable`: the CRTC is turned off on the engine's
+/// descriptor), check that the engine reports the loss within
+/// [`RECOVERY_BUDGET`] and holds no buffer afterwards, then take master
+/// back, start a new engine run and check that it latches for `--seconds`.
+pub fn recovery(o: &Options) -> Result<Outcome, String> {
+    use crate::recovery::{
+        busy, judge, open_master, result_text, states_text, turn_off, Findings, Loss,
+    };
+    use crate::source::Source;
+    use drm::Device as _;
+
+    let device = match (&o.source, o.loss) {
+        (Source::Master { device }, _) => Some(device.clone()),
+        (_, Loss::Master) => {
+            return Err(
+                "recovery --loss master needs --source master: the engine's \
+                        descriptor must be the DRM master that is lost"
+                    .into(),
+            )
+        }
+        _ => None,
+    };
+    let mut s = Session::open(o, "recovery")?;
+    let usage = Usage::now();
+    let clock = Instant::now();
+    s.engine.set_latch_timeout(Some(RECOVERY_LATCH_TIMEOUT_MS));
+    let pairing = s.pairing()?;
+    let crtc = pairing.crtc;
+    let size = s.size;
+    let top_size = Size::new(size.width / 2, size.height / 2);
+    // The frames offered after the loss, drawn while the display is there.
+    let mut after_loss = [[BufferId(0); 2]; 2];
+    for pair in &mut after_loss {
+        pair[0] = framed(&mut s, 0, size, XRGB, colour::GREY, colour::BLACK)?;
+        pair[1] = framed(&mut s, 1, top_size, XRGB, colour::GREY, colour::BLACK)?;
+    }
+    Record::new("hold")
+        .field("step", "recovery-before")
+        .field("seconds", o.seconds)
+        .emit();
+    let before = commit_for(&mut s, "recovery-before", o.seconds, &TWO_PLANES)?;
+    if before.stopped {
+        // Nothing was lost yet, nothing checked.
+        return Err(crate::stop::STOPPED.into());
+    }
+    let mut failures = before.plan_failures.clone();
+    failures.extend(before.error.iter().cloned());
+    if before.latched == 0 && failures.is_empty() {
+        failures.push("no latch before the loss".into());
+    }
+    let on_screen: Vec<BufferId> = s
+        .buffer_ids()
+        .into_iter()
+        .filter(|b| s.engine.buffer_state(*b) == Some(BufferState::Scanning))
+        .collect();
+    Record::new("before_loss")
+        .field("commits", before.commits)
+        .field("latched", before.latched)
+        .field("on_screen", list(on_screen.iter().map(|b| b.0)))
+        .emit();
+    if !failures.is_empty() {
+        print_resources("recovery", &usage);
+        return Ok(Outcome::new(&failures, String::new()));
+    }
+
+    // The loss. The second descriptor is kept until master is taken back.
+    let mut other = None;
+    let made: Result<(), String> = match o.loss {
+        Loss::Master => (|| {
+            s.engine
+                .backend()
+                .card()
+                .release_master_lock()
+                .map_err(|e| format!("drop DRM master: {e}"))?;
+            let device = device.as_deref().ok_or("no device node")?;
+            let card =
+                open_master(device).map_err(|e| format!("second descriptor as DRM master: {e}"))?;
+            let off = turn_off(&card, crtc).map_err(|e| format!("CRTC off: {e}"));
+            other = Some(card);
+            off
+        })(),
+        Loss::Disable => {
+            turn_off(s.engine.backend().card(), crtc).map_err(|e| format!("CRTC off: {e}"))
+        }
+    };
+    Record::new("loss")
+        .field("method", o.loss.name())
+        .field("crtc", u32::from(crtc))
+        .field("result", result_text(&made))
+        .field(
+            "crtc_active",
+            crate::recovery::crtc_active(s.engine.backend().card(), crtc)
+                .map_or("?".to_string(), |a| a.to_string()),
+        )
+        .emit();
+    let (first, first_ms) = loss_attempt(&mut s, "after-loss", clock, after_loss[0]);
+    let mut master_back = None;
+    let mut second = None;
+    if o.loss == Loss::Master {
+        // The other master goes; the engine's descriptor takes the role back.
+        let closed = other.take().is_some();
+        let back = s
+            .engine
+            .backend()
+            .card()
+            .acquire_master_lock()
+            .map_err(|e| e.to_string());
+        Record::new("master_back")
+            .field("other_closed", closed)
+            .field("result", result_text(&back))
+            .emit();
+        if back.is_ok() {
+            second = Some(loss_attempt(&mut s, "master-back", clock, after_loss[1]).0);
+        }
+        master_back = Some(back);
+    }
+    let states: Vec<(BufferId, Option<BufferState>)> = s
+        .buffer_ids()
+        .into_iter()
+        .map(|b| (b, s.engine.buffer_state(b)))
+        .collect();
+    let still_busy = busy(&states);
+    Record::new("buffers_after_loss")
+        .field("states", states_text(&states))
+        .field("busy", list(still_busy.iter().map(|b| b.0)))
+        .emit();
+    // The old engine goes, and its buffers with its descriptor.
+    drop(s);
+
+    // A new run, as a restarted application would make it: its first
+    // commit is a modeset, which turns the CRTC on again.
+    let (after, active_at_end) =
+        match Session::open(o, "recovery") {
+            Ok(mut s) => {
+                Record::new("hold")
+                    .field("step", "recovery-after")
+                    .field("seconds", o.seconds)
+                    .emit();
+                let after = commit_for(&mut s, "recovery-after", o.seconds, &RECOVERED)
+                    .unwrap_or_else(|e| Phase {
+                        error: Some(e),
+                        ..Phase::default()
+                    });
+                (after, ensure_on(s.engine.backend().card(), &pairing))
+            }
+            Err(e) => {
+                // Put the CRTC back on from a descriptor of its own, if one can
+                // be master.
+                let active = device
+                    .as_deref()
+                    .and_then(|d| open_master(d).ok())
+                    .and_then(|card| ensure_on(&card, &pairing));
+                let after = Phase {
+                    error: Some(e),
+                    ..Phase::default()
+                };
+                (after, active)
+            }
+        };
+    failures.extend(after.plan_failures);
+    let (relatched, new_run_error, after_stopped) = (after.latched, after.error, after.stopped);
+    let findings = Findings {
+        loss: o.loss,
+        made,
+        first,
+        second,
+        busy: still_busy,
+        master_back,
+        relatched,
+        new_run_error,
+        active_at_end,
+    };
+    failures.extend(judge(&findings, micros(RECOVERY_BUDGET) / 1000));
+    Record::new("recovery_result")
+        .field("loss", o.loss.name())
+        .field("made", result_text(&findings.made))
+        .field("first", findings.first.text())
+        .field("first_ms", first_ms)
+        .field("reported", findings.first.reported())
+        .field(
+            "second",
+            findings
+                .second
+                .as_ref()
+                .map_or("-".to_string(), |r| r.text()),
+        )
+        .field("still_busy", list(findings.busy.iter().map(|b| b.0)))
+        .field(
+            "master_back",
+            findings
+                .master_back
+                .as_ref()
+                .map_or("-".to_string(), result_text),
+        )
+        .field("relatched", findings.relatched)
+        .field(
+            "crtc_active_end",
+            findings
+                .active_at_end
+                .map_or("?".to_string(), |a| a.to_string()),
+        )
+        .emit();
+    if after_stopped && relatched == 0 && findings.new_run_error.is_none() {
+        // Stopped before the new run showed anything: not checked.
+        return Err(crate::stop::STOPPED.into());
+    }
+    print_resources("recovery", &usage);
+    Ok(Outcome::new(
+        &failures,
+        format!(
+            "{} loss reported as {} after {first_ms} ms; no buffer held; \
+             a new run latched {relatched} commits",
+            o.loss.name(),
+            findings.first.text()
+        ),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1655,6 +2024,27 @@ mod tests {
         let ended = hold_idle("revoke", 3600, &|| true);
         assert_eq!(ended, Ok(false));
         assert!(started.elapsed() < Duration::from_secs(1));
+    }
+
+    #[test]
+    fn the_recovered_picture_differs_where_a_picture_is_judged() {
+        // The corner (bottom fill) and the centre (top fill) both change.
+        assert_ne!(RECOVERED.bottom.0, TWO_PLANES.bottom.0);
+        assert_ne!(RECOVERED.top.0, TWO_PLANES.top.0);
+        assert_ne!(RECOVERED.expect, TWO_PLANES.expect);
+    }
+
+    #[test]
+    fn the_engine_latch_timeout_fires_inside_the_budget() {
+        assert!(Duration::from_millis(RECOVERY_LATCH_TIMEOUT_MS) < RECOVERY_BUDGET);
+        // Polled in slices of LATCH_TIMEOUT / 10, so it is seen in time.
+        assert!(
+            Duration::from_millis(RECOVERY_LATCH_TIMEOUT_MS) + LATCH_TIMEOUT / 10 < RECOVERY_BUDGET
+        );
+        let clock = Instant::now();
+        let a = ticks(clock);
+        std::thread::sleep(Duration::from_millis(5));
+        assert!(ticks(clock) >= a + 5);
     }
 
     #[test]
