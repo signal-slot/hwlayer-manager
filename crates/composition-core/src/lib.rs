@@ -11,6 +11,8 @@
 //!   planes cannot take; never commits.
 //! - [`presentation`]: buffer and submission lifecycle
 //!   (writable → ready → submitted → scanning → released).
+//! - [`readiness`]: opaque tokens for buffers whose content completes
+//!   asynchronously (the core's side of synchronization fences).
 //! - [`backend`]: the contract a display backend implements.
 //! - [`engine`]: ties the three together for a single backend.
 //! - [`trace`]: structured traces of what the engine does, for an optional
@@ -27,6 +29,7 @@ pub mod fixed;
 pub mod limits;
 pub mod planner;
 pub mod presentation;
+pub mod readiness;
 pub mod trace;
 pub mod types;
 
@@ -44,6 +47,7 @@ pub use planner::{
     Assignment, BufferLookup, Plan, PlanError, RejectReasons, SearchLimits, Verdict,
 };
 pub use presentation::{BufferState, DisplayEvent, PresentError, Presentation};
+pub use readiness::{ReadinessState, ReadyToken};
 pub use trace::{DropReason, NoTrace, Trace, TraceEvent};
 pub use types::{
     BlendMode, BufferId, BufferInfo, Frame, Layer, Modifier, OutputId, PixelFormat, PlaneId, Rect,

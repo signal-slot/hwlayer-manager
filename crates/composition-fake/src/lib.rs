@@ -4,6 +4,13 @@
 //! until the test calls [`FakeBackend::vsync`], which latches it. Tests
 //! control time, so delayed or missing vsyncs, failed commits, rejected
 //! configurations and device loss are all reproducible.
+//!
+//! By default the fake does not wait for readiness tokens, so the engine
+//! refuses frames whose buffers are pending on one. With
+//! [`FakeBackend::set_waits_for_readiness`] it waits: a commit is latched by
+//! [`FakeBackend::vsync`] only once every token of its buffers was signalled
+//! ([`FakeBackend::signal_token`], or cleared by the engine), the way a
+//! kernel waits on an `IN_FENCE_FD`.
 
 #![forbid(unsafe_code)]
 
@@ -11,7 +18,7 @@ use std::collections::VecDeque;
 
 use composition_core::{
     BackendError, BackendEvent, BufferId, Capabilities, DisplayBackend, Frame, OutputId, Plan,
-    PlaneId, SubmissionId,
+    PlaneId, ReadyToken, SubmissionId,
 };
 
 /// What one plane shows in a committed frame.
@@ -29,6 +36,8 @@ pub struct PlaneState {
 struct Commit {
     submission: SubmissionId,
     planes: Vec<PlaneState>,
+    /// Tokens of its buffers that have not signalled yet.
+    waiting: Vec<(BufferId, ReadyToken)>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -53,6 +62,15 @@ pub struct FakeBackend {
     vsync_in_next_commit: bool,
     vsync_after_next_commit: bool,
     event_in_next_commit: Option<BackendEvent>,
+    waits_for_readiness: bool,
+    /// Token given for each buffer and not cleared yet.
+    tokens: Vec<(BufferId, ReadyToken)>,
+    /// Tokens signalled at the fake.
+    signalled: Vec<ReadyToken>,
+    /// Every accepted [`DisplayBackend::set_readiness`] call, in order.
+    readiness_log: Vec<(BufferId, ReadyToken)>,
+    /// Every [`DisplayBackend::readiness_failed`] call, in order.
+    failed_log: Vec<ReadyToken>,
 }
 
 impl FakeBackend {
@@ -70,7 +88,52 @@ impl FakeBackend {
             vsync_in_next_commit: false,
             vsync_after_next_commit: false,
             event_in_next_commit: None,
+            waits_for_readiness: false,
+            tokens: Vec::new(),
+            signalled: Vec::new(),
+            readiness_log: Vec::new(),
+            failed_log: Vec::new(),
         }
+    }
+
+    /// Makes the fake wait for readiness tokens (see the crate
+    /// documentation), or, with `false`, refuse them as it does by default.
+    pub fn set_waits_for_readiness(&mut self, waits: bool) {
+        self.waits_for_readiness = waits;
+    }
+
+    /// Signals `token` at the fake, as a completed fence would: commits
+    /// waiting on it may be latched by the next [`FakeBackend::vsync`]. The
+    /// engine is not told; it learns it from the latch.
+    pub fn signal_token(&mut self, token: ReadyToken) {
+        if !self.signalled.contains(&token) {
+            self.signalled.push(token);
+        }
+        self.tokens.retain(|(_, t)| *t != token);
+        for (_, state) in &mut self.outputs {
+            if let Some(commit) = &mut state.pending {
+                commit.waiting.retain(|(_, t)| *t != token);
+            }
+        }
+    }
+
+    /// Every token the engine gave with [`DisplayBackend::set_readiness`]
+    /// and the fake accepted, in order, repetitions included.
+    pub fn readiness_log(&self) -> &[(BufferId, ReadyToken)] {
+        &self.readiness_log
+    }
+
+    /// Every token the engine reported failed, in order.
+    pub fn failed_tokens(&self) -> &[ReadyToken] {
+        &self.failed_log
+    }
+
+    /// Tokens the commit pending on `output` still waits for.
+    pub fn waiting_tokens(&self, output: OutputId) -> Vec<ReadyToken> {
+        self.state(output)
+            .and_then(|s| s.pending.as_ref())
+            .map(|c| c.waiting.iter().map(|(_, t)| *t).collect())
+            .unwrap_or_default()
     }
 
     /// Installs a hook that can reject otherwise legal assignments, like a
@@ -104,14 +167,25 @@ impl FakeBackend {
         self.event_in_next_commit = Some(event);
     }
 
-    /// Simulates a vertical blank: every pending commit is latched.
+    /// Simulates a vertical blank: every pending commit is latched, except
+    /// one still waiting for a readiness token.
     pub fn vsync(&mut self) {
         for (output, state) in &mut self.outputs {
+            if state
+                .pending
+                .as_ref()
+                .is_some_and(|c| !c.waiting.is_empty())
+            {
+                continue;
+            }
             if let Some(commit) = state.pending.take() {
                 self.events.push_back(BackendEvent::Latched {
                     output: *output,
                     submission: commit.submission,
                 });
+                // A latched buffer's token is used up.
+                self.tokens
+                    .retain(|(b, _)| !commit.planes.iter().any(|p| p.buffer == *b));
                 state.latched = Some(commit);
             }
         }
@@ -226,8 +300,18 @@ impl DisplayBackend for FakeBackend {
                 buffer: frame.layers[a.layer].buffer,
                 zpos: a.zpos,
             })
+            .collect::<Vec<_>>();
+        let waiting = self
+            .tokens
+            .iter()
+            .filter(|(b, t)| planes.iter().any(|p| p.buffer == *b) && !self.signalled.contains(t))
+            .copied()
             .collect();
-        state.pending = Some(Commit { submission, planes });
+        state.pending = Some(Commit {
+            submission,
+            planes,
+            waiting,
+        });
         self.commits += 1;
         if let Some(event) = self.event_in_next_commit.take() {
             self.events.push_back(event);
@@ -240,5 +324,47 @@ impl DisplayBackend for FakeBackend {
 
     fn poll_event(&mut self) -> Option<BackendEvent> {
         self.events.pop_front()
+    }
+
+    fn waits_for_readiness(&self) -> bool {
+        self.waits_for_readiness
+    }
+
+    fn set_readiness(&mut self, buffer: BufferId, token: ReadyToken) -> Result<(), BackendError> {
+        if !self.waits_for_readiness {
+            return Err(BackendError::Rejected);
+        }
+        if self.lost {
+            return Err(BackendError::DeviceLost);
+        }
+        self.tokens.retain(|(b, _)| *b != buffer);
+        self.tokens.push((buffer, token));
+        self.readiness_log.push((buffer, token));
+        Ok(())
+    }
+
+    fn clear_readiness(&mut self, buffer: BufferId) {
+        self.tokens.retain(|(b, _)| *b != buffer);
+        for (_, state) in &mut self.outputs {
+            if let Some(commit) = &mut state.pending {
+                commit.waiting.retain(|(b, _)| *b != buffer);
+            }
+        }
+    }
+
+    fn readiness_failed(&mut self, token: ReadyToken) {
+        self.failed_log.push(token);
+        self.tokens.retain(|(_, t)| *t != token);
+        // A commit waiting on the token is withdrawn: never latched, and
+        // what was latched before stays on screen.
+        for (_, state) in &mut self.outputs {
+            if state
+                .pending
+                .as_ref()
+                .is_some_and(|c| c.waiting.iter().any(|(_, t)| *t == token))
+            {
+                state.pending = None;
+            }
+        }
     }
 }

@@ -15,6 +15,28 @@
 //!   latched yet.
 //! - **Scanning**: part of the submission the hardware is showing.
 //!
+//! A producer whose writes complete asynchronously finishes with a
+//! [`ReadyToken`] instead ([`Presentation::finish_write_pending`]). The buffer
+//! is then *Ready, pending signal*: [`Presentation::state`] says
+//! [`BufferState::Ready`] and [`Presentation::readiness`] says
+//! [`ReadinessState::Pending`]. See [`crate::readiness`].
+//!
+//! ```text
+//!                 finish_write_pending(token)
+//! Writable ---------------------------------> Ready (pending signal)
+//!     ^                                        |   |   |
+//!     |          signalled, or latched by a    |   |   | submit, only if the
+//!     |          backend that waited           |   |   | backend waits:
+//!     |        +-------------------------------+   |   v
+//!     |        v                                   |  Submitted (pending)
+//!     |      Ready                                 |   |   |
+//!     |                     failed or timed out    |   |   | latched: the
+//!     |                  +-------------------------+   |   v backend waited
+//!     |                  v                             |  Scanning
+//!     +--begin_write-- Ready (failed) <-- Dropped -----+
+//!                      refused until rewritten         failed or timed out
+//! ```
+//!
 //! An accepted submission proves neither that the frame reached the screen
 //! nor that the previous buffers are free. Those are reported separately, as
 //! [`DisplayEvent::Presented`] and [`DisplayEvent::Released`]. A submission
@@ -23,6 +45,7 @@
 use crate::fixed::{FixedQueue, FixedVec};
 use crate::limits::{MAX_BUFFERS, MAX_EVENTS, MAX_LAYERS, MAX_OUTPUTS};
 use crate::planner::BufferLookup;
+use crate::readiness::{Readiness, ReadinessState, ReadyToken};
 use crate::types::{BufferId, BufferInfo, Modifier, OutputId, PixelFormat, Size, SubmissionId};
 
 /// Lifecycle state of a registered buffer.
@@ -146,6 +169,7 @@ pub struct Presentation {
     buffers: FixedVec<Entry, MAX_BUFFERS>,
     slots: FixedVec<OutputSlot, MAX_OUTPUTS>,
     events: FixedQueue<DisplayEvent, MAX_EVENTS>,
+    readiness: Readiness,
     next_id: u64,
     now: u64,
 }
@@ -180,6 +204,7 @@ impl Presentation {
             current: None,
         }),
         events: FixedQueue::empty_filled(DisplayEvent::DeviceLost),
+        readiness: Readiness::EMPTY,
         next_id: 1,
         now: 0,
     };
@@ -231,6 +256,7 @@ impl Presentation {
             return Err(PresentError::BufferInUse(buffer));
         }
         self.buffers.swap_remove(index);
+        self.readiness.remove(buffer);
         Ok(())
     }
 
@@ -249,7 +275,8 @@ impl Presentation {
     ///
     /// Fails with [`PresentError::BufferInUse`] while the buffer is submitted
     /// or on screen. Calling it on a buffer that is already writable is
-    /// allowed.
+    /// allowed. A readiness token the buffer was finished with is forgotten,
+    /// whatever its state.
     pub fn begin_write(&mut self, buffer: BufferId) -> Result<(), PresentError> {
         let index = self
             .entry_index(buffer)
@@ -258,6 +285,7 @@ impl Presentation {
             return Err(PresentError::BufferInUse(buffer));
         }
         self.buffers.as_mut_slice()[index].writable = true;
+        self.readiness.remove(buffer);
         Ok(())
     }
 
@@ -272,6 +300,112 @@ impl Presentation {
         }
         entry.writable = false;
         Ok(())
+    }
+
+    /// Declares that the producer handed the buffer over with content that
+    /// is complete once `token` signals: the buffer is *Ready, pending
+    /// signal* (see [`crate::readiness`]).
+    ///
+    /// Fails like [`Presentation::finish_write`]; on failure nothing
+    /// changes. The pending time starts at the latest
+    /// [`Presentation::set_time`].
+    pub fn finish_write_pending(
+        &mut self,
+        buffer: BufferId,
+        token: ReadyToken,
+    ) -> Result<(), PresentError> {
+        self.finish_write(buffer)?;
+        self.readiness.set_pending(buffer, token, self.now);
+        Ok(())
+    }
+
+    /// Readiness of a buffer finished with a token, or `None` if the buffer
+    /// has no token (it is unregistered, writable or plainly ready).
+    pub fn readiness(&self, buffer: BufferId) -> Option<ReadinessState> {
+        self.readiness.get(buffer)
+    }
+
+    /// Buffers whose readiness is pending on `token`.
+    pub(crate) fn pending_on(&self, token: ReadyToken) -> impl Iterator<Item = BufferId> + '_ {
+        self.readiness.pending_on(token)
+    }
+
+    /// A token pending for at least `timeout` ticks, if any.
+    pub(crate) fn expired_readiness(&self, timeout: u64) -> Option<ReadyToken> {
+        self.readiness.expired(self.now, timeout)
+    }
+
+    /// Records that `token` signalled: every buffer pending on it is plainly
+    /// ready. Returns how many buffers that was. A token that matches no
+    /// pending buffer (unknown, or already failed or timed out) changes
+    /// nothing and gives 0.
+    pub fn readiness_signalled(&mut self, token: ReadyToken) -> usize {
+        self.readiness.signal(token)
+    }
+
+    /// Records that `token` will never signal, as
+    /// [`ReadinessState::Failed`], or as [`ReadinessState::TimedOut`] with
+    /// `timed_out`. Every buffer pending on it is refused until it is
+    /// written again. Each pending submission showing one of them is
+    /// withdrawn and reported as [`DisplayEvent::Dropped`], followed by
+    /// [`DisplayEvent::Released`] for those of its buffers nothing else
+    /// uses; what is on screen stays.
+    ///
+    /// Returns how many buffers were pending on the token. Fails with
+    /// [`PresentError::EventQueueFull`], changing nothing, if the events do
+    /// not fit.
+    pub fn readiness_failed(
+        &mut self,
+        token: ReadyToken,
+        timed_out: bool,
+    ) -> Result<usize, PresentError> {
+        self.check_readiness_failed(token)?;
+        let mut withdrawn: FixedVec<(OutputId, Submission), MAX_OUTPUTS> = FixedVec::new();
+        for index in 0..self.slots.len() {
+            let slot = self.slots[index];
+            if let Some(pending) = slot.pending.filter(|s| self.waits_on(s, token)) {
+                self.slots.as_mut_slice()[index].pending = None;
+                // One per output: it fits.
+                let _ = withdrawn.push((slot.output, pending));
+            }
+        }
+        let failed = if timed_out {
+            ReadinessState::TimedOut(token)
+        } else {
+            ReadinessState::Failed(token)
+        };
+        let count = self.readiness.fail(token, failed);
+        for (output, submission) in withdrawn.iter() {
+            self.emit(DisplayEvent::Dropped {
+                output: *output,
+                submission: submission.id,
+            });
+            self.release_unused(&submission.buffers);
+        }
+        Ok(count)
+    }
+
+    /// Checks whether [`Presentation::readiness_failed`] would succeed,
+    /// without changing anything.
+    pub fn check_readiness_failed(&self, token: ReadyToken) -> Result<(), PresentError> {
+        let mut needed = 0;
+        for slot in self.slots.iter() {
+            if let Some(pending) = slot.pending.filter(|s| self.waits_on(s, token)) {
+                needed += 1 + pending.buffers.len();
+            }
+        }
+        if self.events.remaining() < needed {
+            return Err(PresentError::EventQueueFull);
+        }
+        Ok(())
+    }
+
+    /// Returns `true` if a buffer of `submission` is pending on `token`.
+    fn waits_on(&self, submission: &Submission, token: ReadyToken) -> bool {
+        submission
+            .buffers
+            .iter()
+            .any(|b| self.readiness.get(*b) == Some(ReadinessState::Pending(token)))
     }
 
     /// Identifier the next successful [`Presentation::submit`] will return.
@@ -312,11 +446,29 @@ impl Presentation {
     ///
     /// Call this before asking the hardware to commit, so that a commit the
     /// hardware accepted can always be recorded.
+    ///
+    /// A buffer whose readiness is pending is refused with
+    /// [`PresentError::BufferNotReady`]; see
+    /// [`Presentation::check_submit_with`] for a backend that waits.
     pub fn check_submit(
         &self,
         output: OutputId,
         buffers: &[BufferId],
         replace_pending: bool,
+    ) -> Result<(), PresentError> {
+        self.check_submit_with(output, buffers, replace_pending, false)
+    }
+
+    /// [`Presentation::check_submit`] that, with `await_readiness`, accepts
+    /// a buffer whose readiness is pending: for a backend that waits for the
+    /// token itself. A buffer whose readiness failed or timed out is refused
+    /// with [`PresentError::BufferNotReady`] either way.
+    pub fn check_submit_with(
+        &self,
+        output: OutputId,
+        buffers: &[BufferId],
+        replace_pending: bool,
+        await_readiness: bool,
     ) -> Result<(), PresentError> {
         Self::distinct(buffers)?;
         for buffer in buffers {
@@ -325,6 +477,11 @@ impl Presentation {
                 .ok_or(PresentError::UnknownBuffer(*buffer))?;
             if self.buffers[index].writable {
                 return Err(PresentError::BufferNotReady(*buffer));
+            }
+            match self.readiness.get(*buffer) {
+                None => {}
+                Some(ReadinessState::Pending(_)) if await_readiness => {}
+                Some(_) => return Err(PresentError::BufferNotReady(*buffer)),
             }
         }
         match self.slots.iter().find(|s| s.output == output) {
@@ -363,7 +520,20 @@ impl Presentation {
         buffers: &[BufferId],
         replace_pending: bool,
     ) -> Result<SubmissionId, PresentError> {
-        self.check_submit(output, buffers, replace_pending)?;
+        self.submit_with(output, buffers, replace_pending, false)
+    }
+
+    /// [`Presentation::submit`] that, with `await_readiness`, accepts a
+    /// buffer whose readiness is pending; see
+    /// [`Presentation::check_submit_with`].
+    pub fn submit_with(
+        &mut self,
+        output: OutputId,
+        buffers: &[BufferId],
+        replace_pending: bool,
+        await_readiness: bool,
+    ) -> Result<SubmissionId, PresentError> {
+        self.check_submit_with(output, buffers, replace_pending, await_readiness)?;
         let id = SubmissionId(self.next_id);
         self.next_id += 1;
         let submission = Submission {
@@ -400,6 +570,10 @@ impl Presentation {
     ///
     /// Emits [`DisplayEvent::Presented`], then [`DisplayEvent::Released`] for
     /// every buffer of the previous frame that is no longer referenced.
+    ///
+    /// A buffer of the latched submission whose readiness was pending is
+    /// plainly ready from then on: it was accepted only for a backend that
+    /// waits for the token before the hardware latches.
     pub fn latched(
         &mut self,
         output: OutputId,
@@ -419,6 +593,17 @@ impl Presentation {
         }
         let slot = &mut self.slots.as_mut_slice()[index];
         let previous = core::mem::replace(&mut slot.current, slot.pending.take());
+        if let Some(latched) = slot.current {
+            for buffer in latched.buffers.iter() {
+                if self
+                    .readiness
+                    .get(*buffer)
+                    .is_some_and(ReadinessState::is_pending)
+                {
+                    self.readiness.remove(*buffer);
+                }
+            }
+        }
         self.emit(DisplayEvent::Presented { output, submission });
         if let Some(old) = previous {
             self.release_unused(&old.buffers);
@@ -813,6 +998,118 @@ mod tests {
                 submission: second
             }]
         );
+    }
+
+    const T: ReadyToken = ReadyToken(40);
+
+    fn pending_tracker(buffer: BufferId, token: ReadyToken) -> Presentation {
+        let mut p = Presentation::new();
+        p.register(buffer, BufferInfo::default()).unwrap();
+        p.finish_write_pending(buffer, token).unwrap();
+        p
+    }
+
+    #[test]
+    fn readiness_pending_is_ready_but_refused_without_waiting() {
+        let mut p = pending_tracker(A, T);
+        assert_eq!(p.state(A), Some(BufferState::Ready));
+        assert_eq!(p.readiness(A), Some(ReadinessState::Pending(T)));
+        assert_eq!(
+            p.submit(OUT, &[A], false),
+            Err(PresentError::BufferNotReady(A))
+        );
+        assert_eq!(p.readiness_signalled(T), 1);
+        assert_eq!(p.readiness(A), None);
+        p.submit(OUT, &[A], false).unwrap();
+    }
+
+    #[test]
+    fn readiness_finish_pending_requires_a_writable_buffer() {
+        let mut p = tracker(&[A]);
+        assert_eq!(
+            p.finish_write_pending(A, T),
+            Err(PresentError::BufferNotWritable(A))
+        );
+        assert_eq!(p.readiness(A), None);
+        assert_eq!(
+            p.finish_write_pending(B, T),
+            Err(PresentError::UnknownBuffer(B))
+        );
+    }
+
+    #[test]
+    fn readiness_awaited_submission_is_plainly_ready_once_latched() {
+        let mut p = pending_tracker(A, T);
+        let first = p.submit_with(OUT, &[A], false, true).unwrap();
+        assert_eq!(p.state(A), Some(BufferState::Submitted));
+        assert_eq!(p.readiness(A), Some(ReadinessState::Pending(T)));
+        p.latched(OUT, first).unwrap();
+        assert_eq!(p.readiness(A), None);
+        assert_eq!(p.readiness_signalled(T), 0);
+    }
+
+    #[test]
+    fn readiness_failure_withdraws_the_waiting_submission_only() {
+        let mut p = tracker(&[B]);
+        p.register(A, BufferInfo::default()).unwrap();
+        p.finish_write_pending(A, T).unwrap();
+        let shown = p.submit(OUT, &[B], false).unwrap();
+        p.latched(OUT, shown).unwrap();
+        drain(&mut p);
+
+        let waiting = p.submit_with(OUT, &[A, B], false, true).unwrap();
+        assert_eq!(p.readiness_failed(T, false), Ok(1));
+        // B is still on screen, so only A is released.
+        assert_eq!(
+            drain(&mut p),
+            [
+                DisplayEvent::Dropped {
+                    output: OUT,
+                    submission: waiting
+                },
+                DisplayEvent::Released { buffer: A }
+            ]
+        );
+        assert_eq!(p.on_screen(OUT), Some(shown));
+        assert!(!p.has_pending(OUT));
+        assert_eq!(p.readiness(A), Some(ReadinessState::Failed(T)));
+        assert_eq!(p.state(A), Some(BufferState::Ready));
+        // Refused whether or not the backend waits, until rewritten.
+        assert_eq!(
+            p.check_submit_with(OUT, &[A], false, true),
+            Err(PresentError::BufferNotReady(A))
+        );
+        assert_eq!(p.readiness_signalled(T), 0);
+        assert_eq!(p.readiness_failed(T, false), Ok(0));
+        assert!(drain(&mut p).is_empty());
+        p.begin_write(A).unwrap();
+        assert_eq!(p.readiness(A), None);
+        p.finish_write(A).unwrap();
+        p.submit(OUT, &[A], false).unwrap();
+    }
+
+    #[test]
+    fn readiness_failure_refuses_without_changes_on_a_full_queue() {
+        let mut p = pending_tracker(A, T);
+        p.submit_with(OUT, &[A], false, true).unwrap();
+        while p.push_event(DisplayEvent::CapabilitiesChanged).is_ok() {}
+        assert_eq!(
+            p.readiness_failed(T, true),
+            Err(PresentError::EventQueueFull)
+        );
+        assert_eq!(p.readiness(A), Some(ReadinessState::Pending(T)));
+        assert!(p.has_pending(OUT));
+        drain(&mut p);
+        assert_eq!(p.readiness_failed(T, true), Ok(1));
+        assert_eq!(p.readiness(A), Some(ReadinessState::TimedOut(T)));
+    }
+
+    #[test]
+    fn readiness_is_forgotten_with_the_buffer() {
+        let mut p = pending_tracker(A, T);
+        p.unregister(A).unwrap();
+        p.register(A, BufferInfo::default()).unwrap();
+        assert_eq!(p.readiness(A), None);
     }
 
     #[test]

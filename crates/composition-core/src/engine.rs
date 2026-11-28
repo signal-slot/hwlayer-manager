@@ -6,9 +6,10 @@
 use crate::backend::{BackendError, BackendEvent, DisplayBackend};
 use crate::caps::Capabilities;
 use crate::fixed::{FixedQueue, FixedVec};
-use crate::limits::{MAX_LAYERS, MAX_OUTPUTS};
+use crate::limits::{MAX_BUFFERS, MAX_LAYERS, MAX_OUTPUTS};
 use crate::planner::{self, Plan, PlanError, SearchLimits, Verdict};
 use crate::presentation::{BufferState, DisplayEvent, PresentError, Presentation};
+use crate::readiness::{ReadinessState, ReadyToken};
 use crate::trace::{DropReason, NoTrace, Trace, TraceEvent};
 use crate::types::{BufferId, BufferInfo, Frame, OutputId, SubmissionId};
 
@@ -56,6 +57,7 @@ pub struct Engine<B: DisplayBackend, T: Trace = NoTrace> {
     presentation: Presentation,
     limits: SearchLimits,
     latch_timeout: Option<u64>,
+    readiness_timeout: Option<u64>,
     /// Latches no pending submission matched, seen while a commit the
     /// backend had already accepted collected its events; reported by
     /// [`Engine::poll_event`].
@@ -92,6 +94,7 @@ impl<B: DisplayBackend> Engine<B> {
             presentation: Presentation::EMPTY,
             limits: SearchLimits::default(),
             latch_timeout: None,
+            readiness_timeout: None,
             unexpected: FixedQueue::empty_filled((OutputId(0), SubmissionId(0))),
             trace: NoTrace,
         }
@@ -111,6 +114,7 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
             presentation: self.presentation,
             limits: self.limits,
             latch_timeout: self.latch_timeout,
+            readiness_timeout: self.readiness_timeout,
             unexpected: self.unexpected,
             trace,
         }
@@ -177,6 +181,26 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
             self.presentation.report_overdue(timeout);
             self.trace_events(start, None, DropReason::Replaced);
         }
+        if let Some(timeout) = self.readiness_timeout {
+            // Each pass turns at least one pending token into a timed-out
+            // one. Without room for the events the rest waits for the next
+            // call, as the latch timeout report does.
+            while let Some(token) = self.presentation.expired_readiness(timeout) {
+                if self.fail_readiness(token, true).is_err() {
+                    break;
+                }
+            }
+        }
+    }
+
+    /// Sets how long a buffer finished with a readiness token
+    /// ([`Engine::finish_write_pending`]) may stay pending before the token
+    /// counts as failed ([`ReadinessState::TimedOut`], with the effects of
+    /// [`Engine::readiness_failed`]), in the ticks passed to
+    /// [`Engine::advance_time`], counted from the latest time given before
+    /// the write was finished. `None`, the default, waits forever.
+    pub fn set_readiness_timeout(&mut self, timeout: Option<u64>) {
+        self.readiness_timeout = timeout;
     }
 
     /// Registers a buffer. It starts out [`BufferState::Writable`].
@@ -186,17 +210,115 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
 
     /// Removes a buffer that is neither submitted nor on screen.
     pub fn unregister_buffer(&mut self, buffer: BufferId) -> Result<(), Error> {
-        Ok(self.presentation.unregister(buffer)?)
+        let had_token = self.presentation.readiness(buffer).is_some();
+        self.presentation.unregister(buffer)?;
+        self.readiness_cleared(buffer, had_token);
+        Ok(())
     }
 
-    /// Hands an idle buffer to the producer for drawing.
+    /// Hands an idle buffer to the producer for drawing. A readiness token
+    /// the buffer was finished with is forgotten, whatever its state.
     pub fn begin_write(&mut self, buffer: BufferId) -> Result<(), Error> {
-        Ok(self.presentation.begin_write(buffer)?)
+        let had_token = self.presentation.readiness(buffer).is_some();
+        self.presentation.begin_write(buffer)?;
+        self.readiness_cleared(buffer, had_token);
+        Ok(())
     }
 
     /// Declares that the producer finished drawing into the buffer.
     pub fn finish_write(&mut self, buffer: BufferId) -> Result<(), Error> {
         Ok(self.presentation.finish_write(buffer)?)
+    }
+
+    /// Declares that the producer handed the buffer over with content that
+    /// is complete once `token` signals (see [`crate::readiness`]).
+    ///
+    /// Until then a frame using the buffer is refused with
+    /// [`PresentError::BufferNotReady`], unless the backend waits for
+    /// readiness itself ([`DisplayBackend::waits_for_readiness`]); it is
+    /// then given the token ([`DisplayBackend::set_readiness`]) before the
+    /// frame is checked and committed. [`Engine::finish_write`] is the same
+    /// without a token.
+    pub fn finish_write_pending(
+        &mut self,
+        buffer: BufferId,
+        token: ReadyToken,
+    ) -> Result<(), Error> {
+        Ok(self.presentation.finish_write_pending(buffer, token)?)
+    }
+
+    /// Readiness of a buffer finished with a token, or `None` if it has no
+    /// token: unregistered, writable, finished without a token, or its token
+    /// signalled.
+    ///
+    /// A buffer whose token failed or timed out is reported
+    /// [`BufferState::Ready`] by [`Engine::buffer_state`] once nothing uses
+    /// it, but is refused for display until written again; this tells why.
+    pub fn readiness(&self, buffer: BufferId) -> Option<ReadinessState> {
+        self.presentation.readiness(buffer)
+    }
+
+    /// Reports that `token` signalled: every buffer pending on it is ready,
+    /// and a backend that waits for readiness is told that its content no
+    /// longer depends on the token ([`DisplayBackend::clear_readiness`]).
+    ///
+    /// Returns how many buffers were pending on the token. A token that
+    /// matches none (unknown, already signalled, failed or timed out)
+    /// changes nothing: a signal after a failure or timeout does not make
+    /// the buffer ready.
+    pub fn readiness_signalled(&mut self, token: ReadyToken) -> usize {
+        let mut buffers: FixedVec<BufferId, MAX_BUFFERS> = FixedVec::new();
+        for buffer in self.presentation.pending_on(token) {
+            // One entry per registered buffer: it fits.
+            let _ = buffers.push(buffer);
+        }
+        let count = self.presentation.readiness_signalled(token);
+        for buffer in buffers.iter() {
+            self.readiness_cleared(*buffer, true);
+        }
+        count
+    }
+
+    /// Reports that `token` will never signal.
+    ///
+    /// Every buffer pending on it becomes [`ReadinessState::Failed`] and is
+    /// refused for display with [`PresentError::BufferNotReady`] until it is
+    /// written again. If the backend waits for readiness it is told first
+    /// ([`DisplayBackend::readiness_failed`]); then every submission still
+    /// waiting for its latch that shows such a buffer is reported as
+    /// [`DisplayEvent::Dropped`], and its buffers nothing else uses as
+    /// [`DisplayEvent::Released`]. What is on screen stays.
+    ///
+    /// Returns how many buffers were pending on the token; 0 changes
+    /// nothing. Fails with [`PresentError::EventQueueFull`], changing
+    /// nothing, if the events do not fit; drain the queue and retry.
+    pub fn readiness_failed(&mut self, token: ReadyToken) -> Result<usize, Error> {
+        self.fail_readiness(token, false)
+    }
+
+    fn fail_readiness(&mut self, token: ReadyToken, timed_out: bool) -> Result<usize, Error> {
+        if self.presentation.pending_on(token).next().is_none() {
+            return Ok(0);
+        }
+        // Make sure the events fit before the backend forgets the token.
+        self.presentation.check_readiness_failed(token)?;
+        if self.backend.waits_for_readiness() {
+            self.backend.readiness_failed(token);
+        }
+        let start = self.presentation.events_len();
+        let count = self.presentation.readiness_failed(token, timed_out)?;
+        // A withdrawn submission is reported as replaced: its buffers are
+        // released with it, as for a submission another one replaced.
+        self.trace_events(start, None, DropReason::Replaced);
+        Ok(count)
+    }
+
+    /// Tells a backend that waits for readiness that `buffer` lost its
+    /// token, if it `had` one.
+    fn readiness_cleared(&mut self, buffer: BufferId, had: bool) {
+        if had && self.backend.waits_for_readiness() {
+            self.backend.clear_readiness(buffer);
+        }
     }
 
     /// Current state of a buffer, or `None` if it is not registered.
@@ -229,6 +351,14 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
 
     /// [`Engine::validate_into`] without its trace entry.
     fn plan_frame(&mut self, frame: &Frame<'_>, plan: &mut Plan) -> Result<(), Error> {
+        // A backend that waits checks the frame with the tokens it will
+        // wait for. One that does not is given none: the commit refuses
+        // the frame instead, as it does for a buffer still being written.
+        if self.backend.waits_for_readiness() {
+            for layer in frame.layers {
+                self.give_readiness(layer.buffer)?;
+            }
+        }
         let backend = &mut self.backend;
         let trace = &mut self.trace;
         let now = self.presentation.now();
@@ -320,9 +450,16 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
             return Err(Error::StalePlan);
         }
         // Verify the bookkeeping first so that a commit the hardware accepts
-        // can always be recorded.
+        // can always be recorded. Buffers whose readiness is pending pass
+        // only if the backend waits for it.
+        let waits = self.backend.waits_for_readiness();
         self.presentation
-            .check_submit(frame.output, &buffers, replace)?;
+            .check_submit_with(frame.output, &buffers, replace, waits)?;
+        if waits {
+            for buffer in buffers.iter() {
+                self.give_readiness(*buffer)?;
+            }
+        }
         let submission = self.presentation.next_submission_id();
         self.backend.commit(submission, frame, plan)?;
         // A pending submission can be latched while the backend commits the
@@ -370,13 +507,23 @@ impl<B: DisplayBackend, T: Trace> Engine<B, T> {
             return Err(Error::Backend(BackendError::DeviceLost));
         }
         let start = self.presentation.events_len();
-        let recorded = self.presentation.submit(frame.output, &buffers, replace)?;
+        let recorded = self
+            .presentation
+            .submit_with(frame.output, &buffers, replace, waits)?;
         self.trace_events(start, None, DropReason::Replaced);
         debug_assert_eq!(recorded, submission);
         if own_latch {
             self.latched(frame.output, recorded)?;
         }
         Ok(recorded)
+    }
+
+    /// Gives the backend the token of `buffer` if its readiness is pending.
+    fn give_readiness(&mut self, buffer: BufferId) -> Result<(), Error> {
+        if let Some(ReadinessState::Pending(token)) = self.presentation.readiness(buffer) {
+            self.backend.set_readiness(buffer, token)?;
+        }
+        Ok(())
     }
 
     /// Validates and submits `frame` in one step.
