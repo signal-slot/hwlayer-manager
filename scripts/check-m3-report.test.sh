@@ -42,11 +42,11 @@ case_ nobsp 's/^- BSP:.*//' "no 'bsp'"
 case_ noboard 's/^- Board:.*//; s/^## Board, /## /' "no 'board'"
 case_ notorizon 's/^## Restore and Torizon confirmation/## Cleanup/' 'no restore'
 case_ restoredate 's/confirmed 2026-12-01/confirmed/' 'restore / Torizon section has no date'
-case_ ipv4 's/^- Board: .*/- Board: Verdin AM62P at 10.20.30.40/' 'ipv4'
-case_ ipv6 's/^- Board: .*/- Board: fe80:0:0:0:1:2:3:4/' 'ipv6'
-case_ mac 's/^- Board: .*/- Board: aa:bb:cc:dd:ee:ff/' 'mac'
-case_ tty 's/^- Board: .*/- Board: console on \/dev\/ttyUSB0/' 'tty'
-case_ userhost 's/^- Board: .*/- Board: root@verdinhost/' 'user@host'
+case_ ipv4 's/^- Board: .*/- Board: Verdin AM62P at 10.20.30.40/' 'ipv4' # secrets-ok: fixture the check must reject
+case_ ipv6 's/^- Board: .*/- Board: fe80:0:0:0:1:2:3:4/' 'ipv6' # secrets-ok: fixture the check must reject
+case_ mac 's/^- Board: .*/- Board: aa:bb:cc:dd:ee:ff/' 'mac' # secrets-ok: fixture the check must reject
+case_ tty 's/^- Board: .*/- Board: console on \/dev\/ttyUSB0/' 'tty' # secrets-ok: fixture the check must reject
+case_ userhost 's/^- Board: .*/- Board: root@verdinhost/' 'user@host' # secrets-ok: fixture the check must reject
 
 [ "$rc" = 0 ] && echo "check-m3-report.test: ok"
 exit "$rc"
