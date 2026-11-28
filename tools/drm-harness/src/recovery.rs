@@ -140,6 +140,10 @@ pub struct Findings {
     pub second: Option<Report>,
     /// Buffers still submitted or scanning once the loss was reported.
     pub busy: Vec<BufferId>,
+    /// The buffers of the last frame that latched before the loss was
+    /// reported: what the display still holds unless the engine reported
+    /// `DeviceLost`. See [`kept`].
+    pub shown: Vec<BufferId>,
     /// With [`Loss::Master`]: taking master back on the engine's descriptor.
     pub master_back: Option<Result<(), String>>,
     /// Commits the new engine run latched.
@@ -148,6 +152,26 @@ pub struct Findings {
     pub new_run_error: Option<String>,
     /// Whether the CRTC is on at the end; `None` if it could not be read.
     pub active_at_end: Option<bool>,
+}
+
+/// The busy buffers the engine should have let go of after the loss was
+/// reported.
+///
+/// After `DeviceLost` the engine forgets every submission and releases
+/// every buffer, so none may stay busy. After an error from `validate` or
+/// `commit`, or a `LatchTimeout`, the engine's contract is that the display
+/// and the buffer states are unchanged (`Engine::commit`: "On failure the
+/// display and all buffer states are unchanged"): the last latched frame
+/// stays scanning, as its framebuffers stay on the planes when the CRTC is
+/// only turned off. Those buffers are released when the engine and its
+/// descriptor go; any other busy buffer is one the engine did not let go.
+pub fn kept(f: &Findings) -> Vec<BufferId> {
+    let lost = [Some(&f.first), f.second.as_ref()].contains(&Some(&Report::Event("DeviceLost")));
+    f.busy
+        .iter()
+        .filter(|b| lost || !f.shown.contains(b))
+        .copied()
+        .collect()
 }
 
 /// The failures of a recovery run; empty means PASS. `budget_ms` is the
@@ -172,11 +196,12 @@ pub fn judge(f: &Findings, budget_ms: u64) -> Vec<String> {
              {budget_ms} ms: the engine stalled silently"
         ));
     }
-    if !f.busy.is_empty() {
+    let kept = kept(f);
+    if !kept.is_empty() {
         failures.push(format!(
             "buffers {} still submitted or scanning after the loss was reported: \
              the engine did not release them",
-            list(f.busy.iter().map(|b| b.0))
+            list(kept.iter().map(|b| b.0))
         ));
     }
     if let Some(Err(e)) = &f.master_back {
@@ -256,6 +281,7 @@ mod tests {
             first: Report::Error("validate: Backend(Platform(13))".into()),
             second: Some(Report::Error("commit: Backend(Rejected)".into())),
             busy: Vec::new(),
+            shown: Vec::new(),
             master_back: Some(Ok(())),
             relatched: 3,
             new_run_error: None,
@@ -401,6 +427,58 @@ mod tests {
         let failures = judge(&f, 2000);
         assert_eq!(failures.len(), 1);
         assert!(failures[0].starts_with("buffers 3,4 still submitted or scanning"));
+    }
+
+    // The vkms A6 runs (both --loss modes): the loss is reported as an
+    // error, which by the engine's contract changes no buffer state, so the
+    // last latched frame (5, 6) stays scanning. That is not a leak.
+    #[test]
+    fn the_last_frame_still_scanning_after_an_error_report_passes() {
+        let master = Findings {
+            busy: vec![BufferId(5), BufferId(6)],
+            shown: vec![BufferId(5), BufferId(6)],
+            ..passing()
+        };
+        assert_eq!(judge(&master, 2000), Vec::<String>::new());
+        let disable = Findings {
+            loss: Loss::Disable,
+            first: Report::Error("commit: Backend(Rejected)".into()),
+            second: None,
+            master_back: None,
+            ..master
+        };
+        assert_eq!(judge(&disable, 2000), Vec::<String>::new());
+    }
+
+    #[test]
+    fn buffers_beyond_the_last_frame_or_after_device_lost_fail() {
+        // A buffer of a frame offered after the loss stays submitted.
+        let f = Findings {
+            busy: vec![BufferId(1), BufferId(5), BufferId(6)],
+            shown: vec![BufferId(5), BufferId(6)],
+            ..passing()
+        };
+        let failures = judge(&f, 2000);
+        assert_eq!(failures.len(), 1, "{failures:?}");
+        assert!(failures[0].starts_with("buffers 1 still submitted"));
+        // DeviceLost releases everything, the last frame as well.
+        for (first, second) in [
+            (Report::Event("DeviceLost"), None),
+            (
+                Report::Error("validate: Backend(Platform(13))".into()),
+                Some(Report::Event("DeviceLost")),
+            ),
+        ] {
+            let f = Findings {
+                first,
+                second,
+                busy: vec![BufferId(5), BufferId(6)],
+                shown: vec![BufferId(5), BufferId(6)],
+                ..passing()
+            };
+            assert_eq!(kept(&f), vec![BufferId(5), BufferId(6)]);
+            assert!(judge(&f, 2000)[0].starts_with("buffers 5,6 still submitted"));
+        }
     }
 
     #[test]

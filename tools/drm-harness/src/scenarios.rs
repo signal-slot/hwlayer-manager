@@ -1943,12 +1943,20 @@ pub fn recovery(o: &Options) -> Result<Outcome, String> {
         };
     failures.extend(after.plan_failures);
     let (relatched, new_run_error, after_stopped) = (after.latched, after.error, after.stopped);
+    // The last frame that latched: the one on screen before the loss, or
+    // the master-back frame if the same engine latched it.
+    let shown = if second == Some(crate::recovery::Report::Latched) {
+        after_loss[1].to_vec()
+    } else {
+        on_screen
+    };
     let findings = Findings {
         loss: o.loss,
         made,
         first,
         second,
         busy: still_busy,
+        shown,
         master_back,
         relatched,
         new_run_error,
@@ -1969,6 +1977,11 @@ pub fn recovery(o: &Options) -> Result<Outcome, String> {
                 .map_or("-".to_string(), |r| r.text()),
         )
         .field("still_busy", list(findings.busy.iter().map(|b| b.0)))
+        .field("last_shown", list(findings.shown.iter().map(|b| b.0)))
+        .field(
+            "not_released",
+            list(crate::recovery::kept(&findings).iter().map(|b| b.0)),
+        )
         .field(
             "master_back",
             findings
@@ -1992,10 +2005,11 @@ pub fn recovery(o: &Options) -> Result<Outcome, String> {
     Ok(Outcome::new(
         &failures,
         format!(
-            "{} loss reported as {} after {first_ms} ms; no buffer held; \
-             a new run latched {relatched} commits",
+            "{} loss reported as {} after {first_ms} ms; no buffer held beyond \
+             the last latched frame ({}); a new run latched {relatched} commits",
             o.loss.name(),
-            findings.first.text()
+            findings.first.text(),
+            list(findings.shown.iter().map(|b| b.0))
         ),
     ))
 }
