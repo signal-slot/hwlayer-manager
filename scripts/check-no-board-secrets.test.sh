@@ -155,7 +155,7 @@ nrun() {
             git checkout -q -b topic &&
             printf '%s\n' "$content" >a.txt &&
             git add . && git commit -q -m change &&
-            sh "$script" >"$root/out" 2>&1
+            timeout 120 sh "$script" >"$root/out" 2>&1 </dev/null
     )
     got=$?
     if [ "$got" -eq "$want" ] && grep -q "$grepfor" "$root/out"; then
@@ -267,7 +267,7 @@ bare() {
             mkdir -p "$(dirname "$file")" &&
             printf '%s\n' "$content" >"$file" &&
             git add . && git commit -q -m base &&
-            sh "$script" >"$root/out" 2>&1
+            timeout 120 sh "$script" >"$root/out" 2>&1 </dev/null
     )
     got=$?
     if [ "$got" -eq "$want" ]; then
@@ -285,5 +285,8 @@ bare bare-real-secret-pw 1 docs/a.md "$pw"
 bare bare-testdata-fake 0 scripts/testdata/x/in.txt "board at $ip $tty $mac"
 bare bare-scripts-not-excluded 1 scripts/other.sh "board at $ip"
 bare bare-testdata-lookalike 1 xscripts/testdata/in.txt "board at $ip"
+# A documentation-range (RFC 5737) address, planted at run time, is flagged.
+doc="192.0.""2.55"
+bare bare-doc-range-planted 1 src/b.txt "board at $doc"
 
 exit $fail
