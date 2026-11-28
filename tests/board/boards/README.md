@@ -105,6 +105,24 @@ report on the console UART only. `CONFIG_HWLM_DPU_PROBE` is off. Of the
 peripherals the EVK board enables, only `lpuart3` is enabled here; the SCMI
 transport nodes come from the SoC dtsi unchanged.
 
+Cross-check, also 2026-11-28, on a second x86_64 host whose workspace is the
+`v4.5.0` tag (CMake prints `build: v4.5.0`), not the pinned commit, with the
+same SDK 1.0.1 and the same command: builds, no warnings, CMake again takes
+the dts from this directory. Memory report:
+
+```
+Memory region         Used Size  Region Size  %age Used
+           FLASH:       26380 B       256 KB     10.06%
+             RAM:        8316 B       256 KB      3.17%
+            ITCM:           0 B       256 KB      0.00%
+        IDT_LIST:           0 B        32 KB      0.00%
+```
+
+So the board files also build at the `v4.5.0` release that
+[docs/zephyr-workspace.md](../../../docs/zephyr-workspace.md) pins. The size
+difference (344 B ITCM, 8 B DTCM) comes from the Zephyr revision; nobody
+compared the two builds further.
+
 For comparison, `tests/board/imx95_m7/README.md` records 27,180 B ITCM and
 8,364 B DTCM for the EVK target with `CONFIG_HWLM_RPMSG=n`.
 
