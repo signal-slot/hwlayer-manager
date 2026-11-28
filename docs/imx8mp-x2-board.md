@@ -187,3 +187,103 @@ no connector.
   the driver exposes. Driver source reading belongs to plan 462 /
   x2-lcdif-profile.
 - debugfs (`/sys/kernel/debug/dri` is not mounted).
+
+## Proposed DriverProfile
+
+Design proposal only. Nothing here is implemented, and `crates/composition-drm`
+is not edited (plans 457 and drm-plane-truncate are changing it). It
+extends the sections above and does not replace them. Tags:
+**observed 2026-11-28** = a fact in this note's own dumps
+([`observed/imx8mp-x2-2026-11-28/`](observed/imx8mp-x2-2026-11-28/README.md)).
+**read from source** = read in a kernel tree, as recorded by
+[`imx8mp-lcdif-source.md`](imx8mp-lcdif-source.md). **inferred** = concluded,
+neither seen nor stated. The `TEST_ONLY` session of item x2-testonly had not
+merged when this was written, so every `TEST_ONLY` expectation below is open.
+
+### Is an existing variant enough?
+
+No variant matches this board by name or by intent. `DriverProfile` has
+`Generic`, `Imx95Dpu`, `Stm32Ltdc`, `Rk3588Vop2`, `Vc4Hvs5` and `Vc4Hvs6`
+(`crates/composition-drm/src/profile.rs`, read at this branch's base commit).
+`Imx95Dpu` is a different IP with six planes and shared scalers, so it must
+not be reused (inferred). Variants are chosen explicitly by the caller, not by
+driver name (the `Stm32Ltdc` doc says so).
+
+`Generic` alone is nearly right, which is the reason for a small variant and
+not a large one. `Generic` only reflects what KMS reports. On this board that
+is one primary plane per CRTC, zpos 0, no scaling claim, seven formats, plane
+alpha false (observed 2026-11-28). A plane with `scaling: None` is planned
+1:1 (the `PlaneCaps::scaling` doc in `composition-core`), which matches the
+source below. What `Generic` cannot say is the position limit below.
+
+### Proposed variant
+
+| Item | Proposal | Tag |
+| --- | --- | --- |
+| Name | `DriverProfile::Imx8mpLcdifv3`. It names LCDIFv3 and not "imx-lcdif", because the board's driver is the vendor `imx-lcdifv3`, not mainline's | observed 2026-11-28 for the driver; the name is inferred |
+| Driver string it matches | none by itself. The DRM name is `imx-drm` (card1), and the older i.MX6 IPU driver also reports `imx-drm`, so the name is ambiguous. The caller selects the variant. A guard can also check the DT compatible `fsl,imx8mp` (`soc.txt`) | observed 2026-11-28 for the name and the compatible; the i.MX6 IPU overlap is inferred |
+| Sysfs hint for a tool | the CRTC's component device is `imx-lcdifv3-crtc.N`, with a parent bound to `imx-lcdifv3` | observed 2026-11-28 |
+| Planes per CRTC | one primary, no overlay, no cursor. The variant adds nothing: it takes what KMS reports | observed 2026-11-28 (KMS); read from source (vendor `lcdifv3-plane.c`: only the primary type is handled, overlay is a "TODO") |
+| Formats | the seven KMS formats XR24, AR24, RG16, XB24, AB24, AR15, XR15, linear only. No YUV, no modifier | observed 2026-11-28 (list, no `IN_FORMATS`); read from source (the same seven, `lcdifv3-plane.c:22-30` at `lf-6.6.52-2.2.2`, linear only) |
+| Scaling | none: `scaling: None` on every plane, set explicitly and not left to the default | observed 2026-11-28 (no scaling property); read from source (`DRM_PLANE_NO_SCALING` both ways, `lcdifv3-plane.c:~62-65`) |
+| zpos | fixed 0, immutable. Nothing to set | observed 2026-11-28 |
+| Plane alpha | `plane_alpha: false` (KMS already says so) | observed 2026-11-28 |
+| Blend modes | left as KMS reports (premultiplied is only composition-drm's default for an absent property). With one plane at zpos 0 nothing lies below it, so whether the `AR24` alpha is used by the scanout is not visible to the planner | observed 2026-11-28 for the absent property; the effect of the alpha channel is not measured |
+| Position limit | the primary must sit at CRTC (0,0): a non-zero `crtc_x` or `crtc_y` is rejected, and so is an invisible plane. Proposal: set `full_output_only = true` on the primary. That is stricter than the source (origin, not full size), so it errs on the safe side | read from source (`lcdifv3-plane.c:~55-57`, `~67-68`); choosing the stricter flag is inferred |
+| Pitch change | a change of framebuffer pitch forces a full modeset, because the pitch registers cannot change while the controller runs. The planner cannot express this | read from source (`lcdifv3-plane.c:~70-77`); how it shows under `TEST_ONLY` is not measured |
+| `ResourceGroup` | none. No shared scaler, fetch unit or blender is exposed or was read. No "one plane per CRTC" group either, since the plane list already has one plane per CRTC | inferred |
+| Cross-CRTC limits | not modelled. Whether LCDIF2 and LCDIF3 can run together and share pixel clocks was not worked out | not measured |
+
+Effect for a caller: a frame with one full-output layer gets the primary
+plane. A frame with two or more layers has no plane for the extra ones, and
+the planner must fall back to composition into the primary's buffer. That is
+the case that `docs/imx8mp-route3-precomposition.md` addresses (inferred).
+
+**Version caveat.** The board runs Atmark's `6.12.105-0-at` (observed
+2026-11-28). The only vendor source read is NXP `linux-imx` `lf-6.6.52-2.2.2`
+(commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc`), and only its plane
+file. These are two different trees (6.6 against 6.12), so the "read from
+source" rows describe a nearby vendor tree, not the board's kernel. The seven
+formats and the single primary plane agree with the board (observed
+2026-11-28), which is some reason to trust the rest of the plane file and no
+more (inferred). The position limit and the pitch rule were not observed. The
+Atmark kernel's own source was not read.
+
+### What `TEST_ONLY` on the board should confirm
+
+All open: item x2-testonly had not merged. When it does, its `kms_sweep` and
+`scale_probe` results settle rows 1 and 2; read the rest against them.
+
+1. A second layer on a second plane is impossible, because no second plane
+   exists. A primary-only commit is accepted (`kms_sweep`).
+2. `SRC` ≠ `CRTC` size on the primary is refused (expected from
+   `DRM_PLANE_NO_SCALING`; `scale_probe`).
+3. A primary at a non-zero `CRTC_X/Y`, and a primary smaller than the mode
+   at (0,0), are each accepted or refused. This decides whether
+   `full_output_only` is right or too strict. It needs a small case beyond
+   the two named examples.
+4. `AR24` and `AB24` buffers are accepted on the primary. Whether the alpha
+   channel changes the picture needs the KVM picture and is not a
+   `TEST_ONLY` fact.
+5. A framebuffer with a different pitch is accepted with or refused without
+   the modeset flag.
+
+### Implementation
+
+Not started. It waits until `crates/composition-drm` is free. The planned
+change is a `DriverProfile::Imx8mpLcdifv3` arm that sets `scaling: None` and
+`full_output_only` on every non-cursor plane, a unit test on a fake
+one-primary capability set, and a doc comment tagged like the variants above.
+
+## Proposed open-issues row
+
+For the owner of `docs/open-issues.md` to paste in (plan 461 is changing
+that file, so it is not edited here). `X-10` is a placeholder: renumber it.
+The columns are that file's: ID, Issue, Evidence, What would close it.
+
+| ID | Issue | Evidence | What would close it |
+| --- | --- | --- | --- |
+| X-10 | The i.MX8M Plus (Armadillo-X2, SoW §5.3) has no `DriverProfile`. Its display driver `imx-drm` (vendor `imx-lcdifv3`) exposes one primary plane per CRTC, no overlay, no scaling, zpos fixed 0 (observed 2026-11-28), and `imx-drm` is also the i.MX6 IPU driver's name, so selection by name is ambiguous. `Generic` cannot express the primary's position limit, which is read from a nearby vendor tree (`lf-6.6.52-2.2.2`), not the board's 6.12 kernel. Not verified by any commit on the board | `docs/imx8mp-x2-board.md` ("Proposed DriverProfile"); `docs/observed/imx8mp-x2-2026-11-28/`; `docs/imx8mp-lcdif-source.md` | After `crates/composition-drm` is free (plans 457 and drm-plane-truncate): add `DriverProfile::Imx8mpLcdifv3` with a host test. Run `TEST_ONLY` on the X2 (item x2-testonly) for the position, pitch and scaling cases, and correct the profile where the board disagrees. Not closed: implementation has not started |
+
+Implementation waits until `crates/composition-drm` is free. The row is a
+proposal, not a filed issue.
