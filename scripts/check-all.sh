@@ -20,6 +20,8 @@
 #                 check-no-farm-ids.test.sh, check-feasibility-doc.test.sh and
 #                 m2-compare-report.test.sh, then imx95-m7-rproc.test.sh,
 #                 imx95-observe.test.sh, check-m2-acceptance.test.sh,
+#                 every other scripts/*.test.sh not run unconditionally, each
+#                 skipped with a message when a tool it needs is missing,
 #                 m2-pipeline.test.sh and m2scene-trace.test.sh (the last two
 #                 are skipped when python3 or cargo is missing).
 #                 The three that take a base ref get origin/main and are
@@ -160,7 +162,18 @@ if [ "$lint" -eq 1 ]; then
     # Tests written for bash; the name:tools list gives the tools a test needs
     # (empty = none). They are skipped with a message when a tool is missing.
     for tt in imx95-m7-rproc: imx95-observe: check-m2-acceptance: \
-        m2-pipeline:python3 m2scene-trace:python3,cargo; do
+        m2-pipeline:python3 m2scene-trace:python3,cargo \
+        imx95-observe-summary:python3 imx95-m7-log: host-demo: \
+        prepare-zephyr: imx95-session: check-doc-links:git \
+        trace-to-metrics:python3 alpha-mode-expect:python3 \
+        am62p-dss-regs:python3 am62p-scenes:python3 am62p-torizon-check: \
+        board-scenarios: build-zephyr-apps: check-am62p-board-env: \
+        check-board-results: check-commit-subjects:git check-doc-tags: \
+        check-ffi-header:git check-liftoff-crosscheck:cargo,git \
+        check-m3-report: check-photo-metadata:python3 check-test-data:git \
+        check-zephyr-apps: display-guard: picture-hook: \
+        scenario-expect:python3 scenario-report:python3 \
+        twoplane-expect:python3; do
         t=${tt%%:*}
         tools=${tt#*:}
         f=scripts/$t.test.sh
