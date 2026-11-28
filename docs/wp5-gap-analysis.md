@@ -175,7 +175,8 @@ Updated 2026-11-28. A gap is marked closed only where a file at HEAD answers it;
 
 | Gap | Status | Closing file (added, commit) | What stays open |
 | --- | --- | --- | --- |
-| W5-01 / WP5-01: which Weston the image ships, and whether it has lease code | Closed as a source read | `docs/weston-imx-lease.md` (2026-11-27, `58a8712`) | That the Toradex 7.8.0 image uses NXP `weston-imx` is inferred, not established (the file's section 5) |
+| W5-01 / WP5-01: which Weston the image ships, and whether it has lease code | Closed as a source read | `docs/weston-imx-lease.md` (2026-11-27, `58a8712`) | That the Toradex 7.8.0 image uses NXP `weston-imx` is inferred, not established (the file's section 5). `docs/weston-release-read.md` (2026-11-28) read upstream `12.0.5`, the base the `weston-imx-12.0.5` branch states; NXP's own changes on top were not read |
+| W5-02 / WP5-02 and W5-03: the full Weston read at a released tag | Closed as a source read, in part | `docs/weston-release-read.md` (2026-11-28, `946ee05`) | Read from source at upstream tags `16.0.2` (`530ae6c`) and `12.0.5` (`3d2cd99`): neither supports a gap-analysis §3 route without a Weston change, and neither has a hook for `composition_core::advise`. Open: NXP's `weston-imx-12.0.5` changes were not read; `kms.c`, `modes.c`, renderers and shells were not read; nothing was run or measured on a board |
 | W5-04 / WP5-03: advisory or planner-only entry point | Design only | `docs/advisory-planner-design.md` (2026-11-27, `84dd94c`) | Open: it is a proposal. Nothing is implemented in `crates/` or `include/`, and its decisions are still open |
 | W5-05 / WP5-04: cross-check against libliftoff | Design only | `docs/libliftoff-crosscheck.md` (2026-11-27, `4437b16`) | Open: no harness exists and nothing was run |
 | W5-07 / WP5-05: `NOTICE` | Closed in part | `NOTICE` (2026-11-27, `21b1653`) | Copyright holder, below |
@@ -190,7 +191,7 @@ Updated 2026-11-28. A gap is marked closed only where a file at HEAD answers it;
 
 Still open, with no file at HEAD closing them:
 
-- **W5-02 / WP5-02 and W5-03: the full Weston read at a released tag.**
+- **W5-02 / WP5-02 and W5-03: what the released-tag read left out.** The source read is in `docs/weston-release-read.md`. Still open: the NXP `weston-imx-12.0.5` patches, the files that read skipped, and any board evidence of how the shipped Weston places planes.
 - **W5-06 / WP5-06 and W5-08: the SoW §4.1 justification for not reusing libliftoff.** Still a desk argument; `docs/libliftoff-crosscheck.md` only proposes the cross-check.
 - **W5-07: the copyright holder.** `LICENSE` names none, and `NOTICE` uses the placeholder "The hwlayer-manager contributors" until the owner decides (`docs/third-party-licences.md`, section 1). The choice of Apache-2.0 or MIT for any upstream offer is not recorded as decided either.
 - **W5-07: the sign-off policy.**
