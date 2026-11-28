@@ -62,7 +62,20 @@ SCENE <n> <name>: status <s> (expected <s>), commits <c> latched <l> (+<d>, expe
 | 7 | `refused-blank` | `CE_ERR_BACKEND_REJECTED` | 0 | - | 0 | unchanged from scene 5 |
 | 8 | `refused-foreign-safety` | `CE_ERR_BACKEND_REJECTED` | 0 | - | 0 | unchanged from scene 5 |
 
-The release count of scene 1 is not in the branch's table; 0 is the expectation from the sequence (nothing precedes it) and is confirmed against the firmware's printed `expected`. The commit count after the eight scenes adds up to 1, 4, 5, 6, 7, 7, 7, 7 (the host run's figures); on the board the same cumulative numbers are expected.
+Where each expected value comes from, in `tests/board/am62p_r5f/src/scenes.c` (the `expect_status`, `expect_commits` and `expect_released` arguments of `scene()`, which the firmware prints as `expected`). Status, delta of commits and releases of a scene are the last three numbers of its call:
+
+| Scene | Call (`scenes.c`) | Status, delta of commits, releases |
+| --- | --- | --- |
+| 1 | line 322 | `CE_OK`, 1, 0 |
+| 2 | line 331 | `CE_OK`, 3, 1 |
+| 3 | line 336 | `CE_OK`, 1, 1 |
+| 4 | line 341 | `CE_OK`, 1, 1 |
+| 5 | line 344 | `CE_OK`, 1, 1 |
+| 6 | line 348 | `CE_ERR_BACKEND_REJECTED`, 0, 0 |
+| 7 | line 349 | `CE_ERR_BACKEND_REJECTED`, 0, 0 |
+| 8 | line 353 | `CE_ERR_BACKEND_REJECTED`, 0, 0 |
+
+The release count of scene 1 is 0 (line 322; nothing precedes the scene); it is confirmed, no longer a guess. The presented column follows `scenes.c` lines 187-188 and 194 (`yes`/`NO` only when the status is `CE_OK`, `-` otherwise). The commit count after the eight scenes adds up to 1, 4, 5, 6, 7, 7, 7, 7; the host test `board_scenes_behind_a_fake_panel` (`backends/twoplane/tests/twoplane.rs`) prints these cumulative numbers (a host result, not a board result), and on the board the same numbers are expected. The line numbers are those of the merged file at the time of writing; if `scenes.c` changes, the firmware's printed `expected` wins and this table is updated.
 
 **Pass criteria per scene** (all of them, for every scene):
 
