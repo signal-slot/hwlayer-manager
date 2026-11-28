@@ -10,10 +10,10 @@ Read this first: the citations are weaker than in the STM32MP257 documents.
 
 | Item | Fact |
 | --- | --- |
-| Clones | `git clone --depth 1` of the three repositories into the dependency cache was refused by the worker's permission layer ("This command requires approval", three times plus one retry; `gh api` was refused the same way). **No checkout exists.** The files were fetched over HTTPS through a web-fetch agent at pinned commit SHAs, using the raw-content service. |
-| Zephyr line numbers | The fetch tool returns text without line numbers. The agent counted them by hand over files of 1098 lines or fewer. They are **hand-counted**, expected to be right within a few lines, and not produced by `cat -n` or `grep -n`. Re-check with `grep -n` on a checkout of the pinned commit. DTS files for the boards were returned as excerpts with their line numbers; those are the least certain. |
-| ST HAL citations | **No line numbers.** Files of 33 KB to 2 MB were not counted. Each HAL fact is cited by file and exact symbol, which `grep -n '<symbol>'` finds. These rows say "symbol" in the Where column. |
-| Not read | AN4861 and RM0433 (see section 9), the `st,stm32-dma2d` binding YAML, the `stm32h7xx` header bit definitions (`LTDC_SRCR_*`, `LTDC_LxCR_*`), the other H7 boards and the DSI shield definitions. Claims that would need them are **inferred** or listed as open. |
+| Clones | The first attempt was refused by the worker's permission layer ("This command requires approval"). After the exact `git clone --depth 1` commands were allowed, shallow clones of `zephyrproject-rtos/zephyr`, `zephyrproject-rtos/hal_stm32` and `STMicroelectronics/stm32h7xx-hal-driver` were made, and their `HEAD` equals the pinned commits below. The facts were first fetched over HTTPS at those SHAs, then every Zephyr and HAL line number was **re-checked with `grep -n` on the clones**. `cmsis-device-h7` was **not** cloned and `hal_stm32` was cloned but its H7 files were not read. |
+| Zephyr line numbers | Verified with `grep -n` against the checkout at `bc833f46` for the driver, Kconfig, binding and DTS lines cited. Ranges (`a-b`) are the extents counted during the first read; the start lines were re-checked. |
+| ST HAL line numbers | Verified with `grep -n` against the checkout at `23147a43`; see the line index after this table. Rows that name only a symbol are in that index. |
+| Not read | AN4861 and RM0433 (see section 9), the `st,stm32-dma2d` binding YAML, the `stm32h7xx` CMSIS header bit definitions (`LTDC_SRCR_*`, `LTDC_LxCR_*`), the other H7 boards and the DSI shield definitions. Claims that would need them are **inferred** or listed as open. |
 | Zephyr's own HAL copy | The `hal_stm32` module is the copy Zephyr builds against. Only its commit SHA was fetched; its H7 LTDC and DMA2D sources were not read. The ST HAL repository was read instead, and that the two agree on these files is **inferred**. |
 
 ### Pinned commits
@@ -26,6 +26,37 @@ Read this first: the citations are weaker than in the STM32MP257 documents.
 | `zephyrproject-rtos/hal_stm32` | `main` | `ba344b95636b154092d139b9ce4640c629c3c05a` | 2026-11-26 | SHA only, no file read |
 
 Below, `zephyr@bc833f46` means the first row, `hal@23147a43` the second, `cmsis@693f8f0a` the third.
+
+### Line index for the ST HAL (`hal@23147a43`, checked with `grep -n`)
+
+| Symbol | File | Line |
+| --- | --- | --- |
+| `MAX_LAYER 2U` | `Inc/stm32h7xx_hal_ltdc.h` | 45 |
+| `LTDC_LAYER_1`, `LTDC_LAYER_2` | same | 261, 262 |
+| `LTDC_BLENDING_FACTOR1_CA`, `_PAxCA` | same | 323, 324 |
+| `LTDC_BLENDING_FACTOR2_CA`, `_PAxCA` | same | 332, 333 |
+| `LTDC_PIXEL_FORMAT_ARGB8888` .. `AL88` | same | 341-348 |
+| `LTDC_RELOAD_IMMEDIATE`, `LTDC_RELOAD_VERTICAL_BLANKING` | same | 398, 399 |
+| `__HAL_LTDC_RELOAD_IMMEDIATE_CONFIG` | same | 466 |
+| `__HAL_LTDC_VERTICAL_BLANKING_RELOAD_CONFIG` | same | 473 |
+| `LTDC_LAYER(...)`, `IS_LTDC_LAYER` | same | 646, 649 |
+| `IS_LTDC_BLENDING_FACTOR1`, `2`, `IS_LTDC_ALPHA` | same | 669, 671, 681 |
+| `HAL_LTDC_Init`, `HAL_LTDC_DeInit` (layer 2 under `#if defined(LTDC_Layer2_BASE)` at 341) | `Src/stm32h7xx_hal_ltdc.c` | 219, 325 |
+| `HAL_LTDC_IRQHandler` | same | 627 |
+| `HAL_LTDC_ConfigLayer`, its `SRCR = IMR` | same | 827, 856 |
+| `ConfigColorKeying` / `EnableColorKeying` / `ConfigCLUT` / `EnableCLUT` | same | 877 / 967 / 915 / 1037 |
+| `HAL_LTDC_EnableDither` | same | 1105 |
+| `SetWindowSize`, `SetWindowPosition`, `SetPixelFormat`, `SetAlpha`, `SetAddress`, `SetPitch` | same | 1163, 1219, 1270, 1315, 1361, 1410 (IMR writes at 1197, 1249, 1294, 1339, 1384, 1454 and 1460) |
+| `HAL_LTDC_ProgramLineEvent` | same | 1479 |
+| `HAL_LTDC_ConfigLayer_NoReload` .. `DisableCLUT_NoReload` | same | 1557-2044 |
+| `LTDC_SetConfig` | same | 2130 |
+| `DMA2D_M2M` .. `DMA2D_M2M_BLEND_BG` | `Inc/stm32h7xx_hal_dma2d.h` | 209-214 |
+| `DMA2D_OUTPUT_*`, `DMA2D_INPUT_*` | same | 222-226, 234-245 |
+| `DMA2D_*_ALPHA`, `DMA2D_NO_CSS`..`CSS_420`, `DMA2D_CCM_*` | same | 253-255, 302-304, 312-313 |
+| `HAL_DMA2D_Start`, `BlendingStart`, `CLUTStartLoad`, `PollForTransfer`, `ConfigLayer`, `ProgramLineEvent`, `ConfigDeadTime` | `Src/stm32h7xx_hal_dma2d.c` | 677, 750, 1016, 1415, 1772, 1936, 2021 |
+| "two consecutive transactions on the AHB bus" (dead-time comment) | same | 2016 |
+
+The "Where" column of the section 2 to 5 rows names symbols; use this index for the line.
 
 ## 2. (a) LTDC: layers, formats, alpha, blending, window
 
@@ -78,7 +109,7 @@ DMA2D ("Chrom-ART") is a separate DMA with its own pixel pipeline. It writes to 
 | CLUT for L8/AL44/AL88/L4 inputs, loaded by `HAL_DMA2D_CLUTStartLoad`, formats `DMA2D_CCM_ARGB8888` and `DMA2D_CCM_RGB888` | read from source | hal@23147a43 symbols `HAL_DMA2D_CLUTStartLoad`, `DMA2D_CCM_*` |
 | Calls: `HAL_DMA2D_Start` (copy, PFC, fill), `HAL_DMA2D_BlendingStart` (two sources and a destination), `HAL_DMA2D_PollForTransfer` (waits for `TC`, and for `CTC` if a CLUT load is pending), `HAL_DMA2D_ConfigLayer` (layer 0 background, layer 1 foreground), `HAL_DMA2D_ProgramLineEvent` (watermark). The transfer size is `NLR = Height \| Width << PL_Pos`; output address `OMAR` | read from source | hal@23147a43 `Src/stm32h7xx_hal_dma2d.c`, those symbols |
 | The HAL has dead-time controls (`HAL_DMA2D_ConfigDeadTime`, register `AMTCR`) and describes the dead time as the minimum number of cycles between two transactions "on the AHB bus", which lets the CPU and the LTDC get memory bandwidth between DMA2D bursts | read from source (comment); the bandwidth purpose: inferred | hal@23147a43 symbols `HAL_DMA2D_ConfigDeadTime`, `HAL_DMA2D_EnableDeadTime` |
-| DMA2D base: `DMA2D_BASE` is `D1_AHB1PERIPH_BASE + 0x1000`; the Zephyr DT node is `dma2d: dma@52001000`, compatible `st,stm32-dma2d`, interrupt 90, disabled by default | read from source | cmsis@693f8f0a symbol `DMA2D_BASE`; zephyr@bc833f46 `dts/arm/st/h7/stm32h7.dtsi`, node `dma2d` (line not counted) |
+| DMA2D base: `DMA2D_BASE` is `D1_AHB1PERIPH_BASE + 0x1000`; the Zephyr DT node is `dma2d: dma@52001000`, compatible `st,stm32-dma2d`, interrupt 90, disabled by default | read from source | cmsis@693f8f0a symbol `DMA2D_BASE`; zephyr@bc833f46 `dts/arm/st/h7/stm32h7.dtsi:1028` |
 | **Zephyr has no DMA2D driver.** `drivers/display/` has `display_stm32_ltdc.c` as its only STM32 file and `drivers/dma/` has no `dma2d` file; `drivers/dma/dma_mcux_pxp.c` is the NXP analogue. The node is enabled by the board `stm32h7b3i_dk` (`&dma2d { status = "okay"; }`) but nothing binds to it. The code search that would confirm "no other mention in the tree" was refused by the API (HTTP 401); the middle of each directory listing was read through a summary, so this is a listing-based finding | read from source (listings, board DTS); absence in the rest of the tree: inferred | zephyr@bc833f46 directory listings `drivers/display/`, `drivers/dma/`; `boards/st/stm32h7b3i_dk/stm32h7b3i_dk.dts:342-344` |
 | DMA2D is a real 2D helper for a composition backend: a **GPU-less composer** for the case where the two LTDC layers are not enough (a third UI layer or a layer needing rotation-free format conversion). It blends into a framebuffer in memory, which costs memory bandwidth and a frame of latency, and gives no tearing control of its own | inferred | |
 | DMA2D cannot scale or rotate (no such mode in the mode list) | read from source (list of modes); the absence of scaling in RM0433: inferred | hal@23147a43 `Inc/stm32h7xx_hal_dma2d.h` symbol `DMA2D_Mode` |
@@ -100,7 +131,7 @@ DMA2D ("Chrom-ART") is a separate DMA with its own pixel pipeline. It writes to 
 
 ## 6. (e) Zephyr's `display_stm32_ltdc`
 
-All references are `zephyr@bc833f46 drivers/display/display_stm32_ltdc.c` (hand-counted lines) unless noted.
+All references are `zephyr@bc833f46 drivers/display/display_stm32_ltdc.c` (lines checked with `grep -n` on the clone) unless noted.
 
 | Topic | Claim | Basis | Lines |
 | --- | --- | --- | --- |
@@ -122,7 +153,7 @@ All references are `zephyr@bc833f46 drivers/display/display_stm32_ltdc.c` (hand-
 | Interrupts | The driver connects the first interrupt only (`DT_INST_IRQN`); the `ltdc_er` interrupt (`interrupt-names = "ltdc", "ltdc_er"`) is not connected, so the HAL error path is not used. FIFO underrun and transfer error are therefore not reported by this driver | read from source (driver, DTS); consequence: inferred | 995-1003; `stm32h742.dtsi:65-73` |
 | Instance | The macro hard-codes instance 0 in `DT_INST_PROP(0, pixel_format)`, `RESET_DT_SPEC_INST_GET(0)` and the `ext_sdram` section: one LTDC | read from source | 957, 987, 1081 |
 | DT binding | `st,stm32-ltdc`: `disp-on-gpios`, `bl-ctrl-gpios`, `ext-sdram` (phandle), `clocks`, `resets`, `interrupts` (required), `pinctrl-0`, `def-back-color-*`, `window0-*`, `display-controller`; includes `lcd-controller.yaml` (`width`, `height`, `pixel-format`, from the include; not read) | read from source | binding 12-81 |
-| SoC nodes | `ltdc: display-controller@50001000`, `reg = <0x50001000 0x200>`, interrupts 88 and 89, clocks `APB3` bit 3, reset `APB3` bit 3, in `stm32h742.dtsi:65-73` (inherited by H743, H750), `stm32h745.dtsi:69-77` (H747) and `stm32h7a3.dtsi:107-115` (H7B0, H7B3). `stm32h7.dtsi` has no `ltdc` node. Only `stm32h747.dtsi` has a DSI host (`st,stm32-mipi-dsi` at `0x50000000`) | read from source | those files |
+| SoC nodes | `ltdc: display-controller@50001000`, `reg = <0x50001000 0x200>`, interrupts 88 and 89, clocks `APB3` bit 3, reset `APB3` bit 3, in `stm32h742.dtsi:65-73` (inherited by H743, H750), `stm32h745.dtsi:69-77` (H747) and `stm32h7a3.dtsi:107-115` (H7B0, H7B3) and `stm32h723.dtsi:113` (found on re-check, node body not read). `stm32h7.dtsi` has no `ltdc` node. Only `stm32h747.dtsi` has a DSI host (`st,stm32-mipi-dsi` at `0x50000000`) | read from source | those files |
 | DMA2D state in Zephyr | See section 4: node present, no driver, no use in the LTDC driver | read from source | section 4 |
 | What the driver does **not** expose | Layer 2, per-layer alpha at run time, run-time blending factors, window change after init other than via timing, CLUT, colour keying, z-order, any scaling, reload on VBR, the reload-done interrupt, FIFO-underrun reporting, any YUV on H7 | inferred from the driver reading above (absence of code) | |
 
@@ -130,7 +161,7 @@ The Zephyr driver exposes the LTDC as a **single-plane framebuffer display** (`d
 
 ## 7. (f) Boards in Zephyr
 
-All `zephyr@bc833f46`; DTS line numbers are from the excerpts the agent returned and are the least certain numbers in this file.
+All `zephyr@bc833f46`; board DTS lines for the `ltdc`, `sdram2`, `dma2d` and display nodes were re-checked with `grep -n`; the longer ranges are as first counted.
 
 | Board | LTDC use | Panel and memory | Where |
 | --- | --- | --- | --- |
@@ -181,8 +212,8 @@ Reading across for the hwlayer-manager model (inferred): H7 is the *small, old e
 
 | Document | Result |
 | --- | --- |
-| ST AN4861, "LCD-TFT display controller (LTDC) on STM32 MCUs" (PDF on `st.com`) | **Not reachable.** The fetch tool answered "Permission to use WebFetch has been denied" on the `st.com` resource URL; not retried with variants. Its section 4.6 is cited in Zephyr's Kconfig (`Kconfig.stm32_ltdc:88`), which is the only knowledge of it here. |
-| ST RM0433 (STM32H742/H743/H753/H750 reference manual) | **Not reachable**, same denial. The LTDC and DMA2D chapters are unread. |
+| ST AN4861, "LCD-TFT display controller (LTDC) on STM32 MCUs" (PDF on `st.com`) | **Not reachable.** First attempt: "Permission to use WebFetch has been denied". After the `st.com` domain was allowed, two further attempts each ended with `timeout of 60000ms exceeded`; not retried with variants. Its section 4.6 is cited in Zephyr's Kconfig (`Kconfig.stm32_ltdc:88`), which is the only knowledge of it here. |
+| ST RM0433 (STM32H742/H743/H753/H750 reference manual) | **Not reachable**, same denial and then the same timeouts (a very large PDF). The LTDC and DMA2D chapters are unread. |
 | ST product pages, data sheets | Not attempted. |
 
 Every hardware statement that rests on the RM (maximum resolution, exact IMR timing, bus the LTDC masters, blend equation, whether `RRIF` is set for IMR, position of line 0 in the frame) is therefore **inferred** or open.
@@ -198,6 +229,6 @@ Every hardware statement that rests on the RM (maximum resolution, exact IMR tim
 7. **Cache and MPU.** Which MPU attribute should the framebuffer region have (write-through, non-cacheable, or cacheable plus explicit clean), and how do clean and invalidate interact with a DMA2D destination? `ATTR_MPU_RAM` is what the boards use; its cacheability was not read.
 8. **Memory placement.** AXI SRAM versus SDRAM for 480x272 and larger: bandwidth limits and FMC speculative-read behaviour (AN4861 section 4.6) need the RM and a measurement.
 9. **Unread Zephyr boards** (`stm32h735g_disco`, `stm32h745i_disco`, `stm32h757i_eval`, `stm32h7p5i_dk`, `stm32h7s78_dk`) and the DSI shields: not read. `stm32h7p5i_dk` and `stm32h7s78_dk` may carry a different LTDC.
-10. **Citations.** Zephyr line numbers are hand-counted and HAL facts have symbol anchors only; a later pass with a real checkout of the pinned commits should replace them with `grep -n` numbers.
+10. **Citations.** Zephyr and HAL line numbers were checked against clones. Still unchecked: `cmsis-device-h7` (not cloned), the `hal_stm32` module copy, and board DTS ranges that were not re-grepped.
 11. **Panel part numbers** for the 480x272 RGB panels on `stm32h7b3i_dk` and `stm32h750b_dk` (the DTS and docs read do not give them).
 12. **Board for a hardware step.** No board is on the farm. If the owner adds an STM32H7 board, `stm32h7b3i_dk` (has LTDC panel, SDRAM and an enabled DMA2D in Zephyr) is the closest match to what was read; this is an input to the owner's decision, not a decision.
