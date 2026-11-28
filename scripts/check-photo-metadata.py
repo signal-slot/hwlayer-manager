@@ -178,7 +178,7 @@ def png_scan(data):
 
 def png_strip(data):
     drop = {s[:2] for _, s in png_scan(data)}
-    return b"".join(data[s:e] for s, e, _ in png_chunks(data) if (s, e) not in drop)
+    return PNG_SIG + b"".join(data[s:e] for s, e, _ in png_chunks(data) if (s, e) not in drop)
 
 
 def png_pixels(data):
