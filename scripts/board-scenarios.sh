@@ -342,8 +342,8 @@ row_a1() {
 row_a2() {
 	d=$out/A2; mkdir -p "$d"
 	note "hold=${hold}s fps=${fps} (assumed) frames=$frames buffers=3 allow_drops=$allow_drops"
-	# shellcheck disable=SC2086
 	hmark='^step '
+	# shellcheck disable=SC2086
 	run_held A2 "" hold-start hold-end "$d/rotate.log" \
 		"$harness" $common --source master --frames "$frames" --buffers 3 \
 		$(targ "$d/rotate.log") rotate
@@ -420,8 +420,8 @@ row_a3() {
 
 row_a4() {
 	d=$out/A4; mkdir -p "$d"; f=$d/revoke.log
-	# shellcheck disable=SC2086
 	hmark='^step '
+	# shellcheck disable=SC2086
 	run_held A4 "" hold-start hold-end "$f" \
 		"$harness" $common --source kernel-lease --frames 60 --buffers 3 \
 		--seconds "$seconds" $(targ "$f") revoke
