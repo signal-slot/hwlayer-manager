@@ -3,6 +3,7 @@
 
   twoplane-expect.py [TWOPLANE_OUTPUT|-] --out DIR [--size F] [--tolerance N]
                      [--rotation N] [--panel full|corners] [--corners x,y,...]
+                     [--phase NAME]...
 
 Reads twoplane (or plane_commit) stdout (file or stdin) and writes
 DIR/expect-<phase>.json for every phase that ran. A phase name is any
@@ -12,7 +13,13 @@ skipped when one of its EXPECT lines carries the token `skipped` (e.g.
 `EXPECT phase=commit skipped reason=...`), or (for `swapped`) when a
 `SWAPZ skipped` line is present. Colours are written `rgb=#rrggbb`.
 Skipped phases get no file and are listed on stdout.
-Exit status: 0 = ok, 2 = input error. Python 3, standard library only.
+--phase NAME (repeatable) writes only the named phases. If a named phase was
+skipped (twoplane prints `EXPECT phase=swapped skipped reason=<reason>` when
+--swap-z cannot run), no file is written for it, the reason goes to stderr and
+the exit status is 3; other named phases are still written. A named phase that
+is neither present nor skipped is an input error.
+Exit status: 0 = ok, 2 = input error, 3 = a requested phase was skipped.
+Python 3, standard library only.
 """
 import json
 import os
@@ -29,12 +36,16 @@ class InputError(Exception):
 
 
 def parse(text):
-    """Return (phases, skipped): phases maps name -> samples, in order."""
-    phases, skipped = {}, set()
+    """Return (phases, skipped, reasons): phases maps name -> samples, in
+    order; reasons maps a skipped phase to its reason text (may be absent)."""
+    phases, skipped, reasons = {}, set(), {}
     for line in text.splitlines():
         line = line.strip()
         if re.match(r'^SWAPZ skipped\b', line):
             skipped.add("swapped")
+            rs = line.split(":", 1)[1].strip() if ":" in line else ""
+            if rs:
+                reasons.setdefault("swapped", rs)
             continue
         m = EXPECT.match(line)
         if not m:
@@ -43,10 +54,16 @@ def parse(text):
                 raise InputError("bad phase name: " + line)
             if m and "skipped" in (m.group(2) or "").split():
                 skipped.add(m.group(1))
+                mr = re.search(r'\breason=(.*)$', m.group(2))
+                if mr:
+                    reasons[m.group(1)] = mr.group(1).strip()
             continue
         phase, name, rest = m.groups()
         if "skipped" in rest.split():
             skipped.add(phase)
+            mr = re.search(r'\breason=(.*)$', rest)
+            if mr:
+                reasons[phase] = mr.group(1).strip()
             continue
         f = dict(FIELD.findall(rest))
         try:
@@ -60,7 +77,7 @@ def parse(text):
         phases.setdefault(phase, []).append((name, fx, fy, col))
     for p in skipped:
         phases.pop(p, None)
-    return phases, skipped
+    return phases, skipped, reasons
 
 
 def build(samples, size, tol, rotation, panel):
@@ -79,13 +96,14 @@ def build(samples, size, tol, rotation, panel):
 
 def main(argv):
     out = src = None
+    want = []
     size, tol, rotation, mode, corners = 0.02, 40, 0, "full", None
     i = 0
     try:
         while i < len(argv):
             a = argv[i]
             if a in ("--out", "--size", "--tolerance", "--rotation",
-                     "--panel", "--corners"):
+                     "--panel", "--corners", "--phase"):
                 i += 1
                 v = argv[i]
                 if a == "--out":
@@ -96,6 +114,10 @@ def main(argv):
                     tol = float(v)
                 elif a == "--rotation":
                     rotation = int(v)
+                elif a == "--phase":
+                    if not re.fullmatch(PHASE, v):
+                        raise InputError("bad phase name: " + v)
+                    want.append(v)
                 elif a == "--panel":
                     mode = v
                 else:
@@ -110,7 +132,8 @@ def main(argv):
     if out is None:
         raise InputError("usage: twoplane-expect.py [FILE|-] --out DIR "
                          "[--size F] [--tolerance N] [--rotation N] "
-                         "[--panel full|corners] [--corners x,y,x,y,x,y,x,y]")
+                         "[--panel full|corners] [--corners x,y,x,y,x,y,x,y] "
+                         "[--phase NAME]... (exit 3: requested phase skipped)")
     if not 0 < size <= 1:
         raise InputError("--size must be in (0, 1]")
     if mode == "full":
@@ -131,8 +154,14 @@ def main(argv):
                 text = f.read()
     except OSError as e:
         raise InputError("cannot read input: %s" % e)
-    phases, skipped = parse(text)
-    if not phases:
+    phases, skipped, reasons = parse(text)
+    refused = [p for p in want if p in skipped]
+    for p in want:
+        if p not in skipped and p not in phases:
+            raise InputError("phase %s not in the input" % p)
+    if want:
+        phases = {p: v for p, v in phases.items() if p in want}
+    if not phases and not refused:
         raise InputError("no EXPECT lines for a phase that ran")
     try:
         os.makedirs(out, exist_ok=True)
@@ -147,7 +176,11 @@ def main(argv):
         raise InputError("cannot write output: %s" % e)
     for p in sorted(skipped):
         print("skipped phase %s" % p)
-    return 0
+    for p in refused:
+        print("twoplane-expect: phase %s was skipped by the producer (%s); "
+              "no expectations written for it"
+              % (p, reasons.get(p) or "no reason given"), file=sys.stderr)
+    return 3 if refused else 0
 
 
 if __name__ == "__main__":

@@ -89,6 +89,33 @@ if [ -f "$root/e/expect-normal.json" ] && [ -f "$root/e/expect-swapped.json" ] &
 echo 'EXPECT phase=../x "a" x=1 y=1 fx=0.5 fy=0.5 rgb=#000000' | py "$tool" --out "$root/f" > /dev/null 2>&1
 [ $? -eq 2 ] && ok "bad phase name is exit 2" || bad "bad phase name"
 
+# Marker line from twoplane --swap-z when the swap cannot run.
+echo 'EXPECT phase=swapped skipped reason=fixed-zpos' > "$root/mark.txt"
+cat "$root/normal.txt" "$root/mark.txt" > "$root/nm.txt"
+py "$tool" "$root/nm.txt" --out "$root/m1" > "$root/m1.log" 2> "$root/m1.err" || bad "marker exit"
+if [ -f "$root/m1/expect-normal.json" ] && [ ! -e "$root/m1/expect-swapped.json" ] \
+    && grep -q 'skipped phase swapped' "$root/m1.log" && [ ! -s "$root/m1.err" ]; then
+    ok "marker: normal + skipped"
+else bad "marker: normal + skipped"; fi
+py "$tool" "$root/nm.txt" --out "$root/m2" --phase normal > /dev/null 2>&1
+if [ $? -eq 0 ] && [ -f "$root/m2/expect-normal.json" ] && [ ! -e "$root/m2/expect-swapped.json" ]; then
+    ok "marker: --phase normal"
+else bad "marker: --phase normal"; fi
+py "$tool" "$root/nm.txt" --out "$root/m3" --phase swapped > "$root/m3.log" 2> "$root/m3.err"
+rc=$?
+if [ $rc -eq 3 ] && [ -z "$(ls "$root/m3" 2>/dev/null)" ] \
+    && grep -q 'swapped' "$root/m3.err" && grep -q 'fixed-zpos' "$root/m3.err"; then
+    ok "marker: --phase swapped is exit 3 with reason"
+else bad "marker: --phase swapped (rc=$rc)"; cat "$root/m3.err"; fi
+py "$tool" "$root/nm.txt" --out "$root/m4" --phase normal --phase swapped > /dev/null 2>&1
+rc=$?
+if [ $rc -eq 3 ] && [ -f "$root/m4/expect-normal.json" ]; then ok "marker: both phases, exit 3, normal written"; else bad "marker: both phases (rc=$rc)"; fi
+py "$tool" "$root/n.txt" --out "$root/m5" --phase swapped > /dev/null 2>&1
+[ $? -eq 2 ] && ok "absent phase is exit 2" || bad "absent phase"
+py "$tool" "$root/swapz.txt" --out "$root/m6" --phase swapped > /dev/null 2> "$root/m6.err"
+rc=$?
+if [ $rc -eq 3 ] && grep -q 'fixed zpos' "$root/m6.err"; then ok "SWAPZ line: --phase swapped is exit 3"; else bad "SWAPZ line --phase swapped"; fi
+
 # Round trip: a picture painted from the canned text, and one with a wrong colour.
 cat > "$root/mk.py" <<'P'
 import re, sys
