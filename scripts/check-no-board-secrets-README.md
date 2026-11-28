@@ -38,14 +38,14 @@ as `commit:<short sha>:<line>`). Kinds:
 | Kind | Matches |
 |---|---|
 | `ipv4` | a dotted quad of four numbers |
-| `tty` | a `/dev/tty...` device path or a path under the `/dev/serial/by-id` directory |
+| `tty` | a serial device path under the tty device-node prefix, or a path under the serial by-id directory |
 | `mac` | six pairs of hex digits joined by `:` or by `-` (one separator throughout) |
 | `user@host` | a user name, an `@`, then a host name that starts with a letter |
 | `ssh-key` | a PEM `BEGIN ... PRIVATE KEY` header line |
-| `secret` | `password`, `passwd`, `token`, `secret` or `api_key` (any case), then `=`, then a value |
+| `secret` | one of five credential words (the password, passwd, token, secret and api_key family; any case), then `=`, then a value |
 
-`--c7` mode uses one case-insensitive pattern: a dotted quad, `/dev/tty`,
-the word `password`, or an `@` followed by a name and a dot. It prints
+`--c7` mode uses one case-insensitive pattern: a dotted quad, the tty device-node prefix,
+the word for a password, or an `@` followed by a name and a dot. It prints
 `fail <file>: <line>` per hit, or `ok` when clean.
 
 ### What it allows
@@ -58,15 +58,15 @@ flagged.
   versions look like addresses).
 - `user@host`: the public git hosting clone user, `noreply` addresses and
   `Co-Authored-By` / `Signed-off-by` lines; GitHub Actions `uses:` step lines
-  and `actions/NAME@vN`; display modes such as `1920x1080@60` or `WxH@Hz`;
-  the literal placeholders `user@host`, `repo@commit`, `repo@pin`, `a@b.c` and
-  the reserved example domains; `name@commit` pins (hex only), device-tree
+  and `actions/NAME@vN`; display modes (width x height, `@`, refresh rate, or the `WxH` placeholder);
+  a few literal placeholder spellings and
+  the reserved example domains; name-at-commit pins (hex only), device-tree
   unit addresses, `@N`, and systemd instance names; exact public mailing-list
   and archive domains; kernel mailing-list archive URLs with an `@` in the
   message id. The pin, unit-address and mailing-list rules do **not** apply
   to a line that mentions `ssh`, `scp`, `sftp` or `rsync`, so an ssh target
   stays flagged.
-- `tty`: the `/dev/ttyRPMSG` rpmsg node is not a UART.
+- `tty`: the rpmsg tty node (the RPMSG name) is not a UART.
 - `secret`: values starting with `$`, `<` or `{` (placeholders).
 - Any line containing the marker `secrets-ok` (use sparingly, for documented
   non-board examples only).
@@ -102,7 +102,7 @@ per case and exits non-zero if any case failed.
   checks, and the script is listed under the local checks there. No board
   address, host name, serial or UART path, serial number or credential goes
   into a file or a commit.
-- **Acceptance rule c7**: "no address-like, tty, password or user@host strings
+- **Acceptance rule c7**: "no address-like, tty, password or user-at-host strings
   in the diff since BASE_REF", as run by `scripts/check-m2-acceptance.sh`
   over the M2 documents and board apps. `--c7` reproduces that grep exactly,
   so a hit here is a hit there. It is stricter than the default mode (it has
