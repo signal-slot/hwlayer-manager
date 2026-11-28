@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "i.MX95 M7 latch reporting test"
+
+config IMX95_M7_LATCH_ENABLE_DPU
+	bool "Allow this image to drive the DPU"
+	default n
+	select TIMING_FUNCTIONS
+	help
+	  Off by default. Linux may own the DPU, its clocks and its power
+	  domain on the board (for example the Verdin iMX95), and an M7 that
+	  programs the same DPU can corrupt Linux's display. With this option
+	  off the image contains no DPU code at all and main() only prints a
+	  refusal and a SKIP verdict. Turn it on only after confirming the M7
+	  owns the DPU on the board in use.
+
+if IMX95_M7_LATCH_ENABLE_DPU
+
+config IMX95_M7_LATCH_FRAMES
+	int "Number of commits in the run"
+	default 600
+	range 1 100000
+	help
+	  One commit per latch: the next commit is issued after the previous
+	  one has latched. The run ends early at the first latch timeout.
+
+config IMX95_M7_LATCH_TIMEOUT_MS
+	int "Latch timeout per commit, in milliseconds"
+	default 1000
+	range 1 60000
+	help
+	  How long the application waits for the ExtDst0 shadow-load
+	  interrupt after a commit. 1000 ms matches the one-second rule of
+	  docs/m2-comparison-plan.md (M-3) and the wait of the Linux dpu95
+	  driver. A timeout is never counted as a latch.
+
+config IMX95_M7_LATCH_RING
+	int "Event records kept in RAM during the run"
+	default 4096
+	range 16 65536
+	help
+	  Events are stored as binary records during the run and printed
+	  only after it, so the console does not disturb the measured path.
+	  A run of N commits needs about 3*N records (commit, latched,
+	  released). Records past the end are counted as overrun and lost.
+
+config IMX95_M7_LATCH_IRQ_BANK_OFFSET
+	hex "Offset of the base used for the DPU interrupt registers"
+	default 0x0
+	help
+	  The interrupt enable/status/clear registers are reached at
+	  (devicetree reg of the dpu node + this offset). 0 uses the
+	  devicetree base, as docs/imx95-zephyr-feasibility.md asks. The
+	  upstream socionext,dpu driver instead uses a hard-coded base
+	  0x380000 above the devicetree reg; set 0x380000 to reproduce that.
+	  Which one is right on the i.MX95 is not known.
+
+endif # IMX95_M7_LATCH_ENABLE_DPU
+
+# The upstream driver symbol defaults to y whenever a socionext,dpu node is
+# enabled (and CONFIG_DISPLAY is set). The driver connects the same NVIC line
+# as this application and blocks in display_write(), so it must never be
+# built here. main.c also checks this at build time.
+config DISPLAY_SOCIONEXT_DPU
+	default n
+
+source "Kconfig.zephyr"
