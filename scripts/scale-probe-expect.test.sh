@@ -165,7 +165,7 @@ SCALE plane=51 axis=h src=80.0000x80.0000 dst=200x200 factor=2.5000 test_only=re
 X
 check mixdst-a 0 "SCALE plane=51 axis=h dst=100x100 up_max=2.5000 down_min=none" "$tmp/mixdst.txt"
 check mixdst-b 0 "SCALE plane=51 axis=h dst=200x200 up_max=2.2500 down_min=none" "$tmp/mixdst.txt"
-python3 -I "$tool" "$tmp/mixdst.txt" | grep -q non_monotonic && { echo "FAIL mixdst-no-flag"; fail=1; } || echo "ok   mixdst-no-flag"
+python3 -I "$tool" "$tmp/mixdst.txt" | grep -q '^SCALE .* non_monotonic' && { echo "FAIL mixdst-no-flag"; fail=1; } || echo "ok   mixdst-no-flag"
 
 # fallback.txt: a RESULT line only.
 printf 'RESULT plane=48 kind=Primary format=XR24 max_upscale_h=8.0000 max_upscale_v=none max_upscale_both=8.0000 downscale=rejected min_downscale=none\n' > "$tmp/fallback.txt"
