@@ -186,3 +186,17 @@ results only (`SHOW on screen for 10 s`, `SHOW done: blanked`).
 
 These runs are portability evidence for the HVS5 profile work. They never
 count toward M1, M2 or M3.
+
+## Read-only DRM debugfs dumps (2026-11-28)
+
+Raspberry Pi CM4 (reTerminal, BCM2711 HVS5), kernel `6.12.47+rpt-rpi-v8`, idle
+board, debugfs already mounted, read-only, scrubbed with
+`scripts/scrub-kms-dump.py`. Each file has a `#` header.
+
+| File | Content |
+| --- | --- |
+| `debugfs-2026-11-28-state.txt` | `dri/<card>/state` (atomic state) |
+| `debugfs-2026-11-28-hvs_dlists.txt` | `dri/<card>/hvs_dlists` |
+| `debugfs-2026-11-28-hvs_dlist_allocs.txt` | `dri/<card>/hvs_dlist_allocs` |
+| `debugfs-2026-11-28-hvs_regs.txt` | `dri/<card>/hvs_regs` |
+| `debugfs-2026-11-28-hvs_underrun_lbm.txt` | `dri/<card>/hvs_underrun`, then `dri/<card>/hvs_lbm` |
