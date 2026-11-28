@@ -1,0 +1,50 @@
+DATE 2026-11-28T16:48:09Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+MODE 1920x1080@60Hz period_us=16666 connector 35 crtc 94 (running mode, no modeset)
+PLANE id 83 Primary candidate format XR24
+PLANE id 107 Overlay candidate format XR24
+PLANE id 118 Overlay candidate format XR24
+PLANE id 129 Overlay candidate format XR24
+PLANE id 140 Overlay candidate format XR24
+PLANE id 151 Overlay candidate format XR24
+PLANE id 162 Overlay candidate format XR24
+PLANE id 173 Overlay candidate format XR24
+PLANE id 184 Overlay candidate format XR24
+PLANE id 195 Overlay candidate format XR24
+PLANE id 206 Overlay candidate format XR24
+PLANE id 217 Overlay candidate format XR24
+PLANE id 228 Overlay candidate format XR24
+PLANE id 239 Overlay candidate format XR24
+PLANE id 250 Overlay candidate format XR24
+PLANE id 261 Overlay candidate format XR24
+PLANE id 272 Overlay candidate format XR24
+PLANE id 657 Cursor skipped: cursor
+DEBUGFS dir=/sys/kernel/debug/dri/1 underrun=0 dlist_words=10 dlist=0:10,1:off,2:off
+LADDER max_layers=7 sizes=1 scales=0.5,1,2 frames=60 buffers=2 format=XR24
+STEP n=1 layers=1 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=17 dlist=0:17,1:off,2:off
+STEP n=2 layers=1 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=10 dlist=0:10,1:off,2:off
+STEP n=3 layers=1 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=19 dlist=0:19,1:off,2:off
+STEP n=4 layers=2 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=33 dlist=0:33,1:off,2:off
+STEP n=5 layers=2 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=19 dlist=0:19,1:off,2:off
+STEP n=6 layers=2 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=37 dlist=0:37,1:off,2:off
+STEP n=7 layers=3 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=49 dlist=0:49,1:off,2:off
+STEP n=8 layers=3 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=28 dlist=0:28,1:off,2:off
+STEP n=9 layers=3 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=10 layers=4 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=65 dlist=0:65,1:off,2:off
+STEP n=11 layers=4 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=37 dlist=0:37,1:off,2:off
+STEP n=12 layers=4 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=13 layers=5 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=81 dlist=0:81,1:off,2:off
+STEP n=14 layers=5 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=46 dlist=0:46,1:off,2:off
+STEP n=15 layers=5 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=46 dlist=0:46,1:off,2:off
+STEP n=16 layers=6 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=46 dlist=0:46,1:off,2:off
+STEP n=17 layers=6 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=18 layers=6 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=19 layers=7 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=20 layers=7 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=60/60 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=64 dlist=0:64,1:off,2:off
+STEP n=21 layers=7 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=64 dlist=0:64,1:off,2:off
+RESTORE err:22 saved state refused
+RESTORE fallback ok planes off
+SUMMARY steps=21 test_only_ok=16 test_only_err=5 skipped=0 drop_steps=0 first_drop=none first_reject=15 underrun_delta=0
+VERDICT hvs_load_probe: DONE

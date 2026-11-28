@@ -1,0 +1,131 @@
+DATE 2026-11-28T16:42:09Z
+KERNEL 6.18.50+rpt-rpi-2712
+DEVICE /dev/dri/card1
+DRIVER vc4 version 0.0.0 date 0 desc Broadcom VC4 graphics
+MODE 1920x1080@60Hz period_us=16666 connector 35 crtc 94 (running mode, no modeset)
+PLANE id 83 Primary candidate format XR24
+PLANE id 107 Overlay candidate format XR24
+PLANE id 118 Overlay candidate format XR24
+PLANE id 129 Overlay candidate format XR24
+PLANE id 140 Overlay candidate format XR24
+PLANE id 151 Overlay candidate format XR24
+PLANE id 162 Overlay candidate format XR24
+PLANE id 173 Overlay candidate format XR24
+PLANE id 184 Overlay candidate format XR24
+PLANE id 195 Overlay candidate format XR24
+PLANE id 206 Overlay candidate format XR24
+PLANE id 217 Overlay candidate format XR24
+PLANE id 228 Overlay candidate format XR24
+PLANE id 239 Overlay candidate format XR24
+PLANE id 250 Overlay candidate format XR24
+PLANE id 261 Overlay candidate format XR24
+PLANE id 272 Overlay candidate format XR24
+PLANE id 657 Cursor skipped: cursor
+DEBUGFS dir=/sys/kernel/debug/dri/1 underrun=0 dlist_words=10 dlist=0:10,1:off,2:off
+LADDER max_layers=17 sizes=0.5,1 scales=1,2,0.5 frames=120 buffers=2 format=XR24
+STEP n=1 layers=1 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=10 dlist=0:10,1:off,2:off
+STEP n=2 layers=1 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=19 dlist=0:19,1:off,2:off
+STEP n=3 layers=1 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=17 dlist=0:17,1:off,2:off
+STEP n=4 layers=1 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=10 dlist=0:10,1:off,2:off
+STEP n=5 layers=1 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=19 dlist=0:19,1:off,2:off
+STEP n=6 layers=1 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=17 dlist=0:17,1:off,2:off
+STEP n=7 layers=2 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=19 dlist=0:19,1:off,2:off
+STEP n=8 layers=2 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=37 dlist=0:37,1:off,2:off
+STEP n=9 layers=2 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=33 dlist=0:33,1:off,2:off
+STEP n=10 layers=2 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=19 dlist=0:19,1:off,2:off
+STEP n=11 layers=2 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=37 dlist=0:37,1:off,2:off
+STEP n=12 layers=2 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=33 dlist=0:33,1:off,2:off
+STEP n=13 layers=3 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=28 dlist=0:28,1:off,2:off
+STEP n=14 layers=3 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=15 layers=3 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=49 dlist=0:49,1:off,2:off
+STEP n=16 layers=3 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=28 dlist=0:28,1:off,2:off
+STEP n=17 layers=3 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=18 layers=3 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=49 dlist=0:49,1:off,2:off
+STEP n=19 layers=4 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=37 dlist=0:37,1:off,2:off
+STEP n=20 layers=4 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=21 layers=4 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=65 dlist=0:65,1:off,2:off
+STEP n=22 layers=4 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=37 dlist=0:37,1:off,2:off
+STEP n=23 layers=4 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=24 layers=4 size=1920x1080 src=3840x2160 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=65 dlist=0:65,1:off,2:off
+STEP n=25 layers=5 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=46 dlist=0:46,1:off,2:off
+STEP n=26 layers=5 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=27 layers=5 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=81 dlist=0:81,1:off,2:off
+STEP n=28 layers=5 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=46 dlist=0:46,1:off,2:off
+STEP n=29 layers=5 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=30 layers=5 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=31 layers=6 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=32 layers=6 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=33 layers=6 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=97 dlist=0:97,1:off,2:off
+STEP n=34 layers=6 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=55 dlist=0:55,1:off,2:off
+STEP n=35 layers=6 size=1920x1080 src=960x540 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=36 layers=6 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=37 layers=7 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=64 dlist=0:64,1:off,2:off
+STEP n=38 layers=7 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=127 dlist=0:127,1:off,2:off
+STEP n=39 layers=7 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=113 dlist=0:113,1:off,2:off
+STEP n=40 layers=7 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=64 dlist=0:64,1:off,2:off
+STEP n=41 layers=7 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=64 dlist=0:64,1:off,2:off
+STEP n=42 layers=7 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=64 dlist=0:64,1:off,2:off
+STEP n=43 layers=8 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=44 layers=8 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=145 dlist=0:145,1:off,2:off
+STEP n=45 layers=8 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=129 dlist=0:129,1:off,2:off
+STEP n=46 layers=8 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=47 layers=8 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=48 layers=8 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=73 dlist=0:73,1:off,2:off
+STEP n=49 layers=9 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=82 dlist=0:82,1:off,2:off
+STEP n=50 layers=9 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=163 dlist=0:163,1:off,2:off
+STEP n=51 layers=9 size=960x540 src=1920x1080 scale=0.5000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=145 dlist=0:145,1:off,2:off
+STEP n=52 layers=9 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=82 dlist=0:82,1:off,2:off
+STEP n=53 layers=9 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=82 dlist=0:82,1:off,2:off
+STEP n=54 layers=9 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=82 dlist=0:82,1:off,2:off
+STEP n=55 layers=10 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=56 layers=10 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=181 dlist=0:181,1:off,2:off
+STEP n=57 layers=10 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=181 dlist=0:181,1:off,2:off
+STEP n=58 layers=10 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=59 layers=10 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=60 layers=10 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=91 dlist=0:91,1:off,2:off
+STEP n=61 layers=11 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=100 dlist=0:100,1:off,2:off
+STEP n=62 layers=11 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=199 dlist=0:199,1:off,2:off
+STEP n=63 layers=11 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=199 dlist=0:199,1:off,2:off
+STEP n=64 layers=11 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=100 dlist=0:100,1:off,2:off
+STEP n=65 layers=11 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=100 dlist=0:100,1:off,2:off
+STEP n=66 layers=11 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=100 dlist=0:100,1:off,2:off
+STEP n=67 layers=12 size=960x540 src=960x540 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=100 dlist=0:100,1:off,2:off
+STEP n=68 layers=12 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=217 dlist=0:217,1:off,2:off
+STEP n=69 layers=12 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=217 dlist=0:217,1:off,2:off
+STEP n=70 layers=12 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=71 layers=12 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=72 layers=12 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=73 layers=13 size=960x540 src=960x540 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=109 dlist=0:109,1:off,2:off
+STEP n=74 layers=13 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=235 dlist=0:235,1:off,2:off
+STEP n=75 layers=13 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=235 dlist=0:235,1:off,2:off
+STEP n=76 layers=13 size=1920x1080 src=1920x1080 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=118 dlist=0:118,1:off,2:off
+STEP n=77 layers=13 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=118 dlist=0:118,1:off,2:off
+STEP n=78 layers=13 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=118 dlist=0:118,1:off,2:off
+STEP n=79 layers=14 size=960x540 src=960x540 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=118 dlist=0:118,1:off,2:off
+STEP n=80 layers=14 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=253 dlist=0:253,1:off,2:off
+STEP n=81 layers=14 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=253 dlist=0:253,1:off,2:off
+STEP n=82 layers=14 size=1920x1080 src=1920x1080 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=253 dlist=0:253,1:off,2:off
+STEP n=83 layers=14 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=253 dlist=0:253,1:off,2:off
+STEP n=84 layers=14 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=253 dlist=0:253,1:off,2:off
+STEP n=85 layers=15 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=136 dlist=0:136,1:off,2:off
+STEP n=86 layers=15 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=271 dlist=0:271,1:off,2:off
+STEP n=87 layers=15 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=271 dlist=0:271,1:off,2:off
+STEP n=88 layers=15 size=1920x1080 src=1920x1080 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=271 dlist=0:271,1:off,2:off
+STEP n=89 layers=15 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=271 dlist=0:271,1:off,2:off
+STEP n=90 layers=15 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=271 dlist=0:271,1:off,2:off
+STEP n=91 layers=16 size=960x540 src=960x540 scale=1.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=145 dlist=0:145,1:off,2:off
+STEP n=92 layers=16 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=289 dlist=0:289,1:off,2:off
+STEP n=93 layers=16 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=289 dlist=0:289,1:off,2:off
+STEP n=94 layers=16 size=1920x1080 src=1920x1080 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=289 dlist=0:289,1:off,2:off
+STEP n=95 layers=16 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=289 dlist=0:289,1:off,2:off
+STEP n=96 layers=16 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=289 dlist=0:289,1:off,2:off
+STEP n=97 layers=17 size=960x540 src=960x540 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=289 dlist=0:289,1:off,2:off
+STEP n=98 layers=17 size=960x540 src=480x270 scale=2.0000 test_only=ok commit=ok latched=120/120 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=307 dlist=0:307,1:off,2:off
+STEP n=99 layers=17 size=960x540 src=1920x1080 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=307 dlist=0:307,1:off,2:off
+STEP n=100 layers=17 size=1920x1080 src=1920x1080 scale=1.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=307 dlist=0:307,1:off,2:off
+STEP n=101 layers=17 size=1920x1080 src=960x540 scale=2.0000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=307 dlist=0:307,1:off,2:off
+STEP n=102 layers=17 size=1920x1080 src=3840x2160 scale=0.5000 test_only=err:28 commit=not-run latched=0/0 late=0 missing=0 underrun_before=0 underrun_after=0 dlist_words=307 dlist=0:307,1:off,2:off
+RESTORE err:22 saved state refused
+RESTORE fallback ok planes off
+SUMMARY steps=102 test_only_ok=62 test_only_err=40 skipped=0 drop_steps=0 first_drop=none first_reject=30 underrun_delta=0
+VERDICT hvs_load_probe: DONE
