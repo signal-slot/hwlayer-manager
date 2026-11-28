@@ -20,6 +20,7 @@ PICTURE_DIR=out/pictures PICTURE_EXPECT_DIR=out/expect \
 | `PICTURE_DELAY` | seconds into a hold before the picture (default 20) |
 | `PICTURE_EXPECT_DIR` | optional; `ROW.json` there is the camera-check EXPECT file for ROW |
 | `PICTURE_ON_PHASES` | optional; other phases (space or comma separated) that get an immediate picture |
+| `PICTURE_SHOTS` | capture runs per picture, back to back (default 2); only the last image is kept and judged. `1` takes one shot. Not a positive integer: exit 2 |
 | `PICTURE_WAIT` | seconds `hold-end` waits for a running capture (default 120) |
 
 ## Phases
@@ -31,6 +32,12 @@ PICTURE_DIR=out/pictures PICTURE_EXPECT_DIR=out/expect \
   is logged, exit 1. Otherwise it waits for the job and returns its status.
 - Phases in `PICTURE_ON_PHASES`: immediate picture, `ROW-PHASE-<n>.png`.
 - Any other phase: nothing.
+
+A KVM can return a stale first frame after a pause, while a second shot taken
+at once is live. That is why each picture runs the capture command twice by
+default. If a shot fails, the picture fails (`capture failed`) and the loop
+stops. The shot count is not logged: the `pictures.log` format stays as it is
+for `scenario-report.py`.
 
 ## pictures.log
 

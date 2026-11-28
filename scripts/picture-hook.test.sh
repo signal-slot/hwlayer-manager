@@ -77,6 +77,44 @@ if [ "$rc" -eq 0 ] && grep -q '^PASSROW bar .* PASS$' "$root/phase/pictures.log"
 sh "$hook" PASSROW other
 [ "$(wc -l < "$root/phase/pictures.log")" -eq 1 ] && ok "unlisted phase ignored" || bad "unlisted phase logged"
 
+# PICTURE_SHOTS: a counting capture. Its first image is red, later ones are
+# blue; judged against blue, so only a later shot passes.
+cat > "$root/count.sh" <<M
+#!/bin/sh
+n=0
+[ -f "$root/calls" ] && read -r n < "$root/calls"
+n=\$((n + 1))
+echo "\$n" > "$root/calls"
+printf 'P6\n8 8\n255\n' > "\$1"
+i=0
+while [ \$i -lt 64 ]; do
+	if [ "\$n" -eq 1 ]; then printf '\310\024\024'; else printf '\024\024\310'; fi >> "\$1"
+	i=\$((i + 1))
+done
+M
+mk_exp BLUEROW "20, 20, 200"
+calls() { read -r c < "$root/calls"; echo "$c"; }
+rm -f "$root/calls"
+run_hold shots BLUEROW 1 "sh $root/count.sh"; rc=$?
+[ "$(calls)" -eq 2 ] && ok "default 2 calls" || bad "default calls $(calls)"
+if [ "$rc" -eq 0 ]; then
+	case $(last shots) in *" PASS") ok "second image judged" ;; *) bad "default line: $(last shots)" ;; esac
+else bad "default exit $rc"; fi
+[ "$(wc -l < "$root/shots/pictures.log")" -eq 1 ] && ok "one log line for 2 shots" || bad "log lines"
+
+rm -f "$root/calls"
+PICTURE_SHOTS=1 run_hold one BLUEROW 1 "sh $root/count.sh"; rc=$?
+[ "$(calls)" -eq 1 ] && ok "PICTURE_SHOTS=1 one call" || bad "SHOTS=1 calls $(calls)"
+if [ "$rc" -eq 1 ]; then
+	case $(last one) in *" FAIL") ok "single first image judged" ;; *) bad "SHOTS=1 line: $(last one)" ;; esac
+else bad "SHOTS=1 exit $rc"; fi
+
+for v in 0 -1 x 1.5 2x; do
+	PICTURE_SHOTS=$v PICTURE_DIR=$root/badshots PICTURE_CAPTURE="sh $root/capture.sh" \
+		sh "$hook" A1 hold-start 2>/dev/null; rc=$?
+	[ "$rc" -eq 2 ] && ok "PICTURE_SHOTS='$v' exit 2" || bad "PICTURE_SHOTS='$v' exit $rc"
+done
+
 # Environment errors.
 PICTURE_CAPTURE= sh "$hook" A1 hold-start 2>/dev/null; rc=$?
 [ "$rc" -eq 2 ] && ok "missing capture exit 2" || bad "missing capture exit $rc"
