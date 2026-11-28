@@ -205,3 +205,17 @@ Results:
 * Camera: `VERDICT: PASS` for all 8 regions (largest distance 37.2, red
   block). The KVM screenshot was taken during the 20 s show, a few seconds
   after the commit, not at a measured 2 s; the picture is not kept.
+
+## Read-only DRM debugfs dumps (2026-11-28)
+
+Raspberry Pi 5 (BCM2712 HVS6), kernel `6.18.50+rpt-rpi-2712`, idle (fbcon on
+HDMI-A-1 1920x1080). Read-only (root `cat` of `dri/<vc4 card>/<file>`), passed
+through `scripts/scrub-kms-dump.py` (no identifiers found). Each file has a `#`
+header.
+
+| File | Content |
+| --- | --- |
+| `debugfs-2026-11-28-state.txt` | `state` (atomic state) |
+| `debugfs-2026-11-28-hvs_dlists.txt` | `hvs_dlists` |
+| `debugfs-2026-11-28-hvs_regs.txt` | `hvs_regs` |
+| `debugfs-2026-11-28-hvs_lbm_upm.txt` | LBM Handles and UPM Handles lists (the header does not name the debugfs files) |

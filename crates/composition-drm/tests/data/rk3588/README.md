@@ -192,3 +192,19 @@ counts toward none of M1, M2 or M3. Files: `verify-probe-2026-11-28.txt`,
   with "no primary plane with a linear 32-bit RGB format": primary plane 33
   lists only AFBC modifiers. Nothing was displayed, so no KVM picture was
   judged and camera-check was not run (see `verify-camera-2026-11-28.txt`).
+
+## Read-only DRM debugfs dumps and copied notes (2026-11-28)
+
+Board: NanoPC-T6 (RK3588), kernel `6.18.55-current-rockchip64`, idle (fbcon the
+only DRM client). Read-only: no commit, no modeset, no DRM master. Each file
+has a `#` header (date, kernel, what was read, scrub note).
+
+| File | Content |
+| --- | --- |
+| `debugfs-2026-11-28-state.txt` | `dri/display-subsystem/state` (atomic state of every plane, CRTC and connector) |
+| `debugfs-2026-11-28-vop2-summary.txt` | `dri/display-subsystem/vop2/summary` |
+| `debugfs-2026-11-28-vop2-regs.txt` | `dri/display-subsystem/vop2/regs` (raw register dump) |
+| `debugfs-2026-11-28-clients.txt` | `name`, `clients`, `internal_clients` of `dri/display-subsystem`, and `name`, `clients` of the panthor node |
+| `debugfs-2026-11-28-dmesg.txt` | `uname -r` and the dmesg lines matching vop2, rockchip-drm, `[drm]` |
+| `source-2026-11-28.md` | not a board run: copy of the former observed-notes file `rk3588-source.md` (read from source 2026-11-28) |
+| `topology-2026-11-28.md` | copy of the former observed-notes file `rk3588-topology.md`: topology session on the NanoPC-T6 observed 2026-11-28, no frame submitted |
