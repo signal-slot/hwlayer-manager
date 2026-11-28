@@ -360,6 +360,36 @@ From `twoplane /dev/dri/card0 --frames 0 --unsupported`, 2026-11-27 (the re-run 
 - Underrun cannot be seen before commit: a combination that passes `TEST_ONLY` can still underrun. inferred
 - The profile in `profile.rs` (upscale to 1080, no downscale, primary and first overlay) is consistent with the observed rows above; YUV scaling is not modelled and is left to `TEST_ONLY`. inferred
 
+## NXP i.MX8M Plus (LCDIFv3)
+
+Desk study only (SoW §5.3, "a contrasting design"). **No board run was made, so there is no observed subsection and no observed row.** Every row is `read from source` or `inferred`, and each points at `docs/imx8mp-lcdif-source.md`, which has the file and line references and the trees read (mainline Linux at `f4585067150b`; NXP `linux-imx` `lf-6.6.52-2.2.2`, of which only `lcdifv3-plane.c` was read, so vendor CRTC, DT and GPU code are unread). Nothing here is a measured or timing claim.
+
+### i.MX8M Plus, read from source
+
+| Item | Finding | Basis |
+| --- | --- | --- |
+| Instances, outputs | Three LCDIF nodes in `imx8mp.dtsi`, all disabled in the SoC file: `lcdif1` to MIPI DSI, `lcdif2` to the LDB (LVDS), `lcdif3` to the HDMI block. One endpoint each, so a CRTC drives one fixed output. Mainline binds each node as its own DRM device with one CRTC (`docs/imx8mp-lcdif-source.md` §1) | read from source |
+| Planes per CRTC | Mainline registers one primary plane and no cursor or overlay plane; the driver struct has a single `primary` (§2) | read from source |
+| Formats | Mainline: RGB565, RGB888, XBGR8888, XRGB1555, XRGB4444, XRGB8888, packed YUYV, YVYU, UYVY, VYUY; no alpha-channel format, no planar YUV. Vendor plane file: adds ARGB8888, ABGR8888, ARGB1555; no YUV (§3, §9) | read from source |
+| Modifiers | Linear only, mainline and vendor plane file (§3, §9) | read from source |
+| Scaling | Plane check demands no scaling (`DRM_PLANE_NO_SCALING`), mainline and vendor plane file. The vendor plane must also sit at CRTC position (0,0) (§4, §9) | read from source |
+| Alpha, blend, zpos | Mainline creates no alpha, blend-mode or zpos property. The vendor plane file creates an immutable zpos of 0 and no alpha property (§4, §9) | read from source |
+| Vblank, latch | The new address is written, then `SHADOW_LOAD_EN` is set at flush; the `VS_BLANK` interrupt counts as a vblank only once the hardware has cleared that bit. A DRM vblank event completes the flip. No fence or other frame-done register is used (§5) | read from source |
+| Framebuffer memory | GEM DMA helpers, so contiguous buffers; 36-bit DMA mask; 16-bit pitch field; no IOMMU referenced by the LCDIF nodes (§6) | read from source |
+| 2D blitter, PXP | The mainline PXP driver matches only i.MX6ULL and i.MX7D, and `imx8mp.dtsi` has no PXP node. The SoC file has a `gpu2d` Vivante node next to `gpu3d`; its blit abilities are not stated there (§7) | read from source |
+| Not read | Vendor CRTC code, register layer and DT nodes; `gpu-viv` and g2d; which LCDIFs can run together and share pixel clocks (Open questions) | not read |
+
+### i.MX8M Plus, inferred
+
+- One plane per CRTC with no scaling, alpha or zpos means no overlay assignment is possible. Every layer but one must be composed into the primary buffer. inferred (§2, §4, §8)
+- The primary buffer must be contiguous linear memory in one of the listed formats, so whatever composes (CPU, GPU, `gpu2d` or another processor) must write into such memory. inferred (§6, §8)
+- Scan-out is latched at the vblank after flush and the old buffer is free only after the flip event; this fits the existing release-on-event model but is read from code, not run. inferred (§5)
+- Whether `gpu2d` could blend for composition depends on the vendor tree, which is unread. inferred (open)
+
+### Consequences for this project
+
+With one plane per CRTC and no scaling, alpha or zpos, the planner has nothing to assign to an overlay: all but one layer fall back to composition into the primary frame. Route 3 of SoW §5.3, an M7 software blend into an A53-produced frame before scan-out, is pre-composition. It is not a hardware overlay and not an M1 deliverable. `docs/imx8mp-route3-precomposition.md` is a design note (inferred, not implemented) on the interface and buffer ownership it would need; it makes no timing claim and is not counted as a hardware-overlay row. A host test of the fall-back behaviour, `crates/composition-core/tests/imx8mp_single_plane.rs`, was still in review when this section was written and is not cited as evidence here.
+
 ## Sources
 
 - https://github.com/nxp-imx/linux-imx/tree/6e694eda40aabd6671fca82b5416dbd76beeebb9/drivers/gpu/drm/imx/dpu95
@@ -372,3 +402,5 @@ From `twoplane /dev/dri/card0 --frames 0 --unsupported`, 2026-11-27 (the re-run 
 - https://docs.zephyrproject.org/latest/boards/nxp/imx95_evk_15x15/doc/index.html
 - https://gerrit.automotivelinux.org/gerrit/projects/src%2Fdrm-lease-manager/branches/
 - `drm-lease-manager/lease-manager.c`, `drm-lease-manager/main.c`, `libdlmclient/dlmclient.h`, `README.md`, `doc/configuration-guide.md` on that branch
+- https://github.com/torvalds/linux/tree/f4585067150b85e33f60876149a6e742928da75e/drivers/gpu/drm/mxsfb (`lcdif_drv.c`, `lcdif_kms.c`, `lcdif_regs.h`) and `arch/arm64/boot/dts/freescale/imx8mp.dtsi` at that commit
+- https://github.com/nxp-imx/linux-imx/blob/5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc/drivers/gpu/drm/imx/lcdifv3/lcdifv3-plane.c (tag `lf-6.6.52-2.2.2`; the only vendor file read)
