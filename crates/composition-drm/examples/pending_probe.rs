@@ -2,7 +2,8 @@
 //! kernel does with a second commit sent before the first one's flip event.
 //!
 //! ```text
-//! cargo run -p composition-drm --example pending_probe -- [options] --plane ID (--flips N | --replace)
+//! cargo run -p composition-drm --example pending_probe -- [options] --plane ID \
+//!     (--flips N | --replace | --replace-blocking | --cursor-move)
 //!
 //!   --device PATH      DRM device (default /dev/dri/card0); a bare argument works too
 //!   --connector ID     connector to use (default: the first connected one)
@@ -12,9 +13,12 @@
 //!   --timeout-ms N     how long to wait for one page-flip event (default 1000)
 //!   --flips N          mode 1: N nonblocking commits, each waited for
 //!   --replace          mode 2: commit A, then B before A's event
+//!   --replace-blocking mode 3: as `--replace`, but B is a blocking commit
+//!   --cursor-move      mode 4: commit A, then a cursor-plane-only commit before A's event
 //! ```
 //!
-//! Exactly one of `--flips` and `--replace` is needed.
+//! Exactly one of `--flips`, `--replace`, `--replace-blocking` and
+//! `--cursor-move` is needed.
 //!
 //! The program opens the device, becomes DRM master (or exits with status 2
 //! saying it could not; it never stops other processes) and takes the
@@ -77,6 +81,43 @@
 //! commit the kernel took as current but not what the display scans out.
 //! Judge the picture by eye or with a camera.
 //!
+//! Every real commit line of the modes below also carries `errno=N` (0 when
+//! accepted, else the raw errno) and `return_us=N`, the wall-clock time the
+//! commit ioctl took to return (a blocking commit that waits shows it). After
+//! the `EVENTS` line, a `COUNTS` line gives the flip events per commit:
+//!
+//! ```text
+//! COUNTS a_events=1 b_events=0 c_events=n/a extra_events=0
+//! ```
+//!
+//! Events are attributed by order (first A's, then the second commit's);
+//! `b_events` applies to `--replace` and `--replace-blocking`, `c_events` to
+//! `--cursor-move`, the other is `n/a`, and `extra_events` counts events
+//! beyond the expected ones. After the expected events the program waits a
+//! short grace time (at most 100 ms) for extras, so a duplicate shows up.
+//!
+//! # `--replace-blocking`
+//!
+//! As `--replace`, but there is no TEST_ONLY step and B is sent without
+//! `NONBLOCK` (with `PAGE_FLIP_EVENT`). The call may wait for A to latch;
+//! `return_us` of B says how long. The verdict reads
+//! `VERDICT replace_pending_blocking: accepted` or `refused errno=NAME`.
+//!
+//! # `--cursor-move`
+//!
+//! Needs a cursor plane of the CRTC with `ARGB8888` (else it prints
+//! `CURSOR plane=none` and `VERDICT cursor_move_pending: skipped ...`). A
+//! 64x64 cursor buffer is shown at the top left in the setup commit. Then A
+//! (overlay) is committed as in `--replace` and, before A's event, commit C
+//! touches only the cursor plane (moved by 32,32), `NONBLOCK |
+//! PAGE_FLIP_EVENT`:
+//!
+//! ```text
+//! A commit=ok fb=77 errno=0 return_us=210
+//! C commit=ok plane=31 errno=0 return_us=95
+//! VERDICT cursor_move_pending: accepted
+//! ```
+//!
 //! # Exit
 //!
 //! At the end the program puts the overlay and (if it touched it) the primary
@@ -105,12 +146,17 @@ use drm::control::{
 use drm::{ClientCapability, Device as BasicDevice, VblankWaitFlags, VblankWaitTarget};
 
 const USAGE: &str = "usage: pending_probe [--device PATH] [--connector ID] --plane ID \
-[--size WxH] [--buffers 2|3] [--timeout-ms N] (--flips N | --replace)";
+[--size WxH] [--buffers 2|3] [--timeout-ms N] \
+(--flips N | --replace | --replace-blocking | --cursor-move)";
+
+const ONE_MODE: &str = "use only one of --flips, --replace, --replace-blocking and --cursor-move";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mode {
     Flips(u32),
     Replace,
+    ReplaceBlocking,
+    CursorMove,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -171,12 +217,17 @@ fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Options, String
                     return Err("--flips must be above 0".into());
                 }
                 if mode.replace(Mode::Flips(n)).is_some() {
-                    return Err("use only one of --flips and --replace".into());
+                    return Err(ONE_MODE.into());
                 }
             }
-            "--replace" => {
-                if mode.replace(Mode::Replace).is_some() {
-                    return Err("use only one of --flips and --replace".into());
+            "--replace" | "--replace-blocking" | "--cursor-move" => {
+                let chosen = match arg.as_str() {
+                    "--replace" => Mode::Replace,
+                    "--replace-blocking" => Mode::ReplaceBlocking,
+                    _ => Mode::CursorMove,
+                };
+                if mode.replace(chosen).is_some() {
+                    return Err(ONE_MODE.into());
                 }
             }
             "-h" | "--help" => return Err(String::new()),
@@ -184,9 +235,10 @@ fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Options, String
             other => device = other.to_string(),
         }
     }
-    let mode = mode.ok_or("one of --flips N and --replace is needed")?;
-    if mode == Mode::Replace && buffers < 3 {
-        return Err("--replace needs --buffers 3".into());
+    let mode =
+        mode.ok_or("one of --flips N, --replace, --replace-blocking and --cursor-move is needed")?;
+    if matches!(mode, Mode::Replace | Mode::ReplaceBlocking) && buffers < 3 {
+        return Err("--replace and --replace-blocking need --buffers 3".into());
     }
     Ok(Options {
         device,
@@ -357,15 +409,64 @@ fn events_line(e: &ReplaceEvents) -> String {
 
 /// The final verdict follows the real commit B; a refused A makes the run
 /// say nothing about replacing.
+#[cfg(test)]
 fn verdict_line(a: Check, b: Check) -> String {
-    match (a, b) {
+    case_verdict("replace_pending", a, b)
+}
+
+/// The verdict of a case: `label` names the question.
+fn case_verdict(label: &str, a: Check, second: Check) -> String {
+    match (a, second) {
         (Err(errno), _) => format!(
-            "replace_pending: unknown (A was refused errno={})",
+            "{label}: unknown (A was refused errno={})",
             errno_name(errno)
         ),
-        (Ok(()), Ok(())) => "replace_pending: accepted".into(),
-        (Ok(()), Err(errno)) => format!("replace_pending: refused errno={}", errno_name(errno)),
+        (Ok(()), Ok(())) => format!("{label}: accepted"),
+        (Ok(()), Err(errno)) => format!("{label}: refused errno={}", errno_name(errno)),
     }
+}
+
+/// `errno=N`: 0 when accepted, else the raw errno.
+fn errno_value(check: Check) -> i32 {
+    check.err().unwrap_or(0)
+}
+
+/// The keys every timed commit line ends with.
+fn timing_keys(check: Check, return_us: u128) -> String {
+    format!("errno={} return_us={return_us}", errno_value(check))
+}
+
+/// Flip events per commit of a pending case, attributed by order.
+#[derive(Debug, PartialEq, Eq)]
+struct EventCounts {
+    a: usize,
+    /// The second commit's events; `None` when it was refused.
+    second: Option<usize>,
+    extra: usize,
+}
+
+fn event_counts(a: Check, second: Check, arrived: usize) -> EventCounts {
+    let a_ok = a.is_ok();
+    let second_ok = a_ok && second.is_ok();
+    let a_events = usize::from(a_ok && arrived >= 1);
+    let second_events = usize::from(second_ok && arrived >= 2);
+    EventCounts {
+        a: a_events,
+        second: second_ok.then_some(second_events),
+        extra: arrived.saturating_sub(a_events + second_events),
+    }
+}
+
+/// `cursor` picks `c_events` for the second commit, else `b_events`; the
+/// other key is `n/a`.
+fn counts_line(c: &EventCounts, cursor: bool) -> String {
+    let second = opt_text(c.second);
+    let na = "n/a".to_string();
+    let (b, cur) = if cursor { (na, second) } else { (second, na) };
+    format!(
+        "COUNTS a_events={} b_events={b} c_events={cur} extra_events={}",
+        c.a, c.extra
+    )
 }
 
 /// Which commit's framebuffer the plane shows, by `FB_ID` value.
@@ -473,8 +574,18 @@ struct Fb {
 
 /// An XRGB8888 framebuffer of `size` with the bars rotated by `shift`.
 fn make_fb(card: &Card, size: (u32, u32), shift: usize) -> Result<Fb, String> {
+    make_fb_format(card, size, shift, DrmFourcc::Xrgb8888)
+}
+
+/// A 32-bit framebuffer of `format` (XRGB8888 or ARGB8888).
+fn make_fb_format(
+    card: &Card,
+    size: (u32, u32),
+    shift: usize,
+    format: DrmFourcc,
+) -> Result<Fb, String> {
     let mut dumb = card
-        .create_dumb_buffer(size, DrmFourcc::Xrgb8888, 32)
+        .create_dumb_buffer(size, format, 32)
         .map_err(|e| format!("dumb buffer: {}", errno_name(errno_of(&e))))?;
     let pitch = dumb.pitch() as usize;
     let filled = card
@@ -485,7 +596,12 @@ fn make_fb(card: &Card, size: (u32, u32), shift: usize) -> Result<Fb, String> {
         let _ = card.destroy_dumb_buffer(dumb);
         return Err(message);
     }
-    match card.add_framebuffer(&dumb, 24, 32) {
+    let depth = if format == DrmFourcc::Argb8888 {
+        32
+    } else {
+        24
+    };
+    match card.add_framebuffer(&dumb, depth, 32) {
         Ok(fb) => Ok(Fb { dumb, fb }),
         Err(error) => {
             let _ = card.destroy_dumb_buffer(dumb);
@@ -498,6 +614,12 @@ fn release(card: &Card, fb: Fb) {
     let _ = card.destroy_framebuffer(fb.fb);
     let _ = card.destroy_dumb_buffer(fb.dumb);
 }
+
+/// The cursor buffer size, and where `--cursor-move` moves it to.
+const CURSOR_SIZE: (u32, u32) = (64, 64);
+const CURSOR_MOVE: (i32, i32) = (32, 32);
+/// How long to wait for events beyond the expected ones.
+const EXTRA_GRACE: Duration = Duration::from_millis(100);
 
 const PLACEMENT: [&str; 10] = [
     "FB_ID", "CRTC_ID", "SRC_X", "SRC_Y", "SRC_W", "SRC_H", "CRTC_X", "CRTC_Y", "CRTC_W", "CRTC_H",
@@ -516,6 +638,8 @@ struct Ctx {
     output: (u32, u32),
     overlay: PlaneInfo,
     primary: PlaneInfo,
+    /// A cursor plane of the CRTC that takes ARGB8888, if there is one.
+    cursor: Option<PlaneInfo>,
 }
 
 impl Ctx {
@@ -573,6 +697,13 @@ impl Ctx {
         self.card
             .atomic_commit(flags, req)
             .map_err(|e| errno_of(&e))
+    }
+
+    /// A commit and the microseconds its ioctl took to return.
+    fn timed_commit(&self, flags: AtomicCommitFlags, req: AtomicModeReq) -> (Check, u128) {
+        let start = Instant::now();
+        let check = self.commit(flags, req);
+        (check, start.elapsed().as_micros())
     }
 
     /// The vblank counter of the CRTC, if the driver answers `WAIT_VBLANK`.
@@ -736,6 +867,7 @@ fn open(options: &Options) -> Result<(Ctx, bool), String> {
 
     let mut overlay = None;
     let mut primary = None;
+    let mut cursor: Option<PlaneInfo> = None;
     for handle in card.plane_handles().map_err(fail("planes"))? {
         let pinfo = card.get_plane(handle).map_err(fail("plane"))?;
         if !resources
@@ -765,6 +897,12 @@ fn open(options: &Options) -> Result<(Ctx, bool), String> {
                 .is_none_or(|p: &PlaneInfo| plane.id() < p.id())
         {
             primary = Some(plane);
+        } else if kind == PlaneType::Cursor
+            && PLACEMENT.iter().all(|n| plane.props.contains_key(*n))
+            && plane.formats.contains(&(DrmFourcc::Argb8888 as u32))
+            && cursor.as_ref().is_none_or(|c| plane.id() < c.id())
+        {
+            cursor = Some(plane);
         }
     }
     let overlay = overlay.ok_or(format!(
@@ -807,6 +945,7 @@ fn open(options: &Options) -> Result<(Ctx, bool), String> {
             output,
             overlay,
             primary,
+            cursor,
         },
         was_active,
     ))
@@ -905,9 +1044,27 @@ fn session(
         size.0, size.1, dst.0, dst.1, options.buffers
     );
     let timeout = Duration::from_millis(options.timeout_ms);
+    let cursor = if options.mode == Mode::CursorMove {
+        match &ctx.cursor {
+            Some(cursor) => {
+                println!("CURSOR plane={} size=64x64", cursor.id());
+                Some(cursor)
+            }
+            None => {
+                println!("CURSOR plane=none");
+                println!("VERDICT cursor_move_pending: skipped (no cursor plane with ARGB8888)");
+                return Ok(());
+            }
+        }
+    } else {
+        None
+    };
     save(&ctx.overlay, saved);
     if fresh_primary {
         save(&ctx.primary, saved);
+    }
+    if let Some(cursor) = cursor {
+        save(cursor, saved);
     }
     *touched = true;
 
@@ -934,6 +1091,15 @@ fn session(
         ctx.modeset_request(&mut req);
         flags |= AtomicCommitFlags::ALLOW_MODESET;
     }
+    let mut cursor_fb = None;
+    if let Some(cursor) = cursor {
+        let fb = make_fb_format(&ctx.card, CURSOR_SIZE, 0, DrmFourcc::Argb8888)
+            .map_err(|e| format!("cursor buffer: {e}"))?;
+        ctx.place(&mut req, cursor, fb.fb, CURSOR_SIZE, (0, 0))
+            .map_err(fail("place"))?;
+        cursor_fb = Some(fb.fb);
+        buffers.push(fb);
+    }
     ctx.place(&mut req, &ctx.overlay, setup_fb, size, dst)
         .map_err(fail("place"))?;
     let setup = ctx.commit(flags, req);
@@ -951,7 +1117,7 @@ fn session(
                 let req = overlay_request(ctx, fb, size, dst).map_err(fail("place"))?;
                 let before = ctx.vblank();
                 let sent = Instant::now();
-                let commit = ctx.commit(nonblock, req);
+                let (commit, commit_us) = ctx.timed_commit(nonblock, req);
                 if commit.is_ok() {
                     stats.submitted += 1;
                 }
@@ -962,7 +1128,7 @@ fn session(
                 stats.events.extend(events);
                 println!(
                     "FLIP n={} fb={} commit={} seq={} ts_us={} vblank_before={} vblank_after={} \
-                     submit_to_event_us={}",
+                     submit_to_event_us={} {}",
                     i + 1,
                     u32::from(fb.fb),
                     check_text(commit),
@@ -974,7 +1140,8 @@ fn session(
                         waited.to_string()
                     } else {
                         "n/a".into()
-                    }
+                    },
+                    timing_keys(commit, commit_us)
                 );
             }
             // A late event of the last flip still counts.
@@ -985,30 +1152,75 @@ fn session(
             stats.events.extend(late);
             println!("{}", stats.summary_line());
         }
-        Mode::Replace => {
-            let (fb_a, fb_b) = (&buffers[1], &buffers[2]);
+        Mode::Replace | Mode::ReplaceBlocking | Mode::CursorMove => {
+            let mode = options.mode;
+            let (fb_a, fb_b) = (&buffers[1], &buffers[2.min(buffers.len() - 1)]);
             let before = ctx.vblank();
-            let a = ctx.commit(
+            let (a, a_us) = ctx.timed_commit(
                 nonblock,
                 overlay_request(ctx, fb_a, size, dst).map_err(fail("place"))?,
             );
-            let b_test = ctx.commit(
-                AtomicCommitFlags::TEST_ONLY | AtomicCommitFlags::NONBLOCK,
-                overlay_request(ctx, fb_b, size, dst).map_err(fail("place"))?,
-            );
-            let b = ctx.commit(
-                nonblock,
-                overlay_request(ctx, fb_b, size, dst).map_err(fail("place"))?,
-            );
-            println!("A commit={} fb={}", check_text(a), u32::from(fb_a.fb));
+            // The second commit: B (nonblocking or blocking) or C (cursor).
+            let (b, b_us, b_test) = match mode {
+                Mode::CursorMove => {
+                    let (cursor, fb) = (cursor.ok_or("no cursor")?, cursor_fb.ok_or("no cursor")?);
+                    let mut req = AtomicModeReq::new();
+                    ctx.place(&mut req, cursor, fb, CURSOR_SIZE, CURSOR_MOVE)
+                        .map_err(fail("place"))?;
+                    let (c, us) = ctx.timed_commit(nonblock, req);
+                    (c, us, None)
+                }
+                Mode::ReplaceBlocking => {
+                    let req = overlay_request(ctx, fb_b, size, dst).map_err(fail("place"))?;
+                    let (b, us) = ctx.timed_commit(AtomicCommitFlags::PAGE_FLIP_EVENT, req);
+                    (b, us, None)
+                }
+                _ => {
+                    let req = overlay_request(ctx, fb_b, size, dst).map_err(fail("place"))?;
+                    let test = ctx.timed_commit(
+                        AtomicCommitFlags::TEST_ONLY | AtomicCommitFlags::NONBLOCK,
+                        req,
+                    );
+                    let req = overlay_request(ctx, fb_b, size, dst).map_err(fail("place"))?;
+                    let (b, us) = ctx.timed_commit(nonblock, req);
+                    (b, us, Some(test))
+                }
+            };
+            let cursor_case = mode == Mode::CursorMove;
             println!(
-                "B_TEST_ONLY commit={} fb={}",
-                check_text(b_test),
-                u32::from(fb_b.fb)
+                "A commit={} fb={} {}",
+                check_text(a),
+                u32::from(fb_a.fb),
+                timing_keys(a, a_us)
             );
-            println!("B commit={} fb={}", check_text(b), u32::from(fb_b.fb));
+            if cursor_case {
+                println!(
+                    "C commit={} plane={} {}",
+                    check_text(b),
+                    cursor.map_or(0, PlaneInfo::id),
+                    timing_keys(b, b_us)
+                );
+            } else {
+                if let Some((test, us)) = b_test {
+                    println!(
+                        "B_TEST_ONLY commit={} fb={} {}",
+                        check_text(test),
+                        u32::from(fb_b.fb),
+                        timing_keys(test, us)
+                    );
+                }
+                println!(
+                    "B commit={} fb={} {}",
+                    check_text(b),
+                    u32::from(fb_b.fb),
+                    timing_keys(b, b_us)
+                );
+            }
             let expected = usize::from(a.is_ok()) + usize::from(a.is_ok() && b.is_ok());
-            let events = ctx.wait_events(expected, Instant::now() + timeout)?;
+            let mut events = ctx.wait_events(expected, Instant::now() + timeout)?;
+            // A short grace shows an event that came more than once.
+            let grace = timeout.min(EXTRA_GRACE);
+            events.extend(ctx.wait_events(usize::MAX, Instant::now() + grace)?);
             let after = ctx.vblank();
             for (i, (seq, ts)) in events.iter().enumerate() {
                 println!("EVENT n={} seq={seq} ts_us={ts}", i + 1);
@@ -1019,6 +1231,10 @@ fn session(
                 opt_text(after)
             );
             println!("{}", events_line(&replace_events(a, b, events.len())));
+            println!(
+                "{}",
+                counts_line(&event_counts(a, b, events.len()), cursor_case)
+            );
             let shown = overlay_fb_id(ctx)?;
             println!(
                 "PLANE_FB plane={} fb={shown} shows={}",
@@ -1030,7 +1246,12 @@ fn session(
                     u64::from(u32::from(fb_b.fb))
                 )
             );
-            println!("VERDICT {}", verdict_line(a, b));
+            let label = match mode {
+                Mode::ReplaceBlocking => "replace_pending_blocking",
+                Mode::CursorMove => "cursor_move_pending",
+                _ => "replace_pending",
+            };
+            println!("VERDICT {}", case_verdict(label, a, b));
         }
     }
     Ok(())
@@ -1238,6 +1459,74 @@ mod tests {
         assert_eq!(which_fb(3, 1, 2, 3), "B");
         assert_eq!(which_fb(1, 1, 2, 3), "setup");
         assert_eq!(which_fb(9, 1, 2, 3), "other");
+    }
+
+    #[test]
+    fn parses_the_new_cases() {
+        assert_eq!(
+            args("--plane 1 --replace-blocking").unwrap().mode,
+            Mode::ReplaceBlocking
+        );
+        assert_eq!(
+            args("--plane 1 --cursor-move").unwrap().mode,
+            Mode::CursorMove
+        );
+        // Cursor move needs no third buffer; blocking B does.
+        assert_eq!(
+            args("--plane 1 --cursor-move --buffers 2").unwrap().buffers,
+            2
+        );
+        assert!(args("--plane 1 --replace-blocking --buffers 2").is_err());
+        assert!(args("--plane 1 --replace --cursor-move").is_err());
+        assert!(args("--plane 1 --cursor-move --replace-blocking").is_err());
+        assert!(args("--plane 1 --flips 2 --cursor-move").is_err());
+        assert!(args("--plane 1 --cursor-move --flips 2").is_err());
+    }
+
+    #[test]
+    fn timing_keys_carry_errno_and_return_time() {
+        assert_eq!(timing_keys(Ok(()), 120), "errno=0 return_us=120");
+        assert_eq!(timing_keys(Err(16), 7), "errno=16 return_us=7");
+        assert_eq!(errno_value(Err(22)), 22);
+    }
+
+    #[test]
+    fn counts_line_for_b_and_c() {
+        let one = event_counts(Ok(()), Err(16), 1);
+        assert_eq!(
+            counts_line(&one, false),
+            "COUNTS a_events=1 b_events=n/a c_events=n/a extra_events=0"
+        );
+        let both = event_counts(Ok(()), Ok(()), 2);
+        assert_eq!(
+            counts_line(&both, false),
+            "COUNTS a_events=1 b_events=1 c_events=n/a extra_events=0"
+        );
+        assert_eq!(
+            counts_line(&both, true),
+            "COUNTS a_events=1 b_events=n/a c_events=1 extra_events=0"
+        );
+        let late = event_counts(Ok(()), Ok(()), 1);
+        assert_eq!(late.second, Some(0));
+        // A duplicate of A's event shows as extra.
+        let dup = event_counts(Ok(()), Err(16), 2);
+        assert_eq!((dup.a, dup.second, dup.extra), (1, None, 1));
+        let none = event_counts(Err(16), Ok(()), 0);
+        assert_eq!((none.a, none.second, none.extra), (0, None, 0));
+    }
+
+    #[test]
+    fn case_verdict_labels() {
+        assert_eq!(
+            case_verdict("replace_pending_blocking", Ok(()), Ok(())),
+            "replace_pending_blocking: accepted"
+        );
+        assert_eq!(
+            case_verdict("cursor_move_pending", Ok(()), Err(16)),
+            "cursor_move_pending: refused errno=EBUSY"
+        );
+        assert!(case_verdict("cursor_move_pending", Err(22), Ok(()))
+            .starts_with("cursor_move_pending: unknown"));
     }
 
     #[test]
