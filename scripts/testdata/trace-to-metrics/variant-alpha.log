@@ -1,0 +1,7 @@
+# SYNTHETIC fixture: invented numbers for the self-test, not a measurement.
+# This is not a hardware result.
+# date: 2026-01-04
+RUN date=2026-01-04 side=linux stage=B tool=m2scene-synthetic frames=1 mode=dry-run alpha=0xffff
+CETRACE v=1 ev=hdr seq=0 src=linux clock=ns freq_hz=1000000000 t0=0 at_unit=same build="synthetic" board="synthetic"
+CETRACE v=1 ev=commit seq=1 t=100 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=16000100 at=0 tev=16000000 out=0 sub=1

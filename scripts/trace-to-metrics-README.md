@@ -20,6 +20,17 @@ an unknown `v=`, a non-numeric `seq`/`t`/`tev`/`out`, a second `hdr`,
 an unreadable file. The `RUN side=` comes from `hdr src=`; `--stage` adds
 `stage=`.
 
+## Variant runs
+
+`m2scene` adds `alpha=A` to its `RUN` line for runs with a non-scene plane
+alpha (`--plane-alpha`). Such a run is not the WP3 comparison scene. If the
+log has a `RUN` line with an `alpha=` field, the script writes nothing to
+stdout (so no variant metric can reach `m2-compare-report.py` as the scene),
+prints a note on stderr naming the alpha, and exits 0. The date and `hdr`
+checks above still apply first, so a malformed variant log is still exit 2.
+There is no option to include variant runs. Logs without a `RUN` line, or with
+a `RUN` line without `alpha=`, are converted as before.
+
 ## Time conversion
 
 `ns = (t - t0) * 1e9 / freq_hz` in integer arithmetic, using `hdr` `t0` and
@@ -67,4 +78,4 @@ not checked here.
 
 `scripts/trace-to-metrics.test.sh`. The fixtures in
 `scripts/testdata/trace-to-metrics/` are **synthetic** (invented numbers, dates
-and `build="synthetic"`), not board data, and make no hardware claim.
+and `build="synthetic"`; `variant-*.log` cover variant runs), not board data, and make no hardware claim.

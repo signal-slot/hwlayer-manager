@@ -56,6 +56,15 @@ for v in 0 abc -5; do
 done
 python3 -I m2-compare-report.py "$tmp/rf.txt" "$tmp/zephyr.txt" | grep -qF "M-3.late" && ok "report shows M-3.late" || bad "report shows M-3.late"
 
+# variant runs (RUN alpha=): no stdout, stderr note, exit 0; plain RUN line is the scene
+$T $D/variant-alpha.log >"$tmp/va.txt" 2>"$tmp/va.err"
+[ $? -eq 0 ] && ok "variant exit 0" || bad "variant exit 0"
+[ ! -s "$tmp/va.txt" ] && ok "variant: no stdout" || bad "variant: no stdout"
+has "$tmp/va.err" "variant run (RUN alpha=0xffff)" "variant: stderr note"
+$T $D/variant-scene.log >"$tmp/vs.txt" 2>"$tmp/vs.err"
+has "$tmp/vs.txt" "id=M-3.submitted" "RUN without alpha is the scene"
+[ ! -s "$tmp/vs.err" ] && ok "scene: no stderr" || bad "scene: no stderr"
+
 out=$(python3 -I m2-compare-report.py "$tmp/linux.txt" "$tmp/zephyr.txt") || bad "report exit"
 rhas() { grep -qF -- "$1" <<<"$out" && ok "$2" || bad "$2"; }
 rhas "(measured on Linux 2026-01-02, Zephyr 2026-01-03)" "report dates"
