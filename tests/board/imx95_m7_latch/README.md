@@ -197,5 +197,9 @@ commands:
 | default | links, no compiler warnings; RAM 37928 B of 42 MB |
 | `CONFIG_IMX95_M7_LATCH_ENABLE_DPU=y` | links, no compiler warnings; RAM 2593952 B of 42 MB; `fsl_dpu.c` is built into the application library |
 
+The `v4.5.0` builds were repeated on a third x86_64 Linux host on 2026-11-28
+with the same workspace pins, SDK and commands. Both configurations linked
+with no compiler warnings, and the RAM figures were the same as in the table.
+
 These are host builds only. The image was not loaded on any board; no latch,
 interval or latency was measured.
