@@ -168,8 +168,9 @@ fn profile_sets_the_class_limits_and_nothing_else() {
     let before = recorded_caps();
     let after = rk3588();
     assert_eq!(after.outputs, before.outputs);
-    assert_eq!(after.resource_groups, before.resource_groups);
-    assert!(after.resource_groups.is_empty());
+    // The one group is the per-CRTC layer budget; `profile_socs.rs` tests it.
+    assert!(before.resource_groups.is_empty());
+    assert_eq!(after.resource_groups.len(), 1);
     assert_eq!(after.replace_pending, before.replace_pending);
     for (old, new) in before.planes.iter().zip(after.planes.iter()) {
         // Same for Cluster and Esmart on this kernel (observed 2026-11-27
@@ -298,8 +299,10 @@ fn source_beyond_4096x4320_is_refused() {
 #[test]
 fn seven_reachable_planes_take_seven_layers_and_no_more() {
     // Output 0 reaches 7 of the 8 planes: 3 Cluster (AFBC) and 4 Esmart
-    // (linear). No layer budget is modelled, so all 7 fit.
-    let caps = rk3588();
+    // (linear). Without the layer budget (tested in `profile_socs.rs`) all 7
+    // fit, so this checks plane reach and formats alone.
+    let mut caps = rk3588();
+    caps.resource_groups.clear();
     let mut layers: Vec<Layer> = (0..3)
         .map(|z| Layer::new(AFBC_XR24, SCREEN, SCREEN, z))
         .chain((3..7).map(|z| Layer::new(LINEAR_XR24, SCREEN, SCREEN, z)))
