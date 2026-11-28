@@ -265,10 +265,11 @@ Sources, all read 2026-11-28:
   `rockchip_drm_vop2.c` (`V2C`): the local copies named in the first section.
 - `drivers/gpu/drm/drm_plane.c` of the same commit (`DP`):
   https://github.com/torvalds/linux/blob/7d0a66e4bb9081d75c82ec4957c50034cb0ea449/drivers/gpu/drm/drm_plane.c
-  Honest limit: this worker could not download it (network refused), so `DP`
-  was read through the web-fetch helper, which returned the code text without
-  line numbers. The `DP` line numbers below were counted by that helper and are
-  good to about 2 lines; the code shape (quoted briefly) is exact.
+  First read through the web-fetch helper, then downloaded as a raw file
+  and the `DP` line numbers below checked with `grep -n` (2026-11-28): the
+  blob function starts at `DP:197`, the format `memcpy` is `DP:240`, the mask
+  bit is set at `DP:249`, `offset = 0` is `DP:254`, the 64-format check is
+  `DP:386`, the modifier count loop `DP:413`, the copies `DP:451-453`.
 - composition at this repository's checkout: `crates/composition-drm/src/lib.rs`
   and `crates/composition-core/src/limits.rs`.
 
