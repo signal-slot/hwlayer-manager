@@ -71,11 +71,11 @@ Pinned in `docs/dlm-aarch64.md` and fetched and built by `scripts/build-dlm-aarc
 | Commit | `68c48758c46d93c8e83abb2fb1ec168fa13d1a53`, committed 2026-08-28, "Add DRM Lease Manager Configuration Guide" |
 | Licence | `Apache-2.0` |
 | Licence file | `LICENSE`: the Apache License 2.0 text with the appendix; it names no copyright holder (only the template line) |
-| Copyright | `Copyright 2020-2021 IGEL Co., Ltd.`, with the Apache-2.0 header, in `libdlmclient/dlmclient.c`, `libdlmclient/dlmclient.h`, `drm-lease-manager/main.c`, `drm-lease-manager/lease-server.c`, `common/socket-path.c` and `common/dlm-protocol.c`. None has an SPDX line |
-| NOTICE | none (`NOTICE` at that commit: HTTP 404) |
-| `meson.build` | `project('lease_manager', 'c', version: '0.1.0', ...)`, no `license:` field |
-| Test-only input | `subprojects/fff.wrap` points at `https://github.com/meekrosoft/fff/archive/v1.0.tar.gz`. Used only with `enable-tests`, which the build script turns off. fff's licence: not read |
-| Basis | read from source (2026-11-28) through the Gerrit REST API (`/gerrit/projects/src%2Fdrm-lease-manager/commits/<commit>` and `.../files/<path>/content`). Git fetch was not yet permitted when this entry was read, and Gitiles URLs on that host return 404 (`docs/dlm-aarch64.md`) |
+| Copyright | All 29 `.c`/`.h` files at the commit (`common/`, `drm-lease-manager/` with `test/`, `libdlmclient/` with `test/`, `examples/dlm-client-test/`) carry the full Apache-2.0 header and no other licence text. 26 say `Copyright 2020-2021 IGEL Co., Ltd.`; 3 (`drm-lease-manager/lease-config.c`, `lease-config.h`, `test/lease-config-test.c`) say `Copyright 2022 IGEL Co., Ltd.`. No file has an SPDX line. The other 20 files of the 49 in the tree (`meson.build` files, `README.md`, `doc/configuration-guide.md`, `.clang-format`, `.gitlab` templates, `Doxyfile.in`, `fff.wrap`) have no licence or copyright text, except the `fff-1.0/meson.build` noted below |
+| NOTICE | none (no `NOTICE` in the tree at that commit) |
+| `meson.build` | `project('lease_manager', 'c', version: '0.1.0', ...)`, no `license:` field. The only `license:` in the tree is `license: 'MIT'` in `subprojects/packagefiles/fff-1.0/meson.build`, the build file for the optional test dependency fff |
+| Test-only input | `subprojects/fff.wrap` points at `https://github.com/meekrosoft/fff/archive/v1.0.tar.gz`. Used only with `enable-tests`, which the build script turns off. fff's own licence: not read (the packagefile says `MIT`, not the fff source) |
+| Basis | read from source (2026-11-28) from a git fetch of `68c48758c46d93c8e83abb2fb1ec168fa13d1a53` (`git fetch --depth 1 <URL> <commit>`, then `git ls-tree`, `git show` and `git grep` for `SPDX|License|Copyright` over the whole tree). An earlier reading the same day, through the Gerrit REST API (Gitiles URLs on that host return 404, `docs/dlm-aarch64.md`), gave the same licence and holder for the files it read; the git read covers every file. Not a full `git clone` (history was not fetched; only the pinned commit) |
 | Fit (inferred, not legal advice) | **yes**: the same licence as this repository. Nothing of it is in the repository. A distributed binary built by the script must carry the Apache-2.0 text; there is no upstream `NOTICE` to pass on |
 
 ### 3.2 libdrm (build input of drm-lease-manager)

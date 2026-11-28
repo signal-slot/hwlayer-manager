@@ -43,6 +43,23 @@ one:
 - `scripts/check-doc-tags.sh [FILE...]`: evidence tags, dates and source pins
   in hardware docs.
 
+## Sign-off and AI-authored contributions (open owner decision)
+
+This project has **no sign-off policy yet**. Whether commits need a
+`Signed-off-by:` line (a Developer Certificate of Origin, DCO), and what the
+rules are for contributions written with an AI tool, is an owner decision that
+is still open (`docs/wp5-gap-analysis.md`, W5-07). Until the owner decides,
+nothing here promises that a contribution is accepted under any particular
+sign-off rule.
+
+For information only: Weston, and libliftoff, which follows Weston's
+contribution guidelines, require a DCO sign-off by a human. Weston's
+`LLM-USAGE.md` and `AGENTS.md` say, as read at `c8d00e2` (2026-11-27, see
+`docs/wp5-gap-analysis.md`), that AI agents must not create or edit issues or
+merge requests or post comments, and that AI-generated code is the human's
+responsibility. Any offer to those projects has to fit those rules; this
+project does not decide them for the upstreams.
+
 ## Commit messages
 
 The subject is either a component prefix (`engine: ...`, `ffi: ...`,
