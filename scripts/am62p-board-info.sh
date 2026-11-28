@@ -60,7 +60,7 @@ if [ -r "$root/proc/device-tree/compatible" ]; then
   row "device-tree compatible" "$(tr '\000' ';' < "$root/proc/device-tree/compatible" | sed 's/;$//; s/;/; /g')"
 fi
 
-# monitor name (descriptor tag 0xFC) from an EDID blob; serial (0xFF) is ignored
+# monitor name (descriptor tag 0xFC) from an EDID blob, as hex bytes; serial (0xFF) is ignored
 edid_name() {
   [ -s "$1" ] || return 0
   od -An -v -tx1 -w1 "$1" 2>/dev/null | tr -d ' ' | awk '
@@ -72,12 +72,19 @@ edid_name() {
           for (i = 5; i < 18; i++) {
             c = b[o+i]
             if (c == "0a" || c == "") break
-            s = s sprintf("%c", strtonum("0x" c))
+            s = s " " c
           }
           print s
           exit
         }
     }' 2>/dev/null
+}
+
+# hex bytes on stdin (space separated) -> text; POSIX sh only
+hex_text() {
+  for h in $(cat); do
+    printf "\\$(printf '%03o' "$(printf '%d' "0x$h")")"
+  done
 }
 
 n=0
@@ -87,7 +94,7 @@ for c in "$root"/sys/class/drm/card*-*; do
   base=${c##*/}
   st=$(first "$c/status")
   modes=$(head -n 3 "$c/modes" 2>/dev/null | tr '\n' ' ')
-  name=$(edid_name "$c/edid")
+  name=$(edid_name "$c/edid" | hex_text)
   row "drm $base" "status: ${st:-n/a}; modes: ${modes:-none}; edid name: ${name:-none}"
 done
 [ $n -gt 0 ] || row "drm connectors" "none found"
