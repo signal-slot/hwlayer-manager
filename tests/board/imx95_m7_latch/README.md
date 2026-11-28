@@ -75,10 +75,14 @@ again. Commits alternate between them; one commit is issued per latch.
 
 `FGTIMESTAMP` has no HAL accessor. The application reads FrameGen0 + `0x98`
 (the offset of `FGTIMESTAMP` in the HAL's private `DPU_FRAMEGEN_Type`) and
-decodes the frame index as bits 31..14 and the line index as bits 13..0, as
-the NXP Linux `dpu95` driver does (recorded in the overlay design note). The
-raw value is printed too (`fgts=`), so the host can decode it again if that
-reading turns out wrong.
+decodes the frame index as bits 31..14 (18 bits, wraps after `0x3ffff`) and
+the line index as bits 13..0. This matches the NXP Linux `dpu95` driver (read
+from source 2026-11-28, `nxp-imx/linux-imx` commit `5a0a5e71d2bd`:
+`dpu95-framegen.c` defines `FGTIMESTAMP 0x98`, `FRAMEINDEX_SHIFT 14`,
+`LINEINDEX_MASK 0x3fff`; `dpu95.h` defines
+`DPU95_FRAMEGEN_MAX_FRAME_INDEX 0x3ffff`). The raw value is printed too
+(`fgts=`), so the host can decode it again. That the M7 view of the register
+behaves the same is not checked on hardware.
 
 Open points the code does not settle (inferred, from the source studies):
 
