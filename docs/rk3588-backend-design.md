@@ -83,7 +83,7 @@ good and its refusals explainable.** The reasoning, constraint by constraint:
 | Plane count, kind, `possible_crtcs` | Read from KMS | Correct. Cluster1 shows `outputs 0b0` only while its CRTC is not connected; with two connectors the mask is right. A lease or DT `disable-win-move` shrinks the set and the backend already reports only what it sees. |
 | zpos | Mutable range read from the property | Correct. The vendor note says the DRM core normalises zpos; the planner's choice of a distinct zpos per plane fits. |
 | Alpha, blend modes | From `alpha` and `pixel blend mode` | Correct on all planes. |
-| Formats and modifiers | `IN_FORMATS`, linear first, cut at 32 | **Risk.** Cluster planes have more than 32 pairs (observed: the probe truncated at 32 inside the AFBC group). Pairs past the cut are invisible to the planner, so a valid AFBC format may be refused as `FORMAT`. This is a capacity limit (`MAX_FORMATS`), not a table matter; see question Q1. |
+| Formats and modifiers | `IN_FORMATS`, linear first, cut at 32 | **Risk.** Cluster planes have more than 32 pairs (observed 2026-11-28: the probe truncated at 32 inside the AFBC group). Pairs past the cut are invisible to the planner, so a valid AFBC format may be refused as `FORMAT`. This is a capacity limit (`MAX_FORMATS`), not a table matter; see question Q1. |
 | Scaling | One global `DrmOptions::scaling` for every plane, or none | **Gap.** Without options every plane is "cannot scale", so scaled layers are refused though Esmart (8x) and Cluster (4x) can scale. With one global value the planner would send an 8x layer to a Cluster plane the hardware (or the check) may refuse. Per window-type limits need a table. |
 | Transforms | Never filled, so every rotation is refused | **Gap.** Cluster+AFBC can rotate 90/270 and reflect, Esmart reflects in Y. The mask depends on the window type and on the buffer's modifier, so a plain per-plane mask is not enough; see section 5. |
 | `max_source` | Not read | Gap, minor: 4096x7680 (Cluster sub 2048x7680) is not stated to the planner. |
@@ -212,38 +212,60 @@ behaviour:
 
 ## 7. Open questions
 
-All inferred.
+Answers for Q1–Q4, Q6, Q8 and Q9 came from the NanoPC-T6 board session of
+2026-11-28, recorded in [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md);
+each answer line links to that document. Q5 and Q7 stay open. Where a line
+below is tagged `observed`, the dated measurement is in the session document;
+the rest keeps its original inferred status.
 
-- **Q1.** Does `MAX_FORMATS = 32` hide usable AFBC pairs on Cluster planes?
-  The recorded list was cut at 32 by the probe, not by the kernel. Needs the
-  full `IN_FORMATS` list; the answer decides whether `MAX_FORMATS` must grow
-  (a core change, out of scope here). Also check the ordering claim: the
-  backend sorts linear first, yet the probe listing started with AFBC pairs;
-  whether the probe prints in a different order or the Cluster planes list
-  no linear pairs was not resolved.
-- **Q2.** Which kernel does the target run: vendor 6.1 or a 6.18-based
-  kernel (the recorded board)? Rotation, `support-multi-area`, the Primary
-  window choice and the Cluster modifier list differ or are unverified for
-  mainline. Table values must be tagged per kernel.
-- **Q3.** How does a profile identify a window class? KMS exposes no window
-  name; the debugfs name was used in the recording. Candidates: the plane
-  `type` plus the `IN_FORMATS` content (AFBC present means Cluster), or the
-  `SCALE_RATE` property on the vendor kernel.
-- **Q4.** Is eight simultaneous windows achievable? Not determined in the
-  source document; needs a `TEST_ONLY` sweep on a board.
-- **Q5.** Should the planner prefer Esmart for plain RGB to leave Cluster
-  free for AFBC and rotation? The core has no cost model; adding one is
-  outside this note.
-- **Q6.** Is zpos a global 0..=7 across CRTCs or per CRTC, and what does the
-  kernel do when two planes on one CRTC share a value?
-- **Q7.** Does a second output work through two leases on this board? The
-  recorded board has no second connected output.
-- **Q8.** Cluster `win1` and Esmart multi-area: the source document left open
-  whether they become DRM planes; with 12 planes the 16-plane limit still
-  holds, but the pairing rule then matters.
-- **Q9.** Overlay-plane flip behaviour and latch reporting: nothing was
-  committed in the recording, so the `Latched` event semantics (page-flip
-  event per CRTC) are not evidenced for this driver.
+- **Q1. Answered (observed 2026-11-28).** Yes: each Cluster plane carries
+  126 (format, modifier) pairs over 9 Rockchip modifiers, so the cut at
+  `MAX_FORMATS = 32` hides 94 of them. Cluster planes list no linear pair at
+  all, and the probe prints in the kernel's blob order — the ordering claim
+  resolves, and linear buffers are still accepted on a Cluster plane.
+  Whether `MAX_FORMATS` must grow is a core decision; the session records it
+  as a finding and does not change it
+  ([session Q1](rk3588-vop2-session-2026-11-28.md)).
+- **Q2. Answered for the measured board (observed 2026-11-28); vendor 6.1
+  half open.** The board runs `6.18.55-current-rockchip64`, the pinned tags
+  `v6.18` and `v6.18.55` are still the canonical refs today, and every
+  source prediction the session could test held on the board. The vendor
+  tree's own patch list was not diffed, so the vendor-6.1 half stays open
+  ([session Q2](rk3588-vop2-session-2026-11-28.md)).
+- **Q3. Answered (observed 2026-11-28).** Identify the class from the
+  `IN_FORMATS` family: a 9-modifier, 14-format set means Cluster; a
+  21-format, linear-only set means Esmart. This kernel offers no
+  `SCALE_RATE`/`SCALING` property, and `rotation` is identical on all
+  planes, so neither separates the classes
+  ([session Q3](rk3588-vop2-session-2026-11-28.md)).
+- **Q4. Answered (observed 2026-11-28).** No: a `TEST_ONLY` sweep accepted at
+  most 4 planes on one CRTC (5, 6 and 7 rejected `EINVAL`), matching the
+  source limit `nlayers = 4` per CRTC
+  ([session Q4](rk3588-vop2-session-2026-11-28.md)).
+- **Q5.** Open, unchanged. The core has no cost model; adding one is outside
+  this note (inferred).
+- **Q6. Answered for one CRTC (observed 2026-11-28).** The `zpos` property is
+  global-looking (`0..=7` on every plane) but ordering is normalized per
+  CRTC; equal values are accepted, the tie breaks by lower object id, and
+  normalized ranks are contiguous `0..n-1`, not the written values. The
+  two-CRTC predictions stay untested: the board's second CRTC has no
+  connector ([session Q6](rk3588-vop2-session-2026-11-28.md),
+  `docs/rk3588-vop2-zpos-source.md` §6).
+- **Q7.** Open, unchanged. The measured board still has only one connected
+  output, so two leases on one board were not tested.
+- **Q8. Answered (observed 2026-11-28).** On this kernel the extra windows do
+  not become DRM planes: exactly 8 planes exist, all `win0` — no `win1`, no
+  multi-area plane — so the pairing rule does not arise
+  ([session Q8](rk3588-vop2-session-2026-11-28.md)).
+- **Q9. Answered (observed 2026-11-28).** A new example,
+  [`flip_probe`](../crates/composition-drm/examples/flip_probe.rs), measured
+  overlay flips on the board: 120 non-blocking commits on one overlay, all
+  accepted, each with exactly one page-flip event; a second commit against a
+  flip that has not latched returns `EBUSY` (three runs). The `twoplane`
+  harness cannot measure this driver: its gate requires a primary plane that
+  *lists* linear RGB pairs, and Cluster primaries list none even though the
+  kernel accepts linear buffers
+  ([session Q9](rk3588-vop2-session-2026-11-28.md)).
 
 ## 8. Proposed items
 
@@ -258,3 +280,9 @@ Inferred, not scheduled by this note:
    modifier family.
 5. Docs: move the answers into `docs/platform-capabilities.md` with their
    dates when they exist.
+
+Progress 2026-11-28: the board session in
+[`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md)
+carried out items 1 and 2 and recorded the item-4 finding (94 hidden pairs)
+without changing `MAX_FORMATS`; item 3 stays code work, item 5 was not done
+in that session.

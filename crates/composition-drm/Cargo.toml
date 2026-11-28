@@ -33,5 +33,9 @@ test = true
 name = "mode_test"
 test = true
 
+[[example]]
+name = "flip_probe"
+test = true
+
 [lints]
 workspace = true

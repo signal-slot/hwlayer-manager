@@ -1,13 +1,16 @@
 # Design: an engine backend for the Raspberry Pi HVS (BCM2711, BCM2712)
 
-Status: design only, written 2026-11-28. **No hardware result is claimed and no code is changed.**
-Nothing in this file was run.
+Status: design document, written 2026-11-28; **no code is changed.** The design sections
+(§1–§6) were written from the recorded source and topology documents and were not run here.
+§7 carries board answers added 2026-11-28 from
+[`vc4-hvs-session-2026-11-28.md`](vc4-hvs-session-2026-11-28.md); the runs those answers
+quote happened in that document, not in this one.
 
 ## Tags
 
 The tags of the source documents are kept on every row that is taken from them:
 
-- **observed** (with its date): measured on a board, as recorded in
+- **observed** (with its date): measured on a board on 2026-11-28, as recorded in
   [`observed/bcm2711-cm4-topology.md`](observed/bcm2711-cm4-topology.md),
   [`observed/bcm2711-cm4.md`](observed/bcm2711-cm4.md),
   [`observed/bcm2712-topology.md`](observed/bcm2712-topology.md) and
@@ -16,10 +19,13 @@ The tags of the source documents are kept on every row that is taken from them:
   [`observed/vc4-hvs-source.md`](observed/vc4-hvs-source.md) (tree `raspberrypi/linux`,
   branch `rpi-6.18.y`, commit `16ae2649dcfadf9d81445b1177a3191efa3cb82e`, read 2026-11-28). This
   file did not re-read that source.
-- **inferred**: a conclusion of this design. **Everything that is new here is inferred**, whether
-  or not it is written with that word. A row that has no tag is a statement about the engine's
-  own contract, read from the crates named next to it on 2026-11-28 (also inferred as far as it
-  concerns the HVS).
+- **inferred**: a conclusion of this design. Every design conclusion new to §1–§6 is inferred,
+  whether or not it is written with that word. A row that has no tag is a statement about the
+  engine's own contract, read from the crates named next to it on 2026-11-28 (also inferred as
+  far as it concerns the HVS).
+- The `observed` rows anywhere in this document rest on the records above. The board session of
+  2026-11-28 added answers to §7 from a new run, linked to its session document there; this
+  file does not restate that run's raw output.
 
 Where the plan text points at `docs/platform-capabilities.md` for the BCM2711 and BCM2712
 topology, that file in this snapshot has no such section; the topology is in the
@@ -123,7 +129,8 @@ limits are far below the HVS's 56 to 60 planes and 45 formats.
 
 ## 5. Differences between the vc4 HVS4/5 and HVS6 variants, as recorded
 
-HVS4 (BCM2835 to 2837) is out of scope in [`observed/vc4-hvs-source.md`](observed/vc4-hvs-source.md).
+HVS4 (BCM2835 to 2837) is out of scope in the source read 2026-11-28,
+[`observed/vc4-hvs-source.md`](observed/vc4-hvs-source.md).
 
 | Item | BCM2711, HVS5 | BCM2712, HVS6 | Tag |
 | --- | --- | --- | --- |
@@ -148,7 +155,7 @@ HVS4 (BCM2835 to 2837) is out of scope in [`observed/vc4-hvs-source.md`](observe
 All of these are host tests. None needs a board and none says anything about hardware.
 — inferred
 
-1. **Fixtures.** Build `Capabilities` from the recorded probe outputs: the raw probe block in
+1. **Fixtures.** Build `Capabilities` from the recorded probe outputs (2026-11-28): the raw probe block in
    [`observed/bcm2712-topology.md`](observed/bcm2712-topology.md) and the DSI-1 probe block in
    [`observed/bcm2711-cm4-topology.md`](observed/bcm2711-cm4-topology.md), and from the fuller
    plane lists those files hold. The fixtures are data copied from the files, with the date.
@@ -168,42 +175,61 @@ All of these are host tests. None needs a board and none says anything about har
 5. **Cross-check against libliftoff.** The method in
    [`libliftoff-crosscheck.md`](libliftoff-crosscheck.md) applies to these fixtures unchanged.
 6. **Not testable on the host:** underrun and bandwidth. The recorded
-   `TEST_ONLY` results in [`observed/bcm2711-cm4.md`](observed/bcm2711-cm4.md) and
+   `TEST_ONLY` results (2026-11-28) in [`observed/bcm2711-cm4.md`](observed/bcm2711-cm4.md) and
    [`observed/bcm2712.md`](observed/bcm2712.md) are the only evidence of what the kernel
    accepts, and they cover two-plane use only. A board run per generation is needed before any
    table value is called measured.
 
 ## 7. Open questions
 
-1. **Scaling values.** The driver imposes no minimum or maximum through the DRM helper (min 1,
-   max `INT_MAX`), and its own limit is a TPZ ratio field of 21 bits whose fixed-point meaning was
-   not worked out. What `ScaleLimits` to put in the table is open; a probe on a board
-   (`TEST_ONLY` with growing ratios) would settle it. Until then the table should claim the
-   smallest range the recorded `TEST_ONLY` runs accepted. (source; inferred)
-2. **Bandwidth.** The engine cannot see a limit that neither `TEST_ONLY` nor the driver
-   enforces. Options: a backend-side estimate in `check` using the source's own load formula
-   (`vc4_plane_calc_load`) against a threshold measured on a board; or document the limit as
-   unsupported. Needs a measurement; no threshold is known. (inferred)
-3. **Generation detection.** Both report `vc4`. Is an explicit profile variant enough, or should
-   the backend infer HVS5 vs HVS6 from the modifier set (T-tiled present or not)? The explicit
-   variant matches how profiles are chosen today. (inferred)
-4. **Plane budget.** `MAX_PLANES` = 16 and `MAX_FORMATS` = 32 drop planes and formats the
-   HVS has (observed 2026-11-28: 40 of 56 planes, 13 of 45 linear formats). Is that acceptable
-   as a conscious scope limit, or should a later change raise the limits? That is a core change
-   and outside this design.
-5. **BCM2712 CRTC and plane arithmetic.** The 4 CRTCs and 56 planes need the device tree and the
-   kernel source side by side to confirm which CRTC is which (§5). Also unconfirmed: whether the
-   extra per-CRTC planes are cursors. (observed 2026-11-28; inferred)
-6. **`replace_pending`.** Whether a not-yet-latched HVS commit may be replaced, and what the
-   backend then reports, is not known from the recorded evidence. The commit-ordering row in the
-   source suggests `false`; a board test would settle it. (source; inferred)
-7. **Which kernel.** The source rows are for `rpi-6.18.y` at one commit; the boards' kernels
-   (`6.18.50+rpt-rpi-2712` observed on the Pi 5, 2026-11-28) are not the same build. Plane and
-   modifier details may differ. (source; observed 2026-11-28)
-8. **Firmware KMS** (`vc4-fkms-v3d`) is out of scope; the design assumes full KMS.
-9. **Shared resources across outputs.** `ResourceGroup` describes one output's frame. The HVS
-   pool is shared between CRTCs; a second active output can exhaust it unseen by the planner.
-   `check` must have the last word, as the contract says. (inferred)
-10. **HDMI limits** on BCM2712 (600 MHz) are unverified in the source record.
+Board answers below come from the reTerminal (BCM2711, HVS5) session of 2026-11-28, recorded in
+[`vc4-hvs-session-2026-11-28.md`](vc4-hvs-session-2026-11-28.md); that session could not reach
+the BCM2712 board, so anything asking about BCM2712 or HVS6 stays open. Item numbers are
+unchanged.
 
-No board was used for this document.
+1. **Scaling values.** Partly answered for HVS5 (observed 2026-11-28): `TEST_ONLY` refused
+   nothing it was asked between 0.5 and 64 on either axis, on every plane probed (primary and
+   overlays), so a table may claim at least 0.5..64 on HVS5. The helper's own limits (min 1,
+   max `INT_MAX`) and the 21-bit TPZ ratio field were never reached, so the true bound stays
+   open (inferred); HVS6 was not measured. See Q1 in the session document.
+   (source; observed 2026-11-28; remaining bound inferred)
+2. **Bandwidth.** Open, unchanged (inferred): no threshold is known and none was measured.
+   Side observation (observed 2026-11-28): the kernel's debugfs dump shows the HVS load it
+   computes per channel, so `vc4_plane_calc_load`'s numbers are readable on a running board;
+   the missing half is still the threshold.
+3. **Generation detection.** Open, unchanged (inferred).
+4. **Plane budget.** Open, unchanged. `MAX_PLANES` = 16 and `MAX_FORMATS` = 32 drop planes and
+   formats the HVS has (observed 2026-11-28: 40 of 56 planes, 13 of 45 linear formats). Raising
+   them is a core change and outside this design; the RK3588 side recorded the same kind of
+   finding on 2026-11-28 in [`rk3588-vop2-session-2026-11-28.md`](rk3588-vop2-session-2026-11-28.md).
+5. **BCM2712 CRTC and plane arithmetic.** Open for BCM2712, unchanged: which CRTC is which
+   still needs the device tree and the kernel source side by side (§5). Answered for HVS5
+   (observed 2026-11-28): 6 CRTCs, 6 primaries (zpos fixed 0), 48 overlays (16 usable on five
+   CRTCs, 32 on one CRTC only, zpos `1..=17`) and exactly 6 cursor planes — one per CRTC,
+   capped 64x64 — so on HVS5 the extra per-CRTC planes are cursors, one each. The BCM2712
+   answer remains inferred from that. See Q5 in the session document.
+   (observed 2026-11-28; BCM2712 inferred)
+6. **`replace_pending`.** Answered (observed 2026-11-28): `false`, confirmed on a board — on
+   BCM2711 kernel `6.12.47+rpt-rpi-v8`, three identical runs each showed a second non-blocking
+   commit against a flip that has not latched return `EBUSY`, and every accepted commit
+   produced exactly one page-flip event. This matches `docs/drm-pending-commit-source.md`
+   (source) and the 2026-11-27 BCM2711 and BCM2712 records in `docs/rk3588-vc4-profiles.md`.
+   See Q6 in the session document.
+7. **Which kernel.** Partly answered (observed 2026-11-28, host `git ls-remote`): both pins are
+   still the canonical heads today — `rpi-6.18.y` at `16ae2649dcfadf9d81445b1177a3191efa3cb82e`
+   and `rpi-6.12.y` at `8f5f2e15840330091c7116b2ef9454108d4bc423` — and the measured board runs
+   the 6.12 line (`6.12.47+rpt-rpi-v8`), on which every pinned prediction this session could
+   test held (scaling, pending-commit behaviour). A content diff between the two branches was
+   not run here; `docs/vc4-transform-source.md` already compares `vc4_plane.c` between these
+   pins (source). The Pi 5 build (`6.18.50+rpt-rpi-2712`, observed 2026-11-28 in
+   [`observed/bcm2712.md`](observed/bcm2712.md)) is a 6.18-line build; plane and modifier
+   details may still differ between the two lines (inferred).
+8. **Firmware KMS** (`vc4-fkms-v3d`) is out of scope; the design assumes full KMS. Unchanged.
+9. **Shared resources across outputs.** Open, unchanged. `ResourceGroup` describes one output's
+   frame. The HVS pool is shared between CRTCs; a second active output can exhaust it unseen by
+   the planner. `check` must have the last word, as the contract says. (inferred)
+10. **HDMI limits** on BCM2712 (600 MHz) are unverified in the source record, and the
+    2026-11-28 session could not reach the BCM2712 board: open.
+
+The design sections (§1–§6) used no board. The §7 answers tagged `observed 2026-11-28` come
+from the run recorded in [`vc4-hvs-session-2026-11-28.md`](vc4-hvs-session-2026-11-28.md).
