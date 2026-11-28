@@ -16,15 +16,15 @@ for n in probe props kms_sweep pending_probe; do
 done
 printf '# comment\n\nprops /dev/dri/card0\n' > "$t/steps"
 
-secret=board-secret-xyz.invalid
-out=$(BOARD_SSH="root@$secret" "$s" --dry-run --bin-dir "$t/bin" --out "$t/out" \
+marker=fake-board-marker-xyz
+out=$(BOARD_SSH="login-$marker" "$s" --dry-run --bin-dir "$t/bin" --out "$t/out" \
 	--steps "$t/steps" --step "kms_sweep combos /dev/dri/card0 --sets 32" \
 	--step "pending_probe /dev/dri/card0")
 case $out in *"display-guard.sh stop"*) ;; *) fail "no display-guard stop" ;; esac
 case $out in *"display-guard.sh restore"*) ;; *) fail "no display-guard restore" ;; esac
 case $out in *"rm -rf"*) ;; *) fail "no cleanup" ;; esac
 case $out in *"./kms_sweep combos /dev/dri/card0 --sets 32"*) ;; *) fail "args lost" ;; esac
-case $out in *"$secret"*) fail "BOARD_SSH leaked into plan" ;; esac
+case $out in *"$marker"*) fail "BOARD_SSH leaked into plan" ;; esac
 [ "$(printf '%s\n' "$out" | grep -c '^step ')" = 3 ] || fail "expected 3 steps"
 [ ! -e "$t/out" ] || fail "dry-run wrote output"
 for w in reboot modprobe insmod udevadm; do
@@ -35,5 +35,5 @@ if "$s" --dry-run --bin-dir "$t/bin" --out "$t/out" --step "nosuch x" 2>/dev/nul
 if "$s" --dry-run --bin-dir "$t/bin" --out "$t/out" --step "scale_probe" 2>/dev/null; then fail "missing binary accepted"; fi
 if env -u BOARD_SSH "$s" --bin-dir "$t/bin" --out "$t/out" --step props 2>/dev/null; then fail "ran without BOARD_SSH"; fi
 
-if grep -rIl "$secret" "$t" 2>/dev/null; then fail "secret written to a file"; fi
+if grep -rIl "$marker" "$t" 2>/dev/null; then fail "secret written to a file"; fi
 echo "rk3588-session-run.test.sh: PASS"
