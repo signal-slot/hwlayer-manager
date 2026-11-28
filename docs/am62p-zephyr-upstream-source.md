@@ -16,9 +16,10 @@ Date: 2026-11-28. No device was used and nothing was built. The showcase
 - The board test: `docs/board-test-am62p-r5f.md`, `tests/board/am62p_r5f/prj.conf` and
   `src/hw_am62p.c` on branch `work/am62p-board-test` (tip `361e31f`).
 
-How the files were read: through a web fetch of raw files and GitHub's contents API at
-the tag, not from a local checkout. Where a directory listing was truncated or
-summarised, the statement is tagged `inferred` and says so.
+How the files were read: first through a web fetch of raw files and GitHub's contents
+API at the tag, then the trace-entry, resource-table linking and display-driver
+statements were checked in a local shallow checkout of `v4.5.0` (kept outside this
+repository). Statements resting on a truncated or summarised listing say so.
 
 Tags: **source** = read in a file at commit `41d10b59` (path given, relative to the
 Zephyr tree); **inferred** = concluded from sources, not read.
@@ -86,11 +87,15 @@ carve-out is a device-tree fact of the Toradex BSP, not of upstream. **inferred*
 - The doc's console is a UART (UART1 on header pins 8 and 10) and it states "Future
   versions will also support a console over RPmsg". **source** (same file). There is no
   trace-buffer console documented upstream for these boards. **inferred** (absent from the doc)
-- Whether the upstream resource table contains a **trace entry** (the entry that Linux
-  exposes as the remoteproc trace buffer, which is the board test's console) was
-  **not read**. The code behind `OPENAMP_RSC_TABLE` was not opened. The board test
-  depends on it (`prj.conf`: "the SoC's resource table offers it to Linux as the remote
-  processor's trace buffer"). **inferred**, open question.
+- The resource table **has a trace entry** when `CONFIG_RAM_CONSOLE=y`: in
+  `subsys/ipc/open-amp/resource_table.h`, `struct fw_resource_table` gets a
+  `struct fw_rsc_trace cm_trace` ("rpmsg trace entry") pointing at `ram_console_buf`
+  with size `CONFIG_RAM_CONSOLE_BUFFER_SIZE`; `resource_table.c` declares
+  `extern char ram_console_buf[]`. This is the console route the board test's `prj.conf`
+  uses. **source** (checkout of `v4.5.0`)
+- The resource table is linked in section `.resource_table` for `SOC_SERIES_J722S_R5`
+  too: `soc/ti/k3/common/CMakeLists.txt` (the branch for `AM64X_R5 OR J721E_R5 OR
+  J722S_R5`). **source**
 
 ## (b) Drivers for the MCU R5F
 
@@ -140,10 +145,8 @@ but they need a MIPI-DSI host driver, and none exists for the AM62P. **source** 
    the buffers the DSS reads. Upstream's J722S values are BeagleY-AI's. The doc already
    says "check that the R5F's addresses of `.bss` are the addresses the DSS reads".
    **inferred**
-5. **A trace-buffer console** (`CONFIG_RAM_CONSOLE` plus a resource-table trace entry).
-   The board test's `prj.conf` uses `CONFIG_RAM_CONSOLE=y`; the Zephyr option is generic, but the
-   resource-table side was not read upstream. **inferred**, to check in
-   `CONFIG_OPENAMP_RSC_TABLE`'s code before relying on it.
+5. **A trace-buffer console is not a gap**: `CONFIG_RAM_CONSOLE` produces the trace
+   entry in the resource table (see (a)). **source**
 6. **Known to be present upstream and therefore not a gap**: the R5 architecture
    support (`CPU_CORTEX_R5`), VIM, ns16550, the mailbox, the J722S timer, OpenAMP
    resource table Kconfig, and `lib/open-amp`/`libmetal` as west modules (the
@@ -177,7 +180,6 @@ repository use the backend"; M3-05 "the link in a real firmware build".)
   3. A DSI host and bridge/panel setup for the Verdin's display output, or a
      decision to use whatever output the Linux side leaves configured (what is stopped or
      unbound is in `docs/remoteproc-bringup.md`).
-  4. The trace-buffer console, if the resource table lacks it.
 - **Smaller route for M3-05**: the link question (the backend plus engine in a
   firmware image) does not need the DSS driver. It needs a firmware that links the two.
   An upstream-only link check could use `beagley_ai/j722s/mcu_r5f0_0`, which is
@@ -192,8 +194,8 @@ repository use the backend"; M3-05 "the link in a real firmware build".)
 ## Open questions (not answered by what was read)
 
 1. The AM62P MCU R5F's register map against J722S's, from the TRM.
-2. Whether the OpenAMP resource-table code at `v4.5.0` has a trace entry and how
-   `CONFIG_RAM_CONSOLE` ties to it.
+2. (Answered, see (a): trace entry exists with `CONFIG_RAM_CONSOLE`.) Whether the entry's
+   address is one Linux can map on the AM62P is a Torizon/kernel question.
 3. The IPC-service RPMsg backend symbols and sample platform lists.
 4. `main` after `41d10b59`: nothing was read beyond its head commit.
 5. The complete list of Toradex repositories.
