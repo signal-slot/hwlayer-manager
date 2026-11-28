@@ -11,7 +11,10 @@
 #   PICTURE_EXPECT_DIR  directory of ROW.json EXPECT files (optional)
 #   PICTURE_ON_PHASES   other phases (space or comma separated) that get an
 #                       immediate picture (optional)
-#   PICTURE_WAIT        seconds hold-end waits for a running capture
+#   PICTURE_SHOTS       capture runs per picture, back to back; only the last
+#                       image is kept and judged (default 2; a KVM can return
+#                       a stale first frame). A positive integer.
+#   PICTURE_WAIT       seconds hold-end waits for a running capture
 #                       (default 120)
 #
 # Exit status: 0 hold-start started, or the picture was taken and judged PASS
@@ -37,6 +40,11 @@ fi
 delay=${PICTURE_DELAY:-20}
 wait_max=${PICTURE_WAIT:-120}
 expdir=${PICTURE_EXPECT_DIR:-}
+shots=${PICTURE_SHOTS:-2}
+case $shots in ''|*[!0-9]*|0*)
+	echo "picture-hook: PICTURE_SHOTS must be a positive integer" >&2
+	exit 2 ;;
+esac
 mkdir -p "$dir" || exit 2
 
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
@@ -47,11 +55,17 @@ state=$dir/.$row
 
 # shoot ROW PHASE FILE: capture and judge, log one line. Status as exit.
 shoot() {
-	rm -f "$3"
 	set -f
-	# shellcheck disable=SC2086
-	$PICTURE_CAPTURE "$3" >/dev/null 2>&1
-	crc=$?
+	shot=0
+	while [ "$shot" -lt "$shots" ]; do
+		# Each shot replaces the last one, so only the final image stays.
+		rm -f "$3"
+		# shellcheck disable=SC2086
+		$PICTURE_CAPTURE "$3" >/dev/null 2>&1
+		crc=$?
+		shot=$((shot + 1))
+		[ "$crc" -eq 0 ] || break
+	done
 	set +f
 	if [ "$crc" -ne 0 ] || [ ! -s "$3" ]; then
 		rm -f "$3"
