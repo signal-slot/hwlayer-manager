@@ -12,21 +12,27 @@ and it claims no hardware result.
 | Name | Meaning |
 | --- | --- |
 | pin 6.18 | `raspberrypi/linux`, branch `rpi-6.18.y`, commit `16ae2649dcfadf9d81445b1177a3191efa3cb82e`, `drivers/gpu/drm/vc4/vc4_plane.c` |
-| head 6.12 | `raspberrypi/linux`, branch `rpi-6.12.y`, branch head as fetched on 2026-11-28 (UTC); the head commit id was not obtainable here, so it is not pinned. Only `vc4_plane.c` was read |
+| head 6.12 | `raspberrypi/linux`, branch `rpi-6.12.y`, commit `8f5f2e15840330091c7116b2ef9454108d4bc423` (shallow sparse clone of `drivers/gpu/drm/vc4`, 2026-11-28 UTC), `drivers/gpu/drm/vc4/vc4_plane.c`; lines below for head 6.12 were counted on that checkout |
 | read from source | the quoted code was read in this task, in that file at that branch/commit |
 | inferred | concluded from the code or the DRM core, not read as written, not run |
 | observed | seen on a board; the date is that of the observed file named |
 
 Limits of this read (stated, not hidden):
 
-- The git clones under the dependency cache could not be made on this node (git and network
-  from the shell were not permitted), so `vc4_plane.c` of both trees was fetched through a web
-  reader. That reader returns text without line numbers. **Line numbers below for pin 6.18 are
-  carried from [vc4-hvs-props-source.md](vc4-hvs-props-source.md) §5 and §5.3, whose readers
-  counted them against the same commit; the code quoted here was matched by content in this
-  task, the line numbers were not re-counted.** For head 6.12 only function names are given.
-  The `read from source` tags are therefore by function and file, with lines for pin 6.18 only
-  where marked.
+- The head 6.12 tree was cloned and read with line numbers. The 6.18 pin could not be cloned on
+  this node, so its `vc4_plane.c` was read through a web reader that returns no line numbers.
+  **Line numbers for pin 6.18 are carried from
+  [vc4-hvs-props-source.md](vc4-hvs-props-source.md) §5 and §5.3, whose readers counted them
+  against the same commit; the code quoted here was matched by content in this task, the line
+  numbers were not re-counted.**
+- Head 6.12 lines (read from source, `vc4_plane.c`): mask `2782-2786`; `drm_rotation_simplify`
+  `1405-1408` (gen 5 `vc4_plane_mode_set`, starts `1352`), `1979-1982` (`vc6_plane_mode_set`,
+  starts `1899`), `2438-2441` (`vc4_plane_async_set_fb`, starts `2425`); `REFLECT_Y` base move
+  `1412`, `1986`, `2444`; HVS4 flip bits `1630-1631`; HVS5 `SCALER5_POS0_VFLIP`/`HFLIP`
+  `1684-1689`; HVS6 `SCALER6_POS0_HFLIP` `2158`, `SCALER6_PTR0_VFLIP` `2199`; T-tiled
+  `TILE_LINE_DIR` on `REFLECT_Y` `1470`; `vc4_format_mod_supported` `2655` (no generation test);
+  async rotation copy `2509`. Head 6.12 does contain `vc6_plane_mode_set`, so the HVS6 column
+  has a 6.12 counterpart for the flip code; only the gen-6 modifier gate is absent there.
 - The DRM core (`drm_rotation_simplify`, property value validation,
   `drm_atomic_helper_check_plane_state`) was not read. Statements about it are `inferred`.
 - Nothing here was run, so nothing here says what the hardware draws.
@@ -93,10 +99,9 @@ flipped T-tiled or flip plus decimation would be a hardware behaviour the source
 | Source height and width | from the fractional span (`vc4_src_span`) | from `src_h >> 16`, `src_w >> 16` | read from source |
 | `vc4_format_mod_supported` on gen 6 | refuses `T_TILED` and SAND64 | no generation test | read from source |
 
-The head 6.12 tree has no gen-6 path that this document depends on, and the CM4 runs a 6.12
-kernel (`6.12.47+rpt-rpi-v8`, per the observed files below), so the HVS5 column is the one that
-head 6.12 speaks for; the HVS6 column rests on pin 6.18 and the Pi 5 runs 6.18
-(`6.18.50+rpt-rpi-2712`). Whether those running kernels carry the same `vc4_plane.c` as the two
+The CM4 runs a 6.12 kernel (`6.12.47+rpt-rpi-v8`, per the observed files below), so head 6.12
+is the nearer source for the HVS5 column; the Pi 5 runs 6.18 (`6.18.50+rpt-rpi-2712`), so pin
+6.18 is nearer for the HVS6 column. Whether those running kernels carry the same `vc4_plane.c` as the two
 trees read here is the question of HVS Q7 and is not answered by this file.
 
 ## 5. Table per generation
