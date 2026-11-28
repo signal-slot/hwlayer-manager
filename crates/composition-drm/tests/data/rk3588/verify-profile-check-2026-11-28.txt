@@ -1,0 +1,154 @@
+# observed 2026-11-28, NanoPC-T6, kernel 6.18.55-current-rockchip64, master (no display owner active)
+# commands (separate runs, concatenated):
+#   profile_check /dev/dri/card0 --profile generic
+#   profile_check /dev/dri/card0 --profile rk3588
+#   profile_check /dev/dri/card0 --profile rk3588 --show 20   (failed, see end)
+# built from repository commit: 2d689bac9da2f51b0247e4aff5feef42bb511efb
+# edited: nothing removed
+
+## --profile generic
+DATE 2026-11-28T01:17:50Z
+KERNEL 6.18.55-current-rockchip64
+DEVICE /dev/dri/card0
+DRIVER rockchip
+PROFILE Generic
+output 0: crtc 81 1920x1080 @ 60.000 Hz
+plane 33 Primary: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 45 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 51 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 57 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 63 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 69 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 75 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 39 Primary: outputs 0b0, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling not claimed, max source none, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+MODE 1920x1080 output 0 (crtc 81)
+CHECK layers-1 planner=plan:57 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:57,63,69 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:57,63,69,75 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK layers-6 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK layers-7 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-0.5 planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-0.75 planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-1.5 planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-2 planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-4 planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-8 planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=ok agree=planner-stricter via=forced candidates=1 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK nv12 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000001 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000041 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000011 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:OUTPUT+FORMAT+TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:OUTPUT+FORMAT+TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:OUTPUT+FORMAT+SCALING test_only=not reached agree=no via=none candidates=0 note=dumb buffer XR24:0x0 refused: EINVAL
+CHECK below-primary planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=21 agree=12 stricter=6 looser=0
+VERDICT profile_check: PASS profile Generic driver rockchip: 21 frames, 12 agree, 6 stricter, 0 looser
+
+## --profile rk3588
+DATE 2026-11-28T01:17:51Z
+KERNEL 6.18.55-current-rockchip64
+DEVICE /dev/dri/card0
+DRIVER rockchip
+PROFILE Rk3588Vop2
+output 0: crtc 81 1920x1080 @ 60.000 Hz
+plane 33 Primary: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 45 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 51 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 57 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 63 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 69 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 75 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 39 Primary: outputs 0b0, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+resource group: consumers 0x1, planes 0b11111111, capacity 4
+MODE 1920x1080 output 0 (crtc 81)
+CHECK layers-1 planner=plan:57 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:57,63,69 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:57,63,69,75 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK layers-6 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK layers-7 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-0.5 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.75 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-1.5 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-2 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-4 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-8 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK nv12 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000001 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000041 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000011 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:OUTPUT+FORMAT+TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:OUTPUT+FORMAT+TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:OUTPUT+FORMAT+SOURCE_SIZE test_only=not reached agree=no via=none candidates=0 note=dumb buffer XR24:0x0 refused: EINVAL
+CHECK below-primary planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=21 agree=18 stricter=0 looser=0
+VERDICT profile_check: PASS profile Rk3588Vop2 driver rockchip: 21 frames, 18 agree, 0 stricter, 0 looser
+
+## --profile rk3588 --show 20
+DATE 2026-11-28T01:17:58Z
+KERNEL 6.18.55-current-rockchip64
+DEVICE /dev/dri/card0
+DRIVER rockchip
+PROFILE Rk3588Vop2
+output 0: crtc 81 1920x1080 @ 60.000 Hz
+plane 33 Primary: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 45 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 51 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+plane 57 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 63 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 69 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 75 Overlay: outputs 0b1, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (21): XR24 AR24 XB24 AB24 RG24 BG24 RG16 BG16 NV12 NV21 NV16 NV61 NV20 NV24 NV42 NV30 NV15 YVYU VYUY YUYV UYVY
+plane 39 Primary: outputs 0b0, zpos 0..=7, plane alpha true, blend [none, premultiplied, coverage], scaling up 8.00 down 8.00, max source 4096x4320, transforms 0x0
+  formats (32): XR30:0x800000000000001 XB30:0x800000000000001 XR24:0x800000000000001 AR24:0x800000000000001 XB24:0x800000000000001 AB24:0x800000000000001 RG24:0x800000000000001 BG24:0x800000000000001 RG16:0x800000000000001 BG16:0x800000000000001 YU08:0x800000000000001 YU10:0x800000000000001 YUYV:0x800000000000001 Y210:0x800000000000001 XR30:0x800000000000041 XB30:0x800000000000041 XR24:0x800000000000041 AR24:0x800000000000041 XB24:0x800000000000041 AB24:0x800000000000041 RG24:0x800000000000041 BG24:0x800000000000041 RG16:0x800000000000041 BG16:0x800000000000041 YU08:0x800000000000041 YU10:0x800000000000041 YUYV:0x800000000000041 Y210:0x800000000000041 XR30:0x800000000000011 XB30:0x800000000000011 XR24:0x800000000000011 AR24:0x800000000000011
+resource group: consumers 0x1, planes 0b11111111, capacity 4
+MODE 1920x1080 output 0 (crtc 81)
+CHECK layers-1 planner=plan:57 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-2 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-3 planner=plan:57,63,69 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-4 planner=plan:57,63,69,75 test_only=ok agree=yes via=plan candidates=1
+CHECK layers-5 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK layers-6 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK layers-7 planner=refuse:layer4:OUTPUT+FORMAT+IN_USE test_only=EINVAL agree=yes via=forced candidates=32 note=forced caps claim the formats, scaling by 16, no source limit and no resource groups
+CHECK scale-0.5 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-0.75 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-1.5 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-2 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-4 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK scale-8 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK nv12 planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000001 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000041 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK modifier-XR30-0x0800000000000011 planner=plan:57,33 test_only=ok agree=yes via=plan candidates=1
+CHECK rotate-90 planner=refuse:layer1:OUTPUT+FORMAT+TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK reflect-y planner=refuse:layer1:OUTPUT+FORMAT+TRANSFORM test_only=not reached agree=no via=none candidates=0 note=composition-drm does not program the rotation property
+CHECK wide-source planner=refuse:layer1:OUTPUT+FORMAT+SOURCE_SIZE test_only=not reached agree=no via=none candidates=0 note=dumb buffer XR24:0x0 refused: EINVAL
+CHECK below-primary planner=plan:57,63 test_only=ok agree=yes via=plan candidates=1
+AGREEMENT total=21 agree=18 stricter=0 looser=0
+ERROR show: no primary plane with a linear 32-bit RGB format
+VERDICT profile_check: FAIL show: no primary plane with a linear 32-bit RGB format (1 error(s)), profile Rk3588Vop2 driver rockchip: 21 frames, 18 agree, 0 stricter, 0 looser

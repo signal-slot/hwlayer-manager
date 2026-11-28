@@ -169,3 +169,26 @@ are TEST_ONLY, nothing was committed.
 `--max-factor 32` data is unchanged. No difference between Cluster and Esmart
 scaling showed in these runs (VOP2 source describes different scalers per
 class; that is not seen here for the ratios tested).
+
+## Profile check 2026-11-28 (t6-verify)
+
+Observed 2026-11-28, kernel 6.18.55-current-rockchip64, repository commit
+2d689bac9da2f51b0247e4aff5feef42bb511efb, DRM master (display manager, gdm,
+lightdm and sddm inactive before and after). Portability evidence only; it
+counts toward none of M1, M2 or M3. Files: `verify-probe-2026-11-28.txt`,
+`verify-profile-check-2026-11-28.txt`, `verify-twoplane-2026-11-28.txt`,
+`verify-camera-2026-11-28.txt`.
+
+* `profile_check --profile generic`: AGREEMENT total=21 agree=12 stricter=6
+  looser=0. The 6 stricter cases are scale-0.5 .. scale-8: Generic refuses
+  because the plane claims no scaling, TEST_ONLY accepts them (forced caps).
+* `profile_check --profile rk3588`: AGREEMENT total=21 agree=18 stricter=0
+  looser=0; no planner-looser case. The 3 `agree=no` frames were not compared:
+  rotate-90 and reflect-y (composition-drm does not program rotation) and
+  wide-source (dumb buffer of that width refused with EINVAL at creation).
+* With the Rk3588Vop2 profile the probe shows scaling up 8.00 down 8.00 and max
+  source 4096x4320 on every plane.
+* `profile_check --show 20` and `twoplane --frames 600` (generic) both failed
+  with "no primary plane with a linear 32-bit RGB format": primary plane 33
+  lists only AFBC modifiers. Nothing was displayed, so no KVM picture was
+  judged and camera-check was not run (see `verify-camera-2026-11-28.txt`).
