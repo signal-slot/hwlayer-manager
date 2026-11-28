@@ -1,0 +1,95 @@
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "i.MX95 M7 WP3 comparison scene"
+
+choice IMX95_M7_SCENE_STAGE
+	prompt "Stage of the comparison scene (docs/m2-comparison-plan.md section 2)"
+	default IMX95_M7_SCENE_STAGE_A
+
+config IMX95_M7_SCENE_STAGE_A
+	bool "Stage A: base layer only (one plane)"
+
+config IMX95_M7_SCENE_STAGE_B
+	bool "Stage B: base plus the top overlay layer"
+	help
+	  The stock upstream DPU driver has one plane, so the engine refuses
+	  this frame (plan.no_plane). The run then ends after the first
+	  refusal: there is nothing to commit.
+
+endchoice
+
+config IMX95_M7_SCENE_ENABLE_DPU
+	bool "Drive the DPU (stock socionext,dpu driver, display_write)"
+	default n
+	help
+	  Off by default. Linux owns the DPU on the Verdin iMX95 under its
+	  BSP (docs/imx95-zephyr-feasibility.md), and an M7 that programs the
+	  same DPU can corrupt Linux's display. With this option off the
+	  upstream DPU driver is not built, nothing touches the display, and
+	  the backend uses a stub latch (IMX95_M7_SCENE_STUB_LATCH). Turn it
+	  on only after confirming the M7 owns the DPU on the board in use.
+	  Needs the board target imx95_evk/mimx9596/m7/ddr and its overlay in
+	  boards/.
+
+config IMX95_M7_SCENE_STUB_LATCH
+	bool
+	default y if !IMX95_M7_SCENE_ENABLE_DPU
+	help
+	  Set when the DPU is not driven. The backend's commit draws nothing
+	  and reports the latch at once, so the engine's buffer lifecycle
+	  runs, but no "latched" line of such a run comes from a display.
+	  The hdr line says "latch=stub" in its board text. A stub log is not
+	  a comparison result (docs/m2-linux-zephyr-comparison.md section 5).
+
+config IMX95_M7_SCENE_FRAMES
+	int "Number of frames to present"
+	default 300
+	range 1 1000000
+	help
+	  The default matches the Linux example m2scene (--frames 300).
+	  The comparison plan asks for at least 1000 frames for latency.
+
+config IMX95_M7_SCENE_TOP_ALPHA
+	hex "Plane alpha of the top layer (stage B)"
+	default 0x8000
+	range 0x0 0xffff
+	help
+	  0x8000 is "one half", the scene's value
+	  (crates/composition-core/tests/m2_scene.rs).
+
+config IMX95_M7_SCENE_TRACE_BUFFER_KB
+	int "RAM buffer for trace lines in KiB (0 = print each line at once)"
+	default 512 if IMX95_M7_SCENE_ENABLE_DPU
+	default 0
+	range 0 4096
+	help
+	  With a buffer, lines are formatted into RAM during the run and
+	  printed after it, so the console UART does not pace the frames
+	  (docs/m2-comparison-plan.md section 4.2). Formatting still runs in
+	  the measured path. A line that does not fit is lost and shows as a
+	  gap in seq=; the run's RESULT line counts them. With 0, every line
+	  is printed when it is made and the console is part of the run.
+	  The default buffer needs the DDR target.
+
+config IMX95_M7_SCENE_LATCH_TIMEOUT_MS
+	int "Latch timeout and per-frame wait, in milliseconds"
+	default 1000
+	range 1 60000
+	help
+	  The comparison plan's watchdog: no latch within this time is a
+	  latch_timeout line, and the run stops.
+
+# The upstream driver symbol defaults to y whenever a socionext,dpu node is
+# enabled. Override that default (this file is read before Kconfig.zephyr) so
+# the driver, and with it the DPU programming at boot, is only present when
+# IMX95_M7_SCENE_ENABLE_DPU is set. Same rule as tests/board/imx95_m7_scanout.
+# The display subsystem itself follows the same option, so a stub build has
+# no empty display library.
+config DISPLAY
+	default y if IMX95_M7_SCENE_ENABLE_DPU
+
+config DISPLAY_SOCIONEXT_DPU
+	default y if IMX95_M7_SCENE_ENABLE_DPU
+	default n
+
+source "Kconfig.zephyr"
