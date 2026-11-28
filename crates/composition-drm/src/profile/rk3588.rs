@@ -56,29 +56,42 @@
 //!   formats including NV12 (observed 2026-11-27). Only the first 32 pairs of
 //!   a Cluster plane are kept by the backend (`MAX_FORMATS`), observed
 //!   2026-11-27 in the probe output; the profile does not change the cut.
-//! - No resource groups. Each window has its own scaler registers, so no
-//!   shared scaler: source. The layer budget is not modelled: the board
-//!   data shows no budget below the plane count (observed 2026-11-27: no
-//!   plane-combination sweep yet). Source gives `nlayers = 8 / nvps` per CRTC
-//!   (`V2C:2483`, checked at `V2C:1832`), which with both HDMI ports in the
-//!   NanoPC-T6 device tree would be 4 planes per CRTC (inferred, DT not read);
-//!   until a `TEST_ONLY` sweep shows it, a frame with more than 4 planes on
-//!   one output may pass the planner and be refused by the kernel.
+//! - No shared scaler: each window has its own scaler registers (source).
+//! - At most 4 planes per frame, one resource group of every layer over every
+//!   plane. Observed 2026-11-27 (`tests/data/rk3588/sweep-combos-2026-11-27.txt`,
+//!   `COMBO_MAX accepted_k=4` on CRTC 81): all 20 four-plane sets of the 7
+//!   planes that reach the output passed `TEST_ONLY`, all 15 five-, 6 six-
+//!   and 1 seven-plane sets were refused with EINVAL; full-screen 1:1 layers,
+//!   Cluster and Esmart mixed. The scaled runs (`sweep-combos-scaled-...`,
+//!   v 2x, h 2x, h 0.5) gave the same boundary. Source: the CRTC check
+//!   refuses more than `vp->nlayers = win_size / nvps` planes with `-EINVAL`
+//!   (`V2C:2483`, `V2C:1816-1835`, `docs/rk3588-dt-source.md`), and `nvps`
+//!   counts the video ports with a remote endpoint, so 8 / 2 = 4 with the two
+//!   used ports of the NanoPC-T6 (two CRTCs observed 2026-11-28; that both
+//!   come from the DT is inferred, the DT was not read). That the observed
+//!   EINVAL is this check is inferred from the matching count and errno. On a
+//!   device tree with one used port the kernel allows 8 and the planner then
+//!   refuses frames of 5 to 7 planes the kernel would take (a lost choice);
+//!   with three or four used ports it allows 2, and `TEST_ONLY` refuses what
+//!   the planner let through.
 //!
 //! Not modelled (source, left to `TEST_ONLY`): the 4x4 minimum source and
 //! destination, odd source x with a YUV format, AFBC width rounded down to a
 //! multiple of 4, the per-port output limits (VP0-VP2 4096x2304, VP3
-//! 2048x1536), the per-CRTC layer count above, and planes already used by the
-//! other CRTC (the planner sees one output at a time).
+//! 2048x1536), a layer budget other than 4 (see above), and planes already
+//! used by the other CRTC (the planner sees one output at a time).
 //!
 //! The kernel check may therefore still refuse a frame this profile allows;
 //! it must not accept one the profile refuses, except through the inferred
 //! items above.
 
-use composition_core::{Capabilities, PlaneCaps, ScaleLimits, Size};
+use composition_core::{Capabilities, LayerTraits, PlaneCaps, ResourceGroup, ScaleLimits, Size};
 
 /// Arm modifier vendor (AFBC), in the top byte of a modifier.
 const VENDOR_ARM: u64 = 0x08;
+
+/// Planes one CRTC may use: 8 windows over the 2 used video ports.
+const LAYERS_PER_PORT: u8 = 4;
 
 /// VOP2 window class.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -121,5 +134,17 @@ pub(super) fn apply_rk3588_vop2(caps: &mut Capabilities) {
         let (scaling, max_source) = Window::of(plane).limits();
         plane.scaling = Some(scaling);
         plane.max_source = Some(max_source);
+    }
+
+    // Widened so that a (currently unreachable) count of 32 cannot overflow.
+    let all = ((1u64 << caps.planes.len()) - 1) as u32;
+    let budget = ResourceGroup {
+        consumers: LayerTraits::ANY,
+        planes: all,
+        capacity: LAYERS_PER_PORT,
+    };
+    // Applying twice must not duplicate the group.
+    if !caps.resource_groups.as_slice().contains(&budget) {
+        let _ = caps.resource_groups.push(budget);
     }
 }
