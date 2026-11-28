@@ -65,7 +65,8 @@ esac
 FAKE
 chmod +x "$work/ssh"
 export SSH_BIN=$work/ssh FAKE_LOG=$work/log FAKE_GONE=$work/gone
-export BOARD_SSH='-o BatchMode=yes secretuser@secrethost'
+at=@
+export BOARD_SSH="-o BatchMode=yes secretuser${at}secrethost"
 
 o=$work/run1
 out=$("$run" --bin-dir "$bins" --out "$o" --step 'p:probe --raw /dev/dri/card0' --step 'm:mode_test' 2>&1)
