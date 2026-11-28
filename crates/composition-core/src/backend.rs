@@ -10,6 +10,7 @@
 
 use crate::caps::Capabilities;
 use crate::planner::Plan;
+use crate::readiness::ReadyToken;
 use crate::types::{BufferId, Frame, OutputId, SubmissionId};
 
 /// Why a backend refused an operation.
@@ -88,4 +89,63 @@ pub trait DisplayBackend {
 
     /// Takes the next pending event, if any. Must not block.
     fn poll_event(&mut self) -> Option<BackendEvent>;
+
+    /// Whether the backend waits for readiness tokens ([`ReadyToken`])
+    /// itself, so that a frame may be committed before its content is
+    /// complete (see [`crate::readiness`]).
+    ///
+    /// The default is `false`: the engine then refuses a frame that uses a
+    /// buffer whose readiness is pending, with
+    /// [`crate::PresentError::BufferNotReady`], and never calls the other
+    /// readiness methods.
+    ///
+    /// A backend that returns `true` must never let the hardware latch a
+    /// commit before every token given for its buffers has signalled, or
+    /// been cleared by [`DisplayBackend::clear_readiness`]. The engine takes
+    /// the latch as proof that the content was complete.
+    fn waits_for_readiness(&self) -> bool {
+        false
+    }
+
+    /// Gives the token `buffer`'s content is complete on.
+    ///
+    /// The engine calls it before the checks of a validation, for every
+    /// buffer of the frame whose readiness is pending, and again before each
+    /// [`DisplayBackend::commit`] for those the plan shows. The token stays
+    /// attached to the buffer until the next call for the buffer replaces
+    /// it, [`DisplayBackend::clear_readiness`] or
+    /// [`DisplayBackend::readiness_failed`] removes it, or a commit showing
+    /// the buffer latched.
+    ///
+    /// A backend that cannot wait for the token must refuse it, never
+    /// ignore it; the default refuses with [`BackendError::Rejected`]. An
+    /// error fails the validation or the commit with it.
+    fn set_readiness(&mut self, buffer: BufferId, token: ReadyToken) -> Result<(), BackendError> {
+        let _ = (buffer, token);
+        Err(BackendError::Rejected)
+    }
+
+    /// The content of `buffer` no longer depends on the token given for it:
+    /// the client reported it signalled, or the buffer is written again or
+    /// unregistered. A commit waiting only on it may latch.
+    ///
+    /// Called only on a backend that waits for readiness. The default does
+    /// nothing.
+    fn clear_readiness(&mut self, buffer: BufferId) {
+        let _ = buffer;
+    }
+
+    /// `token` will never signal (the client reported an error, or the
+    /// engine's readiness timeout expired).
+    ///
+    /// The backend must forget the token and must never report
+    /// [`BackendEvent::Latched`] for a submission that waits on it: the
+    /// engine reports such a submission as dropped and releases its buffers
+    /// as soon as this returns. What is on screen stays.
+    ///
+    /// Called only on a backend that waits for readiness. The default does
+    /// nothing.
+    fn readiness_failed(&mut self, token: ReadyToken) {
+        let _ = token;
+    }
 }
