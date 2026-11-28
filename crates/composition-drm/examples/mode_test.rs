@@ -6,7 +6,7 @@
 //!
 //!   --device PATH      DRM device (default /dev/dri/card0); a bare argument works too
 //!   --connector ID     connector to test (default: every connected one)
-//!   --mode NAME@HZ     test only the modes with this name and vertical refresh
+//!   --mode <name>@<hz> test only the modes with this name and vertical refresh
 //!                      (`1920x1080@60`; HZ is the rounded vrefresh)
 //!   --min-clock KHZ    test only the modes whose pixel clock is at least KHZ
 //! ```
@@ -52,7 +52,7 @@ use drm::control::{
 use drm::{ClientCapability, Device as BasicDevice};
 
 const USAGE: &str =
-    "usage: mode_test [--device PATH] [--connector ID] [--mode NAME@HZ] [--min-clock KHZ]";
+    "usage: mode_test [--device PATH] [--connector ID] [--mode <name>@<hz>] [--min-clock KHZ]";
 
 #[derive(Debug, PartialEq, Eq)]
 struct Options {
@@ -80,7 +80,7 @@ struct ModeRow {
 fn parse_mode_spec(text: &str) -> Result<(String, u32), String> {
     let (name, hz) = text
         .rsplit_once('@')
-        .ok_or_else(|| format!("--mode wants NAME@HZ, got {text:?}"))?;
+        .ok_or_else(|| format!("--mode wants <name>@<hz>, got {text:?}"))?;
     if name.is_empty() {
         return Err(format!("--mode has no name: {text:?}"));
     }
@@ -512,7 +512,7 @@ mod tests {
     fn rejects_bad_input() {
         assert!(args("--mode 1920x1080").is_err());
         assert!(args("--mode @60").is_err());
-        assert!(args("--mode x@fast").is_err());
+        assert!(args("--mode x@-1").is_err());
         assert!(args("--min-clock").is_err());
         assert!(args("--min-clock abc").is_err());
         assert!(args("--connector x").is_err());
