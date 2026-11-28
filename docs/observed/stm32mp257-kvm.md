@@ -85,3 +85,31 @@ The background, red, blue and uncovered-green points are the same in both phases
 
 - Weston and `seatd-weston` active again; the harness binary and log were
   removed from `/tmp`; nothing installed, no console or reset used.
+
+## KVM rehearsal, 2026-11-28
+
+Verdict: **capture fails.**
+
+Host UTC time of the attempt: 2026-11-28 01:03 (the board clock is about 10 h
+behind and is not used).
+
+The KVM's MCP server failed to connect at the start of the session, with the
+same error as in every earlier session; no KVM tool was registered and a
+tool search for a screenshot tool found nothing:
+
+```
+HTTP 404 dialing http://<kvm relay>/p2p/v1/<id>/kvm/<id>/mcp
+```
+
+(The relay address and ids are left out.) No other access path to the KVM is
+granted to this task, so no screenshot was taken, no picture was saved and
+`scripts/camera-check.py` was not run on a frame. Only its self-test ran on
+the host: `python3 scripts/camera-check.py --self-test` printed `31 checks`
+and `PASS`.
+
+Context read over ssh, read only (observed 2026-11-28 01:03 host UTC):
+`systemctl is-active weston-graphical-session seatd-weston` printed `active`
+and `active`. Nothing was stopped, run or left on the board.
+
+The picture items (Q1, Q6, NV12, plane-34 scaling) therefore stay blocked
+until the relay path of the MCP server works again.
