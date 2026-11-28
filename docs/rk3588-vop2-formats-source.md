@@ -248,3 +248,117 @@ All inferred from the tables above:
   non-10-bit formats on a modifier-aware client, and the real rotation bitmask.
   Both need a raw property dump or a TEST_ONLY run (plan items `t6-sweep`,
   `t6-verify`).
+
+## Q1: IN_FORMATS order and the effect of `MAX_FORMATS` = 32 (added 2026-11-28, item `rk-formats-source`)
+
+This section answers RK3588 design question Q1 of `docs/rk3588-backend-design.md`
+section 7 (does the 32-pair cap hide AFBC pairs on Cluster planes, and is the
+order linear first). **It is the expectation, not a measurement.** The
+measurement is the board session `t6-topology-session`
+(`docs/rk3588-vop2-session-*.md`), which reads the raw IN_FORMATS blob; until it
+lands nothing here is a hardware result.
+
+Sources, all read 2026-11-28:
+
+- Linux commit `7d0a66e4bb9081d75c82ec4957c50034cb0ea449` (v6.18),
+  `drivers/gpu/drm/rockchip/rockchip_vop2_reg.c` (`REG`) and
+  `rockchip_drm_vop2.c` (`V2C`): the local copies named in the first section.
+- `drivers/gpu/drm/drm_plane.c` of the same commit (`DP`):
+  https://github.com/torvalds/linux/blob/7d0a66e4bb9081d75c82ec4957c50034cb0ea449/drivers/gpu/drm/drm_plane.c
+  Honest limit: this worker could not download it (network refused), so `DP`
+  was read through the web-fetch helper, which returned the code text without
+  line numbers. The `DP` line numbers below were counted by that helper and are
+  good to about 2 lines; the code shape (quoted briefly) is exact.
+- composition at this repository's checkout: `crates/composition-drm/src/lib.rs`
+  and `crates/composition-core/src/limits.rs`.
+
+### How the kernel orders IN_FORMATS (read from source, `DP`)
+
+- `drm_universal_plane_init` copies the driver's `formats[]` and `modifiers[]`
+  verbatim (`DP:451-454`); nothing is sorted or de-duplicated. The modifier
+  count is the number of entries before the `DRM_FORMAT_MOD_INVALID` terminator
+  (`DP:410-414`); the terminator is not stored and never appears in the blob.
+  With no modifier array, the plane gets a single implicit `LINEAR`
+  (`DP:372-374`, `415-418`).
+- `create_in_format_blob` (`DP:197-260`) writes the format array once
+  (`memcpy`, `DP:240`) and then one entry per modifier, in `plane->modifiers[]`
+  order: an outer loop over modifiers, an inner loop over formats setting bit
+  `j` of a 64-bit mask when `format_mod_supported(plane, format[j], modifier[i])`
+  holds (`DP:242-257`). The entry `offset` is always 0 and a plane may have at
+  most 64 formats (`DP:386-387`).
+- So the blob is **modifier-major in the driver's array order**; the kernel
+  never promises linear first. The order of a plane is the order of its two
+  arrays in `REG`.
+
+### How composition reads and caps it (read from source, this checkout)
+
+- `parse_in_formats` (`crates/composition-drm/src/lib.rs:336-372`) walks the
+  modifier entries in blob order and, inside each, the set mask bits in
+  ascending order (`lib.rs:351-368`): the same modifier-major order, one
+  `format x modifier` pair per set bit. It does not drop or reorder anything.
+- The caller sorts the pairs with `pairs.sort_by_key(|p| p.modifier !=
+  Modifier::LINEAR)` (`lib.rs:532`). A stable sort on that key moves linear
+  pairs to the front and leaves the rest in blob order (inferred from the
+  standard library's documented stable `sort_by_key`). Then
+  `.take(MAX_FORMATS)` keeps the first 32 (`lib.rs:533-535`);
+  `MAX_FORMATS = 32` is `crates/composition-core/src/limits.rs:15`. The cut is
+  documented at `lib.rs:18`.
+- Pairs past 32 are not recorded anywhere: they cannot be offered to a layer,
+  and the planner never sees them (inferred from the loop above).
+
+### Counts per window class (RK3588 table, `REG:1121-1264`)
+
+| Window class | Format array | Formats | Modifiers | Pairs IN_FORMATS advertises | vs 32 |
+|---|---|---|---|---|---|
+| Cluster0-3 (4 planes) | `formats_cluster` `REG:58-73` | 14 | 9 AFBC, no linear (`REG:203-238`) | 14 x 9 = 126 | 94 past the cap |
+| Esmart0-3 (4 planes) | `formats_esmart` `REG:106-128` | 21 | 1 (`LINEAR`, `REG:198-201`) | 21 x 1 = 21 | fits, 11 spare |
+| Smart (RK3568 only) | `formats_smart` `REG:187-196` | 8 | 1 (`LINEAR`) | 8 | not on RK3588: the RK3588 table names no Smart window |
+
+Why every Cluster format is advertised under every modifier (read from source,
+`V2C:383-421`, then inferred by matching the lists): `format_mod_supported`
+rejects only `MOD_INVALID`, the 10-bit RGB formats without AFBC (RK3588 branch,
+`V2C:402-408`), and AFBC modifiers for formats that
+`vop2_convert_afbc_format` (`V2C:220-255`) cannot map. All 14 `formats_cluster`
+entries map, and the 9 modifiers are all in the plane's own list, so each of the
+9 mask bits is set for all 14 formats: 126. The Esmart plane's one `LINEAR`
+modifier is accepted for every format (`V2C:411-412`), so 21. These counts
+agree with the recorded plane dump (126 and 21, observed 2026-11-27; see the
+agreement table above).
+
+### Which pairs fall past the cap (inferred from the two reads above)
+
+Cluster has no linear modifier, so the stable sort changes nothing and the first
+32 pairs are modifier-major in `REG:203-238` order:
+
+| Pairs | Kept? | Content |
+|---|---|---|
+| 1-14 | kept | modifier 1 (16x16, no flags, `0x0800000000000001`) with all 14 formats |
+| 15-28 | kept | modifier 2 (SPARSE, `...41`) with all 14 formats |
+| 29-32 | kept | modifier 3 (YTR, `...11`) with only its first 4 formats: XRGB2101010, XBGR2101010, XRGB8888, ARGB8888 |
+| 33-126 | **cut (94 pairs)** | modifier 3 with the other 10 formats (XBGR8888 .. Y210); modifiers 4-9 (CBR `...81`, YTR+SPARSE `...51`, CBR+SPARSE `...c1`, YTR+CBR `...91`, YTR+CBR+SPARSE `...d1`, YTR+SPARSE+SPLIT `...71`) with all formats |
+
+Consequences (inferred):
+
+- **Yes, `MAX_FORMATS` = 32 hides AFBC pairs on Cluster planes**: 94 of 126, and
+  six of the nine modifiers never appear at all. Every format still appears
+  under at least the first two modifiers, so no *format* is lost, only modifier
+  variants (the 10 formats that lose their YTR pair keep plain and SPARSE).
+- The comment at `REG:232` says RGB AFBC modes mandate YTR. If a producer's
+  RGB AFBC buffer carries a YTR modifier, only 4 formats of it are visible to
+  composition; for the others the planner would see the plane as unable to take
+  that buffer (a lost choice, never a wrong claim). Which modifier a given
+  producer emits is not known from this read.
+- **Linear first** holds on RK3588 only by construction, not by a kernel
+  guarantee: Cluster has no linear pair, Esmart has nothing else, and
+  composition's own sort puts linear first in general (`lib.rs:532`). On a plane
+  with both, the kernel order would be driver-array order and the sort would
+  fix it.
+- Esmart planes lose nothing (21 <= 32).
+- The recorded probe already showed 32 kept pairs on Cluster, observed 2026-11-27 (as cited in `crates/composition-drm/src/profile/rk3588.rs`); that
+  matches the arithmetic here.
+
+Raising `MAX_FORMATS` (to at least 126 to keep everything on RK3588) is a
+composition-core decision recorded as a finding; this item changes no code. What
+the board session must confirm: the raw blob holds 9 modifier entries in the
+order of the nine-row table above, each with 14 bits set; no `0x0` entry on
+Cluster; one entry with 21 bits on Esmart; and the offsets are 0.
