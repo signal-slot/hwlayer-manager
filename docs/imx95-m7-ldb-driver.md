@@ -10,10 +10,12 @@ tags:
   names are the reliable anchor.
 - **inferred**: concluded from what was read, not stated by any source.
 
-A gap is written **NOT READ**. One earlier dated observation of the board is
-cited as such (**observed**, 2026-11-27, from
-[imx95-zephyr/observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt));
-this note observed nothing.
+A gap is written **NOT READ**. Two dated observations of the board are
+cited as such (**observed**, both run 2026-11-27, from
+[imx95-zephyr/observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt) (S1)
+and [imx95-zephyr/observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt) (S2);
+the second file's name carries the planner's date, its run date is 2026-11-27);
+this note observed nothing itself.
 
 Question: upstream Zephyr has no LVDS/LDB driver, binding or devicetree node
 for the i.MX95, yet the Verdin iMX95's panel is LVDS. What would an LDB driver
@@ -42,7 +44,7 @@ What this note does not repeat (read these for the surrounding facts):
 | ZY | Zephyr, <https://github.com/zephyrproject-rtos/zephyr> | `main` commit `e53873cbd0ef45d63ef9ded1a45d10717e7c71d7` (2026-11-27), as pinned by [imx95-m7-dpu-driver.md](imx95-m7-dpu-driver.md); tag `v4.5.0` = commit `41d10b59730406bbab4ca9f1fbbe9e96aafb4966` as pinned by [imx95-m7-scmi.md](imx95-m7-scmi.md) | Not re-read here. Zephyr-side facts below are taken from those two notes and say so |
 | HAL | `hal_nxp`, <https://github.com/zephyrproject-rtos/hal_nxp> | commit `1a8937f3f8dfe5c68f59cc2a0c0c0fccdb096650` (the revision `west.yml` pins at ZY) | Not re-read here; its LDB directories are named by [imx95-m7-scmi.md](imx95-m7-scmi.md) |
 | SM | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `rel_imx_sm_2025q3` = commit `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec` | Not re-read here; cited through [imx95-display-clocks.md](imx95-display-clocks.md) and [imx95-display-power.md](imx95-display-power.md) |
-| TDX | Toradex linux-toradex, `git://git.toradex.com/linux-toradex.git` | commit `64f85d65c112c45ceb6c7e0566885afc62b1a551` (the board's 6.6.157 kernel, as recorded in [imx95-display-clocks.md](imx95-display-clocks.md)) | **NOT READ** by this note |
+| TDX | Toradex linux-toradex, `https://git.toradex.com/linux-toradex.git`, branch `toradex_6.6-2.2.x-imx` | commit `64f85d65c112c45ceb6c7e0566885afc62b1a551` (the board's 6.6.157 kernel, as recorded in [imx95-display-clocks.md](imx95-display-clocks.md)) | **NOT READ** by this note. The Verdin and Mallow DT files at that commit are read in [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md); the Toradex 10.1" overlays at `https://git.toradex.com/device-tree-overlays.git` commit `e9a3ca6fbd6bd5fab7f00cdb87360be44373cf69` are read in [imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md) |
 
 Limits, stated plainly:
 
@@ -84,7 +86,9 @@ DPU FrameGen n -> pixel interleaver (channel n, bypass by default)
 | The Linux tree has **no** `fsl,imx95-ldb`, no `fsl,imx95-lvds0-phy` and no `fsl,imx95-dispmix-lvds-csr` binding file at the pin: the bridge directory has only `fsl,ldb.yaml` (listing `fsl,imx6sx-ldb`, `fsl,imx8mp-ldb`, `fsl,imx93-ldb`) and `fsl,imx8qxp-ldb.yaml`; the PHY directory has no i.MX95 file; a search of `bindings/soc/imx` found no CSR file. The `bindings/clock/` directory listing was cut off, so a CSR binding there is **NOT READ** | read from source (absence), partly NOT READ |
 | Linux's PHY driver is the i.MX8MP one reused: compatibles `fsl,imx8mp-lvds-phy`, `fsl,imx93-lvds-phy`, `fsl,imx95-lvds0-phy`, `fsl,imx95-lvds1-phy`. The two i.MX95 ones differ only in the PHY control register offset: 0x8 (PHY 0) and 0xc (PHY 1); both have the `DISABLE_LVDS` bit | read from source (LX `phy-fsl-imx8mp-lvds.c`, `imx8mp_lvds_phy_devdata`, `imx8mp_lvds_phy_of_match`) |
 | The board's DT has `ldb@4` (`fsl,imx95-ldb`) under `syscon@4b0c0000` (`fsl,imx95-dispmix-lvds-csr`) `okay`, `channel@0` `okay`, the pixel link `okay` under `syscon@4b010000`, and a root `panel-lvds-native` node (`compatible = panel-lvds`, with `data-mapping`, `panel-timing`, `width-mm`, `height-mm`, `backlight`) | observed (2026-11-27) |
-| The values of `data-mapping` and of the `panel-timing` node were **not captured** in that snapshot, so the board's mapping (JEIDA or SPWG), bit width and pixel clock are not known from the board. NXP's Verdin 10" overlay names `logictechno,lt170410-2whc` (1280x800, typical pixel clock 71.1 MHz) and `ldbpll` 497.7 MHz, but that is NXP's 19x19 EVK adaptation, not the Mallow tree | read from source ([imx95-dpu-source-6.6.md](imx95-dpu-source-6.6.md), [imx95-display-clocks.md](imx95-display-clocks.md)); not a statement about this board |
+| The live `panel-lvds-native` has `data-mapping` = `vesa-24` and a `panel-timing` of 1280 x 800 at 68.9 / 71.1 / 73.4 MHz (min/typ/max), porches 23/60/71 (h), 5/7/10 (v), sync lengths 15/40/47 and 6/9/12, hsync and vsync active 0, de-active 1, `pixelclk-active` 1, 217 x 136 mm. No `data-width` property was listed. `ldb@4` `assigned-clock-rates` are 2 986 200 000 and 497 700 000 Hz; `channel@0` `okay`, `phy@8` `reg` = `<0x8 0x4>` | observed (2026-11-27, S2; decoded in its header). They equal the original native Toradex overlay of [imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md) §3b |
+| `channel@1` `status` was **not dumped** in either snapshot; only its clock gates being off is observed (S1 `clk_summary`). "Channel 1 disabled" is not observed | observed (gates), NOT READ (status) |
+| The carrier: the machine string is "Verdin Development Board", not Mallow; "Mallow" is the plan's description, not a board or source fact. NXP's EVK Verdin-10" overlay (`logictechno,lt170410-2whc`) is NXP's adaptation, not this board's tree, and is not used for board facts | observed (model string, 2026-11-27, S2); see [imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md) §2 |
 
 ## 3. What an LDB driver has to program
 
@@ -124,11 +128,15 @@ Notes:
   `PIXEL_MAPPER_CONTROL`, `LVDS0_CONTROL` and `LVDS1_CONTROL` are the same
   registers as Linux's 0x4, 0x8 and 0xc is **inferred** from the identical
   field set.
-- **`CH_EN` bit collision.** `DISABLE_LVDS` is bit 1 and `CH_EN(id)` is bit
-  `id`, so the PHY child must carry `reg` 0 for the channel-enable bit not to
-  be `DISABLE_LVDS`. The `reg` values of the PHY child nodes in `imx95.dtsi`
-  were not re-read here. A driver must fix the channel-enable bit from the
-  hardware manual, not from this note (**NOT READ**).
+- **`CH_EN` bit.** `DISABLE_LVDS` is bit 1 and Linux's `CH_EN(id)` is bit
+  `id`, where `id` is a number the PHY driver takes from its device data or
+  node (the exact source of `id` was not re-read). The board's PHY child
+  `phy@8` has `reg` = `<0x8 0x4>`, i.e. the register offset and size within
+  the CSR, **not** a channel number (observed 2026-11-27, S2). So an
+  assumption that the PHY child's `reg` must be 0 is unsupported, and the
+  `reg` of `phy@8` says nothing about `id`. Which bit is the channel enable
+  is unresolved: a driver must fix it from the hardware manual, not from this
+  note (**NOT READ**).
 - **The two sources differ in what they write.** Linux builds a shadow of the
   whole control word, with polarity from the mode flags, and writes it once at
   enable (`imx95_ldb_bridge_atomic_enable`, `ldb_bridge_enable_helper`). The MCUX
@@ -172,8 +180,11 @@ Notes:
 
 - There is no JEIDA 18-bit combination; JEIDA is 24-bit only in Linux's list
   (read from source). Whether the hardware has one is **NOT READ**.
-- Which of the three the Verdin panel needs follows from the panel's
-  `data-mapping` value and bit width, **not captured**. §7 lists the capture.
+- The board's panel node has `data-mapping` = `vesa-24` (observed 2026-11-27,
+  S2), the 24-bit SPWG-style mapping, so Linux's choice would be
+  `RGB888_1X7X4_SPWG` (`DATA_WIDTH_CHn_24`, JEIDA clear) (**inferred**: the
+  mapping from `vesa-24` to that format is not read in the Linux panel code).
+  No `data-width` property was listed.
 - The input side: the LDB asks the DPU/pixel link for `RGB888_1X36_CPADLO`
   (24-bit) or `RGB666_1X36_CPADLO` (18-bit); the pixel link accepts
   `RGB888_1X36_CPADLO` or `FIXED` outputs and demands `RGB888_1X24` on its
@@ -220,15 +231,16 @@ Zephyr DPU's display stream (§8, item L1).
 | `ldb_pll_div7` (LDB pixel clock, the DPU frame generator's source when `CLOCK_CTRL` = 2) | `LDBPLL` / 7 | read from source ([imx95-display-clocks.md](imx95-display-clocks.md) §2.3: a DT `fixed-factor-clock`) |
 | `lvds_diN_gate` | gates `ldb_pll_div7`, so the LDB DI clock equals the pixel clock | read from source (`imx95-blk-ctrl.c`) |
 | `ldb_phy_div` -> `lvds_chN_gate` (PHY serial clock) | `LDBPLL` / 1 (bit 0 clear, single link) or `LDBPLL` / 2 (bit 0 set, split mode), so the PHY clock is 7 x the pixel clock for a single link and 3.5 x for a split link | read from source (divider flags, `imx95_ldb_bridge_atomic_enable`) for the divider; the 7x / 3.5x ratios are **inferred** arithmetic |
-| Linux's request | `clk_set_rate(clk_di, mode_clock * 1000)` in `mode_set`, return value ignored. On the board the PLL rates are fixed in the DT (`assigned-clock-rates` 2986.2 MHz VCO, 497.7 MHz `ldbpll`, NXP's 10" file), and per [imx95-display-clocks.md](imx95-display-clocks.md) §3.2 the request does not reach the SCMI PLL | read from source; the last clause is **inferred** there |
+| Linux's request | `clk_set_rate(clk_di, mode_clock * 1000)` in `mode_set`, return value ignored. On the board the PLL rates are set in the DT (`assigned-clock-rates` 2986.2 MHz VCO, 497.7 MHz `ldbpll`, observed 2026-11-27, S2), and per [imx95-display-clocks.md](imx95-display-clocks.md) §3.2 the request does not reach the SCMI PLL | read from source; the last clause is **inferred** there |
 | Board | `ldbpll_vco` 2986.2 MHz, `ldbpll` 497.7 MHz, `ldb_pll_div7` 71.1 MHz enabled; 497.7 / 7 = 71.1 | observed (2026-11-27); the ratio is inferred arithmetic |
 
 So an M7 driver must make `LDBPLL` = 7 x the panel's pixel clock, and the
 pixel clock must come from the panel's `panel-timing`. The VCO/PLL pair that
 gives an exact 7x for a given panel clock is a fractional-PLL question (the
 SM's `FRACTPLL` code, [imx95-display-clocks.md](imx95-display-clocks.md) §4) and
-is **NOT READ** here; the only evidence is that NXP's pair (2986.2 / 497.7 MHz,
-VCO / 6) yields 71.1 MHz.
+is **NOT READ** here; the only evidence is the board's own pair (2986.2 / 497.7
+MHz, VCO / 6; observed 2026-11-27, S1 and S2), which yields 71.1 MHz, the
+panel's typical pixel clock.
 
 ## 4. What the driver needs from the SM (the M7 agent)
 
@@ -314,10 +326,13 @@ Zephyr-side cautions for the three SCMI clock calls (read from source,
   [imx95-m7-dpu-irq.md](imx95-m7-dpu-irq.md); an LDB driver can leave it unused
   (**inferred**: it is a diagnostic, not part of scanout).
 - **Backlight and panel power**: not part of the LDB. The board has a
-  `pwm-backlight` node (**observed**, 2026-11-27, its PWM and GPIO not captured).
-  Zephyr has TPM PWM nodes in the M7 dtsi (read from source,
-  [imx95-m7-lvds-route.md](imx95-m7-lvds-route.md) §5). Which controller the
-  Mallow wires to the backlight is **NOT READ**.
+  `pwm-backlight` node with a 6 666 667 ns PWM period and eight brightness
+  levels (**observed**, 2026-11-27, S2; its PWM controller phandle and enable
+  GPIO were not decoded). Zephyr has TPM PWM nodes in the M7 dtsi (read from
+  source, [imx95-m7-lvds-route.md](imx95-m7-lvds-route.md) §5). The Toradex
+  overlay uses `&tpm5` channel 0 ([imx95-verdin-lvds-panel.md](imx95-verdin-lvds-panel.md)
+  §5, read from source); that the board's backlight uses it is **inferred**
+  (period and polarity match), and which carrier pins it reaches is **NOT READ**.
 
 ## 5. Zephyr devicetree binding and how it chains to the DPU
 
@@ -358,7 +373,7 @@ needed for that direction. This gives three small nodes:
 Why not a Linux-style `panel-lvds` node: the generic `panel-lvds` binding is a
 Linux DT convention; its allowed `data-mapping` strings (`vesa-24`, `jeida-18`,
 `jeida-24`) were **NOT READ** at the LX pin. The observed board node has the
-property (observed, 2026-11-27, value not captured), so a Zephyr port of the
+property with the value `vesa-24` (observed, 2026-11-27, S2), so a Zephyr port of the
 Verdin overlay could translate it, but that translation table is unwritten.
 
 ### 5.3 Chaining and enable order (inferred)
@@ -398,20 +413,22 @@ board hook, or init priorities solves it; which is least intrusive upstream is
 | Gap | Why it matters |
 |---|---|
 | SM permissions of the Verdin M7 LM for `PD_DISPLAY`, `LDBPLL*`, TRDC on the CSRs | Gates every item; the gated chain (`sm-config-read` -> `m7-run2`) answers it. Without it this note is a paper design |
-| Panel part, timing, `data-mapping`, pixel clock | The register word, the PLL rate and the polarity flags all depend on it. Linux's panel-timing node and the `data-mapping` value are not in the 2026-11-27 snapshot; the `imx95-observe2` item is meant to capture them |
+| Panel part, timing, `data-mapping`, pixel clock | Captured (observed 2026-11-27, S2): `vesa-24`, 71.1 MHz typ, polarity active low. Open: the panel part number (the live compatible is the generic `panel-lvds`) and whether another panel revision (V2, 64.5 MHz) must be supported |
 | LDB `DI` index versus DPU display index (§3.4) | Decides whether the Zephyr DPU's hard-coded display 0 can feed the LDB |
-| PHY channel-enable bit and PHY child `reg` (§3.1) | A wrong bit would disable or collide with `DISABLE_LVDS` |
+| PHY channel-enable bit (§3.1) | A wrong bit would disable or collide with `DISABLE_LVDS`. The PHY child `reg` (`<0x8 0x4>`, observed) is an offset, not a channel number, so it does not settle the bit |
 | Order of enable, and whether the DPU may start before the LDB (§5.3) | Bring-up risk |
 | TRDC rights and whether Linux and the M7 can alternate the route | See [imx95-display-handover.md](imx95-display-handover.md); the CSRs hold one set of control registers, and both owners would write the same words (inferred) |
 | Reference manual | Nothing here is checked against the hardware specification |
 
-## 7. What to capture next (inferred, for the observation item)
+## 7. What was captured and what is still open
 
-Read-only, from the live DT (no change to the board): the `panel-timing` node
-(clock, active size, porches, sync lengths, flags), the `data-mapping` string,
-the `data-width` if the LDB channel has one, the `reg` values of the PHY child
-nodes, and the PHY nodes' compatibles. These close the gaps in §3.1, §3.3 and
-§3.5.
+Captured read-only from the live DT on 2026-11-27 (S2): the `panel-timing` node,
+`data-mapping`, the PHY child `reg` (`<0x8 0x4>`) and the PHY compatible
+(`fsl,imx95-lvds0-phy` at `phy@8`, per the node names; the compatible text was
+dumped in S2). Still **not captured**: the `status` of `channel@1`, the
+`data-width` (no such property was listed), the DPU stream feeding the LDB (read
+from source only), and the backlight enable GPIO and PWM controller. These
+close the gaps in §3.1, §3.3 and §3.5 except for those items.
 
 ## 8. Item list with estimates (inferred)
 
@@ -422,7 +439,7 @@ permission work. They are meant for sizing, not for commitment.
 
 | Id | Item | Depends on | Estimate | Output |
 |---|---|---|---|---|
-| L0 | Capture the board's `panel-timing`, `data-mapping`, PHY child `reg` (read-only) | none | 0.5 d | a dated observation file; closes §7 |
+| L0 | Capture the board's `panel-timing`, `data-mapping`, PHY child `reg` (read-only) | none | 0.5 d | done for the listed fields: S2, observed 2026-11-27; the open items of §7 remain |
 | L1 | Read the reference manual's LDB / display-mix CSR chapters; settle the PHY channel-enable bit, the DI-versus-display index (§3.4), HS/VS polarity bits and the 18-bit truncation | RM access (**not** known to be available) | 1-2 d | a register table with tags |
 | L2 | Binding YAML (`nxp,imx95-ldb` with channel child-binding, optional `nxp,imx95-dispmix-csr`) and `disabled` nodes in the M7 dtsi | none | 1 d | binding + dtsi change, host-buildable |
 | L3 | LDB register layer: control word builder (mode, width, JEIDA/SPWG, polarity, split), PHY sequence, clock-gate bits; unit-tested against the Linux words for the three mappings with a mock MMIO | L1, L2 | 2 d | driver core + a host test |
