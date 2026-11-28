@@ -110,6 +110,8 @@ pub struct Session {
     pub refresh_mhz: u32,
     infos: Infos,
     next_buffer: u32,
+    /// The run's zero for the time the engine is told (`tick`).
+    clock: Instant,
     /// Driver profile, for a backend reopened on the same descriptor.
     profile: DriverProfile,
     /// Producer processes, with `--producers external`.
@@ -400,6 +402,7 @@ impl Session {
             refresh_mhz: out.refresh_mhz,
             infos: Infos::default(),
             next_buffer: 1,
+            clock: Instant::now(),
             profile: options.profile,
             producers: match &options.producers {
                 ProducerMode::Local => None,
@@ -511,6 +514,16 @@ impl Session {
             output: self.output,
             layers,
         }
+    }
+
+    /// Tells the engine the time: milliseconds of the monotonic clock
+    /// since the session started, the unit the `hdr` line names
+    /// (`at_unit=ms`). Returns the value. Call it every frame, so that
+    /// the `at` of the trace lines moves.
+    pub fn tick(&mut self) -> u64 {
+        let now = ticks_since(self.clock);
+        self.engine.advance_time(now);
+        now
     }
 
     fn new_id(&mut self) -> BufferId {
@@ -738,6 +751,7 @@ impl Session {
     /// Validates, commits and waits for the latch.
     pub fn present(&mut self, layers: &[Layer]) -> Result<Shown, String> {
         crate::stop::check()?;
+        self.tick();
         let frame = self.frame(layers);
         let start = Instant::now();
         let plan = self
@@ -766,6 +780,7 @@ impl Session {
     /// buffer is passed on to the producer here, so that it may draw into
     /// the buffer again.
     pub fn drain(&mut self) -> Result<Vec<DisplayEvent>, String> {
+        self.tick();
         let mut events = Vec::new();
         while let Some(event) = self
             .engine
@@ -850,5 +865,47 @@ impl Session {
         )?;
         events.extend(self.drain()?);
         Ok(events)
+    }
+}
+
+/// Milliseconds since `clock`.
+pub fn ticks_since(clock: Instant) -> u64 {
+    u64::try_from(clock.elapsed().as_millis()).unwrap_or(u64::MAX)
+}
+
+#[cfg(test)]
+mod tick_tests {
+    use super::*;
+
+    #[test]
+    fn ticks_increase_with_time() {
+        let clock = Instant::now();
+        let a = ticks_since(clock);
+        std::thread::sleep(Duration::from_millis(5));
+        assert!(ticks_since(clock) >= a + 5);
+    }
+
+    /// The `at` of trace lines made with the times `Session::tick` hands to
+    /// the engine is non-zero after the first frame and rises.
+    #[test]
+    fn trace_at_rises_with_the_ticks() {
+        use composition_core::{Trace, TraceEvent};
+        let clock = Instant::now();
+        let mut sink = composition_trace::LineTrace::new(String::new(), || 0u64);
+        for _ in 0..3 {
+            std::thread::sleep(Duration::from_millis(3));
+            sink.record(ticks_since(clock), TraceEvent::DeviceLost);
+        }
+        let ats: Vec<u64> = sink
+            .into_inner()
+            .lines()
+            .map(|l| {
+                let v = l.split(" at=").nth(1).unwrap().split(' ').next().unwrap();
+                v.parse().unwrap()
+            })
+            .collect();
+        assert_eq!(ats.len(), 3);
+        assert!(ats[0] > 0, "{ats:?}");
+        assert!(ats[0] < ats[1] && ats[1] < ats[2], "{ats:?}");
     }
 }

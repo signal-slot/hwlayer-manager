@@ -682,6 +682,7 @@ pub fn combos(o: &Options) -> Result<Outcome, String> {
                 record = record
                     .field("planner", "accept")
                     .field("planner_planes", list(planes_of(&plan)));
+                s.tick();
                 let start = Instant::now();
                 let validated = s.engine.validate(&frame);
                 record = record.field("validate_us", micros(start.elapsed()));
@@ -966,6 +967,7 @@ pub fn rotate(o: &Options) -> Result<Outcome, String> {
             Layer::new(current[0], whole(size), whole(size), 0),
             Layer::new(current[1], whole(top_size), top_at, 1),
         ];
+        s.tick();
         let frame = s.frame(&layers);
         let start = Instant::now();
         let plan = match s.engine.validate(&frame) {
@@ -1236,6 +1238,7 @@ pub fn revoke(o: &Options) -> Result<Outcome, String> {
     let revoked_at = Instant::now();
     prepare(&mut s, frames, &mut releases_before)?;
     let layers = layers_for(frames);
+    s.tick();
     let first = s.engine.validate(&s.frame(&layers)).map(|_| ());
     let first_us = micros(revoked_at.elapsed());
     let mut events = Vec::new();
@@ -1677,11 +1680,6 @@ const RECOVERED: Picture = Picture {
         "green full screen with white edge, yellow rectangle with blue edge on top in the middle",
 };
 
-/// Milliseconds since `clock`, the time the engine is told.
-fn ticks(clock: Instant) -> u64 {
-    u64::try_from(clock.elapsed().as_millis()).unwrap_or(u64::MAX)
-}
-
 /// Offers one frame of `buffers` (bottom, top) after the loss and waits up
 /// to [`RECOVERY_BUDGET`] for the engine's answer, telling it the time as
 /// it goes so that its latch timeout can fire. Prints a `loss_attempt`
@@ -1689,7 +1687,6 @@ fn ticks(clock: Instant) -> u64 {
 fn loss_attempt(
     s: &mut Session,
     step: &str,
-    clock: Instant,
     buffers: [BufferId; 2],
 ) -> (crate::recovery::Report, u64) {
     use crate::recovery::{report_of, Report};
@@ -1702,7 +1699,7 @@ fn loss_attempt(
         Layer::new(buffers[1], whole(top_size), at(w / 4, h / 4, top_size), 1),
     ];
     let started = Instant::now();
-    s.engine.advance_time(ticks(clock));
+    s.tick();
     let frame = s.frame(&layers);
     let committed = match s.engine.validate(&frame) {
         Err(e) => Err(format!("validate: {}", describe(&e))),
@@ -1715,7 +1712,7 @@ fn loss_attempt(
     let report = match committed {
         Err(e) => Report::Error(e),
         Ok(submission) => loop {
-            s.engine.advance_time(ticks(clock));
+            s.tick();
             match s.drain() {
                 Ok(seen) => events.extend(seen),
                 Err(e) => break Report::Error(e),
@@ -1810,7 +1807,6 @@ pub fn recovery(o: &Options) -> Result<Outcome, String> {
     };
     let mut s = Session::open(o, "recovery")?;
     let usage = Usage::now();
-    let clock = Instant::now();
     s.engine.set_latch_timeout(Some(RECOVERY_LATCH_TIMEOUT_MS));
     let pairing = s.pairing()?;
     let crtc = pairing.crtc;
@@ -1881,7 +1877,7 @@ pub fn recovery(o: &Options) -> Result<Outcome, String> {
                 .map_or("?".to_string(), |a| a.to_string()),
         )
         .emit();
-    let (first, first_ms) = loss_attempt(&mut s, "after-loss", clock, after_loss[0]);
+    let (first, first_ms) = loss_attempt(&mut s, "after-loss", after_loss[0]);
     let mut master_back = None;
     let mut second = None;
     if o.loss == Loss::Master {
@@ -1898,7 +1894,7 @@ pub fn recovery(o: &Options) -> Result<Outcome, String> {
             .field("result", result_text(&back))
             .emit();
         if back.is_ok() {
-            second = Some(loss_attempt(&mut s, "master-back", clock, after_loss[1]).0);
+            second = Some(loss_attempt(&mut s, "master-back", after_loss[1]).0);
         }
         master_back = Some(back);
     }
@@ -2041,10 +2037,6 @@ mod tests {
         assert!(
             Duration::from_millis(RECOVERY_LATCH_TIMEOUT_MS) + LATCH_TIMEOUT / 10 < RECOVERY_BUDGET
         );
-        let clock = Instant::now();
-        let a = ticks(clock);
-        std::thread::sleep(Duration::from_millis(5));
-        assert!(ticks(clock) >= a + 5);
     }
 
     #[test]
