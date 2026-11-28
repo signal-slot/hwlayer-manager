@@ -404,6 +404,6 @@ The earlier statement that the plan would stay the same, with cursor 686 kept an
 ## Open points
 
 - Post-fix commits: CM4 0ba62fc, RPi4 62086e2, RPi5 e3c6f68.
-- RPi5 pre-fix notes are incomplete, as stated above: those cells are "not recorded", not zero.
+- The RPi5 pre-fix values come from the 2026-11-28 re-run; the notes of the 2026-11-27 run were lost (observed 2026-11-28).
 - Planner suggestion carried from the CM4 run: say in the VERDICT line when `--swap-z` was requested but skipped (change belongs in `twoplane.rs`).
 - Folding this file into `platform-capabilities.md` and updating X-08 / X-09 in `open-issues.md` is left to the plan's later step; this file edits neither.
