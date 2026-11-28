@@ -3,8 +3,12 @@
 Date of reads: 2026-11-28. Nothing here was observed on a board.
 
 Tags: **read from source** (content fetched and seen, pinned below),
-**inferred** (my deduction), **not read** (no content obtained). Section 3 is
-the Toradex kernel device-tree read; section 3.3 lists what is still unread.
+**inferred** (my deduction), **not read** (no content obtained), and
+**observed 2026-11-27** (seen on the board in
+[observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt) (S1) or
+[observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt) (S2); the S2
+run was on 2026-11-27 too). Section 3 is the Toradex kernel device-tree read;
+section 3.3 lists what is still unread.
 
 ## 1. Pins
 
@@ -12,6 +16,15 @@ the Toradex kernel device-tree read; section 3.3 lists what is still unread.
 |---|---|---|---|
 | NXP imx-sm, <https://github.com/nxp-imx/imx-sm> | tag `rel_imx_sm_2026q3` | `eec232878ab7dd460f5a8f3767d39dc7e9412efa` | `git ls-remote --tags`, 2026-11-28 (the tag exists) |
 | Toradex kernel, <https://git.toradex.com/linux-toradex.git> | branch `toradex_6.6-2.2.x-imx` | `8ad2b7ff6b5666b25b1b43819c83b9ae3930b8df` | `git ls-remote --heads`, 2026-11-28 |
+
+Two imx-sm pins are in use across the i.MX95 notes. This note reads
+`rel_imx_sm_2026q3` (`eec23287`, resolved with `git ls-remote`).
+[imx95-sm-linux-interfaces.md](imx95-sm-linux-interfaces.md),
+[imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) and
+[imx95-display-handover.md](imx95-display-handover.md) use the NXP release
+`rel_imx_sm_2025q3` = tag `lf-6.6.52-2.2.2` = `af1e37026c6b` (`af1e3702`).
+Neither is proven to be the SM the board runs, which reports firmware version
+0x23e (observed 2026-11-27, S1/S2); each statement names the pin it rests on.
 
 The Toradex SHA is the branch head on the resolution date, not the SRCREV of
 BSP 7.8.0 (that recipe in `meta-toradex-nxp` was not read), so it identifies
@@ -79,9 +92,19 @@ file as shown by `git show`.
 
 So at this branch head Linux's DPU, pixel link, LDB and DSI nodes are all
 `disabled` in the SoC dtsi and nothing in the Verdin/Mallow files read turns
-them on. Whether the running 7.8.0 image enables them (for example by an
-overlay or a different tree) is **not** shown here; the live DT of the board
-is the question for [imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md).
+them on. The running board does have them enabled: it shows
+`display-controller@4b400000`, `ldb@4` with `channel@0`, the pixel-link
+`bridge@8` and `panel-lvds-native`, the LDB PLL pair (2986.2 / 497.7 MHz) and
+DPU interrupt lines on an irqsteer domain, while the model string reads
+"Toradex Verdin iMX95 WB on Verdin Development Board" (observed 2026-11-27,
+S1 and S2). So the enabling comes from something not in the files read here,
+most likely the panel overlay (inferred; the board's DT is the authority, see
+[imx95-zephyr-feasibility.md](imx95-zephyr-feasibility.md)). The carrier file
+for the "Verdin Development Board" model was not among the files read in §3.1
+(not read). The board's `dispaxi` clock runs at 800 MHz and `dispocram` at
+400 MHz (observed 2026-11-27, S1 `clk_summary`), against the 400 MHz
+`assigned-clock-rates` for both in `dispmix_csr` above (read from source);
+that row is therefore a source default, not the running rate.
 Which core would take the DPU interrupts (an NVIC mapping for the
 `displaymix_irqsteer` outputs) is **inferred**, not read.
 
@@ -95,8 +118,12 @@ Which core would take the DPU interrupts (an NVIC mapping for the
 | `git ls-remote https://github.com/toradex/linux-toradex.git` | "Repository not found" (a GitHub copy under that name is **inferred** absent; a rename or privacy change would look the same) |
 | `raw.githubusercontent.com/torvalds/linux/v6.18/.../imx95-verdin.dtsi`, `imx95-toradex-smarc.dtsi` | HTTP 404 at that tag; not used |
 
-Still unread: the `meta-toradex-nxp` recipe and SRCREV for BSP 7.8.0; any
-Toradex-shipped SM config for the Verdin; imx-mkimage; the display overlay for
+Still unread: the `meta-toradex-nxp` recipe and SRCREV for BSP 7.8.0; the
+Toradex `imx_rproc.c` at `8ad2b7ff` (it would settle from source whether the
+board's driver starts the M7 by SMC or SCMI LMM; the board shows no LMM or CPU
+SCMI driver, observed 2026-11-27, S2); the carrier dts of the "Verdin
+Development Board" model; any Toradex-shipped SM config for the Verdin
+(`verdin-imx95`, [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md)); imx-mkimage; the display overlay for
 the 10.1" LVDS panel (it is not in the files above).
 
 ## 4. What this adds to the earlier studies
@@ -105,5 +132,6 @@ the 10.1" LVDS panel (it is not in the files above).
 - Line-cited LM ownership for display resources at `rel_imx_sm_2026q3`
   (section 2).
 - Line-cited Verdin cm7 rproc, reserved-memory, console and display-node
-  state from the Toradex tree (section 3). The Verdin facts in [imx95-m7-verdin-bsp.md](imx95-m7-verdin-bsp.md) stay
-  sourced from Toradex-authored upstream patches and forum posts.
+  state from the Toradex tree (section 3). [imx95-m7-verdin-bsp.md](imx95-m7-verdin-bsp.md)
+  was first sourced from Toradex-authored upstream patches and forum posts; it
+  now cites this tree read and the board snapshots where they confirm it.

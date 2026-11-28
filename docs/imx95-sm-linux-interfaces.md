@@ -7,8 +7,13 @@ accessed and nothing was run. The question is which paths a read-only user on
 the Verdin iMX95 could read, what each would show, and whether it could settle
 check (c).
 
-Tags: **read from source (repo@pin)** or **inferred**. No path below is
-**observed**.
+Tags: **read from source (repo@pin)**, **inferred**, or **observed
+2026-11-27** (seen on the board in
+[observed-2026-11-27.txt](imx95-zephyr/observed-2026-11-27.txt) (S1) or
+[observed-2026-11-28.txt](imx95-zephyr/observed-2026-11-28.txt) (S2), both
+read-only). The source study (sections 1 to 6) was written without a board;
+section 8 compares its predictions with what the snapshots show, and where the
+two differ the snapshot wins.
 
 ## 1. Sources, pins and their limits
 
@@ -16,7 +21,7 @@ Tags: **read from source (repo@pin)** or **inferred**. No path below is
 |---|---|---|
 | NXP kernel, <https://github.com/nxp-imx/linux-imx> | tag `lf-6.6.52-2.2.2` = commit `5a0a5e71d2bd130577c7330cbb3764c68ebcb3dc` (also the tip of `lf-6.6.y` when read); no `lf-6.6.157*` tag exists in the tag list | The board runs Toradex's 6.6.157-7.8.0 kernel, a different tree. The closest NXP tag is used, so **every kernel statement below is a statement about NXP 6.6.52, and whether the Toradex kernel matches is inferred (unchecked)**. |
 | NXP TF-A, <https://github.com/nxp-imx/imx-atf> | tag `lf-6.6.52-2.2.2`, commit `8ec7e38031f8c022a9760a8da77bdc6e1938db8c` (from the tag list page; not re-derived with `git ls-remote`) | Which TF-A the Toradex image ships is not read. |
-| NXP System Manager, <https://github.com/nxp-imx/imx-sm> | tag-less `master` commit `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec` (`rel_imx_sm_2025q3`), the pin already used in `docs/imx95-sm-display-lm.md` | Toradex's SM build is not read (see that document, section 1). |
+| NXP System Manager, <https://github.com/nxp-imx/imx-sm> | tag `lf-6.6.52-2.2.2` = `rel_imx_sm_2025q3` = commit `af1e37026c6ba19cdca98fd6e91494efd3e7b5ec`, the pin used in `docs/imx95-sm-display-lm.md` and [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md) §2 (a later tag, `rel_imx_sm_2026q3` = `eec23287`, is the pin of [imx95-verdin-bsp-src.md](imx95-verdin-bsp-src.md); this note does not use it) | Toradex's SM build (`verdin-imx95` in its own fork) is not read ([imx95-verdin-sm-config.md](imx95-verdin-sm-config.md)). The board's SM reports firmware version 0x23e (observed 2026-11-27), which does not map to either pin. |
 
 How the files were read: through an HTTPS page-fetch tool (no `git clone`
 was possible here), not a checkout. The tool returns no line numbers, so
@@ -108,11 +113,11 @@ row**; the rows differ in how much they narrow it.
 | 1 | dmesg `NXP SM MISC Version %d.%d` (`imx-sm-misc.c`, `scmi_imx_misc_protocol_init`) | The MISC protocol version the SM reports (0x10001 in imx-sm@af1e3702). Says nothing about cfg or rights | No | read from source (linux-imx@5a0a5e71) |
 | 2 | dmesg `i.MX MISC NUM DEV CTRL: %d, NUM BRD CTRL: %d,NUM Reason: %d` (`scmi_imx_misc_attributes_get`) | Counts of device controls, board controls and reset reasons: a coarse build fingerprint | No | read from source (linux-imx@5a0a5e71) |
 | 3 | dmesg `NXP SM BBM Version %d.%d` (`imx-sm-bbm.c`) | BBM protocol version | No | read from source (linux-imx@5a0a5e71) |
-| 4 | `/sys/bus/scmi_protocol/devices/` (node names of the SCMI devices that bound, e.g. `scmi_dev.*`) and the `protocol_version`, `firmware_version` (`0x%x` of `impl_ver`), `vendor_id`, `sub_vendor_id` sysfs attributes the SCMI core attaches to those devices (`driver.c`, `DEVICE_ATTR_RO` via `dev_groups`, summary) | Which protocols Linux bound (expect 0x11..0x19, 0x81, 0x84; **no 0x80/0x82**, section 2) and the SM's vendor strings and implementation version | No: identifies the SM build; carries no permission data | read from source (summary) for the attribute names; the exact device-path layout is inferred |
+| 4 | `/sys/bus/scmi_protocol/devices/` (node names of the SCMI devices that bound, e.g. `scmi_dev.*`) and the `protocol_version`, `firmware_version` (`0x%x` of `impl_ver`), `vendor_id`, `sub_vendor_id` sysfs attributes the SCMI core attaches to those devices (`driver.c`, `DEVICE_ATTR_RO` via `dev_groups`, summary) | Which protocols Linux bound (predicted 0x11..0x19, 0x81, 0x84; **no 0x80/0x82**, section 2; the board shows 0x11-0x15, 0x19, 0x81 and 0x84 only, section 8) and the SM's vendor strings and implementation version | No: identifies the SM build; carries no permission data | read from source (summary) for the attribute names; the exact device-path layout is inferred |
 | 5 | dmesg SCMI base-protocol line (mainline `base.c` prints protocol version, vendor `'%s:%s'` and firmware version in one `dev_info`) | Same data as row 4, in the log | No | **inferred**: `base.c` was not read at the pin; feasibility doc section 2 already records an observed SM version (2026-11-27), which is consistent with such a line |
 | 6 | `/sys/kernel/debug/scmi/<instance>/instance_name`, `atomic_threshold_us`, `transport/{type,is_atomic,max_rx_timeout_ms,max_msg_size,tx_max_msg,rx_max_msg}` (`driver.c` `scmi_debugfs_common_setup`, summary); further `raw/` files exist only with `CONFIG_ARM_SCMI_RAW_MODE_SUPPORT` (`raw_mode.c`, not read) | Transport parameters only (mailbox/shmem), nothing about the SM configuration. The debugfs tree needs root and `CONFIG_ARM_SCMI_DEBUG`-style options (unverified on the Toradex build) | No | read from source (summary); raw-mode presence on the board is inferred |
 | 7 | `/sys/class/remoteproc/remoteproc*/state` | `offline` when `imx_rproc_detect_mode` saw `IMX_SIP_RPROC_STARTED` return 0, `detached` when it returned non-zero (started by an earlier boot stage) | No: `offline` is also what a TF-A call that failed (the `scmi_core_info_get` result is ignored) or a core stopped by SM would give; it shows no grant | read from source (`imx_rproc_detect_mode`, `imx_rproc_attach`); the mapping to what the board shows is inferred |
-| 8 | `/sys/class/remoteproc/remoteproc*/{name,firmware}` and `/proc/device-tree/.../fsl,imx95-cm7` node (`mbox-names`, `memory-region`, `fsl,auto-boot`, `power-domains`) | That Linux was told it owns an M7 and the firmware name; no rights | No | read from source (`imx_rproc.c`); node presence in the Toradex DT is not read here (see `docs/imx95-verdin-bsp-src.md`) |
+| 8 | `/sys/class/remoteproc/remoteproc*/{name,firmware}` and `/proc/device-tree/.../fsl,imx95-cm7` node (`mbox-names`, `memory-region`, `power-domains`, `fsl,startup-delay-ms`; the predicted `fsl,auto-boot` is absent on the board, section 8) | That Linux was told it owns an M7 and the firmware name; no rights | No | read from source (`imx_rproc.c`); node presence in the Toradex DT is read in `docs/imx95-verdin-bsp-src.md` §3.1 and the node is observed 2026-11-27 (section 8) |
 | 9 | dmesg `imx-rproc ...: No resource table in elf`, `Not in wfi, force stopped`, `Failed to enable remote core!`, `Failed to stop remote core` | Outcomes of an actual start/stop only (the last two are the symptom of a refused start/stop) | **Only by attempting a start or stop**; that is a write, outside a read-only session. After an attempt, `Failed to enable remote core!` would show a refusal, but a missing string does not prove a grant for stop | read from source (`imx_rproc_start`/`stop`) |
 | 10 | dmesg TF-A strings (`SCMI AP core protocol version 0x%x detected`, `Unimplemented i.MX SiP Service Call`) | Not visible to Linux: BL31 output goes to the console UART at its own log level, not into the kernel ring buffer | No | read from source (imx-atf@8ec7e38); the UART-only visibility is inferred |
 | 11 | A cfg name / `MISC_CFG_INFO` (mSel, `cfgName`) or `MISC_DISCOVER_BUILD_INFO` (commit, date) | The most useful SM data: which cfg built the SM (e.g. `mx95evk` versus a Toradex cfg) and when. **No kernel code sends these messages** at the pin and no sysfs, debugfs or dmesg string carries them | Would narrow (c) (an unmodified cfg name implies the stock permissions of `docs/imx95-sm-display-lm.md`), but is **not reachable read-only** | read from source (absence in linux-imx@5a0a5e71; message layout in imx-sm@af1e3702) |
@@ -137,15 +142,37 @@ row**; the rows differ in how much they narrow it.
   (summary), so those reads would work even without grants and would not prove
   the grant.
 - The best source-level route to the SM cfg is outside the board: the
-  Toradex SM cfg file (see `docs/imx95-verdin-bsp-src.md`, item `sm-config-read`).
+  Toradex SM cfg file `verdin-imx95` (see
+  [imx95-verdin-sm-config.md](imx95-verdin-sm-config.md); it could not be
+  fetched, so this route is still open).
 
 ## 7. Limits and what to re-check
 
 - The kernel on the board is Toradex's 6.6.157-7.8.0. NXP may have added
   LMM/CPU vendor protocols and `imx_rproc` SCMI paths after 6.6.52; NXP's
-  later trees (6.12) have them, but that was not read here. A read-only
-  `ls /sys/bus/scmi_protocol/devices` plus the loaded drivers would show it
-  directly (row 4).
+  later trees (6.12) have them, but that was not read here. The board's driver
+  list shows no LMM or CPU driver (section 8, observed 2026-11-27), so the
+  board kernel behaves like 6.6.52 on this point; the Toradex `imx_rproc.c`
+  is still unread (inferred).
 - `driver.c`, `imx95.dtsi` and the imx-sm `rpc_scmi_*.c` files were only partly
   verbatim; rows marked (summary) should be re-read from a checkout.
 - The imx-atf tag commit was taken from a web page, not `git ls-remote`.
+
+## 8. What the board shows (observed 2026-11-27)
+
+Read-only snapshots S1 and S2 (see the tag list above) against sections 2 to 5.
+Where a prediction above differs, this section wins.
+
+| Topic | Prediction above | Board | Result |
+|---|---|---|---|
+| Who starts the M7 | SMC to TF-A, no SCMI in `imx_rproc` (section 2) | No SCMI LMM or CPU driver bound and no "Using CPU/LMM Protocol OPS" line (S2). The Toradex `imx_rproc.c` was not read, so the start path itself is not observed | consistent; SMC reading stands |
+| Bound SCMI drivers | row 4: 0x11..0x19, 0x81, 0x84 | `scmi-clocks`, `scmi-cpufreq`, `scmi-hwmon`, `scmi-imx-bbm`, `scmi-imx-misc-ctrl`, `scmi-perf-domain`, `scmi-pinctrl`, `scmi-power-domain`, `scmi-reset`, `scmi-system-power`; DT protocol nodes `@11 @12 @13 @14 @15 @19 @81 @84` (S1, S2) | the board has no `0x16`-`0x18` node; the range in row 4 was too wide |
+| Row 4 attributes (`protocol_version`, `firmware_version`, `vendor_id`, `sub_vendor_id`) | readable per device | the snapshots list the `scmi_dev.*` names but no attribute values; the attributes were **not seen** | not observed |
+| Rows 1 to 3 dmesg lines | MISC and BBM versions, MISC counts | `SCMI Protocol v2.1 'NXP:IMX' Firmware version 0x23e`, `NXP SM MISC Version 1.1`, `i.MX MISC NUM DEV CTRL: 7, NUM BRD CTRL: 2,NUM Reason: 32`, `NXP SM BBM Version 1.0` (S1, S2) | present; row 5's inferred base-protocol line exists |
+| Row 6 SCMI debugfs | `/sys/kernel/debug/scmi/...` | `/sys/kernel/debug/scmi*`: no such file (S2) | absent on this kernel |
+| Row 7 remoteproc state | `offline` or `detached` | `remoteproc1` (`imx-rproc`) `offline`, firmware `rproc-imx-rproc-fw`; `remoteproc0` is `neutron-rproc` (S1, S2). `offline` shows no grant (row 7) | as predicted |
+| Row 8 node | `fsl,auto-boot` listed | node `remoteproc-cm7` has `fsl,imx95-cm7`, `mbox-names`, `memory-region`, `mboxes`, `power-domains`, `fsl,startup-delay-ms`; **no `fsl,auto-boot`** (S1). A node `rpmsg-lifecycle` (`nxp,rpmsg-lifecycle`) also exists and is not covered by the sources read | `fsl,auto-boot` removed from row 8 |
+| Row 11 cfg name | not reachable read-only | no cfg name or build info anywhere in the snapshots; the only "cfg" dmesg hit belongs to a Wi-Fi driver (S2) | as predicted |
+
+Naming: TF-A calls `0xC2000005` `IMX_SIP_SRC` (section 3) and the kernel calls
+it `IMX_SIP_RPROC` (section 2); it is one call number, two names.
