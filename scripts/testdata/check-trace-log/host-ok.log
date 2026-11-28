@@ -1,0 +1,5 @@
+# SYNTHETIC fixture for check-trace-log.test.sh, invented, not a measurement.
+# date: 2026-11-28
+# host dry run
+# not a hardware result: host dry run
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=1 at_unit=same build="x" board="x"
