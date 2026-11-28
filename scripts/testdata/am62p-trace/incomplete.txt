@@ -1,0 +1,11 @@
+board test: output enable 0
+board test: backlight 0
+BEGIN hwlayer-manager board test am62p_r5f
+SCENE 1 safety-only: status 0 (expected 0), commits 1 latched 1 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 2 app-under-safety: status 0 (expected 0), commits 2 latched 2 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 3 app-replaced: status 0 (expected 0), commits 3 latched 3 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 4 safety-flipped: status 0 (expected 0), commits 4 latched 4 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 5 app-off: status 0 (expected 0), commits 5 latched 5 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 6 refused-no-safety: status 0 (expected 0), commits 6 latched 6 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 7 refused-blank: status 0 (expected 0), commits 7 latched 7 (+1, expected +1), presented yes, released 0 (expected 0): ok
+SCENE 8 refused-foreign-safety: status 0 (expected 0), commits 8 latched 8 (+1, expected +1), presented yes, released 0 (expected 0): ok
