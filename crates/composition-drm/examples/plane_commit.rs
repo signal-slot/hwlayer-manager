@@ -10,7 +10,7 @@
 //!   --hold-ms N        how long to leave the commit on screen (default 3000)
 //!   --test-only-only   stop after the TEST_ONLY check; nothing is committed
 //!
-//! SPEC: plane=ID,format=XR24|AR24|NV12,src=WxH,dst=X,Y,WxH[,zpos=N][,rotation=R][,alpha=N]
+//! SPEC: plane=ID,format=XR24|AR24|NV12,src=WxH,dst=X,Y,WxH[,zpos=N][,rotation=R][,alpha=N][,pattern=P]
 //!   plane      plane id (as `props` or `kms_sweep` print it)
 //!   format     XR24 (XRGB8888), AR24 (ARGB8888) or NV12; NV12 needs even sizes
 //!   src        framebuffer size; the whole buffer is the source rectangle
@@ -20,6 +20,11 @@
 //!              `+` (`180+reflect-x`); a name alone with no angle gets
 //!              rotate-0 added; any other name is refused
 //!   alpha      value of the plane's `alpha` property (0..=65535)
+//!   pattern    `bars` (default: eight vertical colour bars) or `quadrants`
+//!              (four colours, one per quadrant: top left red, top right
+//!              green, bottom left blue, bottom right white; unlike bars,
+//!              every flip and turn gives a different picture, reflect-y
+//!              included)
 //! ```
 //!
 //! The program opens the device, becomes DRM master (or exits with status 2
@@ -27,9 +32,16 @@
 //! connector's preferred mode (or, if the CRTC is already running, the mode
 //! it runs: no modeset is made then) and a CRTC for it. Each layer gets a
 //! dumb buffer of its `src` size filled with eight vertical colour bars
-//! (white, yellow, cyan, green, magenta, red, blue, black). NV12 buffers
+//! (white, yellow, cyan, green, magenta, red, blue, black), or with the four
+//! quadrant colours for `pattern=quadrants`. NV12 buffers
 //! have a Y plane and an interleaved CbCr plane (BT.601, limited range) on
-//! one tall dumb buffer, the CbCr plane at an offset. Only the properties a
+//! one tall dumb buffer, the CbCr plane at an offset. The quadrant colours
+//! are converted with the same integer BT.601 limited-range formula as the
+//! bars (`yuv`: Y = 16 + 0.257 R + 0.504 G + 0.098 B, Cb and Cr = 128 plus
+//! the usual 0.439-scaled colour differences), giving red (82, 90, 240),
+//! green (144, 54, 34), blue (41, 240, 110) and white (235, 128, 128) as
+//! (Y, Cb, Cr); one CbCr pair serves a 2x2 block and comes from the block's
+//! top left pixel. Only the properties a
 //! SPEC names are set besides the ones every placement needs (`FB_ID`,
 //! `CRTC_ID`, `SRC_*`, `CRTC_*`); a property the plane lacks is a usage
 //! error before anything is sent, but a value the kernel refuses
@@ -65,6 +77,30 @@
 //! VERDICT plane_commit: DONE
 //! ```
 //!
+//! After the `COMMIT` line (not with `--test-only-only`) come the `EXPECT`
+//! lines, in the format `scripts/twoplane-expect.py` reads (the one
+//! `twoplane` prints; `rgb` is `#rrggbb` there):
+//!
+//! ```text
+//! EXPECT phase=commit "42-tl" x=170 y=140 fx=0.0885 fy=0.1296 rgb=#ff0000
+//! EXPECT phase=commit skipped reason=plane-alpha plane=31
+//! ```
+//!
+//! One line per quadrant (`tl`, `tr`, `bl`, `br`, named as the *buffer* has
+//! them) of every `pattern=quadrants` layer. `x`,`y` is the screen position
+//! of the quadrant's centre after the layer's rotation and reflection are
+//! applied to its `dst` rectangle (the buffer is scaled to `dst`, turned
+//! counter-clockwise by the angle, then reflected; the order matters only
+//! for 90 and 270, an assumption), `fx`,`fy` are `x`,`y` over the output
+//! size, `rgb` is the colour the buffer holds there. A sample is left out
+//! when it is off the output or when another layer covers it that has a
+//! higher `zpos` (or an equal or unknown one). A `pattern=bars` layer, or one
+//! with plane `alpha` below 65535, gets `skipped reason=bars-pattern` or
+//! `reason=plane-alpha` (then `plane=ID`) instead. `twoplane-expect.py` drops
+//! the whole `commit` phase when any such line is present, so use quadrant
+//! layers at full alpha alone for a picture check. A translucent look is not
+//! predicted.
+//!
 //! `TEST_ONLY`, `COMMIT`, `RECOVER` and `RESTORE` are `ok` or the errno
 //! (`EINVAL`, `ERANGE`, `ENOSPC`, `EBUSY`, ... or `errno<N>`). With
 //! `--test-only-only` only the lines up to `TEST_ONLY` and `CRTC` are printed.
@@ -97,7 +133,7 @@ use drm::control::{
 use drm::{ClientCapability, Device as BasicDevice};
 
 const USAGE: &str = "usage: plane_commit [--device PATH] [--connector ID] \
---layer plane=ID,format=XR24|AR24|NV12,src=WxH,dst=X,Y,WxH[,zpos=N][,rotation=R][,alpha=N] \
+--layer plane=ID,format=XR24|AR24|NV12,src=WxH,dst=X,Y,WxH[,zpos=N][,rotation=R][,alpha=N][,pattern=bars|quadrants] \
 [--layer ...] [--hold-ms N] [--test-only-only]";
 
 // DRM_MODE_ROTATE_* and DRM_MODE_REFLECT_* from include/uapi/drm/drm_mode.h
@@ -179,6 +215,23 @@ fn parse_size(text: &str) -> Result<(u32, u32), String> {
     Ok((w, h))
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum Pattern {
+    /// Eight vertical colour bars.
+    #[default]
+    Bars,
+    /// Four colours, one per quadrant.
+    Quadrants,
+}
+
+fn parse_pattern(text: &str) -> Result<Pattern, String> {
+    match text {
+        "bars" => Ok(Pattern::Bars),
+        "quadrants" => Ok(Pattern::Quadrants),
+        _ => Err(format!("bad pattern {text}: use bars or quadrants")),
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Layer {
     plane: u32,
@@ -189,6 +242,7 @@ struct Layer {
     zpos: Option<u64>,
     rotation: Option<u64>,
     alpha: Option<u64>,
+    pattern: Pattern,
 }
 
 /// Splits a SPEC at commas. A piece without `=` continues the value before
@@ -214,6 +268,7 @@ fn parse_layer(spec: &str) -> Result<Layer, String> {
     };
     let (mut plane, mut format, mut src, mut dst) = (None, None, None, None);
     let (mut zpos, mut rotation, mut alpha) = (None, None, None);
+    let mut pattern = Pattern::Bars;
     for (key, value) in spec_pairs(spec)? {
         match key.as_str() {
             "plane" => plane = Some(u32::try_from(number(&value)?).map_err(|_| "bad plane id")?),
@@ -237,6 +292,7 @@ fn parse_layer(spec: &str) -> Result<Layer, String> {
                 }
                 alpha = Some(a);
             }
+            "pattern" => pattern = parse_pattern(&value)?,
             other => return Err(format!("unknown layer key {other}")),
         }
     }
@@ -248,6 +304,7 @@ fn parse_layer(spec: &str) -> Result<Layer, String> {
         zpos,
         rotation,
         alpha,
+        pattern,
     };
     if layer.format == Format::Nv12 && (layer.src.0 % 2 != 0 || layer.src.1 % 2 != 0) {
         return Err(format!(
@@ -404,6 +461,133 @@ fn fill_rgb(buf: &mut [u8], pitch: usize, width: u32, height: u32) {
     }
 }
 
+/// The quadrant colours as (R, G, B): top left, top right, bottom left,
+/// bottom right.
+const QUADRANTS: [[u8; 3]; 4] = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 255]];
+
+/// Names of the quadrants, in the order of `QUADRANTS`.
+const QUADRANT_NAMES: [&str; 4] = ["tl", "tr", "bl", "br"];
+
+/// The quadrant (index into `QUADRANTS`) of pixel (`x`, `y`) in a
+/// `width` x `height` buffer.
+fn quadrant_at(x: u32, y: u32, width: u32, height: u32) -> usize {
+    usize::from(u64::from(x) * 2 >= u64::from(width))
+        + 2 * usize::from(u64::from(y) * 2 >= u64::from(height))
+}
+
+/// Like `fill_nv12`, with the quadrant colours. The CbCr pair of a 2x2 block
+/// comes from the block's top left pixel.
+fn fill_nv12_quadrants(buf: &mut [u8], layout: &Nv12Layout, width: u32, height: u32) {
+    let pitch = layout.pitch as usize;
+    for row in 0..height {
+        for x in 0..width {
+            let colour = QUADRANTS[quadrant_at(x, row, width, height)];
+            buf[row as usize * pitch + x as usize] = yuv(colour).0;
+        }
+    }
+    let uv = layout.uv_offset as usize;
+    for row in 0..height / 2 {
+        for pair in 0..width / 2 {
+            let colour = QUADRANTS[quadrant_at(pair * 2, row * 2, width, height)];
+            let (_, cb, cr) = yuv(colour);
+            let at = uv + row as usize * pitch + pair as usize * 2;
+            buf[at] = cb;
+            buf[at + 1] = cr;
+        }
+    }
+}
+
+/// Like `fill_rgb`, with the quadrant colours (alpha opaque).
+fn fill_rgb_quadrants(buf: &mut [u8], pitch: usize, width: u32, height: u32) {
+    for row in 0..height {
+        for x in 0..width {
+            let [r, g, b] = QUADRANTS[quadrant_at(x, row, width, height)];
+            let at = row as usize * pitch + x as usize * 4;
+            buf[at..at + 4].copy_from_slice(&[b, g, r, 0xff]);
+        }
+    }
+}
+
+/// Where the centre of buffer quadrant `quadrant` lands on the screen: the
+/// buffer is scaled to `dst`, turned counter-clockwise by the angle, then
+/// reflected. Positions are kept in quarters of the `dst` size until the
+/// final division.
+fn quadrant_screen_pos(layer: &Layer, quadrant: usize) -> (i64, i64) {
+    let rotation = layer.rotation.unwrap_or(ROTATE_0);
+    let (mut a, mut b) = (
+        1 + 2 * (quadrant as i64 & 1),
+        1 + 2 * (quadrant as i64 >> 1),
+    );
+    match rotation & ROTATE_MASK {
+        ROTATE_90 => (a, b) = (b, 4 - a),
+        ROTATE_180 => (a, b) = (4 - a, 4 - b),
+        ROTATE_270 => (a, b) = (4 - b, a),
+        _ => {}
+    }
+    if rotation & REFLECT_X != 0 {
+        a = 4 - a;
+    }
+    if rotation & REFLECT_Y != 0 {
+        b = 4 - b;
+    }
+    let (x, y, w, h) = layer.dst;
+    (
+        i64::from(x) + a * i64::from(w) / 4,
+        i64::from(y) + b * i64::from(h) / 4,
+    )
+}
+
+fn covers(layer: &Layer, x: i64, y: i64) -> bool {
+    let (lx, ly, w, h) = layer.dst;
+    (i64::from(lx)..i64::from(lx) + i64::from(w)).contains(&x)
+        && (i64::from(ly)..i64::from(ly) + i64::from(h)).contains(&y)
+}
+
+/// The `EXPECT phase=commit` lines for the committed layers on an output of
+/// `output` pixels.
+fn expect_lines(layers: &[Layer], output: (u32, u32)) -> Vec<String> {
+    let mut lines = Vec::new();
+    for layer in layers {
+        let reason = if layer.pattern == Pattern::Bars {
+            Some("bars-pattern")
+        } else if layer.alpha.is_some_and(|a| a < 0xffff) {
+            Some("plane-alpha")
+        } else {
+            None
+        };
+        if let Some(reason) = reason {
+            lines.push(format!(
+                "EXPECT phase=commit skipped reason={reason} plane={}",
+                layer.plane
+            ));
+            continue;
+        }
+        for (quadrant, [r, g, b]) in QUADRANTS.into_iter().enumerate() {
+            let (x, y) = quadrant_screen_pos(layer, quadrant);
+            if x < 0 || y < 0 || x >= i64::from(output.0) || y >= i64::from(output.1) {
+                continue;
+            }
+            // Another layer hides the sample unless it is known to be below.
+            let hidden = layers.iter().any(|other| {
+                other.plane != layer.plane
+                    && covers(other, x, y)
+                    && !matches!((other.zpos, layer.zpos), (Some(o), Some(l)) if o < l)
+            });
+            if hidden {
+                continue;
+            }
+            lines.push(format!(
+                "EXPECT phase=commit \"{}-{}\" x={x} y={y} fx={:.4} fy={:.4} rgb=#{r:02x}{g:02x}{b:02x}",
+                layer.plane,
+                QUADRANT_NAMES[quadrant],
+                x as f64 / f64::from(output.0),
+                y as f64 / f64::from(output.1),
+            ));
+        }
+    }
+    lines
+}
+
 /// One check's outcome: `Ok` if accepted, the errno otherwise.
 type Check = Result<(), i32>;
 
@@ -448,8 +632,12 @@ fn layer_line(layer: &Layer) -> String {
         Some(v) => v.to_string(),
         None => "none".into(),
     };
+    let pattern = match layer.pattern {
+        Pattern::Bars => "",
+        Pattern::Quadrants => " pattern=quadrants",
+    };
     format!(
-        "LAYER plane={} format={} src={}x{} dst={x},{y},{w}x{h} zpos={} rotation={} alpha={}",
+        "LAYER plane={} format={} src={}x{} dst={x},{y},{w}x{h} zpos={} rotation={} alpha={}{pattern}",
         layer.plane,
         layer.format.name(),
         layer.src.0,
@@ -593,7 +781,7 @@ impl PlanarBuffer for Layout {
 
 /// A framebuffer of `format` and `size` filled with the colour bars. NV12 is
 /// one 32 bpp dumb buffer wide as the pitch and tall enough for both planes.
-fn make_fb(card: &Card, format: Format, size: (u32, u32)) -> Result<Fb, String> {
+fn make_fb(card: &Card, format: Format, size: (u32, u32), pattern: Pattern) -> Result<Fb, String> {
     let (width, height) = size;
     let dumb_size = match format {
         Format::Nv12 => {
@@ -627,12 +815,18 @@ fn make_fb(card: &Card, format: Format, size: (u32, u32)) -> Result<Fb, String> 
                 if layout.total > bytes.len() as u64 {
                     return Err("NV12 planes do not fit the dumb buffer".into());
                 }
-                fill_nv12(bytes, &layout, width, height);
+                match pattern {
+                    Pattern::Bars => fill_nv12(bytes, &layout, width, height),
+                    Pattern::Quadrants => fill_nv12_quadrants(bytes, &layout, width, height),
+                }
                 buffer.pitches = [pitch, pitch, 0, 0];
                 buffer.offsets = [0, layout.uv_offset, 0, 0];
                 buffer.handles = [Some(handle), Some(handle), None, None];
             }
-            _ => fill_rgb(bytes, pitch as usize, width, height),
+            _ => match pattern {
+                Pattern::Bars => fill_rgb(bytes, pitch as usize, width, height),
+                Pattern::Quadrants => fill_rgb_quadrants(bytes, pitch as usize, width, height),
+            },
         }
         Ok(())
     })();
@@ -1090,7 +1284,7 @@ fn session(
     let mut fbs = Vec::new();
     for layer in &options.layers {
         println!("{}", layer_line(layer));
-        let fb = make_fb(&ctx.card, layer.format, layer.src)
+        let fb = make_fb(&ctx.card, layer.format, layer.src, layer.pattern)
             .map_err(|e| format!("plane {} {}: {e}", layer.plane, layer.format.name()))?;
         fbs.push(fb.fb);
         buffers.push(fb);
@@ -1110,6 +1304,9 @@ fn session(
     }
     let req = layers_request(ctx, &options.layers, &fbs, modeset)?;
     println!("{}", result_line("COMMIT", ctx.commit(flags, req)));
+    for line in expect_lines(&options.layers, ctx.output) {
+        println!("{line}");
+    }
     std::thread::sleep(Duration::from_millis(options.hold_ms));
     println!("HOLD ms={}", options.hold_ms);
     state_lines(ctx, &options.layers)?;
@@ -1117,7 +1314,7 @@ fn session(
 
     // Primary alone at 1:1, the other layer planes off, rotation 0.
     let primary_format = Format::Xr24;
-    let recover = make_fb(&ctx.card, primary_format, ctx.output)
+    let recover = make_fb(&ctx.card, primary_format, ctx.output, Pattern::Bars)
         .map_err(|e| format!("recovery buffer: {e}"))?;
     let recover_fb = recover.fb;
     buffers.push(recover);
@@ -1208,6 +1405,7 @@ mod tests {
                 zpos: Some(3),
                 rotation: Some(ROTATE_180 | REFLECT_X),
                 alpha: Some(32768),
+                pattern: Pattern::Bars,
             }
         );
         let n = parse_layer(NV12_LAYER).unwrap();
@@ -1381,5 +1579,238 @@ mod tests {
             "LAYER plane=42 format=NV12 src=640x480 dst=100,80,640x480 zpos=2 rotation=0x4 \
              alpha=none"
         );
+    }
+
+    fn layer(spec: &str) -> Layer {
+        parse_layer(spec).unwrap()
+    }
+
+    #[test]
+    fn parses_pattern() {
+        let l = layer("plane=1,format=XR24,src=8x8,dst=0,0,8x8,pattern=quadrants");
+        assert_eq!(l.pattern, Pattern::Quadrants);
+        let l = layer("plane=1,format=XR24,src=8x8,dst=0,0,8x8,pattern=bars");
+        assert_eq!(l.pattern, Pattern::Bars);
+        assert_eq!(layer(NV12_LAYER).pattern, Pattern::Bars);
+        assert!(parse_layer("plane=1,format=XR24,src=8x8,dst=0,0,8x8,pattern=dots").is_err());
+        assert!(parse_layer("plane=1,format=XR24,src=8x8,dst=0,0,8x8,pattern=").is_err());
+        let o = args("--layer plane=1,format=AR24,src=8x8,dst=0,0,8x8,pattern=quadrants").unwrap();
+        assert_eq!(o.layers[0].pattern, Pattern::Quadrants);
+        // Only quadrants change the LAYER line.
+        assert_eq!(
+            layer_line(&o.layers[0]),
+            "LAYER plane=1 format=AR24 src=8x8 dst=0,0,8x8 zpos=none rotation=none alpha=none \
+             pattern=quadrants"
+        );
+    }
+
+    #[test]
+    fn quadrant_rgb_pattern() {
+        let (w, h) = (8u32, 4u32);
+        let mut buf = vec![0u8; (w * h * 4) as usize];
+        fill_rgb_quadrants(&mut buf, (w * 4) as usize, w, h);
+        let px = |x: u32, y: u32| {
+            let at = ((y * w + x) * 4) as usize;
+            buf[at..at + 4].to_vec()
+        };
+        // B, G, R, A with opaque alpha.
+        assert_eq!(px(0, 0), [0, 0, 255, 255], "top left red");
+        assert_eq!(px(3, 1), [0, 0, 255, 255]);
+        assert_eq!(px(4, 0), [0, 255, 0, 255], "top right green");
+        assert_eq!(px(7, 1), [0, 255, 0, 255]);
+        assert_eq!(px(0, 2), [255, 0, 0, 255], "bottom left blue");
+        assert_eq!(px(3, 3), [255, 0, 0, 255]);
+        assert_eq!(px(4, 2), [255, 255, 255, 255], "bottom right white");
+        assert_eq!(px(7, 3), [255, 255, 255, 255]);
+        // Padding after a row is left alone.
+        let mut padded = vec![0xeeu8; 40 * 2];
+        fill_rgb_quadrants(&mut padded, 40, 8, 2);
+        assert_eq!(&padded[32..40], &[0xee; 8]);
+        assert_eq!(quadrant_at(0, 0, 640, 480), 0);
+        assert_eq!(quadrant_at(320, 239, 640, 480), 1);
+        assert_eq!(quadrant_at(319, 240, 640, 480), 2);
+        assert_eq!(quadrant_at(639, 479, 640, 480), 3);
+    }
+
+    #[test]
+    fn quadrant_nv12_pattern() {
+        let (w, h, pitch) = (32u32, 16u32, 64u32);
+        let layout = nv12_layout(w, h, pitch).unwrap();
+        let mut buf = vec![0xeeu8; layout.total as usize];
+        fill_nv12_quadrants(&mut buf, &layout, w, h);
+        let p = pitch as usize;
+        let uv = layout.uv_offset as usize;
+        for (q, (x, y)) in [(0, (0, 0)), (1, (16, 0)), (2, (0, 8)), (3, (31, 15))] {
+            let (luma, cb, cr) = yuv(QUADRANTS[q]);
+            assert_eq!(buf[y * p + x], luma, "luma of quadrant {q}");
+            let at = uv + (y / 2) * p + (x / 2) * 2;
+            assert_eq!((buf[at], buf[at + 1]), (cb, cr), "chroma of quadrant {q}");
+        }
+        // The BT.601 limited-range values the module doc names.
+        assert_eq!(yuv(QUADRANTS[0]), (82, 90, 240), "red");
+        assert_eq!(yuv(QUADRANTS[1]), (144, 54, 34), "green");
+        assert_eq!(yuv(QUADRANTS[2]), (41, 240, 110), "blue");
+        assert_eq!(yuv(QUADRANTS[3]), (235, 128, 128), "white");
+        for (a, ca) in QUADRANTS.iter().enumerate() {
+            for (b, cb) in QUADRANTS.iter().enumerate().skip(a + 1) {
+                let (ya, cba, cra) = yuv(*ca);
+                let (yb, cbb, crb) = yuv(*cb);
+                let d = ya
+                    .abs_diff(yb)
+                    .max(cba.abs_diff(cbb))
+                    .max(cra.abs_diff(crb));
+                assert!(d >= 60, "{a} vs {b}: {d}");
+            }
+        }
+        assert_eq!(buf[15 * p + 32], 0xee, "padding untouched");
+        assert_eq!(uv + 8 * p, buf.len());
+    }
+
+    /// (name, x, y, rgb) of the EXPECT lines, in order.
+    fn samples(lines: &[String]) -> Vec<(String, i64, i64, String)> {
+        lines
+            .iter()
+            .map(|l| {
+                let name = l.split('"').nth(1).unwrap().to_string();
+                let field = |k: &str| {
+                    l.split_whitespace()
+                        .find_map(|t| t.strip_prefix(k))
+                        .unwrap()
+                        .to_string()
+                };
+                (
+                    name,
+                    field("x=").parse().unwrap(),
+                    field("y=").parse().unwrap(),
+                    field("rgb="),
+                )
+            })
+            .collect()
+    }
+
+    fn quad(rotation: &str) -> Layer {
+        layer(&format!(
+            "plane=42,format=XR24,src=64x32,dst=100,40,400x200,pattern=quadrants,rotation={rotation}"
+        ))
+    }
+
+    /// Colours at the screen's top left, top right, bottom left and bottom
+    /// right sample for a rotation.
+    fn screen_colours(rotation: &str) -> Vec<String> {
+        let s = samples(&expect_lines(&[quad(rotation)], (800, 480)));
+        assert_eq!(s.len(), 4, "{rotation}");
+        let mut by_pos: Vec<_> = s.into_iter().map(|(_, x, y, c)| (y, x, c)).collect();
+        by_pos.sort();
+        by_pos.into_iter().map(|(_, _, c)| c).collect()
+    }
+
+    #[test]
+    fn expect_positions_follow_the_transform() {
+        let lines = expect_lines(&[quad("0")], (800, 480));
+        assert_eq!(
+            lines[0],
+            "EXPECT phase=commit \"42-tl\" x=200 y=90 fx=0.2500 fy=0.1875 rgb=#ff0000"
+        );
+        let s = samples(&lines);
+        let at = |name: &str| s.iter().find(|e| e.0 == name).map(|e| (e.1, e.2)).unwrap();
+        assert_eq!(at("42-tr"), (400, 90));
+        assert_eq!(at("42-bl"), (200, 190));
+        assert_eq!(at("42-br"), (400, 190));
+        // Buffer colours: tl red, tr green, bl blue, br white.
+        let (r, g, b, w) = ("#ff0000", "#00ff00", "#0000ff", "#ffffff");
+        let want = |c: [&str; 4]| c.map(String::from).to_vec();
+        assert_eq!(screen_colours("0"), want([r, g, b, w]));
+        assert_eq!(screen_colours("180"), want([w, b, g, r]));
+        assert_eq!(screen_colours("reflect-x"), want([g, r, w, b]));
+        assert_eq!(screen_colours("reflect-y"), want([b, w, r, g]));
+        assert_eq!(screen_colours("reflect-x+reflect-y"), want([w, b, g, r]));
+        assert_eq!(screen_colours("180+reflect-x"), screen_colours("reflect-y"));
+        // 90 is counter-clockwise: the top right goes to the top left.
+        assert_eq!(screen_colours("90"), want([g, w, r, b]));
+        assert_eq!(screen_colours("270"), want([b, r, w, g]));
+        // 0, 180, reflect-x and reflect-y are pairwise different pictures.
+        let all = ["0", "180", "reflect-x", "reflect-y"].map(screen_colours);
+        for (i, pi) in all.iter().enumerate() {
+            for pj in all.iter().skip(i + 1) {
+                assert_ne!(pi, pj);
+            }
+        }
+    }
+
+    #[test]
+    fn expect_leaves_out_covered_and_off_screen_samples() {
+        let low = layer("plane=31,format=XR24,src=64x32,dst=0,0,400x200,zpos=1,pattern=quadrants");
+        let high = layer("plane=42,format=AR24,src=64x32,dst=0,0,200x100,zpos=2,pattern=quadrants");
+        // The high layer covers the low layer's top left centre (100, 50).
+        let s = samples(&expect_lines(&[low.clone(), high.clone()], (800, 480)));
+        let names: Vec<_> = s.iter().map(|e| e.0.as_str()).collect();
+        assert_eq!(
+            names,
+            ["31-tr", "31-bl", "31-br", "42-tl", "42-tr", "42-bl", "42-br"]
+        );
+        // Equal or unknown zpos: no sample under the other layer is predictable.
+        let mut same = high.clone();
+        same.zpos = Some(1);
+        assert_eq!(expect_lines(&[low.clone(), same], (800, 480)).len(), 3);
+        let mut none = high;
+        none.zpos = None;
+        assert_eq!(expect_lines(&[low.clone(), none], (800, 480)).len(), 3);
+        // Off the output.
+        assert_eq!(expect_lines(&[low], (150, 480)).len(), 2);
+    }
+
+    #[test]
+    fn expect_skips_bars_and_plane_alpha() {
+        let bars = layer("plane=31,format=XR24,src=64x32,dst=0,0,64x32");
+        let translucent =
+            layer("plane=42,format=AR24,src=64x32,dst=0,0,64x32,alpha=32768,pattern=quadrants");
+        let opaque =
+            layer("plane=49,format=AR24,src=64x32,dst=0,0,64x32,alpha=65535,pattern=quadrants");
+        assert_eq!(
+            expect_lines(&[bars], (800, 480)),
+            ["EXPECT phase=commit skipped reason=bars-pattern plane=31"]
+        );
+        assert_eq!(
+            expect_lines(&[translucent], (800, 480)),
+            ["EXPECT phase=commit skipped reason=plane-alpha plane=42"]
+        );
+        assert_eq!(expect_lines(&[opaque], (800, 480)).len(), 4);
+    }
+
+    #[test]
+    fn expect_lines_are_read_by_twoplane_expect() {
+        if std::process::Command::new("python3")
+            .arg("--version")
+            .output()
+            .is_err()
+        {
+            eprintln!("python3 not found: skipped");
+            return;
+        }
+        let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../scripts/twoplane-expect.py");
+        let dir = std::env::temp_dir().join(format!("plane_commit_expect_{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let input = dir.join("input.txt");
+        let mut text = expect_lines(&[quad("reflect-y")], (800, 480)).join("\n");
+        text.push('\n');
+        std::fs::write(&input, text).unwrap();
+        let out = std::process::Command::new("python3")
+            .arg("-I")
+            .arg(&script)
+            .arg(&input)
+            .arg("--out")
+            .arg(&dir)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let json = std::fs::read_to_string(dir.join("expect-commit.json")).unwrap();
+        assert!(json.contains("\"42-tl\""), "{json}");
+        assert!(json.contains("\"expect\""), "{json}");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
