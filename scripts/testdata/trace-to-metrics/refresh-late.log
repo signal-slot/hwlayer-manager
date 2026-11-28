@@ -1,0 +1,11 @@
+# SYNTHETIC fixture: invented numbers for the self-test, not a measurement.
+# date: 2026-01-04
+CETRACE v=1 ev=hdr seq=0 src=linux clock=monotonic_ns freq_hz=1000000000 t0=0 at_unit=same build="synthetic" board="synthetic"
+CETRACE v=1 ev=commit seq=1 t=1000000 at=0 out=0 result=ok sub=1
+CETRACE v=1 ev=latched seq=2 t=16667000 at=0 out=0 sub=1 tev=16667000
+CETRACE v=1 ev=commit seq=3 t=17000000 at=0 out=0 result=ok sub=2
+CETRACE v=1 ev=latched seq=4 t=33334000 at=0 out=0 sub=2 tev=33334000
+CETRACE v=1 ev=commit seq=5 t=34000000 at=0 out=0 result=ok sub=3
+CETRACE v=1 ev=latched seq=6 t=66668000 at=0 out=0 sub=3 tev=66668000
+CETRACE v=1 ev=commit seq=7 t=67000000 at=0 out=0 result=ok sub=4
+CETRACE v=1 ev=latched seq=8 t=75000000 at=0 out=0 sub=4 tev=75000000

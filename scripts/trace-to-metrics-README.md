@@ -5,7 +5,7 @@ Converts one engine trace log in the `CETRACE v=1` format of
 `scripts/m2-compare-report.py` reads (see `m2-compare-report-README.md`).
 Python 3, standard library only. Exit 0 ok, 2 input error.
 
-    python3 -I scripts/trace-to-metrics.py [--stage S] LOG > linux.txt
+    python3 -I scripts/trace-to-metrics.py [--stage S] [--refresh-us N] LOG > linux.txt
     python3 -I scripts/trace-to-metrics.py [--stage S] LOG > zephyr.txt
     python3 -I scripts/m2-compare-report.py linux.txt zephyr.txt
 
@@ -43,9 +43,25 @@ A metric that cannot be derived is left out, so `m2-compare-report.py` shows
 `not measured`: M-2b (latch-to-light), M-4 (CPU load), M-7 (memory) never
 come from a trace; M-1/M-2a are absent without latches. M-1's outlier count
 and the late-latch count need a refresh period the log does not carry and are
-not derived. The script makes no pass or verdict statement and the numbers are
+not derived unless `--refresh-us` is given (below). The script makes no pass or verdict statement and the numbers are
 only as good as the log: M-2a on Zephyr is only valid for a log whose `tev`
 comes from a real display interrupt (`docs/m2-linux-zephyr-comparison.md`).
+
+## Optional `--refresh-us N`
+
+`N` is the refresh period in microseconds, a positive integer (anything else
+is exit 2). The caller supplies it; the log does not carry it. Without the
+flag the output is unchanged. With it, and only when the log has at least two
+latches on one output, two more lines are derived from the M-1 interval list:
+
+| id | Derivation |
+|---|---|
+| `M-1.outliers` (`unit=intervals`) | latch intervals deviating from `N` by more than half a period: `abs(interval - N) > N/2` (too short or too long). |
+| `M-3.late` (`unit=intervals`) | latch intervals above 1.5 periods (`docs/m2-comparison-plan.md` M-3). Printed after the other M-3 lines. |
+
+Integer arithmetic in ns (`N * 1000`). The counts describe the log against the
+stated `N`; whether `N` is the real panel refresh is the caller's claim and is
+not checked here.
 
 ## Test
 
