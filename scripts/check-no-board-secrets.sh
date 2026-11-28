@@ -24,7 +24,12 @@
 #
 # Patterns:
 #   ipv4      a.b.c.d dotted quad
-#   tty       /dev/tty* and /dev/serial/by-id paths
+#   tty       /dev/tty* and /dev/serial/by-id paths (ttyUSB, ttyACM, ...);
+#             a name directly followed by <, $ or { is a placeholder
+#             (/dev/ttyUSB<n>, /dev/ttyACM$N) and is allowed
+#   serial    'serial' / 'Serial Number' / 'serial_no' followed by an
+#             8-digit number (Toradex-style board serial), e.g.
+#             "Serial Number: 12345678", "serial=12345678"
 #   mac       xx:xx:xx:xx:xx:xx (also with '-')
 #   user@host user@host, host starting with a letter
 #   ssh-key   -----BEGIN ... PRIVATE KEY-----
@@ -222,7 +227,10 @@ scripts/check-no-farm-ids.test.sh|192\.0\.2\.7|RFC 5737 documentation range samp
 scripts/check-no-farm-ids.test.sh|1\.2\.3\.4|lockfile version that must not be flagged
 scripts/check-no-farm-ids.test.sh|password=changeme|placeholder credential sample
 scripts/check-no-farm-ids.test.sh|let token = abc123|credential sample that must stay flagged
-scripts/check-no-farm-ids.test.sh|dri-devel@lists|mailing-list address next to an ssh target sample'
+scripts/check-no-farm-ids.test.sh|dri-devel@lists|mailing-list address next to an ssh target sample
+scripts/check-m3-report.test.sh|10\.20\.30\.40|fake address the M3 report check must reject
+scripts/check-m3-report.test.sh|aa:bb:cc:dd:ee:ff|fake MAC the M3 report check must reject
+scripts/check-m3-report.test.sh|root@verdinhost|fake ssh target the M3 report check must reject'
 printf '%s\n' "$FIXTURES" | while IFS='|' read -r fpath fre freason; do
     printf '%s\n' "$fpath" >>"$work/fx-paths"
     printf '%s\n' "$fre" >>"$work/fx-res"
@@ -282,11 +290,13 @@ grep -E '(^|[^0-9.])([0-9]{1,3}\.){3}[0-9]{1,3}($|[^0-9])' "$stream" |
     grep -vE '^(.*/)?(Cargo\.lock|vendor/)' |
     grep -vE "${tab}(.*[^0-9.])?(0\.0\.0\.0|127\.0\.0\.1)([^0-9.].*)?\$" |
     report ipv4
-grep -E '/dev/(tty[A-Za-z0-9_]+|serial/by-id)' "$stream" |
+grep -E '/dev/(tty[A-Za-z0-9_]+([^A-Za-z0-9_<${]|$)|serial/by-id)' "$stream" |
     grep -vE '/dev/ttyRPMSG' |
     report tty
 grep -E '(^|[^0-9A-Fa-f:-])(([0-9A-Fa-f]{2}:){5}|([0-9A-Fa-f]{2}-){5})[0-9A-Fa-f]{2}($|[^0-9A-Fa-f:-])' "$stream" |
     report mac
+grep -iE 'serial([ _-]?(number|no))?[^A-Za-z0-9@]{0,4}[0-9]{8}($|[^0-9A-Za-z])' "$stream" |
+    report serial
 grep -E "$uh_re" "$stream" |
     grep -viE 'co-authored-by:|signed-off-by:|git@github\.com|git@gitlab\.com|noreply' |
     uh_filter |
