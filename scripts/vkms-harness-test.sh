@@ -58,6 +58,16 @@ $h move
 $h combos
 $h rotate
 $h all
+# modeset and recovery are not part of \`all\`. vkms lists several modes, so
+# modeset switches to the first other progressive one that TEST_ONLY accepts
+# (no argument needed) and back. recovery loses the CRTC with --loss master:
+# a second descriptor on the node takes master from the engine's and turns
+# the CRTC off (ACTIVE=0), as a compositor would; vkms has no lease and no
+# hotplug, so nothing else takes the display. --loss disable (a commit
+# turning the CRTC off on the engine's own descriptor) is run as well.
+$h modeset
+$h recovery --loss master
+$h recovery --loss disable
 # Kernel DRM lease made in-process, with the revocation scenario.
 $h --source kernel-lease revoke
 $h --source kernel-lease all
