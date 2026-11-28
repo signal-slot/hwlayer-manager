@@ -99,6 +99,8 @@ known constraints to what KMS reports. `Generic` adds nothing; `Imx95Dpu` adds
 what was read from the `dpu95` source and is marked not measured. First
 defined: `crates/composition-drm/src/profile.rs`.
 
+**DM firmware**: The TI Device Manager firmware that runs on the AM62P's wakeup-domain R5F (the "DM R5F") and answers Linux's and other cores' requests for clocks, power and resource ownership. Per the TI AM62Px TRM and TI's public system firmware documentation, not observed here. The M3 work names it because a remote-core DSS owner depends on what it grants; see `docs/am62p-imx95-matrix.md` and `docs/open-issues.md` (M3).
+
 **DSI**: MIPI display serial interface. It appears here as a node in the i.MX95
 source reading and in other SoCs' topology notes. First used: `SoW.md`.
 
@@ -137,6 +139,8 @@ one blanks the output. It is not a displayed refresh. First defined:
 vendor sequence sets it up and a "shadow load" is triggered through it. Read
 from source only. First used:
 [imx95-m7-dpu-driver.md](imx95-m7-dpu-driver.md).
+
+**firmware_class search path**: Where the Linux firmware loader looks for the file named in a remoteproc `firmware-name` (default `/lib/firmware`; an extra path can be set through the `firmware_class.path` kernel parameter or `/sys/module/firmware_class/parameters/path`), per kernel documentation. M3 plans to install the R5F image there; the repository has no AM62P observation of it yet. Compare `remoteproc`.
 
 ## G
 
@@ -205,13 +209,21 @@ milestone M2. Whether it can own the display is an open question. First used:
 [imx95-m7-console.md](imx95-m7-console.md); board rules in
 [imx95-board.md](imx95-board.md).
 
+**MCU R5F / DM R5F**: The AM62P has an R5F in the MCU domain, which the M3 board test targets and which is "the R5F" in this glossary, and a separate R5F in the wakeup domain that runs the DM firmware, per the TI AM62Px TRM. They are different cores with different roles; see `DM firmware` and `R5F`. See `docs/am62p-imx95-matrix.md`.
+
 **modifier**: A buffer layout descriptor (for example linear). First defined:
 `crates/composition-core/src/types.rs` (`Modifier`).
 
 ## O
 
+**OLDI**: The TI LVDS-style panel transmitter the AM62P DSS video ports can feed, per the TI AM62Px TRM; the repository has not observed it. M3 names it as the possible panel link of the Verdin AM62P setup. See `docs/open-issues.md` (M3).
+
+**OSTree deployment**: One bootable, versioned root filesystem tree managed by OSTree, which Torizon OS uses for atomic updates and rollback, per Toradex documentation. The M3 board rule (return the board to Torizon) means booting the deployment again. See `Torizon OS`.
+
 **output**: The engine's scan-out target (`OutputId`); in DRM terms a CRTC with
 its connector. First defined: `crates/composition-core/src/types.rs`.
+
+**overlay manager**: The DSS block that combines the layers of one video port by z-order and blending, per the TI AM62Px TRM. The twoplane backend's two-plane model corresponds to it only as a design statement in `docs/twoplane-backend.md`; no register of it is read here.
 
 ## P
 
@@ -311,9 +323,19 @@ read its programming. First used:
 controller, written for the AM62P model with an i.MX95 note. First used:
 `docs/twoplane-backend.md`.
 
+**Torizon OS**: Toradex's OSTree-based embedded Linux for its modules, including the Verdin AM62P, per Toradex documentation. In this repository it is the boot chain a board must be returned to after any other boot (rule recorded in `docs/board-scenarios.md`). The i.MX95 board runs the NXP BSP instead (`docs/imx95-board.md`).
+
+**trace buffer**: The log memory a remoteproc firmware declares in its resource table; Linux exposes it as `trace0` under the remoteproc debugfs directory, per kernel documentation. M3 reads the R5F test's console from it over ssh because the UART may be busy; the AM62P run has not happened yet. Compare `resource table`.
+
 ## V
 
 **vblank**: The start of a display refresh, as a DRM event. First used: `SoW.md`.
+
+**Verdin**: Toradex's system-on-module family. The repository's i.MX95 setup is a Verdin iMX95 on a Mallow carrier (`docs/imx95-board.md`); the M3 target is the Verdin AM62P. First used: [imx95-m7-verdin-bsp.md](imx95-m7-verdin-bsp.md).
+
+**VID / VIDL**: The DSS input pipelines that fetch a buffer for a plane, per the TI AM62Px TRM; "VIDL" is the lite variant with fewer features. The twoplane note treats the AM62P as two planes; which pipeline each one is, is not recorded. First used: `docs/twoplane-backend.md`.
+
+**video port (VP)**: A DSS output that composes the overlay manager's result and drives one display interface with timing and vblank, per the TI AM62Px TRM. It plays the role of the engine's `output` on the AM62P; the mapping is not observed. See `docs/am62p-imx95-matrix.md`.
 
 **vkms**: The virtual KMS driver of the Linux kernel; host DRM tests and CI run
 against it, not hardware. First used: `README.md`;
