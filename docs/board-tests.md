@@ -44,6 +44,26 @@ If an app can damage state it does not own (it programs a display controller
 that Linux may own, for example), make that opt-in through a Kconfig option
 that defaults to off, and say in the README when it is safe to turn on.
 
+## i.MX95 M7 apps and the out-of-tree board at HEAD
+
+Status as the READMEs record it (2026-11-28): none of these has been run on
+a board. Each purpose line is taken from the app's README.
+
+| Directory | Purpose | Run status per README |
+| --- | --- | --- |
+| [`tests/board/imx95_m7/`](../tests/board/imx95_m7/README.md) | Hello and optional read-only DPU register probe; first M2 (WP3) board program, meant to be started by Linux remoteproc. | host build only |
+| [`tests/board/imx95_m7_engine/`](../tests/board/imx95_m7_engine/README.md) | Links the engine's C ABI static library and prints the plan for five fixed scenes against a backend that describes the stock Zephyr DPU driver; no display access. | host build, plus a QEMU run on `mps2/an386` (emulation of another core, not hardware) |
+| [`tests/board/imx95_m7_scanout/`](../tests/board/imx95_m7_scanout/README.md) | Framebuffer scanout through Zephyr's generic display API with per-frame `display_write` timing; the DPU is untouched unless a Kconfig option (default off) is set. | host build only; scanout and timing not measured |
+| [`tests/board/imx95_m7_scmi_probe/`](../tests/board/imx95_m7_scmi_probe/README.md) | Read-only SCMI queries of the clocks and power domains of the display pipeline; reads no display register. | host build only |
+
+The out-of-tree board
+[`tests/board/boards/toradex/verdin_imx95/`](../tests/board/boards/toradex/verdin_imx95/)
+(target `verdin_imx95/mimx9596/m7`, Cortex-M7 from TCM) is described in
+[`tests/board/boards/README.md`](../tests/board/boards/README.md). That
+README records a host build only; the board has not been loaded on a Verdin
+iMX95. The apps above build for `imx95_evk/mimx9596/m7`, except
+`imx95_m7_scanout`, whose README builds `imx95_evk/mimx9596/m7/ddr`.
+
 ## Environment names
 
 Builds use three environment variables. This repository never records their
