@@ -14,12 +14,11 @@ these rows; where a row says "to measure" the source is only the expectation.
 - Files, under `drivers/gpu/drm/rockchip/`: `rockchip_drm_vop2.c` (2793 lines,
   `V2C` below) and `rockchip_vop2_reg.c` (2577 lines, `REG`). Line numbers are
   counted on the copies in the project's dependency cache.
-- Provenance caveat (inferred, 2026-11-28): the copies were reused from the
-  cache and not re-downloaded in this run (network fetches were refused), so
-  they are v6.18 on the strength of the cache name, the line counts matching
-  `docs/rk3588-vop2-limits-source.md`, and their content. Before relying on one
-  line number, re-fetch the two paths at the pinned commit. The tag object was
-  not re-resolved.
+- Provenance (read from source, 2026-11-28): both files were also fetched
+  fresh from the `v6.18` tag (raw per-file download) and are byte-identical
+  (`cmp`) to the cached copies the line numbers were counted on. The tag
+  object and the peeled commit were not re-resolved, so the commit hash above
+  is still the recorded pin, not a new check (inferred).
 - Tags: `read from source` (file:line) or `inferred`, all dated 2026-11-28.
   The running board kernel is `6.18.55-current-rockchip64`; whether its
   VOP2 code equals v6.18 is RK Q2 and not decided here (inferred).
