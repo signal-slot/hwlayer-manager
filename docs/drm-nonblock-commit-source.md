@@ -12,10 +12,11 @@ generic helper, and this note reads it.
   `https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/drivers/gpu/drm/drm_atomic_helper.c?h=v6.18`
   (read 2026-11-28 UTC). Line numbers below are exact for that file.
 - **inferred**: a conclusion of this note. A line without a tag is inferred.
-- **Not read**: `drivers/gpu/drm/drm_atomic_uapi.c`, `drivers/gpu/drm/drm_atomic.c` and
-  `include/drm/drm_atomic.h` at `v6.18` could not be fetched in this session (the raw-file host
-  answered 429, other fetches were refused). Nothing below is claimed from them. What they decide
-  is listed under "Open".
+- **read from source**: also `drivers/gpu/drm/drm_atomic_uapi.c` and `include/drm/drm_atomic.h`
+  at `v6.18`, same tag and host (paths `drivers/gpu/drm/drm_atomic_uapi.c` and
+  `include/drm/drm_atomic.h` with `?h=v6.18`), read 2026-11-28 UTC.
+- **Not read**: `drivers/gpu/drm/drm_atomic.c` at `v6.18` (the fetch was refused). Nothing below
+  is claimed from it. What it decides is listed under "Open".
 
 ## What a nonblocking second commit gets: -EBUSY
 
@@ -43,8 +44,14 @@ All references are in `drm_atomic_helper.c` at `v6.18`.
   `stall_checks` runs for every CRTC present in the new state.
 - **read from source**: the refusal is logged by `drm_dbg_atomic` as "busy with a previous commit"
   (lines 2314 to 2316, 2503, 2525), not as an error.
-- **inferred**: the errno comes back from `drm_atomic_helper_commit()` unchanged. Whether the
-  atomic ioctl returns it to userspace unchanged is in `drm_atomic_uapi.c` (not read).
+- **read from source**: in `drm_atomic_uapi.c`, `drm_mode_atomic_ioctl()` (line 1384) calls
+  `drm_atomic_nonblocking_commit(state)` when `DRM_MODE_ATOMIC_NONBLOCK` is set (lines 1539 to
+  1540), `drm_atomic_commit(state)` otherwise (line 1542), and `drm_atomic_check_only()` for
+  `DRM_MODE_ATOMIC_TEST_ONLY` (lines 1537 to 1538). The only error it retries is -EDEADLK (line
+  1548); any other `ret`, -EBUSY included, is returned at line 1560.
+- **inferred**: so the -EBUSY from `stall_checks` reaches userspace unchanged, provided
+  `drm_atomic_nonblocking_commit()` (declared at `drm_atomic.h` line 845; body in `drm_atomic.c`,
+  not read) hands the driver's `atomic_commit` result back as is.
 - **inferred**: the refusal happens before the state swap, so the pending commit is neither
   replaced nor cancelled. It keeps its event and completes normally. This is the answer for a
   driver that uses `drm_atomic_helper_commit`; a driver with its own `atomic_commit` hook (see the
@@ -96,16 +103,21 @@ All references are in `drm_atomic_helper.c` at `v6.18`.
 - **read from source**: on that fallback `stall_checks` is still called (line 2456) before the
   legacy test (line 2471), and the plane loop (line 2522) still applies when `nonblock` is true.
   Whether `drm_atomic_commit()` passes `nonblock` true or false is in `drm_atomic.c` (not read).
-- **inferred**: a cursor-only update through the **atomic** ioctl with `DRM_MODE_ATOMIC_NONBLOCK`
-  does not take the legacy path in this file: the only two assignments of `legacy_cursor_update`
-  are lines 3346 and 3384 above. It would take the normal `setup_commit` path with `nonblock`
-  true and get the -EBUSY rules above, unless `drm_atomic_uapi.c` sets the flag (not read).
+- **read from source**: `drm_atomic_uapi.c` at `v6.18` contains no assignment to
+  `legacy_cursor_update` or `async_update`. A cursor-only update through the **atomic** ioctl
+  with `DRM_MODE_ATOMIC_NONBLOCK` therefore does not take the legacy path: `drm_mode_atomic_ioctl()`
+  (lines 1539 to 1540) calls `drm_atomic_nonblocking_commit()` and the state has both flags false
+  (`drm_atomic.h` lines 444 and 449 declare them as per-state bits). The header calls the legacy flag
+  "thoroughly broken" and says "new users of this flag are not allowed" (`drm_atomic.h` lines 436
+  to 443). `DRM_MODE_PAGE_FLIP_ASYNC` only calls `set_async_flip()` (line 1535; function at 1373), not
+  the `async_update` hint.
+- **inferred**: that cursor commit takes the normal `setup_commit` path with `nonblock` true and
+  gets the -EBUSY rules above (CRTC, plane and connector tests), so a cursor-only nonblocking
+  atomic commit while a flip is pending on its CRTC is refused like any other.
 
 ## Open (not answered here)
 
-- Whether the atomic ioctl in `drm_atomic_uapi.c` sets `legacy_cursor_update` or `async_update`
-  itself, and how `DRM_MODE_ATOMIC_NONBLOCK` and `DRM_MODE_PAGE_FLIP_EVENT` map to the `nonblock`
-  argument.
-- What `drm_atomic_commit()` and `drm_atomic_nonblocking_commit()` in `drm_atomic.c` pass.
+- What `drm_atomic_commit()` and `drm_atomic_nonblocking_commit()` in `drm_atomic.c` pass as
+  `nonblock` to the driver's `atomic_commit`, and whether they return its result unchanged.
 - Which target-board drivers use `drm_atomic_helper_commit` unmodified: see the two linked notes.
   Only a `pending_probe` run on a board can say what a board returns.
